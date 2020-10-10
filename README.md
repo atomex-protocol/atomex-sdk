@@ -1,3 +1,3 @@
-# atomex-sdk-ts
+# Atomex SDK
 
 Atomex SDK in Typescript

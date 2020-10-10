@@ -8,5 +8,20 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "typedocOptions": {
+    "src": [
+    "./src",
+    ],
+  "mode": "file",
+  "includeDeclarations": true,
+  "out": "./doc",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "name": "Atomex SDK",
+  "ignoreCompilerErrors": true,
+  "plugin": "none",
+  "listInvalidSymbolLinks": true,
+  }
 }

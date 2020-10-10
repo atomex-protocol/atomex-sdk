@@ -4,16 +4,25 @@ import { AbiItem } from "web3-utils";
 import config from "../../config.json";
 import { ExpectedSwapData, SwapDetails } from "../../type/util";
 
+/**
+ * Ethereum Util class for Ethereum related Atomex helper functions
+ */
 export class EthereumUtil {
   private _rpc!: string;
-  public _chainClient!: Web3;
-  public _contract!: Contract;
+  private _chainClient!: Web3;
+  private _contract!: Contract;
   private _init: boolean;
 
   constructor() {
     this._init = false;
   }
 
+  /**
+   * Connects to the supported ethereum chain
+   *
+   * @param rpc rpc endpoint to create eth chain client
+   * @returns chain id of the connected chain
+   */
   async connect(rpc: string) {
     const web3 = new Web3(rpc);
     const chainID = await web3.eth.getChainId();
@@ -36,23 +45,26 @@ export class EthereumUtil {
     return chainID;
   }
 
+  /**
+   * Checks if chain client has been initialized or not
+   */
   private status() {
-    if (!this._init) throw new Error("EthereumUtil was not setup properly");
+    if (!this._init)
+      throw new Error("EthereumUtil was not setup properly, perform connect()");
   }
 
-  async initiate({
-    hashedSecret,
-    participant,
-    refundTimestamp,
-    payoff,
-    active,
-    countdown,
-  }: SwapDetails) {
+  /**
+   * Get the tx data for Atomex Contract Initiate Swap call
+   *
+   * @param swapDetails details of the swap being initiated
+   * @returns contract address and tx data that can be used to make a contract call
+   */
+  async initiate(swapDetails: SwapDetails) {
     this.status();
     if (
       !(
-        refundTimestamp.toString().length == 10 &&
-        Date.now() / 1000 < refundTimestamp
+        swapDetails.refundTimestamp.toString().length == 10 &&
+        Date.now() / 1000 < swapDetails.refundTimestamp
       )
     ) {
       throw new Error(
@@ -61,12 +73,14 @@ export class EthereumUtil {
     }
     const data: string = await this._contract.methods
       .initiate(
-        hashedSecret,
-        participant,
-        refundTimestamp,
-        countdown !== undefined ? countdown : refundTimestamp - 1,
-        payoff,
-        active !== undefined ? active : true,
+        swapDetails.hashedSecret,
+        swapDetails.participant,
+        swapDetails.refundTimestamp,
+        swapDetails.countdown !== undefined
+          ? swapDetails.countdown
+          : swapDetails.refundTimestamp - 1,
+        swapDetails.payoff,
+        swapDetails.active !== undefined ? swapDetails.active : true,
       )
       .encodeABI();
     return {
@@ -75,6 +89,12 @@ export class EthereumUtil {
     };
   }
 
+  /**
+   * Get the tx data for Atomex Contract Redeem Swap call
+   *
+   * @param secret secret that can used to verify and redeem the funds
+   * @returns contract address and tx data that can be used to make a contract call
+   */
   async redeem(secret: string) {
     this.status();
     const data: string = await this._contract.methods
@@ -86,6 +106,12 @@ export class EthereumUtil {
     };
   }
 
+  /**
+   * Get the tx data for Atomex Contract Refund Swap call
+   *
+   * @param hashedSecret hashedSecret to identify swap
+   * @returns contract address and tx data that can be used to make a contract call
+   */
   async refund(hashedSecret: string) {
     this.status();
     const data: string = await this._contract.methods
@@ -97,6 +123,12 @@ export class EthereumUtil {
     };
   }
 
+  /**
+   * Get the tx data for Atomex Contract AdditionalFunds call
+   *
+   * @param hashedSecret hashedSecret to identify swap
+   * @returns contract address and tx data that can be used to make a contract call
+   */
   async add(hashedSecret: string) {
     this.status();
     const data: string = await this._contract.methods
@@ -108,6 +140,12 @@ export class EthereumUtil {
     };
   }
 
+  /**
+   * Get the tx data for Atomex Contract Activate Swap call
+   *
+   * @param hashedSecret hashedSecret to identify swap
+   * @returns contract address and tx data that can be used to make a contract call
+   */
   async activate(hashedSecret: string) {
     this.status();
     const data: string = await this._contract.methods
@@ -119,6 +157,12 @@ export class EthereumUtil {
     };
   }
 
+  /**
+   * Parse tx data for an Atomex Contract call
+   *
+   * @param txHash transaction hash to identify blockchain transaction
+   * @returns the parameters and function name of the contract call
+   */
   private async getTxData(txHash: string) {
     const txData = await this._chainClient.eth.getTransaction(txHash);
 
@@ -166,6 +210,14 @@ export class EthereumUtil {
     return returnData;
   }
 
+  /**
+   * Validate the Swap Details on chain using the tx detail from Atomex
+   *
+   * @param txHash transaction hash to identify blockchain transaction
+   * @param expectedData expected swap details that will be used for validation
+   * @param confirmations no. of tx confirmations required
+   * @returns true/false depending on transaction validity
+   */
   async validateSwapTransaction(
     txHash: string,
     expectedData: ExpectedSwapData,
@@ -201,4 +253,7 @@ export class EthereumUtil {
   }
 }
 
+/**
+ * Singleton instance of EthereumUtil
+ */
 export const Ethereum = new EthereumUtil();

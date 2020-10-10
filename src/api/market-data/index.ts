@@ -1,6 +1,13 @@
 import { BookQuote, OrderBook } from "../../type";
 import { getBasePath, getQueryURL, makeApiRequest } from "../util";
 
+/**
+ * Get Top of Book Quotes for all or specific Symbols
+ *
+ * @param symbolList an array of Symbols eg. `Eth/BTC` , `XTZ/ETH`
+ * @param authToken atomex authorization token
+ * @returns a list of Book Quotes
+ */
 export const getTopBookQuotes = async (
   symbolList?: string[],
   authToken = "",
@@ -21,6 +28,13 @@ export const getTopBookQuotes = async (
   });
 };
 
+/**
+ * Get the Order Book for a particular Symbol
+ *
+ * @param symbol a symbol eg. `ETH/BTC`
+ * @param authToken atomex authorization token
+ * @returns an order book containing all orders for the particular symbol
+ */
 export const getOrderBook = async (
   symbol: string,
   authToken = "",

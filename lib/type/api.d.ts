@@ -2,7 +2,9 @@ export declare type Side = "Buy" | "Sell";
 export declare type Sort = "Asc" | "Desc";
 export declare type TxType = "Lock" | "AdditionalLock" | "Redeem" | "Refund";
 export declare type OrderType = "Return" | "FillOrKill" | "SolidFillOrKill" | "ImmediateOrCancel";
-export declare type Status = "Pending" | "Placed" | "PartiallyFilled" | "Filled" | "Canceled" | "Rejected";
+export declare type OrderStatus = "Pending" | "Confirmed" | "Canceled";
+export declare type PartyStatus = "Created" | "Involved" | "PartiallyInitiated" | "Initiated" | "Redeemed" | "Refunded" | "Lost" | "Jackpot";
+export declare type TxStatus = "Pending" | "Placed" | "PartiallyFilled" | "Filled" | "Canceled" | "Rejected";
 export interface BookQuote {
     symbol: string;
     timeStamp: string;
@@ -27,13 +29,6 @@ export interface ProofOfFunds {
     publicKey: string;
     signature: string;
 }
-export interface AddOrderRequisites {
-    secretHash?: string;
-    receivingAddress: string;
-    refundAddress?: string;
-    rewardForRedeem: number;
-    lockTime: number;
-}
 export interface AddOrderRequest {
     clientOrderId: string;
     symbol: string;
@@ -42,7 +37,7 @@ export interface AddOrderRequest {
     side: Side;
     type: OrderType;
     proofOfFunds: ProofOfFunds[];
-    requisites: AddOrderRequisites;
+    requisites?: SwapRequisites;
 }
 export interface GetOrdersRequest {
     symbols?: string;
@@ -61,12 +56,12 @@ export interface Transaction {
     txId: string;
     blockHeight: number;
     confirmations: number;
-    status: Status;
+    status: TxStatus;
     type: TxType;
 }
 export interface UserSwapData {
     requisites: SwapRequisites;
-    status: Status;
+    status: PartyStatus;
     trades: Trade[];
     transactions: Transaction[];
 }
@@ -93,7 +88,7 @@ export interface Order {
     qty: number;
     leaveQty: number;
     type: OrderType;
-    status: Status;
+    status: OrderStatus;
     trades: Trade[];
     swaps: Swap[];
 }
@@ -111,6 +106,13 @@ export interface SwapRequisites {
     refundAddress?: string;
     rewardForRedeem: number;
     lockTime: number;
+}
+export interface AddSwapRequisites {
+    secretHash?: string;
+    receivingAddress?: string;
+    refundAddress?: string;
+    rewardForRedeem?: number;
+    lockTime?: number;
 }
 export interface GetTokenRequest {
     timeStamp: number;

@@ -3,6 +3,9 @@ import { TezosToolkit } from "@taquito/taquito";
 import config from "../../config.json";
 import { ExpectedSwapData, SwapDetails } from "../../type/util";
 
+/**
+ * Tezos Util class for Tezos related Atomex helper functions
+ */
 export class TezosUtil {
   private _rpc!: string;
   private _chainClient!: TezosToolkit;
@@ -14,6 +17,12 @@ export class TezosUtil {
     this._init = false;
   }
 
+  /**
+   * Connects to the supported tezos chain
+   *
+   * @param rpc rpc endpoint to create tezos chain client
+   * @returns chain id of the connected chain
+   */
   async connect(rpc: string) {
     const tezos = new TezosToolkit();
     tezos.setProvider({ rpc });
@@ -35,21 +44,26 @@ export class TezosUtil {
     return chainID;
   }
 
+  /**
+   * Checks if chain client has been initialized or not
+   */
   private status() {
-    if (!this._init) throw new Error("TezosUtil was not setup properly");
+    if (!this._init)
+      throw new Error("TezosUtil was not setup properly, perform connect()");
   }
 
-  initiate({
-    hashedSecret,
-    participant,
-    refundTimestamp,
-    payoff,
-  }: SwapDetails) {
+  /**
+   * Get the tx data for Atomex Contract Initiate Swap call
+   *
+   * @param swapDetails details of the swap being initiated
+   * @returns contract address and tx data that can be used to make a contract call
+   */
+  initiate(swapDetails: SwapDetails) {
     this.status();
     if (
       !(
-        refundTimestamp.toString().length == 10 &&
-        Date.now() / 1000 < refundTimestamp
+        swapDetails.refundTimestamp.toString().length == 10 &&
+        Date.now() / 1000 < swapDetails.refundTimestamp
       )
     ) {
       throw new Error(
@@ -58,10 +72,10 @@ export class TezosUtil {
     }
     const parameter: string = this._contract.Encode(
       "initiate",
-      participant,
-      hashedSecret,
-      refundTimestamp,
-      payoff,
+      swapDetails.participant,
+      swapDetails.hashedSecret,
+      swapDetails.refundTimestamp,
+      swapDetails.payoff,
     );
     return {
       parameter,
@@ -69,6 +83,12 @@ export class TezosUtil {
     };
   }
 
+  /**
+   * Get the tx data for Atomex Contract Redeem Swap call
+   *
+   * @param secret secret that can used to verify and redeem the funds
+   * @returns contract address and tx data that can be used to make a contract call
+   */
   redeem(secret: string) {
     this.status();
     const parameter: string = this._contract.Encode("redeem", secret);
@@ -78,6 +98,12 @@ export class TezosUtil {
     };
   }
 
+  /**
+   * Get the tx data for Atomex Contract Refund Swap call
+   *
+   * @param hashedSecret hashedSecret to identify swap
+   * @returns contract address and tx data that can be used to make a contract call
+   */
   refund(hashedSecret: string) {
     this.status();
     const parameter: string = this._contract.Encode("refund", hashedSecret);
@@ -87,6 +113,12 @@ export class TezosUtil {
     };
   }
 
+  /**
+   * Get the tx data for Atomex Contract AdditionalFunds call
+   *
+   * @param hashedSecret hashedSecret to identify swap
+   * @returns contract address and tx data that can be used to make a contract call
+   */
   add(hashedSecret: string) {
     this.status();
     const parameter: string = this._contract.Encode("add", hashedSecret);
@@ -96,7 +128,13 @@ export class TezosUtil {
     };
   }
 
-  async getCurrentHeadDetails(blockLevel: "head" | number) {
+  /**
+   * Get Block endorsements and level
+   *
+   * @param blockLevel block level to identify the block
+   * @returns endorsements and level of the block
+   */
+  async getBlockDetails(blockLevel: "head" | number) {
     const block = await this._chainClient.rpc.getBlock({
       block: blockLevel.toString(),
     });
@@ -124,6 +162,13 @@ export class TezosUtil {
     };
   }
 
+  /**
+   * Get the Swap Initiate parameters from a tx
+   *
+   * @param blockHeight block height of the block where the tx is present
+   * @param txID operation/tx hash of the contract call
+   * @param hashedSecret hashedSecret to identify swap
+   */
   private async getSwapParams(
     blockHeight: number,
     txID: string,
@@ -174,6 +219,15 @@ export class TezosUtil {
     }
   }
 
+  /**
+   * Validate the Swap Details on chain using the tx detail from Atomex
+   *
+   * @param blockHeight block height of the block where the tx is present
+   * @param txID operation/tx hash to identify blockchain transaction
+   * @param expectedData expected swap details that will be used for validation
+   * @param confirmations no. of tx confirmations required
+   * @returns true/false depending on transaction validity
+   */
   async validateSwapTransaction(
     blockHeight: number,
     txID: string,
@@ -201,8 +255,8 @@ export class TezosUtil {
     )
       return false;
 
-    const headDetails = await this.getCurrentHeadDetails("head");
-    const txBlockDetails = await this.getCurrentHeadDetails(blockHeight);
+    const headDetails = await this.getBlockDetails("head");
+    const txBlockDetails = await this.getBlockDetails(blockHeight);
 
     if (
       headDetails.level - txBlockDetails.level < confirmations &&
@@ -215,4 +269,7 @@ export class TezosUtil {
   }
 }
 
+/**
+ * Singleton instance of TezosUtil
+ */
 export const Tezos = new TezosUtil();
