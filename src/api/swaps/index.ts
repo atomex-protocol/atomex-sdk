@@ -1,15 +1,15 @@
-import { getQueryURL } from "../util";
-import fetch from "isomorphic-unfetch";
-import { getBasePath } from "../config";
-import { AddSwapRequisites, GetSwapsRequest, TxType } from "./type";
+import { GetSwapsRequest, Swap, SwapRequisites } from "../../type";
+import { getBasePath, getQueryURL, makeApiRequest } from "../util";
 
-export const addSwapRequisites = (
+// TODO: non-json response will throw error
+export const addSwapRequisites = async (
   swapID: string,
-  swapRequisites: AddSwapRequisites,
-  authToken: string
-) => {
+  swapRequisites: SwapRequisites,
+  authToken: string,
+): Promise<boolean> => {
   const url = new URL(getBasePath() + "/Swaps/" + swapID);
-  return fetch(url.toString(), {
+
+  return makeApiRequest(url.toString(), {
     method: "post",
     body: JSON.stringify(swapRequisites),
     headers: {
@@ -18,13 +18,14 @@ export const addSwapRequisites = (
   });
 };
 
-export const getSwaps = (
+export const getSwaps = async (
   getOrdersRequest: GetSwapsRequest,
-  authToken: string
-) => {
+  authToken: string,
+): Promise<Swap[]> => {
   let url = new URL(getBasePath() + "/Swaps");
   url = getQueryURL(url, { ...getOrdersRequest });
-  return fetch(url.toString(), {
+
+  return makeApiRequest(url.toString(), {
     method: "get",
     headers: {
       Authorization: "Bearer " + authToken,
@@ -32,26 +33,14 @@ export const getSwaps = (
   });
 };
 
-export const getSwap = (swapID: string, authToken: string) => {
-  const url = new URL(getBasePath() + "/Swaps/" + swapID);
-  return fetch(url.toString(), {
-    method: "get",
-    headers: {
-      Authorization: "Bearer " + authToken,
-    },
-  });
-};
-
-export const addSwapTxInfo = (
+export const getSwap = async (
   swapID: string,
-  txID: string,
-  txType: TxType,
-  authToken: string
-) => {
-  let url = new URL(getBasePath() + "/Swaps/" + swapID);
-  url = getQueryURL(url, { txId: txID, type: txType });
-  return fetch(url.toString(), {
-    method: "post",
+  authToken: string,
+): Promise<Swap> => {
+  const url = new URL(getBasePath() + "/Swaps/" + swapID);
+
+  return makeApiRequest(url.toString(), {
+    method: "get",
     headers: {
       Authorization: "Bearer " + authToken,
     },

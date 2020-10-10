@@ -1,11 +1,18 @@
-import fetch from "isomorphic-unfetch";
-import { getBasePath } from "../config";
-import { GetTokenRequest } from "./type";
+import { AuthResponse, GetTokenRequest } from "../../type";
+import { getBasePath, makeApiRequest } from "../util";
 
-export const getAuthToken = (authParam: GetTokenRequest) => {
+export const getAuthToken = async (
+  authParam: GetTokenRequest,
+): Promise<AuthResponse> => {
   const url = new URL(getBasePath() + "/Token");
-  return fetch(url.toString(), {
+  const body: any = {
+    ...authParam,
+    algorithm: `${authParam.algorithm}:${authParam.curve}`,
+  };
+  delete body.curve;
+
+  return makeApiRequest(url.toString(), {
     method: "post",
-    body: JSON.stringify(authParam),
+    body: JSON.stringify(body),
   });
 };

@@ -1,14 +1,14 @@
-import { getQueryURL } from "../util";
-import fetch from "isomorphic-unfetch";
-import { getBasePath } from "../config";
-import { AddOrderRequest, GetOrdersRequest, Side } from "./type";
+import { AddOrderRequest, GetOrdersRequest, Order, Side } from "../../type";
+import { getBasePath, getQueryURL, makeApiRequest } from "../util";
 
-export const addOrder = (
+// TODO: non-json response will throw error
+export const addOrder = async (
   addOrderRequest: AddOrderRequest,
-  authToken: string
-) => {
+  authToken: string,
+): Promise<number> => {
   const url = new URL(getBasePath() + "/Orders");
-  return fetch(url.toString(), {
+
+  return makeApiRequest(url.toString(), {
     method: "post",
     body: JSON.stringify(addOrderRequest),
     headers: {
@@ -17,13 +17,14 @@ export const addOrder = (
   });
 };
 
-export const getOrders = (
+export const getOrders = async (
   getOrdersRequest: GetOrdersRequest,
-  authToken: string
-) => {
+  authToken: string,
+): Promise<Order[]> => {
   let url = new URL(getBasePath() + "/Orders");
   url = getQueryURL(url, { ...getOrdersRequest });
-  return fetch(url.toString(), {
+
+  return makeApiRequest(url.toString(), {
     method: "get",
     headers: {
       Authorization: "Bearer " + authToken,
@@ -31,9 +32,13 @@ export const getOrders = (
   });
 };
 
-export const getOrder = (orderID: string, authToken: string) => {
+export const getOrder = async (
+  orderID: string,
+  authToken: string,
+): Promise<Order> => {
   const url = new URL(getBasePath() + "/Orders/" + orderID);
-  return fetch(url.toString(), {
+
+  return makeApiRequest(url.toString(), {
     method: "get",
     headers: {
       Authorization: "Bearer " + authToken,
@@ -41,15 +46,17 @@ export const getOrder = (orderID: string, authToken: string) => {
   });
 };
 
-export const cancelOrder = (
+// TODO: non-json response will throw error
+export const cancelOrder = async (
   id: string,
   symbol: string,
   side: Side,
-  authToken: string
-) => {
+  authToken: string,
+): Promise<boolean> => {
   let url = new URL(getBasePath() + "/Orders/" + id);
   url = getQueryURL(url, { symbol, side });
-  return fetch(url.toString(), {
+
+  return makeApiRequest(url.toString(), {
     method: "delete",
     headers: {
       Authorization: "Bearer " + authToken,

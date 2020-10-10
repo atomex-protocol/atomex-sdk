@@ -1,27 +1,37 @@
-import { getQueryURL } from "../util";
-import fetch from "isomorphic-unfetch";
-import { getBasePath } from "../config";
-import { CandleRequest } from "./type";
+import { BookQuote, OrderBook } from "../../type";
+import { getBasePath, getQueryURL, makeApiRequest } from "../util";
 
-export const getTopBookQuotes = (symbolList?: string[]) => {
+export const getTopBookQuotes = async (
+  symbolList?: string[],
+  authToken = "",
+): Promise<BookQuote[]> => {
   const symbols =
     symbolList !== undefined && symbolList.length > 0
       ? symbolList.join(",")
       : "All";
+
   let url = new URL(getBasePath() + "/MarketData/quotes");
   url = getQueryURL(url, { symbols });
-  console.log(url.toString());
-  return fetch(url.toString());
+
+  return makeApiRequest(url.toString(), {
+    method: "get",
+    headers: {
+      Authorization: "Bearer " + authToken,
+    },
+  });
 };
 
-export const getOrderBook = (symbol: string) => {
+export const getOrderBook = async (
+  symbol: string,
+  authToken = "",
+): Promise<OrderBook> => {
   let url = new URL(getBasePath() + "/MarketData/book");
   url = getQueryURL(url, { symbol });
-  return fetch(url.toString());
-};
 
-export const getCandlesHistory = (candleRequest: CandleRequest) => {
-  let url = new URL(getBasePath() + "/MarketData/candles");
-  url = getQueryURL(url, { ...candleRequest });
-  return fetch(url.toString());
+  return makeApiRequest(url.toString(), {
+    method: "get",
+    headers: {
+      Authorization: "Bearer " + authToken,
+    },
+  });
 };
