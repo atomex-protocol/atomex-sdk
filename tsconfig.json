@@ -15,7 +15,7 @@
     ],
   "mode": "file",
   "includeDeclarations": true,
-  "out": "./doc",
+  "out": "./docs",
   "excludePrivate": true,
   "excludeProtected": true,
   "excludeExternals": true,
