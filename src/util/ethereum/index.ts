@@ -2,7 +2,7 @@ import Web3 from "web3";
 import { Contract } from "web3-eth-contract";
 import { AbiItem } from "web3-utils";
 import config from "../../config.json";
-import { ExpectedSwapData, SwapDetails } from "../../type/util";
+import { ExpectedSwapData, SwapDetails, SwapValidity } from "../../type/util";
 
 /**
  * Ethereum Util class for Ethereum related Atomex helper functions
@@ -20,26 +20,25 @@ export class EthereumUtil {
   /**
    * Connects to the supported ethereum chain
    *
-   * @param rpc rpc endpoint to create eth chain client
+   * @param chain chains supported by atomex, can be either mainnet or testnet
+   * @param rpc optional rpc endpoint to create eth chain client
    * @returns chain id of the connected chain
    */
-  async connect(rpc: string) {
-    const web3 = new Web3(rpc);
-    const chainID = await web3.eth.getChainId();
-    const conf = config.ethereum;
-    if (
-      !Object.prototype.hasOwnProperty.call(conf.chains, chainID.toString())
-    ) {
-      throw new Error(`Chain wit Chain-ID ${chainID} Not Supported`);
+  async connect(chain: "mainnet" | "testnet", rpc?: string) {
+    const chainDetails = config.ethereum[chain];
+    if (rpc !== undefined) {
+      chainDetails.rpc = rpc;
     }
-    this._rpc = rpc;
+    const web3 = new Web3(chainDetails.rpc);
+    const chainID = await web3.eth.getChainId();
+    if (chainDetails.chainID !== chainID.toString()) {
+      throw new Error(`Wrong RPC: Chain wit Chain-ID ${chainID} Not Supported`);
+    }
+    this._rpc = chainDetails.rpc;
     this._chainClient = web3;
     this._contract = new web3.eth.Contract(
       config.ethereum.abi as AbiItem[],
-      Object.getOwnPropertyDescriptor(
-        conf.chains,
-        chainID.toString(),
-      )?.value.contract,
+      chainDetails.contract,
     );
     this._init = true;
     return chainID;
@@ -216,40 +215,63 @@ export class EthereumUtil {
    * @param txHash transaction hash to identify blockchain transaction
    * @param expectedData expected swap details that will be used for validation
    * @param confirmations no. of tx confirmations required
-   * @returns true/false depending on transaction validity
+   * @returns status of tx, current no. of confirms and est. next block generation timestamp.
+   * No. of confirmations and block timestamp is only returned when `status:Included`
    */
   async validateSwapTransaction(
     txHash: string,
     expectedData: ExpectedSwapData,
     confirmations = 5,
-  ) {
+  ): Promise<SwapValidity> {
     const txData = await this.getTxData(txHash);
     if (
       txData === undefined ||
       txData.name !== "initiate" ||
-      txData.to !== this._contract.options.address
-    )
-      return false;
-
-    const currentBlock = await this._chainClient.eth.getBlockNumber();
-
-    if (
-      currentBlock - txData.blockHeight < confirmations ||
+      txData.to !== this._contract.options.address ||
       txData.amount !== expectedData._amount
     )
-      return false;
+      return {
+        status: "Invalid",
+        confirmations: "",
+        next_block_ts: "",
+      };
+    else {
+      const keys = Object.keys(txData.parameters);
+      for (let i = 0; i < keys.length; i++)
+        if (
+          Object.prototype.hasOwnProperty.call(expectedData, keys[i]) &&
+          Object.getOwnPropertyDescriptor(
+            expectedData,
+            keys[i],
+          )?.value.toString() !== txData.parameters[keys[i]]
+        )
+          return {
+            status: "Invalid",
+            confirmations: "",
+            next_block_ts: "",
+          };
+    }
 
-    const keys = Object.keys(txData.parameters);
-    for (let i = 0; i < keys.length; i++)
-      if (
-        Object.prototype.hasOwnProperty.call(expectedData, keys[i]) &&
-        Object.getOwnPropertyDescriptor(
-          expectedData,
-          keys[i],
-        )?.value.toString() !== txData.parameters[keys[i]]
-      )
-        return false;
-    return true;
+    const currentBlock = await this._chainClient.eth.getBlockNumber();
+    const confirms = currentBlock - txData.blockHeight;
+    if (confirms >= confirmations)
+      return {
+        status: "Confirmed",
+        confirmations: "",
+        next_block_ts: "",
+      };
+
+    const headData = await this._chainClient.eth.getBlock(currentBlock);
+    const lastHeadData = await this._chainClient.eth.getBlock(currentBlock - 1);
+
+    const next_block_ts =
+      2 * Number(headData.timestamp) - Number(lastHeadData.timestamp);
+
+    return {
+      status: "Included",
+      confirmations: confirms.toString(),
+      next_block_ts: next_block_ts.toString(),
+    };
   }
 }
 

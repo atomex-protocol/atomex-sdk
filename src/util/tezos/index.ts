@@ -1,7 +1,7 @@
 import { ParameterSchema } from "@taquito/michelson-encoder";
 import { TezosToolkit } from "@taquito/taquito";
 import config from "../../config.json";
-import { ExpectedSwapData, SwapDetails } from "../../type/util";
+import { ExpectedSwapData, SwapDetails, SwapValidity } from "../../type/util";
 
 /**
  * Tezos Util class for Tezos related Atomex helper functions
@@ -20,27 +20,29 @@ export class TezosUtil {
   /**
    * Connects to the supported tezos chain
    *
-   * @param rpc rpc endpoint to create tezos chain client
+   * @param chain chains supported by atomex, can be either mainnet or testnet
+   * @param rpc optional rpc endpoint to create tezos chain client
    * @returns chain id of the connected chain
    */
-  async connect(rpc: string) {
+  async connect(chain: "mainnet" | "testnet", rpc?: string) {
+    const chainDetails = config.tezos[chain];
+    if (rpc !== undefined) chainDetails.rpc = rpc;
+
     const tezos = new TezosToolkit();
     tezos.setProvider({ rpc });
+
     const chainID = await tezos.rpc.getChainId();
-    const conf = config.tezos;
-    if (
-      !Object.prototype.hasOwnProperty.call(conf.chains, chainID.toString())
-    ) {
-      throw new Error(`Chain wit Chain-ID ${chainID} Not Supported`);
+
+    if (chainDetails.chainID !== chainID.toString()) {
+      throw new Error(`Wrong RPC: Chain wit Chain-ID ${chainID} Not Supported`);
     }
-    this._rpc = rpc;
+
+    this._rpc = chainDetails.rpc;
     this._chainClient = tezos;
     this._contract = new ParameterSchema(config.tezos.micheline);
     this._init = true;
-    this._contractAddr = Object.getOwnPropertyDescriptor(
-      conf.chains,
-      chainID.toString(),
-    )?.value.contract;
+    this._contractAddr = chainDetails.contract;
+
     return chainID;
   }
 
@@ -132,9 +134,9 @@ export class TezosUtil {
    * Get Block endorsements and level
    *
    * @param blockLevel block level to identify the block
-   * @returns endorsements and level of the block
+   * @returns endorsements , level of the block and block generation time
    */
-  async getBlockDetails(blockLevel: "head" | number) {
+  private async getBlockDetails(blockLevel: "head" | number) {
     const block = await this._chainClient.rpc.getBlock({
       block: blockLevel.toString(),
     });
@@ -159,6 +161,7 @@ export class TezosUtil {
     return {
       endorsements: endorsementCount,
       level: block.metadata.level.level,
+      time: new Date(block.header.timestamp).getTime() / 1000,
     };
   }
 
@@ -217,6 +220,7 @@ export class TezosUtil {
       if (Object.keys(data).length === 0) return undefined;
       return data;
     }
+    return undefined;
   }
 
   /**
@@ -226,21 +230,27 @@ export class TezosUtil {
    * @param txID operation/tx hash to identify blockchain transaction
    * @param expectedData expected swap details that will be used for validation
    * @param confirmations no. of tx confirmations required
-   * @returns true/false depending on transaction validity
+   * @returns status of tx, current no. of confirms and est. next block generation timestamp.
+   * No. of confirmations and block timestamp is only returned when `status:Included`
    */
   async validateSwapTransaction(
     blockHeight: number,
     txID: string,
     expectedData: ExpectedSwapData,
     confirmations = 5,
-  ) {
+  ): Promise<SwapValidity> {
     const swapData = (await this.getSwapParams(
       blockHeight,
       txID,
       expectedData._hashedSecret,
     )) as Record<string, any>;
 
-    if (swapData === undefined) return false;
+    if (swapData === undefined)
+      return {
+        status: "Invalid",
+        confirmations: "",
+        next_block_ts: "",
+      };
 
     swapData["settings"]["payoff"] = swapData["settings"]["payoff"].toString();
     const amount = (
@@ -253,19 +263,32 @@ export class TezosUtil {
       swapData["settings"]["payoff"] !== expectedData._payoff ||
       amount !== expectedData._amount
     )
-      return false;
+      return {
+        status: "Invalid",
+        confirmations: "",
+        next_block_ts: "",
+      };
 
     const headDetails = await this.getBlockDetails("head");
     const txBlockDetails = await this.getBlockDetails(blockHeight);
-
+    const confirms = headDetails.level - txBlockDetails.level;
     if (
-      headDetails.level - txBlockDetails.level < confirmations &&
-      headDetails.endorsements !== 32 &&
-      txBlockDetails.endorsements !== 32
+      confirms >= confirmations ||
+      headDetails.endorsements === 32 ||
+      txBlockDetails.endorsements === 32
     )
-      return false;
-
-    return true;
+      return {
+        status: "Confirmed",
+        confirmations: "",
+        next_block_ts: "",
+      };
+    const lasHeadDetails = await this.getBlockDetails(headDetails.level - 1);
+    const next_block_ts = 2 * headDetails.time - lasHeadDetails.time;
+    return {
+      status: "Included",
+      confirmations: confirms.toString(),
+      next_block_ts: next_block_ts.toString(),
+    };
   }
 }
 

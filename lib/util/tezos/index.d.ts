@@ -1,4 +1,4 @@
-import { ExpectedSwapData, SwapDetails } from "../../type/util";
+import { ExpectedSwapData, SwapDetails, SwapValidity } from "../../type/util";
 /**
  * Tezos Util class for Tezos related Atomex helper functions
  */
@@ -12,10 +12,11 @@ export declare class TezosUtil {
     /**
      * Connects to the supported tezos chain
      *
-     * @param rpc rpc endpoint to create tezos chain client
+     * @param chain chains supported by atomex, can be either mainnet or testnet
+     * @param rpc optional rpc endpoint to create tezos chain client
      * @returns chain id of the connected chain
      */
-    connect(rpc: string): Promise<string>;
+    connect(chain: "mainnet" | "testnet", rpc?: string): Promise<string>;
     /**
      * Checks if chain client has been initialized or not
      */
@@ -64,12 +65,9 @@ export declare class TezosUtil {
      * Get Block endorsements and level
      *
      * @param blockLevel block level to identify the block
-     * @returns endorsements and level of the block
+     * @returns endorsements , level of the block and block generation time
      */
-    getBlockDetails(blockLevel: "head" | number): Promise<{
-        endorsements: number;
-        level: number;
-    }>;
+    private getBlockDetails;
     /**
      * Get the Swap Initiate parameters from a tx
      *
@@ -85,9 +83,10 @@ export declare class TezosUtil {
      * @param txID operation/tx hash to identify blockchain transaction
      * @param expectedData expected swap details that will be used for validation
      * @param confirmations no. of tx confirmations required
-     * @returns true/false depending on transaction validity
+     * @returns status of tx, current no. of confirms and est. next block generation timestamp.
+     * No. of confirmations and block timestamp is only returned when `status:Included`
      */
-    validateSwapTransaction(blockHeight: number, txID: string, expectedData: ExpectedSwapData, confirmations?: number): Promise<boolean>;
+    validateSwapTransaction(blockHeight: number, txID: string, expectedData: ExpectedSwapData, confirmations?: number): Promise<SwapValidity>;
 }
 /**
  * Singleton instance of TezosUtil

@@ -1,4 +1,4 @@
-import { ExpectedSwapData, SwapDetails } from "../../type/util";
+import { ExpectedSwapData, SwapDetails, SwapValidity } from "../../type/util";
 /**
  * Ethereum Util class for Ethereum related Atomex helper functions
  */
@@ -11,10 +11,11 @@ export declare class EthereumUtil {
     /**
      * Connects to the supported ethereum chain
      *
-     * @param rpc rpc endpoint to create eth chain client
+     * @param chain chains supported by atomex, can be either mainnet or testnet
+     * @param rpc optional rpc endpoint to create eth chain client
      * @returns chain id of the connected chain
      */
-    connect(rpc: string): Promise<number>;
+    connect(chain: "mainnet" | "testnet", rpc?: string): Promise<number>;
     /**
      * Checks if chain client has been initialized or not
      */
@@ -82,9 +83,10 @@ export declare class EthereumUtil {
      * @param txHash transaction hash to identify blockchain transaction
      * @param expectedData expected swap details that will be used for validation
      * @param confirmations no. of tx confirmations required
-     * @returns true/false depending on transaction validity
+     * @returns status of tx, current no. of confirms and est. next block generation timestamp.
+     * No. of confirmations and block timestamp is only returned when `status:Included`
      */
-    validateSwapTransaction(txHash: string, expectedData: ExpectedSwapData, confirmations?: number): Promise<boolean>;
+    validateSwapTransaction(txHash: string, expectedData: ExpectedSwapData, confirmations?: number): Promise<SwapValidity>;
 }
 /**
  * Singleton instance of EthereumUtil

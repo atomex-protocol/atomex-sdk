@@ -14,3 +14,8 @@ export interface ExpectedSwapData {
     _payoff: string;
     _active?: boolean;
 }
+export interface SwapValidity {
+    status: "Confirmed" | "Included" | "Invalid";
+    confirmations: string;
+    next_block_ts: string;
+}

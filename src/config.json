@@ -1,12 +1,24 @@
 {
-  "basePath": "https://api.test.atomex.me/",
-  "version": "v1",
+  "api": {
+    "mainnet": {
+      "basePath": "https://api.test.atomex.me/",
+      "version": "v1"
+    },
+    "testnet": {
+      "basePath": "https://api.test.atomex.me/",
+      "version": "v1"
+    }
+  },
   "ethereum": {
-    "chains": {
-      "1": {
-        "name": "mainnet",
-        "contract": "0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df"
-      }
+    "mainnet": {
+      "chainID": "1",
+      "contract": "0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df",
+      "rpc": ""
+    },
+    "testnet": {
+      "chainID": "3",
+      "contract": "",
+      "rpc": ""
     },
     "abi": [
       {
@@ -293,11 +305,15 @@
     ]
   },
   "tezos": {
-    "chains": {
-      "NetXdQprcVkpaWU": {
-        "name": "mainnet",
-        "contract": "KT1VG2WtYdSWz5E7chTeAdDPZNy2MpP8pTfL"
-      }
+    "mainnet": {
+      "chainID": "NetXdQprcVkpaWU",
+      "contract": "KT1VG2WtYdSWz5E7chTeAdDPZNy2MpP8pTfL",
+      "rpc": ""
+    },
+    "testnet": {
+      "chainID": "NetXm8tYqnMWky1",
+      "contract": "",
+      "rpc": ""
     },
     "micheline": {
       "prim": "or",
@@ -308,32 +324,71 @@
             {
               "prim": "pair",
               "args": [
-                { "prim": "address", "annots": ["%participant"] },
+                {
+                  "prim": "address",
+                  "annots": [
+                    "%participant"
+                  ]
+                },
                 {
                   "prim": "pair",
                   "args": [
                     {
                       "prim": "pair",
                       "args": [
-                        { "prim": "bytes", "annots": ["%hashed_secret"] },
-                        { "prim": "timestamp", "annots": ["%refund_time"] }
+                        {
+                          "prim": "bytes",
+                          "annots": [
+                            "%hashed_secret"
+                          ]
+                        },
+                        {
+                          "prim": "timestamp",
+                          "annots": [
+                            "%refund_time"
+                          ]
+                        }
                       ]
                     },
-                    { "prim": "mutez", "annots": ["%payoff"] }
+                    {
+                      "prim": "mutez",
+                      "annots": [
+                        "%payoff"
+                      ]
+                    }
                   ],
-                  "annots": ["%settings"]
+                  "annots": [
+                    "%settings"
+                  ]
                 }
               ],
-              "annots": ["%initiate"]
+              "annots": [
+                "%initiate"
+              ]
             },
-            { "prim": "bytes", "annots": ["%add"] }
+            {
+              "prim": "bytes",
+              "annots": [
+                "%add"
+              ]
+            }
           ]
         },
         {
           "prim": "or",
           "args": [
-            { "prim": "bytes", "annots": ["%redeem"] },
-            { "prim": "bytes", "annots": ["%refund"] }
+            {
+              "prim": "bytes",
+              "annots": [
+                "%redeem"
+              ]
+            },
+            {
+              "prim": "bytes",
+              "annots": [
+                "%refund"
+              ]
+            }
           ]
         }
       ]
