@@ -156,8 +156,7 @@ export interface GetTokenRequest {
   message: string;
   publicKey: string;
   signature: string;
-  algorithm: string;
-  curve: string;
+  algorithm: "Ed25519" | "Ed25519:Blake2b" | "Sha256WithEcdsa:Secp256k1";
 }
 
 export interface AuthResponse {
