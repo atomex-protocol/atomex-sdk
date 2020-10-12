@@ -94,11 +94,10 @@
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="tezosutil.html#add" class="tsd-kind-icon">add</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="tezosutil.html#connect" class="tsd-kind-icon">connect</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="tezosutil.html#getblockdetails" class="tsd-kind-icon">get<wbr>Block<wbr>Details</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="tezosutil.html#initiate" class="tsd-kind-icon">initiate</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="tezosutil.html#redeem" class="tsd-kind-icon">redeem</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="tezosutil.html#refund" class="tsd-kind-icon">refund</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="tezosutil.html#validateswaptransaction" class="tsd-kind-icon">validate<wbr>Swap<wbr>Transaction</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="tezosutil.html#validateswapdetails" class="tsd-kind-icon">validate<wbr>Swap<wbr>Details</a></li>
 							</ul>
 						</section>
 					</div>
@@ -116,7 +115,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/tezos/index.ts#L14">util/tezos/index.ts:14</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/tezos/index.ts#L14">util/tezos/index.ts:14</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="tezosutil.html" class="tsd-signature-type">TezosUtil</a></h4>
@@ -136,7 +135,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/tezos/index.ts#L122">util/tezos/index.ts:122</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/tezos/index.ts#L124">util/tezos/index.ts:124</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -170,13 +169,13 @@
 					<a name="connect" class="tsd-anchor"></a>
 					<h3>connect</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">connect<span class="tsd-signature-symbol">(</span>rpc<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">connect<span class="tsd-signature-symbol">(</span>chain<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"mainnet"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"testnet"</span>, rpc<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/tezos/index.ts#L26">util/tezos/index.ts:26</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/tezos/index.ts#L27">util/tezos/index.ts:27</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -187,46 +186,20 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>rpc: <span class="tsd-signature-type">string</span></h5>
+									<h5>chain: <span class="tsd-signature-type">"mainnet"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"testnet"</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>rpc endpoint to create tezos chain client</p>
+										<p>chains supported by atomex, can be either mainnet or testnet</p>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> rpc: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>optional rpc endpoint to create tezos chain client</p>
 									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
 							<p>chain id of the connected chain</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="getblockdetails" class="tsd-anchor"></a>
-					<h3>get<wbr>Block<wbr>Details</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Block<wbr>Details<span class="tsd-signature-symbol">(</span>blockLevel<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"head"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>endorsements<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>level<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/tezos/index.ts#L137">util/tezos/index.ts:137</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Get Block endorsements and level</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>blockLevel: <span class="tsd-signature-type">"head"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>block level to identify the block</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>endorsements<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span>level<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>endorsements and level of the block</p>
 						</li>
 					</ul>
 				</section>
@@ -240,7 +213,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/tezos/index.ts#L61">util/tezos/index.ts:61</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/tezos/index.ts#L63">util/tezos/index.ts:63</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -280,7 +253,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/tezos/index.ts#L92">util/tezos/index.ts:92</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/tezos/index.ts#L94">util/tezos/index.ts:94</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -320,7 +293,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/tezos/index.ts#L107">util/tezos/index.ts:107</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/tezos/index.ts#L109">util/tezos/index.ts:109</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -351,21 +324,22 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="validateswaptransaction" class="tsd-anchor"></a>
-					<h3>validate<wbr>Swap<wbr>Transaction</h3>
+					<a name="validateswapdetails" class="tsd-anchor"></a>
+					<h3>validate<wbr>Swap<wbr>Details</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">validate<wbr>Swap<wbr>Transaction<span class="tsd-signature-symbol">(</span>blockHeight<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, txID<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, expectedData<span class="tsd-signature-symbol">: </span><a href="../interfaces/expectedswapdata.html" class="tsd-signature-type">ExpectedSwapData</a>, confirmations<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">validate<wbr>Swap<wbr>Details<span class="tsd-signature-symbol">(</span>blockHeight<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, txID<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, expectedData<span class="tsd-signature-symbol">: </span><a href="../interfaces/expectedswapdata.html" class="tsd-signature-type">ExpectedSwapData</a>, confirmations<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/swapvalidity.html" class="tsd-signature-type">SwapValidity</a><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/tezos/index.ts#L231">util/tezos/index.ts:231</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/tezos/index.ts#L237">util/tezos/index.ts:237</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Validate the Swap Details on chain using the tx detail from Atomex</p>
+									<p>Validate the Swap Details on chain using the tx detail from Atomex
+									[does not check tx status, use status provided by atomex]</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -395,8 +369,9 @@
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>true/false depending on transaction validity</p>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/swapvalidity.html" class="tsd-signature-type">SwapValidity</a><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>status of tx, current no. of confirms and est. next block generation timestamp.
+							No. of confirmations and block timestamp is only returned when <code>status:Included</code></p>
 						</li>
 					</ul>
 				</section>
@@ -427,9 +402,6 @@
 								<a href="tezosutil.html#connect" class="tsd-kind-icon">connect</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="tezosutil.html#getblockdetails" class="tsd-kind-icon">get<wbr>Block<wbr>Details</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="tezosutil.html#initiate" class="tsd-kind-icon">initiate</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
@@ -439,7 +411,7 @@
 								<a href="tezosutil.html#refund" class="tsd-kind-icon">refund</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="tezosutil.html#validateswaptransaction" class="tsd-kind-icon">validate<wbr>Swap<wbr>Transaction</a>
+								<a href="tezosutil.html#validateswapdetails" class="tsd-kind-icon">validate<wbr>Swap<wbr>Details</a>
 							</li>
 						</ul>
 					</li>

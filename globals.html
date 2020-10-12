@@ -91,6 +91,7 @@
 								<li class="tsd-kind-interface"><a href="interfaces/swap.html" class="tsd-kind-icon">Swap</a></li>
 								<li class="tsd-kind-interface"><a href="interfaces/swapdetails.html" class="tsd-kind-icon">Swap<wbr>Details</a></li>
 								<li class="tsd-kind-interface"><a href="interfaces/swaprequisites.html" class="tsd-kind-icon">Swap<wbr>Requisites</a></li>
+								<li class="tsd-kind-interface"><a href="interfaces/swapvalidity.html" class="tsd-kind-icon">Swap<wbr>Validity</a></li>
 								<li class="tsd-kind-interface"><a href="interfaces/symboldata.html" class="tsd-kind-icon">Symbol<wbr>Data</a></li>
 								<li class="tsd-kind-interface"><a href="interfaces/trade.html" class="tsd-kind-icon">Trade</a></li>
 								<li class="tsd-kind-interface"><a href="interfaces/transaction.html" class="tsd-kind-icon">Transaction</a></li>
@@ -122,18 +123,16 @@
 								<li class="tsd-kind-function"><a href="globals.html#addorder" class="tsd-kind-icon">add<wbr>Order</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#addswaprequisites" class="tsd-kind-icon">add<wbr>Swap<wbr>Requisites</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#cancelorder" class="tsd-kind-icon">cancel<wbr>Order</a></li>
+								<li class="tsd-kind-function"><a href="globals.html#connect" class="tsd-kind-icon">connect</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#getauthmessage" class="tsd-kind-icon">get<wbr>Auth<wbr>Message</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#getauthtoken" class="tsd-kind-icon">get<wbr>Auth<wbr>Token</a></li>
-								<li class="tsd-kind-function"><a href="globals.html#getbasepath" class="tsd-kind-icon">get<wbr>Base<wbr>Path</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#getorder" class="tsd-kind-icon">get<wbr>Order</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#getorderbook" class="tsd-kind-icon">get<wbr>Order<wbr>Book</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#getorders" class="tsd-kind-icon">get<wbr>Orders</a></li>
-								<li class="tsd-kind-function"><a href="globals.html#getqueryurl" class="tsd-kind-icon">get<wbr>QueryURL</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#getswap" class="tsd-kind-icon">get<wbr>Swap</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#getswaps" class="tsd-kind-icon">get<wbr>Swaps</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#getsymbols" class="tsd-kind-icon">get<wbr>Symbols</a></li>
 								<li class="tsd-kind-function"><a href="globals.html#gettopbookquotes" class="tsd-kind-icon">get<wbr>Top<wbr>Book<wbr>Quotes</a></li>
-								<li class="tsd-kind-function tsd-has-type-parameter"><a href="globals.html#makeapirequest" class="tsd-kind-icon">make<wbr>Api<wbr>Request</a></li>
 							</ul>
 						</section>
 					</div>
@@ -147,7 +146,7 @@
 					<div class="tsd-signature tsd-kind-icon">Order<wbr>Status<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"Pending"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Confirmed"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Canceled"</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/type/api.ts#L13">type/api.ts:13</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/type/api.ts#L13">type/api.ts:13</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -157,7 +156,7 @@
 					<div class="tsd-signature tsd-kind-icon">Order<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"Return"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"FillOrKill"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"SolidFillOrKill"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"ImmediateOrCancel"</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/type/api.ts#L7">type/api.ts:7</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/type/api.ts#L7">type/api.ts:7</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -167,7 +166,7 @@
 					<div class="tsd-signature tsd-kind-icon">Party<wbr>Status<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"Created"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Involved"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"PartiallyInitiated"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Initiated"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Redeemed"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Refunded"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Lost"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Jackpot"</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/type/api.ts#L15">type/api.ts:15</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/type/api.ts#L15">type/api.ts:15</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -177,7 +176,7 @@
 					<div class="tsd-signature tsd-kind-icon">Side<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"Buy"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Sell"</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/type/api.ts#L1">type/api.ts:1</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/type/api.ts#L1">type/api.ts:1</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -187,7 +186,7 @@
 					<div class="tsd-signature tsd-kind-icon">Sort<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"Asc"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Desc"</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/type/api.ts#L3">type/api.ts:3</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/type/api.ts#L3">type/api.ts:3</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -197,7 +196,7 @@
 					<div class="tsd-signature tsd-kind-icon">Tx<wbr>Status<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"Pending"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Placed"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"PartiallyFilled"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Filled"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Canceled"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Rejected"</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/type/api.ts#L25">type/api.ts:25</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/type/api.ts#L25">type/api.ts:25</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -207,7 +206,7 @@
 					<div class="tsd-signature tsd-kind-icon">Tx<wbr>Type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">"Lock"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"AdditionalLock"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Redeem"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Refund"</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/type/api.ts#L5">type/api.ts:5</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/type/api.ts#L5">type/api.ts:5</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -220,7 +219,7 @@
 					<div class="tsd-signature tsd-kind-icon">Ethereum<span class="tsd-signature-symbol">:</span> <a href="classes/ethereumutil.html" class="tsd-signature-type">EthereumUtil</a><span class="tsd-signature-symbol"> = new EthereumUtil()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/ethereum/index.ts#L259">util/ethereum/index.ts:259</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/ethereum/index.ts#L282">util/ethereum/index.ts:282</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -235,7 +234,7 @@
 					<div class="tsd-signature tsd-kind-icon">Tezos<span class="tsd-signature-symbol">:</span> <a href="classes/tezosutil.html" class="tsd-signature-type">TezosUtil</a><span class="tsd-signature-symbol"> = new TezosUtil()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/tezos/index.ts#L275">util/tezos/index.ts:275</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/tezos/index.ts#L299">util/tezos/index.ts:299</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -257,7 +256,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/orders/index.ts#L13">api/orders/index.ts:13</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/orders/index.ts#L13">api/orders/index.ts:13</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -299,7 +298,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/swaps/index.ts#L13">api/swaps/index.ts:13</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/swaps/index.ts#L13">api/swaps/index.ts:13</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -349,7 +348,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/orders/index.ts#L82">api/orders/index.ts:82</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/orders/index.ts#L82">api/orders/index.ts:82</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -371,7 +370,7 @@
 									<h5>symbol: <span class="tsd-signature-type">string</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<div class="lead">
-											<p>symbol used in the order</p>
+											<p>symbol used in the order. A list of all symbols can be found using <a href="globals.html#getsymbols">getSymbols</a></p>
 										</div>
 									</div>
 								</li>
@@ -398,6 +397,39 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function">
+					<a name="connect" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> connect</h3>
+					<ul class="tsd-signatures tsd-kind-function">
+						<li class="tsd-signature tsd-kind-icon">connect<span class="tsd-signature-symbol">(</span>network<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"mainnet"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"testnet"</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/util/index.ts#L34">api/util/index.ts:34</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Setup Atomex API connection</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>network: <span class="tsd-signature-type">"mainnet"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"testnet"</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<div class="lead">
+											<p>networks supported by Atomex, can be either mainnet or testnet</p>
+										</div>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function">
 					<a name="getauthmessage" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>Auth<wbr>Message</h3>
 					<ul class="tsd-signatures tsd-kind-function">
@@ -407,7 +439,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/auth/index.ts#L8">util/auth/index.ts:8</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/auth/index.ts#L8">util/auth/index.ts:8</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -457,7 +489,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/token/index.ts#L12">api/token/index.ts:12</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/token/index.ts#L12">api/token/index.ts:12</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -487,23 +519,6 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function">
-					<a name="getbasepath" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>Base<wbr>Path</h3>
-					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Base<wbr>Path<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/util/index.ts#L19">api/util/index.ts:19</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function">
 					<a name="getorder" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>Order</h3>
 					<ul class="tsd-signatures tsd-kind-function">
@@ -513,7 +528,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/orders/index.ts#L57">api/orders/index.ts:57</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/orders/index.ts#L57">api/orders/index.ts:57</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -555,7 +570,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/market-data/index.ts#L38">api/market-data/index.ts:38</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/market-data/index.ts#L38">api/market-data/index.ts:38</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -569,7 +584,7 @@
 									<h5>symbol: <span class="tsd-signature-type">string</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<div class="lead">
-											<p>a symbol eg. <code>ETH/BTC</code></p>
+											<p>a symbol eg. <code>ETH/BTC</code>. A list of all symbols can be found using <a href="globals.html#getsymbols">getSymbols</a></p>
 										</div>
 									</div>
 								</li>
@@ -597,7 +612,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/orders/index.ts#L35">api/orders/index.ts:35</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/orders/index.ts#L35">api/orders/index.ts:35</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -630,47 +645,6 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function">
-					<a name="getqueryurl" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>QueryURL</h3>
-					<ul class="tsd-signatures tsd-kind-function">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>QueryURL<span class="tsd-signature-symbol">(</span>url<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">URL</span>, query<span class="tsd-signature-symbol">: </span><a href="interfaces/query.html" class="tsd-signature-type">Query</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">URL</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/util/index.ts#L14">api/util/index.ts:14</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Helper function to append query params to a url</p>
-								</div>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>url: <span class="tsd-signature-type">URL</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>url to append query params</p>
-										</div>
-									</div>
-								</li>
-								<li>
-									<h5>query: <a href="interfaces/query.html" class="tsd-signature-type">Query</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>key:value pair listing all the query params</p>
-										</div>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">URL</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function">
 					<a name="getswap" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagConst">Const</span> get<wbr>Swap</h3>
 					<ul class="tsd-signatures tsd-kind-function">
@@ -680,7 +654,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/swaps/index.ts#L58">api/swaps/index.ts:58</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/swaps/index.ts#L58">api/swaps/index.ts:58</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -722,7 +696,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/swaps/index.ts#L36">api/swaps/index.ts:36</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/swaps/index.ts#L36">api/swaps/index.ts:36</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -764,7 +738,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/symbols/index.ts#L10">api/symbols/index.ts:10</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/symbols/index.ts#L10">api/symbols/index.ts:10</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -798,7 +772,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/market-data/index.ts#L11">api/market-data/index.ts:11</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/api/market-data/index.ts#L11">api/market-data/index.ts:11</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -812,7 +786,7 @@
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> symbolList: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
 									<div class="tsd-comment tsd-typography">
 										<div class="lead">
-											<p>an array of Symbols eg. <code>Eth/BTC</code> , <code>XTZ/ETH</code></p>
+											<p>an array of Symbols eg. <code>Eth/BTC</code> , <code>XTZ/ETH</code>. A list of all symbols can be found using <a href="globals.html#getsymbols">getSymbols</a></p>
 										</div>
 									</div>
 								</li>
@@ -827,54 +801,6 @@
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="interfaces/bookquote.html" class="tsd-signature-type">BookQuote</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
 							<p>a list of Book Quotes</p>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-has-type-parameter">
-					<a name="makeapirequest" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagConst">Const</span> make<wbr>Api<wbr>Request</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-has-type-parameter">
-						<li class="tsd-signature tsd-kind-icon">make<wbr>Api<wbr>Request&lt;T&gt;<span class="tsd-signature-symbol">(</span>url<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">RequestInit</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/api/util/index.ts#L30">api/util/index.ts:30</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Helper function to make Atomex API calls</p>
-								</div>
-							</div>
-							<h4 class="tsd-type-parameters-title">Type parameters</h4>
-							<ul class="tsd-type-parameters">
-								<li>
-									<h4>T</h4>
-								</li>
-							</ul>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>url: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>url to make api request</p>
-										</div>
-									</div>
-								</li>
-								<li>
-									<h5>options: <span class="tsd-signature-type">RequestInit</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<div class="lead">
-											<p>all options for the request</p>
-										</div>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>reponse from the request</p>
 						</li>
 					</ul>
 				</section>
@@ -945,6 +871,9 @@
 						<a href="interfaces/swaprequisites.html" class="tsd-kind-icon">Swap<wbr>Requisites</a>
 					</li>
 					<li class=" tsd-kind-interface">
+						<a href="interfaces/swapvalidity.html" class="tsd-kind-icon">Swap<wbr>Validity</a>
+					</li>
+					<li class=" tsd-kind-interface">
 						<a href="interfaces/symboldata.html" class="tsd-kind-icon">Symbol<wbr>Data</a>
 					</li>
 					<li class=" tsd-kind-interface">
@@ -993,13 +922,13 @@
 						<a href="globals.html#cancelorder" class="tsd-kind-icon">cancel<wbr>Order</a>
 					</li>
 					<li class=" tsd-kind-function">
+						<a href="globals.html#connect" class="tsd-kind-icon">connect</a>
+					</li>
+					<li class=" tsd-kind-function">
 						<a href="globals.html#getauthmessage" class="tsd-kind-icon">get<wbr>Auth<wbr>Message</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="globals.html#getauthtoken" class="tsd-kind-icon">get<wbr>Auth<wbr>Token</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#getbasepath" class="tsd-kind-icon">get<wbr>Base<wbr>Path</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="globals.html#getorder" class="tsd-kind-icon">get<wbr>Order</a>
@@ -1009,9 +938,6 @@
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="globals.html#getorders" class="tsd-kind-icon">get<wbr>Orders</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#getqueryurl" class="tsd-kind-icon">get<wbr>QueryURL</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="globals.html#getswap" class="tsd-kind-icon">get<wbr>Swap</a>
@@ -1024,9 +950,6 @@
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="globals.html#gettopbookquotes" class="tsd-kind-icon">get<wbr>Top<wbr>Book<wbr>Quotes</a>
-					</li>
-					<li class=" tsd-kind-function tsd-has-type-parameter">
-						<a href="globals.html#makeapirequest" class="tsd-kind-icon">make<wbr>Api<wbr>Request</a>
 					</li>
 				</ul>
 			</nav>

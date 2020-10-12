@@ -98,7 +98,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="ethereumutil.html#initiate" class="tsd-kind-icon">initiate</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="ethereumutil.html#redeem" class="tsd-kind-icon">redeem</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="ethereumutil.html#refund" class="tsd-kind-icon">refund</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="ethereumutil.html#validateswaptransaction" class="tsd-kind-icon">validate<wbr>Swap<wbr>Transaction</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="ethereumutil.html#validateswapdetails" class="tsd-kind-icon">validate<wbr>Swap<wbr>Details</a></li>
 							</ul>
 						</section>
 					</div>
@@ -116,7 +116,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/ethereum/index.ts#L14">util/ethereum/index.ts:14</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/ethereum/index.ts#L14">util/ethereum/index.ts:14</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="ethereumutil.html" class="tsd-signature-type">EthereumUtil</a></h4>
@@ -136,7 +136,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/ethereum/index.ts#L149">util/ethereum/index.ts:149</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/ethereum/index.ts#L148">util/ethereum/index.ts:148</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -168,7 +168,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/ethereum/index.ts#L132">util/ethereum/index.ts:132</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/ethereum/index.ts#L131">util/ethereum/index.ts:131</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -194,13 +194,13 @@
 					<a name="connect" class="tsd-anchor"></a>
 					<h3>connect</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">connect<span class="tsd-signature-symbol">(</span>rpc<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">connect<span class="tsd-signature-symbol">(</span>chain<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"mainnet"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"testnet"</span>, rpc<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/ethereum/index.ts#L26">util/ethereum/index.ts:26</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/ethereum/index.ts#L27">util/ethereum/index.ts:27</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -211,9 +211,15 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>rpc: <span class="tsd-signature-type">string</span></h5>
+									<h5>chain: <span class="tsd-signature-type">"mainnet"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"testnet"</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>rpc endpoint to create eth chain client</p>
+										<p>chains supported by atomex, can be either mainnet or testnet</p>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> rpc: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>optional rpc endpoint to create eth chain client</p>
 									</div>
 								</li>
 							</ul>
@@ -232,7 +238,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/ethereum/index.ts#L62">util/ethereum/index.ts:62</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/ethereum/index.ts#L61">util/ethereum/index.ts:61</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -264,7 +270,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/ethereum/index.ts#L98">util/ethereum/index.ts:98</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/ethereum/index.ts#L97">util/ethereum/index.ts:97</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -296,7 +302,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/ethereum/index.ts#L115">util/ethereum/index.ts:115</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/ethereum/index.ts#L114">util/ethereum/index.ts:114</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -319,21 +325,22 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="validateswaptransaction" class="tsd-anchor"></a>
-					<h3>validate<wbr>Swap<wbr>Transaction</h3>
+					<a name="validateswapdetails" class="tsd-anchor"></a>
+					<h3>validate<wbr>Swap<wbr>Details</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">validate<wbr>Swap<wbr>Transaction<span class="tsd-signature-symbol">(</span>txHash<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, expectedData<span class="tsd-signature-symbol">: </span><a href="../interfaces/expectedswapdata.html" class="tsd-signature-type">ExpectedSwapData</a>, confirmations<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">validate<wbr>Swap<wbr>Details<span class="tsd-signature-symbol">(</span>txHash<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, expectedData<span class="tsd-signature-symbol">: </span><a href="../interfaces/expectedswapdata.html" class="tsd-signature-type">ExpectedSwapData</a>, confirmations<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/swapvalidity.html" class="tsd-signature-type">SwapValidity</a><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/ac10b51/src/util/ethereum/index.ts#L221">util/ethereum/index.ts:221</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/be8192f/src/util/ethereum/index.ts#L222">util/ethereum/index.ts:222</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Validate the Swap Details on chain using the tx detail from Atomex</p>
+									<p>Validate the Swap Details on chain using the tx detail from Atomex
+									[does not check tx status, use status provided by atomex]</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -357,8 +364,9 @@
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<p>true/false depending on transaction validity</p>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/swapvalidity.html" class="tsd-signature-type">SwapValidity</a><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>status of tx, current no. of confirms and est. next block generation timestamp.
+							No. of confirmations and block timestamp is only returned when <code>status:Included</code></p>
 						</li>
 					</ul>
 				</section>
@@ -401,7 +409,7 @@
 								<a href="ethereumutil.html#refund" class="tsd-kind-icon">refund</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="ethereumutil.html#validateswaptransaction" class="tsd-kind-icon">validate<wbr>Swap<wbr>Transaction</a>
+								<a href="ethereumutil.html#validateswapdetails" class="tsd-kind-icon">validate<wbr>Swap<wbr>Details</a>
 							</li>
 						</ul>
 					</li>
