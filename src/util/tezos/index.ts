@@ -225,6 +225,7 @@ export class TezosUtil {
 
   /**
    * Validate the Swap Details on chain using the tx detail from Atomex
+   * [does not check tx status, use status provided by atomex]
    *
    * @param blockHeight block height of the block where the tx is present
    * @param txID operation/tx hash to identify blockchain transaction
@@ -233,7 +234,7 @@ export class TezosUtil {
    * @returns status of tx, current no. of confirms and est. next block generation timestamp.
    * No. of confirmations and block timestamp is only returned when `status:Included`
    */
-  async validateSwapTransaction(
+  async validateSwapDetails(
     blockHeight: number,
     txID: string,
     expectedData: ExpectedSwapData,

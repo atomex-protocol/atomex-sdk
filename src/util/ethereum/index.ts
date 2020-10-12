@@ -211,6 +211,7 @@ export class EthereumUtil {
 
   /**
    * Validate the Swap Details on chain using the tx detail from Atomex
+   * [does not check tx status, use status provided by atomex]
    *
    * @param txHash transaction hash to identify blockchain transaction
    * @param expectedData expected swap details that will be used for validation
@@ -218,7 +219,7 @@ export class EthereumUtil {
    * @returns status of tx, current no. of confirms and est. next block generation timestamp.
    * No. of confirmations and block timestamp is only returned when `status:Included`
    */
-  async validateSwapTransaction(
+  async validateSwapDetails(
     txHash: string,
     expectedData: ExpectedSwapData,
     confirmations = 5,
