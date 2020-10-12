@@ -74,7 +74,7 @@ export const getOrder = async (
  * Cancel an order request in Atomex
  *
  * @param orderID id of order to cancel
- * @param symbol symbol used in the order
+ * @param symbol symbol used in the order. A list of all symbols can be found using [[getSymbols]]
  * @param side side of the order `Buy` or `Sell`
  * @param authToken atomex authorization token
  * @returns true/false value depending on operation success

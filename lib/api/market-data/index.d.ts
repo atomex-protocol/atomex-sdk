@@ -2,7 +2,7 @@ import { BookQuote, OrderBook } from "../../type";
 /**
  * Get Top of Book Quotes for all or specific Symbols
  *
- * @param symbolList an array of Symbols eg. `Eth/BTC` , `XTZ/ETH`
+ * @param symbolList an array of Symbols eg. `Eth/BTC` , `XTZ/ETH`. A list of all symbols can be found using [[getSymbols]]
  * @param authToken atomex authorization token
  * @returns a list of Book Quotes
  */
@@ -10,7 +10,7 @@ export declare const getTopBookQuotes: (symbolList?: string[] | undefined, authT
 /**
  * Get the Order Book for a particular Symbol
  *
- * @param symbol a symbol eg. `ETH/BTC`
+ * @param symbol a symbol eg. `ETH/BTC`. A list of all symbols can be found using [[getSymbols]]
  * @param authToken atomex authorization token
  * @returns an order book containing all orders for the particular symbol
  */
