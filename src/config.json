@@ -1,0 +1,397 @@
+{
+  "api": {
+    "mainnet": {
+      "basePath": "https://api.atomex.me/",
+      "version": "v1"
+    },
+    "testnet": {
+      "basePath": "https://api.test.atomex.me/",
+      "version": "v1"
+    }
+  },
+  "ethereum": {
+    "mainnet": {
+      "chainID": "1",
+      "contract": "0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df",
+      "rpc": "https://mainnet.infura.io/v3/7cd728d2d3384719a630d836f1693c5c"
+    },
+    "testnet": {
+      "chainID": "3",
+      "contract": "0x527d1049837edf5f99c287a41a87702686082bf8",
+      "rpc": "https://ropsten.infura.io/v3/7cd728d2d3384719a630d836f1693c5c"
+    },
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "_hashedSecret",
+            "type": "bytes32"
+          }
+        ],
+        "name": "Activated",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "_hashedSecret",
+            "type": "bytes32"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "_sender",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "_value",
+            "type": "uint256"
+          }
+        ],
+        "name": "Added",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "_hashedSecret",
+            "type": "bytes32"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "_participant",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "_initiator",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "_refundTimestamp",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "_countdown",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "_value",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "_payoff",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "bool",
+            "name": "_active",
+            "type": "bool"
+          }
+        ],
+        "name": "Initiated",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "_hashedSecret",
+            "type": "bytes32"
+          },
+          {
+            "indexed": false,
+            "internalType": "bytes32",
+            "name": "_secret",
+            "type": "bytes32"
+          }
+        ],
+        "name": "Redeemed",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "_hashedSecret",
+            "type": "bytes32"
+          }
+        ],
+        "name": "Refunded",
+        "type": "event"
+      },
+      {
+        "constant": true,
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "",
+            "type": "bytes32"
+          }
+        ],
+        "name": "swaps",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "hashedSecret",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address payable",
+            "name": "initiator",
+            "type": "address"
+          },
+          {
+            "internalType": "address payable",
+            "name": "participant",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "refundTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "countdown",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "payoff",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "internalType": "enum Atomex.State",
+            "name": "state",
+            "type": "uint8"
+          }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "_hashedSecret",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address payable",
+            "name": "_participant",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_refundTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "_payoff",
+            "type": "uint256"
+          }
+        ],
+        "name": "initiate",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "_hashedSecret",
+            "type": "bytes32"
+          }
+        ],
+        "name": "add",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "_hashedSecret",
+            "type": "bytes32"
+          }
+        ],
+        "name": "activate",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "_hashedSecret",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "_secret",
+            "type": "bytes32"
+          }
+        ],
+        "name": "redeem",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "_hashedSecret",
+            "type": "bytes32"
+          }
+        ],
+        "name": "refund",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ]
+  },
+  "tezos": {
+    "mainnet": {
+      "chainID": "NetXdQprcVkpaWU",
+      "contract": "KT1VG2WtYdSWz5E7chTeAdDPZNy2MpP8pTfL",
+      "rpc": "https://rpc.tzkt.io/mainnet/"
+    },
+    "testnet": {
+      "chainID": "NetXjD3HPJJjmcd",
+      "contract": "KT1DEpTxK2qyFhTCT2QCZ1Ly4f43YVNbzHP1",
+      "rpc": "https://rpc.tzkt.io/carthagenet/"
+    },
+    "micheline": {
+      "prim": "or",
+      "args": [
+        {
+          "prim": "or",
+          "args": [
+            {
+              "prim": "pair",
+              "args": [
+                {
+                  "prim": "address",
+                  "annots": [
+                    "%participant"
+                  ]
+                },
+                {
+                  "prim": "pair",
+                  "args": [
+                    {
+                      "prim": "pair",
+                      "args": [
+                        {
+                          "prim": "bytes",
+                          "annots": [
+                            "%hashed_secret"
+                          ]
+                        },
+                        {
+                          "prim": "timestamp",
+                          "annots": [
+                            "%refund_time"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "prim": "mutez",
+                      "annots": [
+                        "%payoff"
+                      ]
+                    }
+                  ],
+                  "annots": [
+                    "%settings"
+                  ]
+                }
+              ],
+              "annots": [
+                "%initiate"
+              ]
+            },
+            {
+              "prim": "bytes",
+              "annots": [
+                "%add"
+              ]
+            }
+          ]
+        },
+        {
+          "prim": "or",
+          "args": [
+            {
+              "prim": "bytes",
+              "annots": [
+                "%redeem"
+              ]
+            },
+            {
+              "prim": "bytes",
+              "annots": [
+                "%refund"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
