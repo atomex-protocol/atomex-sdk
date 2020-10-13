@@ -62,15 +62,16 @@ Atomex does not differentiate limit and market orders, but supports several exec
 
 When you place an order it is required to prove that you have sufficient funds to perform a trade. In case you combine funds from multiple addresses you have to provide valid signatures for each of them. Note, that in some cases you can reuse message+timestamp from the authentication step.  
 
-Finally you have to specify several swap parameters when sending an order. Client has to provide an address that will receive the redeemed tokens, time period before the expiration, and reward that will be paid to a Watch Tower.  
-Although this data is not necessary at this step and can be specified later, it's recomended for Clients to do that in order to reduce the number of interactions.  
+Finally, you should specify swap requisites (you can also do it later) that MUST be used by your counterparty (MM) when he makes the first "initiate" transaction. Client has to provide an address that will receive the redeemed tokens, time period after which refund is permitted, and size of the reward that is to be paid to the Watch Tower.  
+It is also allowed to set a separate refund address (for UTXO-based currencies mostly).  
+Market makers are allowed to specify the secret hash at this point but usually it makes more sense to do that AFTER the order is matched, because there can be partial execution.  
 
 Placing an order can fail due to several reasons:
 * `400` — order parameters are invalid;
 * `403` — Client is not authorized to use this order type (e.g. only MM can currently place `Return` or `IOC` orders);
 * `422` — an attempt of cross trade (your order is matched with another one which is also yours).
 
-If everything is ok you will receive an internal `long` order ID in return, which then can be used to track the status of the order and all associated swaps and transactions. If you don't know the order ID you can query all orders (or only active ones) e.g. if you need to recover the state after a failure.  
+If everything is ok you will receive an internal order ID in return, which then can be used to track the status of the order and all associated swaps and transactions. If you don't know the order ID you can query all orders (or only active ones) e.g. if you need to recover the state after a failure.  
 
 An order can have one of the following statuses:
 * `Pending` — order is received, but not yet placed;
@@ -80,10 +81,62 @@ An order can have one of the following statuses:
 * `Canceled` — manually deleted `Return` order, or the unfilled part of the `IOC` order, or if an `FOK` order has no match;
 * `Rejected` — currently not used.
 
+An order is considered **active** if it is in `Placed` or `PartiallyFilled` state.  
+
+For accounting one can use the list of trades assosiated with the order. A trade contains final price, quantity, and the counterparty order ID.
+
 
 ## Swaps
 
+Whenever an order is filled (either fully or partially) Atomex creates a swap object with an internal ID (which is different from the secret hash although there is a bijection). Every swap has two parties — initiator and acceptor. When you query a swap object from the API it returns `isInitiator` flag indicating whether you have initiated this swap or not, and two structures `user` (you) and `counterParty`. 
 
-Since Market Maker is the one who creates a swap, you will probably not use these endpoints. The only case when you need to update the swap is when you do an `ack` intiate transaction in Bitcoin (or other UTXO-based currency). Then you need to provide the transaction hash so that Exchange and Market Maker can track it.
+> E.g. Market Maker will receive `isInitiator: true`, `user` will stand for MM, and `counterParty` for the Client. Client will receive `isInitiator: false`, `user` also stands for the Client, and `counterParty` for the Market Maker.
 
-### Party
+Swap object inherits some data from the order, as well as two important fields (that are uninitialized at start):
+* `secretHash` — set by the initiator after the swap is created; 
+* `secret` — extracted from the initiator's "redeem" transaction.
+
+Each swap party has several fields that are changing during the process. For convenience there is a top-level status describing the current state of a particular participant:
+* `Created` — swap is created, but details and payments have not yet sent;
+* `Involved` — requisites are fully specified;
+* `PartiallyInitiated` — own funds are partially sent;
+* `Initiated` — own funds are completely sent;
+* `Redeemed` — counterparty's funds are redeemed;
+* `Refunded` — own funds are refunded;
+* `Lost` — own funds are lost (FATAL);
+* `Jackpot` — own funds are refunded and counterparty's funds are redeemed (EXCEPTIONAL).
+
+NOTE that the last two states are UNRECOVERABLE although very unlikely. Atomex encourages Market Makers to do refunds even in that edge cases and stimulates long-term commitments.
+
+### Requisites
+
+As was mentioned, swap requisites are the call parameters that your counterparty MUST specify in his "initiate" transaction. Swap requesites can be specified with the order send, or after an order match happened and Atomex internal swap object created. Naturally you are not able to set all the requisites (e.g. `secretHash`) prior to a trade because:
+1. You don't know for sure if your order will be filled by a single party or it will be a multiswap execution;
+2. If you are a Client, you cannot specify secret hash because it's Market Maker (your counterparty) who generates the secret.
+
+Typically, a Client sets all fields except for _secretHash_ when sending an order, while MM specifies requisites after a swap object is created.  
+Also NOTE that once you set any field you cannot override it afterwards.  
+It is also crucial to prevent a reuse of secret: currently Atomex does not check that, but it's in the interests of the Market Maker to generate a truly random secret for each subsequent swap.
+
+Requisites of two parties are independent except for the `lockTime`: it is required that initiator's lock time is GREATER than the acceptor's one. Otherwise initiator can both redeem the acceptor's funds and refund own. NOTE that requisites are just a way to communicate between parties, the Atomex server does only basic checks and Client / MM have to do the validation by themselves.
+
+### Trades
+
+As we recall, single order can spawn multiple swaps, but also single swap can be associated with multiple orders. Imagine if your hold two orders A and B at different price levels and someone has filled them both with C — it will end with two trades (A/C, B/C) and a single swap. In this case, the swap volume will be equal to the sum of trades, and the price will be equal to the weighted average price of trades.
+
+### Transactions
+
+Atomex tracks all the transactions/contract calls associated with a particular counterparty/swap and updates their statuses:
+* `Pending` — seen on the network, not yet included in a block;
+* `Confirmed` — included, has at least one confirmation;
+* `Canceled` — failed due to an error.
+
+Currently there can be only 4 types of transactions:
+* `initiate` — participant locks his funds;
+* `add` — participant locks more funds (e.g. from another address);
+* `redeem` — participant redeems counterparty's funds (commit);
+* `refund` — participant returns his locked funds back (rollback);
+
+NOTE that all API clients HAVE to validate those transactions themselves, more specifically:
+1. Transaction is included in the right chain and has enough confirmations;
+2. Transaction parameters are valid and in accordance with the requisites.
