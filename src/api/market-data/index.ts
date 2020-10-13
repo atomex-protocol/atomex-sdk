@@ -9,8 +9,8 @@ import { getBasePath, getQueryURL, makeApiRequest } from "../util";
  * @returns a list of Book Quotes
  */
 export const getTopBookQuotes = async (
-  symbolList?: string[],
   authToken = "",
+  symbolList?: string[],
 ): Promise<BookQuote[]> => {
   const symbols =
     symbolList !== undefined && symbolList.length > 0
@@ -36,8 +36,8 @@ export const getTopBookQuotes = async (
  * @returns an order book containing all orders for the particular symbol
  */
 export const getOrderBook = async (
-  symbol: string,
   authToken = "",
+  symbol: string,
 ): Promise<OrderBook> => {
   let url = new URL(getBasePath() + "/MarketData/book");
   url = getQueryURL(url, { symbol });

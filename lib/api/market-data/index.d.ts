@@ -6,7 +6,7 @@ import { BookQuote, OrderBook } from "../../type";
  * @param authToken atomex authorization token
  * @returns a list of Book Quotes
  */
-export declare const getTopBookQuotes: (symbolList?: string[] | undefined, authToken?: string) => Promise<BookQuote[]>;
+export declare const getTopBookQuotes: (authToken?: string, symbolList?: string[] | undefined) => Promise<BookQuote[]>;
 /**
  * Get the Order Book for a particular Symbol
  *
@@ -14,4 +14,4 @@ export declare const getTopBookQuotes: (symbolList?: string[] | undefined, authT
  * @param authToken atomex authorization token
  * @returns an order book containing all orders for the particular symbol
  */
-export declare const getOrderBook: (symbol: string, authToken?: string) => Promise<OrderBook>;
+export declare const getOrderBook: (authToken: string | undefined, symbol: string) => Promise<OrderBook>;

@@ -17,5 +17,8 @@ export const getAuthToken = async (
   return makeApiRequest(url.toString(), {
     method: "post",
     body: JSON.stringify(authParam),
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 };
