@@ -24,10 +24,11 @@ export interface OrderBook {
 export interface ProofOfFunds {
     address: string;
     currency: string;
-    timeStamp: string;
-    nonce: string;
+    timeStamp: number;
+    message: string;
     publicKey: string;
     signature: string;
+    algorithm: Algorithm;
 }
 export interface AddOrderRequest {
     clientOrderId: string;
@@ -36,7 +37,7 @@ export interface AddOrderRequest {
     qty: number;
     side: Side;
     type: OrderType;
-    proofOfFunds: ProofOfFunds[];
+    proofsOfFunds: ProofOfFunds[];
     requisites?: SwapRequisites;
 }
 export interface GetOrdersRequest {
@@ -119,7 +120,7 @@ export interface GetTokenRequest {
     message: string;
     publicKey: string;
     signature: string;
-    algorithm: "Ed25519" | "Ed25519:Blake2b" | "Sha256WithEcdsa:Secp256k1";
+    algorithm: "Ed25519" | "Ed25519:Blake2b" | "Sha256WithEcdsa:Secp256k1" | "Sha256WithEcdsa:Secp256r1";
 }
 export interface AuthResponse {
     id: string;

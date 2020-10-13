@@ -1,8 +1,6 @@
 import { AddOrderRequest, GetOrdersRequest, Order, Side } from "../../type";
 import { getBasePath, getQueryURL, makeApiRequest } from "../util";
 
-// TODO: non-json response will throw error
-
 /**
  * Create a new Order in Atomex
  *
@@ -11,33 +9,35 @@ import { getBasePath, getQueryURL, makeApiRequest } from "../util";
  * @returns order id
  */
 export const addOrder = async (
-  addOrderRequest: AddOrderRequest,
   authToken: string,
+  addOrderRequest: AddOrderRequest,
 ): Promise<number> => {
   const url = new URL(getBasePath() + "/Orders");
 
-  return makeApiRequest(url.toString(), {
+  return makeApiRequest<Record<string, number>>(url.toString(), {
     method: "post",
     body: JSON.stringify(addOrderRequest),
     headers: {
       Authorization: "Bearer " + authToken,
+      "Content-Type": "application/json",
     },
-  });
+  }).then((res) => res["orderId"]);
 };
 
 /**
  * Query and filter all available orders in Atomex
  *
- * @param getOrdersRequest filters for querying all orders
+ * @param getOrdersRequest optional filters for querying all orders
  * @param authToken atomex authorization token
  * @returns list of orders
  */
 export const getOrders = async (
-  getOrdersRequest: GetOrdersRequest,
   authToken: string,
+  getOrdersRequest?: GetOrdersRequest,
 ): Promise<Order[]> => {
   let url = new URL(getBasePath() + "/Orders");
-  url = getQueryURL(url, { ...getOrdersRequest });
+  if (getOrdersRequest !== undefined)
+    url = getQueryURL(url, { ...getOrdersRequest });
 
   return makeApiRequest(url.toString(), {
     method: "get",
@@ -55,8 +55,8 @@ export const getOrders = async (
  * @returns details of requested order
  */
 export const getOrder = async (
-  orderID: string,
   authToken: string,
+  orderID: string,
 ): Promise<Order> => {
   const url = new URL(getBasePath() + "/Orders/" + orderID);
 
@@ -68,8 +68,6 @@ export const getOrder = async (
   });
 };
 
-// TODO: non-json response will throw error
-
 /**
  * Cancel an order request in Atomex
  *
@@ -80,18 +78,18 @@ export const getOrder = async (
  * @returns true/false value depending on operation success
  */
 export const cancelOrder = async (
+  authToken: string,
   orderID: string,
   symbol: string,
   side: Side,
-  authToken: string,
 ): Promise<boolean> => {
   let url = new URL(getBasePath() + "/Orders/" + orderID);
   url = getQueryURL(url, { symbol, side });
 
-  return makeApiRequest(url.toString(), {
+  return makeApiRequest<Record<string, boolean>>(url.toString(), {
     method: "delete",
     headers: {
       Authorization: "Bearer " + authToken,
     },
-  });
+  }).then((res) => res["result"]);
 };

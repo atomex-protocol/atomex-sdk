@@ -62,15 +62,9 @@ export const makeApiRequest = async <T>(
   const response = await fetch(url, {
     ...options,
   });
-
   if (response.ok) return response.json();
   else {
     const errBody = await response.text();
-    throw Error(
-      JSON.stringify({
-        code: `${response.status} ${response.statusText}`,
-        body: errBody,
-      }),
-    );
+    throw Error(errBody);
   }
 };

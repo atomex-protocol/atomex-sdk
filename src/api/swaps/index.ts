@@ -1,7 +1,6 @@
 import { AddSwapRequisites, GetSwapsRequest, Swap } from "../../type";
 import { getBasePath, getQueryURL, makeApiRequest } from "../util";
 
-// TODO: non-json response will throw error
 /**
  * Add Requisites to a Swap in Atomex
  *
@@ -11,19 +10,20 @@ import { getBasePath, getQueryURL, makeApiRequest } from "../util";
  * @returns true/false depending on operation success
  */
 export const addSwapRequisites = async (
+  authToken: string,
   swapID: string,
   swapRequisites: AddSwapRequisites,
-  authToken: string,
 ): Promise<boolean> => {
   const url = new URL(getBasePath() + "/Swaps/" + swapID);
 
-  return makeApiRequest(url.toString(), {
+  return makeApiRequest<Record<string, boolean>>(url.toString(), {
     method: "post",
     body: JSON.stringify(swapRequisites),
     headers: {
       Authorization: "Bearer " + authToken,
+      "Content-Type": "application/json",
     },
-  });
+  }).then((res) => res["result"]);
 };
 
 /**
@@ -34,8 +34,8 @@ export const addSwapRequisites = async (
  * @returns a list of swaps
  */
 export const getSwaps = async (
-  getSwapsRequest: GetSwapsRequest,
   authToken: string,
+  getSwapsRequest?: GetSwapsRequest,
 ): Promise<Swap[]> => {
   let url = new URL(getBasePath() + "/Swaps");
   url = getQueryURL(url, { ...getSwapsRequest });
@@ -56,8 +56,8 @@ export const getSwaps = async (
  * @returns details of swap requested
  */
 export const getSwap = async (
-  swapID: string,
   authToken: string,
+  swapID: string,
 ): Promise<Swap> => {
   const url = new URL(getBasePath() + "/Swaps/" + swapID);
 

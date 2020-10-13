@@ -6,15 +6,15 @@ import { AddOrderRequest, GetOrdersRequest, Order, Side } from "../../type";
  * @param authToken atomex authorization token
  * @returns order id
  */
-export declare const addOrder: (addOrderRequest: AddOrderRequest, authToken: string) => Promise<number>;
+export declare const addOrder: (authToken: string, addOrderRequest: AddOrderRequest) => Promise<number>;
 /**
  * Query and filter all available orders in Atomex
  *
- * @param getOrdersRequest filters for querying all orders
+ * @param getOrdersRequest optional filters for querying all orders
  * @param authToken atomex authorization token
  * @returns list of orders
  */
-export declare const getOrders: (getOrdersRequest: GetOrdersRequest, authToken: string) => Promise<Order[]>;
+export declare const getOrders: (authToken: string, getOrdersRequest?: GetOrdersRequest | undefined) => Promise<Order[]>;
 /**
  * Query specific Order using Order ID
  *
@@ -22,7 +22,7 @@ export declare const getOrders: (getOrdersRequest: GetOrdersRequest, authToken: 
  * @param authToken atomex authorization token
  * @returns details of requested order
  */
-export declare const getOrder: (orderID: string, authToken: string) => Promise<Order>;
+export declare const getOrder: (authToken: string, orderID: string) => Promise<Order>;
 /**
  * Cancel an order request in Atomex
  *
@@ -32,4 +32,4 @@ export declare const getOrder: (orderID: string, authToken: string) => Promise<O
  * @param authToken atomex authorization token
  * @returns true/false value depending on operation success
  */
-export declare const cancelOrder: (orderID: string, symbol: string, side: Side, authToken: string) => Promise<boolean>;
+export declare const cancelOrder: (authToken: string, orderID: string, symbol: string, side: Side) => Promise<boolean>;
