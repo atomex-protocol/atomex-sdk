@@ -5,4 +5,4 @@ import { SymbolData } from "../../type";
  * @param authToken atomex authorization token
  * @returns list of all the symbols and their minimum qty.
  */
-export declare const getSymbols: (authToken?: string) => Promise<SymbolData[]>;
+export declare const getSymbols: () => Promise<SymbolData[]>;
