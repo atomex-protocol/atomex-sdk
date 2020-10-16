@@ -5,11 +5,9 @@ import { getBasePath, getQueryURL, makeApiRequest } from "../util";
  * Get Top of Book Quotes for all or specific Symbols
  *
  * @param symbolList an array of Symbols eg. `Eth/BTC` , `XTZ/ETH`. A list of all symbols can be found using [[getSymbols]]
- * @param authToken atomex authorization token
  * @returns a list of Book Quotes
  */
 export const getTopBookQuotes = async (
-  authToken = "",
   symbolList?: string[],
 ): Promise<BookQuote[]> => {
   const symbols =
@@ -22,9 +20,6 @@ export const getTopBookQuotes = async (
 
   return makeApiRequest(url.toString(), {
     method: "get",
-    headers: {
-      Authorization: "Bearer " + authToken,
-    },
   });
 };
 
@@ -32,20 +27,13 @@ export const getTopBookQuotes = async (
  * Get the Order Book for a particular Symbol
  *
  * @param symbol a symbol eg. `ETH/BTC`. A list of all symbols can be found using [[getSymbols]]
- * @param authToken atomex authorization token
  * @returns an order book containing all orders for the particular symbol
  */
-export const getOrderBook = async (
-  authToken = "",
-  symbol: string,
-): Promise<OrderBook> => {
+export const getOrderBook = async (symbol: string): Promise<OrderBook> => {
   let url = new URL(getBasePath() + "/MarketData/book");
   url = getQueryURL(url, { symbol });
 
   return makeApiRequest(url.toString(), {
     method: "get",
-    headers: {
-      Authorization: "Bearer " + authToken,
-    },
   });
 };
