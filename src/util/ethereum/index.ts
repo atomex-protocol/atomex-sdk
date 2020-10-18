@@ -1,3 +1,4 @@
+import elliptic from "elliptic";
 import Web3 from "web3";
 import { Contract } from "web3-eth-contract";
 import { AbiItem } from "web3-utils";
@@ -224,6 +225,7 @@ export class EthereumUtil {
     expectedData: ExpectedSwapData,
     confirmations = 5,
   ): Promise<SwapValidity> {
+    this.status();
     const txData = await this.getTxData(txHash);
     if (
       txData === undefined ||
@@ -273,6 +275,43 @@ export class EthereumUtil {
       confirmations: confirms.toString(),
       next_block_ts: next_block_ts.toString(),
     };
+  }
+
+  private slice(i: number, j: number, bs: string) {
+    return "0x" + bs.slice(i * 2 + 2, j * 2 + 2);
+  }
+
+  private length(sig: string) {
+    return (sig.length - 2) / 2;
+  }
+
+  /**
+   * Recover Ethereum Account Public Key from signature
+   *
+   * @param msg original message, `msgToSign` parameter generated using [[getAuthMessage]]
+   * @param signature signed message
+   * @returns ethereum public key
+   */
+  recoverPubKey(msg: string, signature: string) {
+    this.status();
+    const hash = this._chainClient.eth.accounts.hashMessage(msg);
+    const vals = [
+      this.slice(64, this.length(signature), signature),
+      this.slice(0, 32, signature),
+      this.slice(32, 64, signature),
+    ];
+    const vrs = {
+      v: parseInt(vals[0].slice(2), 16),
+      r: vals[1].slice(2),
+      s: vals[2].slice(2),
+    };
+    const secp256k1 = new elliptic.ec("secp256k1");
+    const ecPublicKey = secp256k1.recoverPubKey(
+      Buffer.from(hash.slice(2), "hex"),
+      vrs,
+      vrs.v < 2 ? vrs.v : 1 - (vrs.v % 2),
+    );
+    return "0x" + ecPublicKey.encode("hex", false);
   }
 }
 

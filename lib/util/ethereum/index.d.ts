@@ -1,10 +1,11 @@
+import Web3 from "web3";
 import { ExpectedSwapData, SwapDetails, SwapValidity } from "../../type/util";
 /**
  * Ethereum Util class for Ethereum related Atomex helper functions
  */
 export declare class EthereumUtil {
     private _rpc;
-    private _chainClient;
+    _chainClient: Web3;
     private _contract;
     private _init;
     constructor();
@@ -88,6 +89,16 @@ export declare class EthereumUtil {
      * No. of confirmations and block timestamp is only returned when `status:Included`
      */
     validateSwapDetails(txHash: string, expectedData: ExpectedSwapData, confirmations?: number): Promise<SwapValidity>;
+    private slice;
+    private length;
+    /**
+     * Recover Ethereum Account Public Key from signature
+     *
+     * @param msg original message, `msgToSign` parameter generated using [[getAuthMessage]]
+     * @param signature signed message
+     * @returns ethereum public key
+     */
+    recoverPubKey(msg: string, signature: string): string;
 }
 /**
  * Singleton instance of EthereumUtil
