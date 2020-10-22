@@ -105,3 +105,7 @@ dist
 
 # Others
 trial.js
+
+# Jupyter/python
+.ipynb_checkpoints
+.pytest_cache
