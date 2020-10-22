@@ -16,12 +16,23 @@ Authentication is required only for managing orders and swaps (both requesting a
 
 For Atomex to understand how you generated the signature, you must also specify the algorithm used when sending the order. Сurrently the following schemes are supported:
 * `Ed25519` — the EdDSA signature scheme using SHA-512 (SHA-2) and Curve25519;
-* `Ed25519:Blake2b` — same, but the data is hashed (Blake2b) beforehand (Tezos-specific);
-* `Sha256WithEcdsa:Secp256k1` — the EcDSA scheme using SHA256 and Secp256k1 curve.
+* `Ed25519:Blake2b` — same, but the Blake2b digest is used instead of SHA-512 (Tezos-specific);
+* `Sha256WithEcdsa:Secp256k1` — the EcDSA scheme using SHA-256 and Secp256k1 curve;
+* `Blake2bWithEcdsa:Secp256k1` — same, but the Blake2b digest is used instead of Sha256 (Tezos-specific);
+* `Blake2bWithEcdsa:Secp256r1` — same, but for the NIST-256 curve (Tezos-specific);
+* `Keccak256WithEcdsa:Geth2940` — the [scheme](https://github.com/ethereum/go-ethereum/pull/2940) used by `personal_sign` in web3.
 
 In case you integrate Atomex into a multicurrency HD wallet it would make sense to have a dedicated key pair for authentication purposes only. That way you will always able to recover it from the seed.  
 However if you integrate Atomex into a web dapp that doesn't handle any keys and just sends signing requests it might become a problem: which account should be used for authentication? How to properly recover after a page reload?  
 In general case you'd probably have to let the user choose which wallet to use for sign in and save that choice somewhere. If you are building a one-direction gateway, things are much simpler: the wallet used to sign the initiate transaction is also used for signing the authentication request.  
+
+### Encoding
+
+* All raw byte parameters (keys, signatures) MUST be passed as hex strings with OR without `0x` prefix;
+* Atomex accepts both compressed and uncompressed `SEC` format of a public key (EC point);
+* Atomex accepts both DER and raw R|S (zero padded) signatures, meaning that you have to decode Ethereum RLP/VRS or Tezos Base58/RS or other formats prior to sending to API.
+
+Further reading on DER and SEC formats: [https://bitcoin.stackexchange.com/questions/92680/what-are-the-der-signature-and-sec-format](https://bitcoin.stackexchange.com/questions/92680/what-are-the-der-signature-and-sec-format)
 
 
 ## Market data

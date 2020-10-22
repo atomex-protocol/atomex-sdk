@@ -11,20 +11,16 @@ In order not to lose funds the Client must:
 1. Lock funds (send the `ack` "initiate" transaction) ONLY AFTER the initiate transaction from the Market Maker has enough confirmations (depends on the network);
 2. Remeed funds UNTIL the expiration time OR delegate that to a third party (see Watch Tower section).
 
-Since #2 is effectively resolved by a competitive pool of Watch Towers, the only thing that we have to double check is that MM's "initiate" is on-chain. Atomex API provides both transaction and block ID so it is possible to verify the correctness using just plain RPC of an according node.  
+Since #2 is effectively resolved by a competitive pool of Watch Towers, the only thing that we have to double check is that MM's "initiate" is on-chain. Atomex API provides both transaction and block ID so it is possible to verify the correctness using just plain RPC of an according node.
 
-## Fetching market data
-
-As was mentioned Market Makers maintain the price spread in a way that smoothes the fluctuations, so we don't need to update order book too oftenly. In our case (minimize interactions & costs) we are mostly interested in whether it's possible to fill an order with a single trade/swap (i.e. there is a limit order of size greater than ours at some price level).  
-In general case such order can be at any price level (not necessary the best) so we should show the resulting price depending on the order amount entered.
-
-## Recovering the state
+## One-way bridge
 
 
+## Available pairs
 
-In our case, the state is the current status of orders and swaps. It can be gathered by a single request but we need to authenticate first. Since we are dealing with a one-way conversion, Client's "initiate" transaction will be on Ethereum network thus we will use the Metamask account for signing an authentication message. **This is the first interaction with the user**.  
 
-> We know that the authorization token is valid for several hours (we should check the expiration timestamp), thus it makes sense to store it (e.g. in browser localstorage) for further reuse.
+## Available liquidity
+
 
 ## Sending an order
 
@@ -34,16 +30,22 @@ Once we determine the amount and price we are ready to send an order (side and s
 
 Check lock time! (initiator's lock time must be > acceptor's)
 
-#### Validating transactions
+## Waiting for initiate tx
 
 In networks with probabilistic finality, as a rule, there are historically verified and commonly used numbers of confirmations that reduce the risk of rollback to negligible. However, it is sometimes possible to reduce this time slot without sacrificing security. E.g. in Tezos we can say that if the block includes 32 endorsements it's highly unlikely it will be reverted.  
 
 Another compromise between UX responsiveness and rate limiting is the way you query the RPC node for validating the transaction. The recommended approach is to estimate the time till the next block, sleep for this period, and only after that start polling at a higher rate to catch the change of the head.  
 
-## Sending `ack` "initiate" transaction
+## Sending ack initiate tx
 
 
+## Waiting for completion
 
 
-## Emergency redeem/refund
+## Recovering the state
 
+In our case, the state is the current status of orders and swaps. It can be gathered by a single request but we need to authenticate first. Since we are dealing with a one-way conversion, Client's "initiate" transaction will be on Ethereum network thus we will use the Metamask account for signing an authentication message. **This is the first interaction with the user**.  
+
+> We know that the authorization token is valid for several hours (we should check the expiration timestamp), thus it makes sense to store it (e.g. in browser localstorage) for further reuse.
+
+## Handling errors
