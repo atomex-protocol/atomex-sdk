@@ -29,12 +29,14 @@ export class TezosUtil {
     if (rpc !== undefined) chainDetails.rpc = rpc;
 
     const tezos = new TezosToolkit();
-    tezos.setProvider({ rpc });
+    tezos.setProvider({ rpc: chainDetails.rpc });
 
     const chainID = await tezos.rpc.getChainId();
 
     if (chainDetails.chainID !== chainID.toString()) {
-      throw new Error(`Wrong RPC: Chain wit Chain-ID ${chainID} Not Supported`);
+      throw new Error(
+        `Wrong RPC: Chain with Chain-ID ${chainID} Not Supported`,
+      );
     }
 
     this._rpc = chainDetails.rpc;

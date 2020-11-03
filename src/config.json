@@ -7,6 +7,10 @@
     "testnet": {
       "basePath": "https://api.test.atomex.me/",
       "version": "v1"
+    },
+    "localhost": {
+      "basePath": "http://127.0.0.1:5000/",
+      "version": "v1"
     }
   },
   "ethereum": {

@@ -120,7 +120,7 @@ export interface GetTokenRequest {
     message: string;
     publicKey: string;
     signature: string;
-    algorithm: "Ed25519" | "Ed25519:Blake2b" | "Sha256WithEcdsa:Secp256k1" | "Sha256WithEcdsa:Secp256r1";
+    algorithm: "Ed25519" | "Ed25519:Blake2b" | "Sha256WithEcdsa:Secp256k1" | "Blake2bWithEcdsa:Secp256k1" | "Blake2bWithEcdsa:Secp256r1" | "Keccak256WithEcdsa:Geth2940";
 }
 export interface AuthResponse {
     id: string;

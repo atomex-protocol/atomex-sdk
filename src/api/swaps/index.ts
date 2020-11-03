@@ -14,7 +14,7 @@ export const addSwapRequisites = async (
   swapID: string,
   swapRequisites: AddSwapRequisites,
 ): Promise<boolean> => {
-  const url = new URL(getBasePath() + "/Swaps/" + swapID);
+  const url = new URL(getBasePath() + "/Swaps/" + swapID + "/requisites");
 
   return makeApiRequest<Record<string, boolean>>(url.toString(), {
     method: "post",

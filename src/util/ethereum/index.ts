@@ -33,7 +33,9 @@ export class EthereumUtil {
     const web3 = new Web3(chainDetails.rpc);
     const chainID = await web3.eth.getChainId();
     if (chainDetails.chainID !== chainID.toString()) {
-      throw new Error(`Wrong RPC: Chain wit Chain-ID ${chainID} Not Supported`);
+      throw new Error(
+        `Wrong RPC: Chain with Chain-ID ${chainID} Not Supported`,
+      );
     }
     this._rpc = chainDetails.rpc;
     this._chainClient = web3;

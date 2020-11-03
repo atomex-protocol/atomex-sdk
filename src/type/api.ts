@@ -146,10 +146,10 @@ export interface SwapRequisites {
 
 export interface AddSwapRequisites {
   secretHash?: string;
-  receivingAddress?: string;
+  receivingAddress: string;
   refundAddress?: string;
   rewardForRedeem?: number;
-  lockTime?: number;
+  lockTime: number;
 }
 
 export interface GetTokenRequest {
@@ -161,7 +161,9 @@ export interface GetTokenRequest {
     | "Ed25519"
     | "Ed25519:Blake2b"
     | "Sha256WithEcdsa:Secp256k1"
-    | "Sha256WithEcdsa:Secp256r1";
+    | "Blake2bWithEcdsa:Secp256k1"
+    | "Blake2bWithEcdsa:Secp256r1"
+    | "Keccak256WithEcdsa:Geth2940";
 }
 
 export interface AuthResponse {

@@ -1,11 +1,10 @@
-import Web3 from "web3";
 import { ExpectedSwapData, SwapDetails, SwapValidity } from "../../type/util";
 /**
  * Ethereum Util class for Ethereum related Atomex helper functions
  */
 export declare class EthereumUtil {
     private _rpc;
-    _chainClient: Web3;
+    private _chainClient;
     private _contract;
     private _init;
     constructor();
