@@ -319,83 +319,235 @@
             "contract": "KT1DEpTxK2qyFhTCT2QCZ1Ly4f43YVNbzHP1",
             "rpc": "https://rpc.tzkt.io/carthagenet/"
         },
-        "micheline": {
-            "prim": "or",
-            "args": [
-                {
-                    "prim": "or",
-                    "args": [
-                        {
-                            "prim": "pair",
-                            "args": [
-                                {
-                                    "prim": "address",
-                                    "annots": [
-                                        "%participant"
-                                    ]
-                                },
-                                {
-                                    "prim": "pair",
-                                    "args": [
-                                        {
-                                            "prim": "pair",
-                                            "args": [
-                                                {
-                                                    "prim": "bytes",
-                                                    "annots": [
-                                                        "%hashed_secret"
-                                                    ]
-                                                },
-                                                {
-                                                    "prim": "timestamp",
-                                                    "annots": [
-                                                        "%refund_time"
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "prim": "mutez",
-                                            "annots": [
-                                                "%payoff"
-                                            ]
-                                        }
-                                    ],
-                                    "annots": [
-                                        "%settings"
-                                    ]
-                                }
-                            ],
-                            "annots": [
-                                "%initiate"
-                            ]
-                        },
-                        {
-                            "prim": "bytes",
-                            "annots": [
-                                "%add"
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "prim": "or",
-                    "args": [
-                        {
-                            "prim": "bytes",
-                            "annots": [
-                                "%redeem"
-                            ]
-                        },
-                        {
-                            "prim": "bytes",
-                            "annots": [
-                                "%refund"
-                            ]
-                        }
-                    ]
-                }
-            ]
+        "entrypoints": {
+            "default": {
+                "prim": "or",
+                "args": [
+                    {
+                        "prim": "or",
+                        "args": [
+                            {
+                                "prim": "pair",
+                                "args": [
+                                    {
+                                        "prim": "address",
+                                        "annots": [
+                                            "%participant"
+                                        ]
+                                    },
+                                    {
+                                        "prim": "pair",
+                                        "args": [
+                                            {
+                                                "prim": "pair",
+                                                "args": [
+                                                    {
+                                                        "prim": "bytes",
+                                                        "annots": [
+                                                            "%hashed_secret"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "prim": "timestamp",
+                                                        "annots": [
+                                                            "%refund_time"
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "prim": "mutez",
+                                                "annots": [
+                                                    "%payoff"
+                                                ]
+                                            }
+                                        ],
+                                        "annots": [
+                                            "%settings"
+                                        ]
+                                    }
+                                ],
+                                "annots": [
+                                    ":initiate",
+                                    "%initiate"
+                                ]
+                            },
+                            {
+                                "prim": "bytes",
+                                "annots": [
+                                    ":hashed_secret",
+                                    "%add"
+                                ]
+                            }
+                        ],
+                        "annots": [
+                            "%fund"
+                        ]
+                    },
+                    {
+                        "prim": "or",
+                        "args": [
+                            {
+                                "prim": "bytes",
+                                "annots": [
+                                    ":secret",
+                                    "%redeem"
+                                ]
+                            },
+                            {
+                                "prim": "bytes",
+                                "annots": [
+                                    ":hashed_secret",
+                                    "%refund"
+                                ]
+                            }
+                        ],
+                        "annots": [
+                            "%withdraw"
+                        ]
+                    }
+                ]
+            },
+            "withdraw": {
+                "prim": "or",
+                "args": [
+                    {
+                        "prim": "bytes",
+                        "annots": [
+                            ":secret",
+                            "%redeem"
+                        ]
+                    },
+                    {
+                        "prim": "bytes",
+                        "annots": [
+                            ":hashed_secret",
+                            "%refund"
+                        ]
+                    }
+                ]
+            },
+            "refund": {
+                "prim": "bytes",
+                "annots": [
+                    ":hashed_secret"
+                ]
+            },
+            "redeem": {
+                "prim": "bytes",
+                "annots": [
+                    ":secret"
+                ]
+            },
+            "initiate": {
+                "prim": "pair",
+                "args": [
+                    {
+                        "prim": "address",
+                        "annots": [
+                            "%participant"
+                        ]
+                    },
+                    {
+                        "prim": "pair",
+                        "args": [
+                            {
+                                "prim": "pair",
+                                "args": [
+                                    {
+                                        "prim": "bytes",
+                                        "annots": [
+                                            "%hashed_secret"
+                                        ]
+                                    },
+                                    {
+                                        "prim": "timestamp",
+                                        "annots": [
+                                            "%refund_time"
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "prim": "mutez",
+                                "annots": [
+                                    "%payoff"
+                                ]
+                            }
+                        ],
+                        "annots": [
+                            "%settings"
+                        ]
+                    }
+                ],
+                "annots": [
+                    ":initiate"
+                ]
+            },
+            "fund": {
+                "prim": "or",
+                "args": [
+                    {
+                        "prim": "pair",
+                        "args": [
+                            {
+                                "prim": "address",
+                                "annots": [
+                                    "%participant"
+                                ]
+                            },
+                            {
+                                "prim": "pair",
+                                "args": [
+                                    {
+                                        "prim": "pair",
+                                        "args": [
+                                            {
+                                                "prim": "bytes",
+                                                "annots": [
+                                                    "%hashed_secret"
+                                                ]
+                                            },
+                                            {
+                                                "prim": "timestamp",
+                                                "annots": [
+                                                    "%refund_time"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "prim": "mutez",
+                                        "annots": [
+                                            "%payoff"
+                                        ]
+                                    }
+                                ],
+                                "annots": [
+                                    "%settings"
+                                ]
+                            }
+                        ],
+                        "annots": [
+                            ":initiate",
+                            "%initiate"
+                        ]
+                    },
+                    {
+                        "prim": "bytes",
+                        "annots": [
+                            ":hashed_secret",
+                            "%add"
+                        ]
+                    }
+                ]
+            },
+            "add": {
+                "prim": "bytes",
+                "annots": [
+                    ":hashed_secret"
+                ]
+            }
         }
     }
 }

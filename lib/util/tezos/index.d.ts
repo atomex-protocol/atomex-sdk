@@ -5,7 +5,7 @@ import { ExpectedSwapData, SwapDetails, SwapValidity } from "../../type/util";
 export declare class TezosUtil {
     private _rpc;
     private _chainClient;
-    private _contract;
+    private _entrypoints;
     private _init;
     private _contractAddr;
     constructor();

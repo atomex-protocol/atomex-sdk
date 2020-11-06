@@ -110,10 +110,10 @@ export interface SwapRequisites {
 }
 export interface AddSwapRequisites {
     secretHash?: string;
-    receivingAddress?: string;
+    receivingAddress: string;
     refundAddress?: string;
     rewardForRedeem?: number;
-    lockTime?: number;
+    lockTime: number;
 }
 export interface GetTokenRequest {
     timeStamp: number;

@@ -9,7 +9,7 @@ import { ExpectedSwapData, SwapDetails, SwapValidity } from "../../type/util";
 export class TezosUtil {
   private _rpc!: string;
   private _chainClient!: TezosToolkit;
-  private _contract!: ParameterSchema;
+  private _entrypoints!: Map<string, ParameterSchema>;
   private _init: boolean;
   private _contractAddr!: string;
 
@@ -41,9 +41,13 @@ export class TezosUtil {
 
     this._rpc = chainDetails.rpc;
     this._chainClient = tezos;
-    this._contract = new ParameterSchema(config.tezos.micheline);
     this._init = true;
     this._contractAddr = chainDetails.contract;
+    this._entrypoints = new Map<string, ParameterSchema>(
+      Object.entries(config.tezos.entrypoints).map(([name, typeExpr]) => {
+        return [name, new ParameterSchema(typeExpr)];
+      }),
+    );
 
     return chainID;
   }
@@ -74,13 +78,14 @@ export class TezosUtil {
         "Invalid Refund Time, refund time should be in seconds and should be greater than the current time",
       );
     }
-    const parameter: string = this._contract.Encode(
-      "initiate",
-      swapDetails.participant,
-      swapDetails.hashedSecret,
-      swapDetails.refundTimestamp,
-      swapDetails.payoff,
-    );
+    const parameter: string = this._entrypoints
+      .get("initiate")
+      ?.Encode(
+        swapDetails.participant,
+        swapDetails.hashedSecret,
+        swapDetails.refundTimestamp,
+        swapDetails.payoff,
+      );
     return {
       parameter,
       contractAddr: this._contractAddr,
@@ -95,7 +100,7 @@ export class TezosUtil {
    */
   redeem(secret: string) {
     this.status();
-    const parameter: string = this._contract.Encode("redeem", secret);
+    const parameter: string = this._entrypoints.get("redeem")?.Encode(secret);
     return {
       parameter,
       contractAddr: this._contractAddr,
@@ -110,7 +115,9 @@ export class TezosUtil {
    */
   refund(hashedSecret: string) {
     this.status();
-    const parameter: string = this._contract.Encode("refund", hashedSecret);
+    const parameter: string = this._entrypoints
+      .get("refund")
+      ?.Encode(hashedSecret);
     return {
       parameter,
       contractAddr: this._contractAddr,
@@ -125,7 +132,9 @@ export class TezosUtil {
    */
   add(hashedSecret: string) {
     this.status();
-    const parameter: string = this._contract.Encode("add", hashedSecret);
+    const parameter: string = this._entrypoints
+      .get("add")
+      ?.Encode(hashedSecret);
     return {
       parameter,
       contractAddr: this._contractAddr,
@@ -194,12 +203,13 @@ export class TezosUtil {
                 content.parameters === undefined
               )
                 return;
-              const params = this._contract.Execute(content.parameters.value);
+              const params = this._entrypoints
+                .get(content.parameters.entrypoint)
+                ?.Execute(content.parameters.value);
               if (
                 params["0"] === undefined ||
                 params["0"]["initiate"] === undefined ||
-                params["0"]["initiate"]["settings"]["hashed_secret"] !==
-                  hashedSecret
+                params["0"]["initiate"]["settings"]["hashed_secret"] !== hashedSecret
               )
                 return;
               params["0"]["initiate"]["settings"]["refund_time"] = parseInt(
