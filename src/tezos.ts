@@ -5,24 +5,33 @@ import { InitiateParameters, PartialTransactionBody, SwapTransactionStatus, Auth
 import { Helpers, dt2ts, now } from "./helpers";
 import config from "./config.json";
 
+const formatTimestamp = (timestamp: number) => {
+  return (new Date(timestamp * 1000)).toISOString().slice(0, -5) + "Z";
+}
+
 /**
  * Tezos Util class for Tezos related Atomex helper functions
  */
 export class TezosHelpers implements Helpers {
   private _tezos: TezosToolkit;
-  private _entrypoints: Map<string, ParameterSchema>;
   private _contractAddress: string;
   private _timeBetweenBlocks: number;
+  private _entrypoints: Map<string, ParameterSchema>;
 
   constructor(
-    tezos: TezosToolkit, 
-    entrypoints: Map<string, ParameterSchema>,
+    tezos: TezosToolkit,
+    entrypoints: Record<string, any>,
     contractAddress: string,
-    timeBetweenBlocks: number) {
+    timeBetweenBlocks: number,
+  ) {
     this._tezos = tezos;
-    this._entrypoints = entrypoints;
     this._contractAddress = contractAddress;
     this._timeBetweenBlocks = timeBetweenBlocks;
+    this._entrypoints = new Map<string, ParameterSchema>(
+      Object.entries(entrypoints).map(([name, typeExpr]) => {
+          return [name, new ParameterSchema(typeExpr)];
+      })
+    );
   }
 
   /**
@@ -32,7 +41,7 @@ export class TezosHelpers implements Helpers {
    * @param rpc optional rpc endpoint to create tezos chain client
    * @returns chain id of the connected chain
    */
-  static async create(network: "mainnet" | "testnet", rpcUri?: string) : Promise<TezosHelpers> {
+  static async create(network: "mainnet" | "testnet", rpcUri?: string): Promise<TezosHelpers> {
     const networkSettings = config.rpc.tezos[network];
     if (rpcUri !== undefined) 
       networkSettings.rpc = rpcUri;
@@ -44,112 +53,79 @@ export class TezosHelpers implements Helpers {
     if (networkSettings.chainID !== chainID.toString())
       throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
 
-    const entrypoints = new Map<string, ParameterSchema>(
-      Object.entries(config.contracts.XTZ.entrypoints).map(([name, typeExpr]) => {
-        return [name, new ParameterSchema(typeExpr)];
-      }),
-    );
-
     return new TezosHelpers(
       tezos,
-      entrypoints,
+      config.contracts.XTZ.entrypoints,
       config.contracts.XTZ[network],
-      config.rpc.tezos[network].blockTime
+      config.rpc.tezos[network].blockTime,
     );
   }
 
-  private getTezosAlgorithm (prefix?: string) : Algorithm {
+  private getTezosAlgorithm(prefix?: string): Algorithm {
     switch (prefix) {
       case "tz1": return "Ed25519:Blake2b";
       case "tz2": return "Blake2bWithEcdsa:Secp256k1";
       case "tz3": return "Blake2bWithEcdsa:Secp256r1";
       default: throw new Error(`Unexpected address prefix: ${prefix}`);
     }
-  };
+  }
 
-  getAuthMessage(message: string, address: string) : AuthMessage {  
+  getAuthMessage(message: string, address: string): AuthMessage {
     const nowMillis = Date.now();
     return {
       message,
       timestamp: nowMillis,
       msgToSign: message + nowMillis.toString(),
-      algorithm: this.getTezosAlgorithm(address.slice(0, 3))
+      algorithm: this.getTezosAlgorithm(address.slice(0, 3)),
     };
   }
 
-  /**
-   * Get the tx data for Atomex Contract Initiate Swap call
-   *
-   * @param swapDetails details of the swap being initiated
-   * @returns contract address and tx data that can be used to make a contract call
-   */
-  buildInitiateTransaction(initiateParameters: InitiateParameters) : PartialTransactionBody {
+  buildInitiateTransaction(initiateParameters: InitiateParameters): PartialTransactionBody {
     if (initiateParameters.refundTimestamp < now())
       throw new Error(`Swap timestamp is in the past: ${initiateParameters.refundTimestamp}`);
 
-    const parameter: string = this._entrypoints.get("initiate")?.Encode(
+    const parameter = this._entrypoints.get("initiate")?.Encode(
       initiateParameters.receivingAddress,
       initiateParameters.secretHash,
-      initiateParameters.refundTimestamp,
+      formatTimestamp(initiateParameters.refundTimestamp),
       initiateParameters.rewardForRedeem,
     );
     return {
       data: {
         entrypoint: "initiate",
-        value: parameter
+        value: parameter,
       },
       contractAddr: this._contractAddress,
-      amount: initiateParameters.netAmount + initiateParameters.rewardForRedeem
+      amount: initiateParameters.netAmount + initiateParameters.rewardForRedeem,
     };
   }
 
-  /**
-   * Get the tx data for Atomex Contract Redeem Swap call
-   *
-   * @param secret secret that can used to verify and redeem the funds
-   * @returns contract address and tx data that can be used to make a contract call
-   */
-  buildRedeemTransaction(secret: string) : PartialTransactionBody {
-    const parameter: string = this._entrypoints.get("redeem")?.Encode(secret);
+  buildRedeemTransaction(secret: string): PartialTransactionBody {
     return {
       data: {
         entrypoint: "redeem",
-        value: parameter
+        value: this._entrypoints.get("redeem")?.Encode(secret),
       },
       contractAddr: this._contractAddress,
     };
   }
-
-  /**
-   * Get the tx data for Atomex Contract Refund Swap call
-   *
-   * @param secretHash secretHash to identify swap
-   * @returns contract address and tx data that can be used to make a contract call
-   */
-  buildRefundTransaction(secretHash: string) : PartialTransactionBody {
-    const parameter: string = this._entrypoints.get("refund")?.Encode(secretHash);
+  
+  buildRefundTransaction(secretHash: string): PartialTransactionBody {
     return {
       data: {
         entrypoint: "refund",
-        value: parameter
+        value: this._entrypoints.get("refund")?.Encode(secretHash),
       },
       contractAddr: this._contractAddress,
     };
   }
 
-  /**
-   * Get the tx data for Atomex Contract AdditionalFunds call
-   *
-   * @param secretHash secretHash to identify swap
-   * @returns contract address and tx data that can be used to make a contract call
-   */
-  buildAddTransaction(secretHash: string, amount: number) : PartialTransactionBody {
-    const parameter: string = this._entrypoints.get("add")?.Encode(secretHash);
+  buildAddTransaction(secretHash: string, amount: number): PartialTransactionBody {
     return {
       amount,
       data: {
         entrypoint: "add",
-        value: parameter
+        value: this._entrypoints.get("add")?.Encode(secretHash),
       },
       contractAddr: this._contractAddress,
     };
@@ -171,9 +147,11 @@ export class TezosHelpers implements Helpers {
             !Object.prototype.hasOwnProperty.call(content, "metadata")
           )
             return;
-          const metadata = Object.getOwnPropertyDescriptor(content, "metadata")?.value;
+          const metadata = Object.getOwnPropertyDescriptor(content, "metadata")
+            ?.value;
           if (!Object.prototype.hasOwnProperty.call(metadata, "slots")) return;
-          const slots = Object.getOwnPropertyDescriptor(metadata, "slots")?.value as number[];
+          const slots = Object.getOwnPropertyDescriptor(metadata, "slots")
+            ?.value as number[];
           numEndorsements += slots.length;
         });
       });
@@ -185,7 +163,7 @@ export class TezosHelpers implements Helpers {
     };
   }
 
-  private parseInitiateParameters(content: OperationContentsAndResultTransaction) : InitiateParameters {
+  parseInitiateParameters(content: OperationContentsAndResultTransaction): InitiateParameters {
     if (content.parameters === undefined)
       throw new Error("Parameters are undefined");
 
@@ -197,44 +175,34 @@ export class TezosHelpers implements Helpers {
       switch (content.parameters.entrypoint) {
         case "initiate": return params;
         case "fund": return params["initiate"];
-        case "default": return params["0"]["initiate"];
+        case "default": return params["fund"]["initiate"];
         default: throw new Error(`Unexpected entrypoint: ${content.parameters.entrypoint}`);
       }
-    })()
+    })();
 
     return {
       secretHash: initiateParams["settings"]["hashed_secret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["settings"]["refund_time"]),
       netAmount: parseInt(content.amount) - parseInt(initiateParams["settings"]["payoff"]),
-      rewardForRedeem: parseInt(initiateParams["settings"]["payoff"])
-    }
+      rewardForRedeem: parseInt(initiateParams["settings"]["payoff"]),
+    };
   }
 
-  private findContractCall(block: BlockResponse, txID: string) : OperationContentsAndResultTransaction {
-    const opg = block.operations[3]?.find(opg => opg.hash == txID);
+  findContractCall(block: BlockResponse, txID: string): OperationContentsAndResultTransaction {
+    const opg = block.operations[3]?.find((opg) => opg.hash == txID);
     if (opg === undefined)
       throw new Error(`Operation not found: ${txID} @ ${block.hash}`);
 
-    const content = <OperationContentsAndResultTransaction> opg.contents.
-      find(c => c.kind == "transaction" && c.destination == this._contractAddress);
+    const content = <OperationContentsAndResultTransaction>(opg.contents.find(
+      (c) => c.kind == "transaction" && c.destination == this._contractAddress)
+    );
     if (content === undefined)
       throw new Error(`Unsupported contract version is used`);
 
     return content as OperationContentsAndResultTransaction;
   }
 
-  /**
-   * Validate the Swap Details on chain using the tx detail from Atomex
-   * [does not check tx status, use status provided by atomex]
-   *
-   * @param blockHeight block height of the block where the tx is present
-   * @param txID operation/tx hash to identify blockchain transaction
-   * @param expectedData expected swap details that will be used for validation
-   * @param confirmations no. of tx confirmations required
-   * @returns status of tx, current no. of confirms and est. next block generation timestamp.
-   * No. of confirmations and block timestamp is only returned when `status:Included`
-   */
   async validateInitiateTransaction(
     blockHeight: number,
     txID: string,
@@ -266,20 +234,20 @@ export class TezosHelpers implements Helpers {
         status: "Invalid",
         message: e.message,
         confirmations: 0,
-        nextBlockETA: 0
+        nextBlockETA: 0,
       };
     }
 
     const headDetails = this.getBlockDetails(
-      await this._tezos.rpc.getBlock({ block: 'head' })
+      await this._tezos.rpc.getBlock({ block: "head" }),
     );
     const txBlockDetails = this.getBlockDetails(block);
     const confirmations = headDetails.level - txBlockDetails.level;
 
-    let res : SwapTransactionStatus = {
+    const res: SwapTransactionStatus = {
       status: "Included",
       confirmations: confirmations,
-      nextBlockETA: headDetails.timestamp + this._timeBetweenBlocks
+      nextBlockETA: headDetails.timestamp + this._timeBetweenBlocks,
     };
 
     if (confirmations >= minConfirmations 
@@ -287,7 +255,7 @@ export class TezosHelpers implements Helpers {
       || txBlockDetails.numEndorsements === 32) {
       res.status = "Confirmed";
     }
-    
+
     return res;
   }
 }

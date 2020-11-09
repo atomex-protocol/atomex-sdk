@@ -110,5 +110,6 @@ trial.js
 .ipynb_checkpoints
 .pytest_cache
 
-# Compiled js
+# Compiled js lib and typedoc
 lib/
+typedoc/

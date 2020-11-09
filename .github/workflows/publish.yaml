@@ -1,11 +1,11 @@
-name: Generate TypeDoc
+name: Publish
 on:
   push:
     branches:
       - master
 jobs:
   generate-doc:
-    name: Generate Doc
+    name: Generate TypeDoc
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,13 +20,19 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
-        run: npm i
+        run: make install
 
-      - name: Make docs
-        run: npm run gen-doc
+      - name: Build library
+        run: make
+
+      - name: Run tests
+        run: make test
+
+      - name: Make TypeDoc
+        run: make typedoc
 
       - name: Deploy to GH Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          publish_dir: ./typedoc

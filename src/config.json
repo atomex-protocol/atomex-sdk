@@ -1,13 +1,13 @@
 {
   "api": {
     "mainnet": {
-      "baseUrl": "https://api.atomex.me/v1"
+      "baseUrl": "https://api.atomex.me"
     },
     "testnet": {
-      "baseUrl": "https://api.test.atomex.me/v1"
+      "baseUrl": "https://api.test.atomex.me"
     },
     "localhost": {
-      "baseUrl": "http://127.0.0.1:5000/v1"
+      "baseUrl": "http://127.0.0.1:5000"
     }
   },
   "rpc": {
