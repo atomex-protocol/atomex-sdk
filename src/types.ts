@@ -30,6 +30,15 @@ export type TxStatus =
   | "Canceled"
   | "Rejected";
 
+export type Algorithm = 
+  | "Ed25519"
+  | "Ed25519:Blake2b"
+  | "Sha256WithEcdsa:Secp256k1"
+  | "Blake2bWithEcdsa:Secp256k1"
+  | "Blake2bWithEcdsa:Secp256r1"
+  | "Keccak256WithEcdsa:Geth2940";
+
+
 export interface BookQuote {
   symbol: string;
   timeStamp: string;
@@ -157,13 +166,7 @@ export interface GetTokenRequest {
   message: string;
   publicKey: string;
   signature: string;
-  algorithm:
-    | "Ed25519"
-    | "Ed25519:Blake2b"
-    | "Sha256WithEcdsa:Secp256k1"
-    | "Blake2bWithEcdsa:Secp256k1"
-    | "Blake2bWithEcdsa:Secp256r1"
-    | "Keccak256WithEcdsa:Geth2940";
+  algorithm: Algorithm;    
 }
 
 export interface AuthResponse {
@@ -175,4 +178,34 @@ export interface AuthResponse {
 export interface SymbolData {
   name: string;
   minimumQty: number;
+}
+
+export interface InitiateParameters {
+  secretHash: string;
+  receivingAddress: string;
+  netAmount: number;
+  rewardForRedeem: number;
+  refundTimestamp: number;
+  countdown?: number;
+  active?: boolean;
+}
+
+export interface PartialTransactionBody {
+  contractAddr: string;
+  data: any;
+  amount?: number;
+}
+
+export interface SwapTransactionStatus {
+  status: "Confirmed" | "Pending" | "Included" | "Invalid";
+  message?: string;
+  confirmations: number;
+  nextBlockETA: number;
+}
+
+export interface AuthMessage {
+  timestamp: number;
+  message: string;
+  msgToSign: string;
+  algorithm: Algorithm;
 }
