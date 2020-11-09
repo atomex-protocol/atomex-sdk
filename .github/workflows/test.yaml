@@ -1,11 +1,12 @@
-name: Publish
+name: Test
 on:
   push:
     branches:
-      - master
+      - /refs/heads/*
+      - !master
 jobs:
-  publish:
-    name: Build, test, and deploy typedoc to GH
+  test:
+    name: Generate TypeDoc
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,17 +23,5 @@ jobs:
       - name: Install dependencies
         run: make install
 
-      - name: Build library
-        run: make
-
       - name: Run tests
         run: make test
-
-      - name: Make TypeDoc
-        run: make typedoc
-
-      - name: Deploy to GH Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./typedoc
