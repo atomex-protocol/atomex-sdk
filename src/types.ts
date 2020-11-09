@@ -30,14 +30,13 @@ export type TxStatus =
   | "Canceled"
   | "Rejected";
 
-export type Algorithm = 
+export type Algorithm =
   | "Ed25519"
   | "Ed25519:Blake2b"
   | "Sha256WithEcdsa:Secp256k1"
   | "Blake2bWithEcdsa:Secp256k1"
   | "Blake2bWithEcdsa:Secp256r1"
   | "Keccak256WithEcdsa:Geth2940";
-
 
 export interface BookQuote {
   symbol: string;
@@ -108,6 +107,7 @@ export interface UserSwapData {
   trades: Trade[];
   transactions: Transaction[];
 }
+
 export interface Swap {
   id: number;
   symbol: string;
@@ -121,6 +121,7 @@ export interface Swap {
   user: UserSwapData;
   counterParty: UserSwapData;
 }
+
 export interface Order {
   id: number;
   clientOrderId: string;
@@ -161,18 +162,18 @@ export interface AddSwapRequisites {
   lockTime: number;
 }
 
-export interface GetTokenRequest {
+export interface AuthTokenRequest {
   timeStamp: number;
   message: string;
   publicKey: string;
   signature: string;
-  algorithm: Algorithm;    
+  algorithm: Algorithm;
 }
 
-export interface AuthResponse {
+export interface AuthTokenResponse {
   id: string;
   token: string;
-  expires: string;
+  expires: number;
 }
 
 export interface SymbolData {
