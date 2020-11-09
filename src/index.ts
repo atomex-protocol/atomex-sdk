@@ -1,3 +1,4 @@
-export * as API from "./api";
-export * from "./type";
-export * as Util from "./util";
+export * from "./atomex";
+export * from "./tezos";
+export * from "./ethereum";
+export * from "./helpers";
