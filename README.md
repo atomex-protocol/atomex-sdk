@@ -5,96 +5,52 @@ Please read the following documents prior to start building on this SDK:
 2. [Atomex protocol entities and API guide](docs/api.md)
 3. [Atomex integration best practices](docs/integration.md)
 
+In order to run the interactive tutorial:
+1. Make sure all dependencies are installed `make install`
+2. Run `make tutorial`
+
+Check out the docs at [sdk.atomex.me](https://sdk.atomex.me)
+
 ## SDK components
 
 The Atomex SDK has mainly 2 components:
 
-- API
-- Util
+- Atomex REST API wrapper `Atomex`
+- Various helpers for each supported currency/token (derived from `Helpers` class)
 
-### API
+Currently SDK supports the following currencies/tokens:
+- `XTZ` (tez) — `TezosHelpers`
+- `ETH` (ether) — `EthereumHelpers`
 
-The API module in the sdk provides a wrapper for all the atomex api endpoints. To start using the atomex api wrappers follow these steps:
+## Contributing
 
-1. Import API module
-
-```js
-const { API } = require("atomex-sdk");
-//or
-import { API } from "atomex-sdk";
+#### Install dependencies
+```
+make install
 ```
 
-2. Connect to supported network [mainnet/testnet]
-
-```js
-API.connect("mainnet");
-//or
-API.connect("testnet");
+#### Run linter and compile the library
+```
+make
 ```
 
-3. Use different API wrappers as required eg.
-
-```js
-// follow documentation for actual function signature
-API.getAuthToken("...");
-API.getOrders("...", "...");
+#### Run unit tests
+```
+make test
 ```
 
-### Util
-
-The Util module contains the different utility functions and blockchain helper functions for the supported blockchains (Ethereum & Tezos)
-
-To use the Util module follow these steps:
-
-1. Import Util module
-
-```js
-const { Util } = require("atomex-sdk");
-//or
-import { Util } from "atomex-sdk";
+In order to update the OpenAPI specification:
+```
+make spec-update
 ```
 
-2. Connect to supported network [mainnet/testnet]
-
-- Singleton Approach :
-
-```js
-Util.Ethereum.connect("mainnet", "optional rpc link");
-//or
-Util.Ethereum.connect("testnet", "optional rpc link");
-//or
-Util.Tezos.connect("mainnet", "optional rpc link");
-//or
-Util.Tezos.connect("testnet", "optional rpc link");
+#### Generate TypeDoc
+```
+make typedoc
 ```
 
-- `new` Object Approach
-
-```js
-const ethereum = new Util.EthereumUtil();
-ethereum.connect("mainnet", "optional rpc link");
-//or
-const tezos = new Util.TezosUtil();
-tezos.connect("mainnet", "optional rpc link");
+#### Publish to NPM
+Bump version in _package.json_, commit & push
 ```
-
-3. Use the blockchain helpers as required
-
-```js
-// follow documentation for actual function signature
-Util.Ethereum.initiate({ data });
-//or
-Util.Tezos.initiate({ data });
-// or using created object
-ethereum.initiate({ data });
+make release
 ```
-
-4. Other util functions can be directly accessed using the `Util` module:
-
-```js
-// follow documentation for actual function signature
-const msg = Util.getAuthMessage("...");
-```
-
-## Testing
-

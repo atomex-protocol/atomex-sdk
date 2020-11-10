@@ -6,7 +6,7 @@ build:
 
 install:
 	npm i
-	
+
 test:
 	npm run test
 
@@ -18,4 +18,8 @@ tutorial:
 	cd docs && jupyter notebook
 
 spec-update:
-	curl https://api.test.atomex.me/v1/swagger.json > test/swagger.json
+	curl https://api.test.atomex.me/v1/swagger.json > test/data/swagger.json
+
+release:
+	VERSION=$$(cat package.json | grep version | awk -F\" '{ print $$4 }')
+	git tag $$VERSION && git push origin $$VERSION
