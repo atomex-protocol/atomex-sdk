@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import { mocked } from "ts-jest/utils";
-import spec from "./swagger.json";
+import spec from "./data/swagger.json";
 const OpenAPISampler = require("openapi-sampler");
 import { Atomex } from "../src/atomex";
 import { AuthTokenRequest, AuthTokenResponse } from "../src/types";
