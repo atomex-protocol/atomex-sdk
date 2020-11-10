@@ -39,7 +39,7 @@
   "contracts": {
     "ETH": {
       "mainnet": "0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df",
-      "testnet": "0x527d1049837edf5f99c287a41a87702686082bf8",
+      "testnet": "0x527d1049837EdF5f99c287a41a87702686082bF8",
       "abi": [
         {
           "anonymous": false,

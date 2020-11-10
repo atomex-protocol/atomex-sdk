@@ -85,16 +85,10 @@ export class EthereumHelpers implements Helpers {
 
     const data: string = this._contract.methods
       .initiate(
-        initiateParameters.secretHash,
+        "0x" + initiateParameters.secretHash,
         initiateParameters.receivingAddress,
         initiateParameters.refundTimestamp,
-        initiateParameters.countdown !== undefined
-          ? initiateParameters.countdown
-          : initiateParameters.refundTimestamp - 1,
-        initiateParameters.rewardForRedeem,
-        initiateParameters.active !== undefined
-          ? initiateParameters.active
-          : true,
+        initiateParameters.rewardForRedeem
       )
       .encodeABI();
     return {
@@ -143,7 +137,7 @@ export class EthereumHelpers implements Helpers {
     };
   }
 
-  private parseInitiateParameters(transaction: Transaction): InitiateParameters {
+  parseInitiateParameters(transaction: Transaction): InitiateParameters {
     const initiateMethod = this._functions.get("initiate")!;
 
     if (!transaction.input.startsWith(initiateMethod.signature))
@@ -155,14 +149,15 @@ export class EthereumHelpers implements Helpers {
     );
 
     return {
-      secretHash: params["_hashedSecret"],
+      secretHash: params["_hashedSecret"].slice(2),
       receivingAddress: params["_participant"],
-      refundTimestamp: params["_refundTimestamp"],
-      rewardForRedeem: params["_payoff"],
-      netAmount: this._web3.utils
+      refundTimestamp: parseInt(params["_refundTimestamp"]),
+      rewardForRedeem: parseInt(this._web3.utils
+        .toBN(params["_payoff"]).toString()),
+      netAmount: parseInt(this._web3.utils
         .toBN(transaction.value)
         .sub(this._web3.utils.toBN(params["_payoff"]))
-        .toNumber(),
+        .toString()),
     };
   }
 
