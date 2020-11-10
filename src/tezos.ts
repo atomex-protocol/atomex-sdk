@@ -137,7 +137,7 @@ export class TezosHelpers implements Helpers {
    * @param blockLevel block level to identify the block
    * @returns endorsements , level of the block and block generation time
    */
-  private getBlockDetails(block: BlockResponse) {
+  getBlockDetails(block: BlockResponse) {
     let numEndorsements = 0;
     block.operations.forEach((ops) => {
       ops.forEach((op) => {
