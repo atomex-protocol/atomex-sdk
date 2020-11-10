@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>GetOrdersRequest | Atomex SDK</title>
+	<title>PartialTransactionBody | Atomex SDK</title>
 	<meta name="description" content="Documentation for Atomex SDK">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -54,10 +54,10 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="getordersrequest.html">GetOrdersRequest</a>
+					<a href="partialtransactionbody.html">PartialTransactionBody</a>
 				</li>
 			</ul>
-			<h1>Interface GetOrdersRequest</h1>
+			<h1>Interface PartialTransactionBody</h1>
 		</div>
 	</div>
 </header>
@@ -68,7 +68,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">GetOrdersRequest</span>
+						<span class="target">PartialTransactionBody</span>
 					</li>
 				</ul>
 			</section>
@@ -79,11 +79,9 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="getordersrequest.html#active" class="tsd-kind-icon">active</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="getordersrequest.html#limit" class="tsd-kind-icon">limit</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="getordersrequest.html#offset" class="tsd-kind-icon">offset</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="getordersrequest.html#sort" class="tsd-kind-icon">sort</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="getordersrequest.html#symbols" class="tsd-kind-icon">symbols</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="partialtransactionbody.html#amount" class="tsd-kind-icon">amount</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="partialtransactionbody.html#contractaddr" class="tsd-kind-icon">contract<wbr>Addr</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="partialtransactionbody.html#data" class="tsd-kind-icon">data</a></li>
 							</ul>
 						</section>
 					</div>
@@ -92,52 +90,32 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="active" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> active</h3>
-					<div class="tsd-signature tsd-kind-icon">active<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
+					<a name="amount" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> amount</h3>
+					<div class="tsd-signature tsd-kind-icon">amount<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/b72d2a4/src/types.ts#L86">types.ts:86</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/b72d2a4/src/types.ts#L197">types.ts:197</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="limit" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> limit</h3>
-					<div class="tsd-signature tsd-kind-icon">limit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
+					<a name="contractaddr" class="tsd-anchor"></a>
+					<h3>contract<wbr>Addr</h3>
+					<div class="tsd-signature tsd-kind-icon">contract<wbr>Addr<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/b72d2a4/src/types.ts#L85">types.ts:85</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/b72d2a4/src/types.ts#L195">types.ts:195</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="offset" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> offset</h3>
-					<div class="tsd-signature tsd-kind-icon">offset<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
+					<a name="data" class="tsd-anchor"></a>
+					<h3>data</h3>
+					<div class="tsd-signature tsd-kind-icon">data<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/b72d2a4/src/types.ts#L84">types.ts:84</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="sort" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> sort</h3>
-					<div class="tsd-signature tsd-kind-icon">sort<span class="tsd-signature-symbol">:</span> <a href="../globals.html#sort" class="tsd-signature-type">Sort</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/b72d2a4/src/types.ts#L83">types.ts:83</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="symbols" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> symbols</h3>
-					<div class="tsd-signature tsd-kind-icon">symbols<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/b72d2a4/src/types.ts#L82">types.ts:82</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/b72d2a4/src/types.ts#L196">types.ts:196</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -189,30 +167,9 @@
 					<li class=" tsd-kind-interface">
 						<a href="function.html" class="tsd-kind-icon">Function</a>
 					</li>
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-interface">
+					<li class=" tsd-kind-interface">
 						<a href="getordersrequest.html" class="tsd-kind-icon">Get<wbr>Orders<wbr>Request</a>
-						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="getordersrequest.html#active" class="tsd-kind-icon">active</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="getordersrequest.html#limit" class="tsd-kind-icon">limit</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="getordersrequest.html#offset" class="tsd-kind-icon">offset</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="getordersrequest.html#sort" class="tsd-kind-icon">sort</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="getordersrequest.html#symbols" class="tsd-kind-icon">symbols</a>
-							</li>
-						</ul>
 					</li>
-				</ul>
-				<ul class="after-current">
 					<li class=" tsd-kind-interface">
 						<a href="getswapsrequest.html" class="tsd-kind-icon">Get<wbr>Swaps<wbr>Request</a>
 					</li>
@@ -225,9 +182,24 @@
 					<li class=" tsd-kind-interface">
 						<a href="orderbook.html" class="tsd-kind-icon">Order<wbr>Book</a>
 					</li>
-					<li class=" tsd-kind-interface">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface">
 						<a href="partialtransactionbody.html" class="tsd-kind-icon">Partial<wbr>Transaction<wbr>Body</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="partialtransactionbody.html#amount" class="tsd-kind-icon">amount</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="partialtransactionbody.html#contractaddr" class="tsd-kind-icon">contract<wbr>Addr</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="partialtransactionbody.html#data" class="tsd-kind-icon">data</a>
+							</li>
+						</ul>
 					</li>
+				</ul>
+				<ul class="after-current">
 					<li class=" tsd-kind-interface">
 						<a href="proofoffunds.html" class="tsd-kind-icon">Proof<wbr>OfFunds</a>
 					</li>

@@ -65,7 +65,57 @@
 				<a href="#atomex-sdk" id="atomex-sdk" style="color: inherit; text-decoration: none;">
 					<h1>Atomex SDK</h1>
 				</a>
-				<p>Atomex SDK in Typescript</p>
+				<p>Please read the following documents prior to start building on this SDK:</p>
+				<ol>
+					<li><a href="docs/overview.md">Overview of the Atomex protocol and roles</a></li>
+					<li><a href="docs/api.md">Atomex protocol entities and API guide</a></li>
+					<li><a href="docs/integration.md">Atomex integration best practices</a></li>
+				</ol>
+				<p>In order to run the interactive tutorial:</p>
+				<ol>
+					<li>Make sure all dependencies are installed <code>make install</code></li>
+					<li>Run <code>make tutorial</code></li>
+				</ol>
+				<p>Check out the docs at <a href="https://sdk.atomex.me">sdk.atomex.me</a></p>
+				<a href="#sdk-components" id="sdk-components" style="color: inherit; text-decoration: none;">
+					<h2>SDK components</h2>
+				</a>
+				<p>The Atomex SDK has mainly 2 components:</p>
+				<ul>
+					<li>Atomex REST API wrapper <code>Atomex</code></li>
+					<li>Various helpers for each supported currency/token (derived from <code>Helpers</code> class)</li>
+				</ul>
+				<p>Currently SDK supports the following currencies/tokens:</p>
+				<ul>
+					<li><code>XTZ</code> (tez) — <code>TezosHelpers</code></li>
+					<li><code>ETH</code> (ether) — <code>EthereumHelpers</code></li>
+				</ul>
+				<a href="#contributing" id="contributing" style="color: inherit; text-decoration: none;">
+					<h2>Contributing</h2>
+				</a>
+				<a href="#install-dependencies" id="install-dependencies" style="color: inherit; text-decoration: none;">
+					<h4>Install dependencies</h4>
+				</a>
+				<pre><code>make <span class="hljs-keyword">install</span></code></pre>
+				<a href="#run-linter-and-compile-the-library" id="run-linter-and-compile-the-library" style="color: inherit; text-decoration: none;">
+					<h4>Run linter and compile the library</h4>
+				</a>
+				<pre><code><span class="hljs-attribute">make</span></code></pre>
+				<a href="#run-unit-tests" id="run-unit-tests" style="color: inherit; text-decoration: none;">
+					<h4>Run unit tests</h4>
+				</a>
+				<pre><code>make <span class="hljs-built_in">test</span></code></pre>
+				<p>In order to update the OpenAPI specification:</p>
+				<pre><code><span class="hljs-keyword">make</span> spec-<span class="hljs-keyword">update</span></code></pre>
+				<a href="#generate-typedoc" id="generate-typedoc" style="color: inherit; text-decoration: none;">
+					<h4>Generate TypeDoc</h4>
+				</a>
+				<pre><code><span class="hljs-attribute">make typedoc</span></code></pre>
+				<a href="#publish-to-npm" id="publish-to-npm" style="color: inherit; text-decoration: none;">
+					<h4>Publish to NPM</h4>
+				</a>
+				<p>Bump version in <em>package.json</em>, commit &amp; push</p>
+				<pre><code>make <span class="hljs-built_in">release</span></code></pre>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -79,10 +129,16 @@
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
 					<li class=" tsd-kind-class">
-						<a href="classes/ethereumutil.html" class="tsd-kind-icon">Ethereum<wbr>Util</a>
+						<a href="classes/atomex.html" class="tsd-kind-icon">Atomex</a>
 					</li>
 					<li class=" tsd-kind-class">
-						<a href="classes/tezosutil.html" class="tsd-kind-icon">Tezos<wbr>Util</a>
+						<a href="classes/ethereumhelpers.html" class="tsd-kind-icon">Ethereum<wbr>Helpers</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/helpers.html" class="tsd-kind-icon">Helpers</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/tezoshelpers.html" class="tsd-kind-icon">Tezos<wbr>Helpers</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="interfaces/addorderrequest.html" class="tsd-kind-icon">Add<wbr>Order<wbr>Request</a>
@@ -91,7 +147,13 @@
 						<a href="interfaces/addswaprequisites.html" class="tsd-kind-icon">Add<wbr>Swap<wbr>Requisites</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="interfaces/authresponse.html" class="tsd-kind-icon">Auth<wbr>Response</a>
+						<a href="interfaces/authmessage.html" class="tsd-kind-icon">Auth<wbr>Message</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/authtokenrequest.html" class="tsd-kind-icon">Auth<wbr>Token<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/authtokenresponse.html" class="tsd-kind-icon">Auth<wbr>Token<wbr>Response</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="interfaces/bookquote.html" class="tsd-kind-icon">Book<wbr>Quote</a>
@@ -100,7 +162,7 @@
 						<a href="interfaces/entry.html" class="tsd-kind-icon">Entry</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="interfaces/expectedswapdata.html" class="tsd-kind-icon">Expected<wbr>Swap<wbr>Data</a>
+						<a href="interfaces/function.html" class="tsd-kind-icon">Function</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="interfaces/getordersrequest.html" class="tsd-kind-icon">Get<wbr>Orders<wbr>Request</a>
@@ -109,13 +171,16 @@
 						<a href="interfaces/getswapsrequest.html" class="tsd-kind-icon">Get<wbr>Swaps<wbr>Request</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="interfaces/gettokenrequest.html" class="tsd-kind-icon">Get<wbr>Token<wbr>Request</a>
+						<a href="interfaces/initiateparameters.html" class="tsd-kind-icon">Initiate<wbr>Parameters</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="interfaces/order.html" class="tsd-kind-icon">Order</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="interfaces/orderbook.html" class="tsd-kind-icon">Order<wbr>Book</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/partialtransactionbody.html" class="tsd-kind-icon">Partial<wbr>Transaction<wbr>Body</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="interfaces/proofoffunds.html" class="tsd-kind-icon">Proof<wbr>OfFunds</a>
@@ -127,13 +192,10 @@
 						<a href="interfaces/swap.html" class="tsd-kind-icon">Swap</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="interfaces/swapdetails.html" class="tsd-kind-icon">Swap<wbr>Details</a>
-					</li>
-					<li class=" tsd-kind-interface">
 						<a href="interfaces/swaprequisites.html" class="tsd-kind-icon">Swap<wbr>Requisites</a>
 					</li>
 					<li class=" tsd-kind-interface">
-						<a href="interfaces/swapvalidity.html" class="tsd-kind-icon">Swap<wbr>Validity</a>
+						<a href="interfaces/swaptransactionstatus.html" class="tsd-kind-icon">Swap<wbr>Transaction<wbr>Status</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="interfaces/symboldata.html" class="tsd-kind-icon">Symbol<wbr>Data</a>
@@ -146,6 +208,9 @@
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="interfaces/userswapdata.html" class="tsd-kind-icon">User<wbr>Swap<wbr>Data</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#algorithm" class="tsd-kind-icon">Algorithm</a>
 					</li>
 					<li class=" tsd-kind-type-alias">
 						<a href="globals.html#orderstatus" class="tsd-kind-icon">Order<wbr>Status</a>
@@ -168,50 +233,14 @@
 					<li class=" tsd-kind-type-alias">
 						<a href="globals.html#txtype" class="tsd-kind-icon">Tx<wbr>Type</a>
 					</li>
-					<li class=" tsd-kind-variable">
-						<a href="globals.html#ethereum" class="tsd-kind-icon">Ethereum</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="globals.html#tezos" class="tsd-kind-icon">Tezos</a>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#dt2ts" class="tsd-kind-icon">dt2ts</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="globals.html#addorder" class="tsd-kind-icon">add<wbr>Order</a>
+						<a href="globals.html#formattimestamp" class="tsd-kind-icon">format<wbr>Timestamp</a>
 					</li>
 					<li class=" tsd-kind-function">
-						<a href="globals.html#addswaprequisites" class="tsd-kind-icon">add<wbr>Swap<wbr>Requisites</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#cancelorder" class="tsd-kind-icon">cancel<wbr>Order</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#connect" class="tsd-kind-icon">connect</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#getauthmessage" class="tsd-kind-icon">get<wbr>Auth<wbr>Message</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#getauthtoken" class="tsd-kind-icon">get<wbr>Auth<wbr>Token</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#getorder" class="tsd-kind-icon">get<wbr>Order</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#getorderbook" class="tsd-kind-icon">get<wbr>Order<wbr>Book</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#getorders" class="tsd-kind-icon">get<wbr>Orders</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#getswap" class="tsd-kind-icon">get<wbr>Swap</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#getswaps" class="tsd-kind-icon">get<wbr>Swaps</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#getsymbols" class="tsd-kind-icon">get<wbr>Symbols</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="globals.html#gettopbookquotes" class="tsd-kind-icon">get<wbr>Top<wbr>Book<wbr>Quotes</a>
+						<a href="globals.html#now" class="tsd-kind-icon">now</a>
 					</li>
 				</ul>
 			</nav>
@@ -228,6 +257,9 @@
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
 			</ul>
 		</div>
 	</div>
