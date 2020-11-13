@@ -1,23 +1,31 @@
-import {
-  AuthTokenResponse,
-  AuthTokenRequest as AuthRequest,
-  BookQuote,
-  SymbolData,
-  OrderBook,
-  AddOrderRequest,
-  GetOrdersRequest,
-  Order,
-  Side,
-  AddSwapRequisites,
-  GetSwapsRequest,
-  Swap,
-} from "./types";
 import fetch from "isomorphic-unfetch";
 import config from "./config.json";
+import {
+  AddOrderRequest,
+  AddSwapRequisites,
+  AuthTokenRequest as AuthRequest,
+  AuthTokenResponse,
+  BookQuote,
+  Entry,
+  GetOrdersRequest,
+  GetSwapsRequest,
+  Order,
+  OrderBook,
+  OrderPreview,
+  Side,
+  Swap,
+  SymbolData,
+} from "./types";
 
 interface Query {
   [key: string]: any;
 }
+type ArithmeticOP = (a: number, b: number) => number;
+type RelationalOP = (a: number, b: number) => boolean;
+const divOP: ArithmeticOP = (a, b) => a / b;
+const noOP: ArithmeticOP = (a, b) => a;
+const ltOP: RelationalOP = (a, b) => a < b;
+const gtOP: RelationalOP = (a, b) => a > b;
 
 export class Atomex {
   private _baseUrl: string;
@@ -135,8 +143,13 @@ export class Atomex {
    * @returns order id
    */
   async addOrder(addOrderRequest: AddOrderRequest): Promise<number> {
-    return this.makeRequest<Record<string, number>>("post", "/Orders", true, {}, addOrderRequest)
-      .then((res) => res["orderId"]);
+    return this.makeRequest<Record<string, number>>(
+      "post",
+      "/Orders",
+      true,
+      {},
+      addOrderRequest,
+    ).then((res) => res["orderId"]);
   }
 
   /**
@@ -168,12 +181,16 @@ export class Atomex {
    * @param authToken atomex authorization token
    * @returns true/false value depending on operation success
    */
-  async cancelOrder(orderID: string, symbol: string, side: Side): Promise<boolean> {
+  async cancelOrder(
+    orderID: string,
+    symbol: string,
+    side: Side,
+  ): Promise<boolean> {
     return this.makeRequest<Record<string, boolean>>(
-      "delete", 
-      `/v1/Orders/${orderID}`, 
-      true, 
-      { symbol, side }
+      "delete",
+      `/v1/Orders/${orderID}`,
+      true,
+      { symbol, side },
     ).then((res) => res["result"]);
   }
 
@@ -184,7 +201,10 @@ export class Atomex {
    * @param swapRequisites swap requisites being updated
    * @returns true/false depending on operation success
    */
-  async addSwapRequisites(swapID: string, swapRequisites: AddSwapRequisites): Promise<boolean> {
+  async addSwapRequisites(
+    swapID: string,
+    swapRequisites: AddSwapRequisites,
+  ): Promise<boolean> {
     return this.makeRequest<Record<string, boolean>>(
       "post",
       `/v1/Swaps/${swapID}/requisites`,
@@ -212,5 +232,91 @@ export class Atomex {
    */
   async getSwap(swapID: string): Promise<Swap> {
     return this.makeRequest("get", `/v1/Swaps/${swapID}`, true);
+  }
+
+  private getSuitableEntry(
+    entries: Entry[],
+    side: Side,
+    amount: number,
+    qtyOp: ArithmeticOP,
+    relOp: RelationalOP,
+  ): Entry {
+    let reqEntry = -1;
+    for (let i = 0; i < entries.length; i++) {
+      if (
+        Math.max(...entries[i].qtyProfile) >= qtyOp(amount, entries[i].price) &&
+        entries[i].side == side
+      ) {
+        if (reqEntry == -1) reqEntry = i;
+        else if (relOp(entries[i].price, entries[reqEntry].price)) {
+          reqEntry = i;
+        }
+      }
+    }
+    if (reqEntry == -1) {
+      throw new Error("No suitable entry found");
+    }
+    return entries[reqEntry];
+  }
+
+  getOrderPreview(
+    orderBook: OrderBook,
+    side: Side,
+    amount: number,
+    direction: "Send" | "Receive",
+  ): OrderPreview {
+    let entry: Entry, newAmount: number;
+    if (side === "Buy") {
+      if (direction == "Send") {
+        entry = this.getSuitableEntry(
+          orderBook.entries,
+          "Sell",
+          amount,
+          divOP,
+          ltOP,
+        );
+        newAmount = amount / entry.price;
+      } else {
+        entry = this.getSuitableEntry(
+          orderBook.entries,
+          "Sell",
+          amount,
+          noOP,
+          ltOP,
+        );
+        newAmount = amount * entry.price;
+      }
+    } else {
+      if (direction == "Send") {
+        entry = this.getSuitableEntry(
+          orderBook.entries,
+          "Buy",
+          amount,
+          noOP,
+          gtOP,
+        );
+        newAmount = amount * entry.price;
+      } else {
+        entry = this.getSuitableEntry(
+          orderBook.entries,
+          "Buy",
+          amount,
+          divOP,
+          gtOP,
+        );
+        newAmount = amount / entry.price;
+      }
+    }
+    if (direction == "Send")
+      return {
+        price: entry.price,
+        amountSent: amount,
+        amountReceived: newAmount,
+      };
+    return {
+      price: entry.price,
+      amountSent: newAmount,
+      amountReceived: amount,
+    };
   }
 }

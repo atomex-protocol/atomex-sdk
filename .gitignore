@@ -105,6 +105,7 @@ dist
 
 # Others
 trial.js
+.vscode/
 
 # Jupyter/python
 .ipynb_checkpoints

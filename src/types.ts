@@ -210,3 +210,14 @@ export interface AuthMessage {
   msgToSign: string;
   algorithm: Algorithm;
 }
+
+export interface Fees {
+  minerFee: number;
+  rewardForRedeem: number;
+}
+
+export interface OrderPreview {
+  price: number;
+  amountSent: number;
+  amountReceived: number;
+}
