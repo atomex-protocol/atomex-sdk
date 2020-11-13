@@ -1,18 +1,28 @@
 import { ParameterSchema } from "@taquito/michelson-encoder";
+import {
+  BlockResponse,
+  OperationContentsAndResultTransaction,
+} from "@taquito/rpc";
 import { TezosToolkit } from "@taquito/taquito";
-import { BlockResponse, OperationContentsAndResultTransaction } from "@taquito/rpc";
-import { InitiateParameters, PartialTransactionBody, SwapTransactionStatus, AuthMessage, Algorithm } from "./types";
-import { Helpers, dt2ts, now } from "./helpers";
+import { b58cdecode, prefix } from "@taquito/utils";
 import config from "./config.json";
+import { dt2ts, Helpers, now } from "./helpers";
+import {
+  Algorithm,
+  AuthMessage,
+  InitiateParameters,
+  PartialTransactionBody,
+  SwapTransactionStatus,
+} from "./types";
 
 const formatTimestamp = (timestamp: number) => {
-  return (new Date(timestamp * 1000)).toISOString().slice(0, -5) + "Z";
-}
+  return new Date(timestamp * 1000).toISOString().slice(0, -5) + "Z";
+};
 
 /**
  * Tezos Util class for Tezos related Atomex helper functions
  */
-export class TezosHelpers implements Helpers {
+export class TezosHelpers extends Helpers {
   private _tezos: TezosToolkit;
   private _contractAddress: string;
   private _timeBetweenBlocks: number;
@@ -24,13 +34,14 @@ export class TezosHelpers implements Helpers {
     contractAddress: string,
     timeBetweenBlocks: number,
   ) {
+    super();
     this._tezos = tezos;
     this._contractAddress = contractAddress;
     this._timeBetweenBlocks = timeBetweenBlocks;
     this._entrypoints = new Map<string, ParameterSchema>(
       Object.entries(entrypoints).map(([name, typeExpr]) => {
-          return [name, new ParameterSchema(typeExpr)];
-      })
+        return [name, new ParameterSchema(typeExpr)];
+      }),
     );
   }
 
@@ -41,17 +52,20 @@ export class TezosHelpers implements Helpers {
    * @param rpc optional rpc endpoint to create tezos chain client
    * @returns chain id of the connected chain
    */
-  static async create(network: "mainnet" | "testnet", rpcUri?: string): Promise<TezosHelpers> {
+  static async create(
+    network: "mainnet" | "testnet",
+    rpcUri?: string,
+  ): Promise<TezosHelpers> {
     const networkSettings = config.rpc.tezos[network];
-    if (rpcUri !== undefined) 
-      networkSettings.rpc = rpcUri;
+    if (rpcUri !== undefined) networkSettings.rpc = rpcUri;
 
-    const tezos = new TezosToolkit();
-    tezos.setProvider({ rpc: networkSettings.rpc });
+    const tezos = new TezosToolkit(networkSettings.rpc);
 
     const chainID = await tezos.rpc.getChainId();
     if (networkSettings.chainID !== chainID.toString())
-      throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
+      throw new Error(
+        `Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`,
+      );
 
     return new TezosHelpers(
       tezos,
@@ -63,10 +77,14 @@ export class TezosHelpers implements Helpers {
 
   private getTezosAlgorithm(prefix?: string): Algorithm {
     switch (prefix) {
-      case "tz1": return "Ed25519:Blake2b";
-      case "tz2": return "Blake2bWithEcdsa:Secp256k1";
-      case "tz3": return "Blake2bWithEcdsa:Secp256r1";
-      default: throw new Error(`Unexpected address prefix: ${prefix}`);
+      case "tz1":
+        return "Ed25519:Blake2b";
+      case "tz2":
+        return "Blake2bWithEcdsa:Secp256k1";
+      case "tz3":
+        return "Blake2bWithEcdsa:Secp256r1";
+      default:
+        throw new Error(`Unexpected address prefix: ${prefix}`);
     }
   }
 
@@ -80,16 +98,22 @@ export class TezosHelpers implements Helpers {
     };
   }
 
-  buildInitiateTransaction(initiateParameters: InitiateParameters): PartialTransactionBody {
+  buildInitiateTransaction(
+    initiateParameters: InitiateParameters,
+  ): PartialTransactionBody {
     if (initiateParameters.refundTimestamp < now())
-      throw new Error(`Swap timestamp is in the past: ${initiateParameters.refundTimestamp}`);
+      throw new Error(
+        `Swap timestamp is in the past: ${initiateParameters.refundTimestamp}`,
+      );
 
-    const parameter = this._entrypoints.get("initiate")?.Encode(
-      initiateParameters.receivingAddress,
-      initiateParameters.secretHash,
-      formatTimestamp(initiateParameters.refundTimestamp),
-      initiateParameters.rewardForRedeem,
-    );
+    const parameter = this._entrypoints
+      .get("initiate")
+      ?.Encode(
+        initiateParameters.receivingAddress,
+        initiateParameters.secretHash,
+        formatTimestamp(initiateParameters.refundTimestamp),
+        initiateParameters.rewardForRedeem,
+      );
     return {
       data: {
         entrypoint: "initiate",
@@ -109,7 +133,7 @@ export class TezosHelpers implements Helpers {
       contractAddr: this._contractAddress,
     };
   }
-  
+
   buildRefundTransaction(secretHash: string): PartialTransactionBody {
     return {
       data: {
@@ -120,7 +144,10 @@ export class TezosHelpers implements Helpers {
     };
   }
 
-  buildAddTransaction(secretHash: string, amount: number): PartialTransactionBody {
+  buildAddTransaction(
+    secretHash: string,
+    amount: number,
+  ): PartialTransactionBody {
     return {
       amount,
       data: {
@@ -163,20 +190,32 @@ export class TezosHelpers implements Helpers {
     };
   }
 
-  parseInitiateParameters(content: OperationContentsAndResultTransaction): InitiateParameters {
+  parseInitiateParameters(
+    content: OperationContentsAndResultTransaction,
+  ): InitiateParameters {
     if (content.parameters === undefined)
       throw new Error("Parameters are undefined");
 
-    const params = this._entrypoints.get(content.parameters.entrypoint)?.Execute(content.parameters.value);
+    const params = this._entrypoints
+      .get(content.parameters.entrypoint)
+      ?.Execute(content.parameters.value);
     if (params === undefined)
-      throw new Error(`Unexpected entrypoint: ${content.parameters.entrypoint}`);
+      throw new Error(
+        `Unexpected entrypoint: ${content.parameters.entrypoint}`,
+      );
 
     const initiateParams = (() => {
       switch (content.parameters.entrypoint) {
-        case "initiate": return params;
-        case "fund": return params["initiate"];
-        case "default": return params["fund"]["initiate"];
-        default: throw new Error(`Unexpected entrypoint: ${content.parameters.entrypoint}`);
+        case "initiate":
+          return params;
+        case "fund":
+          return params["initiate"];
+        case "default":
+          return params["fund"]["initiate"];
+        default:
+          throw new Error(
+            `Unexpected entrypoint: ${content.parameters.entrypoint}`,
+          );
       }
     })();
 
@@ -184,18 +223,26 @@ export class TezosHelpers implements Helpers {
       secretHash: initiateParams["settings"]["hashed_secret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["settings"]["refund_time"]),
-      netAmount: parseInt(content.amount) - parseInt(initiateParams["settings"]["payoff"]),
+      netAmount:
+        parseInt(content.amount) -
+        parseInt(initiateParams["settings"]["payoff"]),
       rewardForRedeem: parseInt(initiateParams["settings"]["payoff"]),
     };
   }
 
-  findContractCall(block: BlockResponse, txID: string): OperationContentsAndResultTransaction {
+  findContractCall(
+    block: BlockResponse,
+    txID: string,
+  ): OperationContentsAndResultTransaction {
     const opg = block.operations[3]?.find((opg) => opg.hash == txID);
     if (opg === undefined)
       throw new Error(`Operation not found: ${txID} @ ${block.hash}`);
 
-    const content = <OperationContentsAndResultTransaction>(opg.contents.find(
-      (c) => c.kind == "transaction" && c.destination == this._contractAddress)
+    const content = <OperationContentsAndResultTransaction>(
+      opg.contents.find(
+        (c) =>
+          c.kind == "transaction" && c.destination == this._contractAddress,
+      )
     );
     if (content === undefined)
       throw new Error(`Unsupported contract version is used`);
@@ -217,18 +264,28 @@ export class TezosHelpers implements Helpers {
     });
 
     try {
-      const initiateParameters = this.parseInitiateParameters(this.findContractCall(block, txID));
+      const initiateParameters = this.parseInitiateParameters(
+        this.findContractCall(block, txID),
+      );
       if (initiateParameters.secretHash !== secretHash)
-        throw new Error(`Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`);
+        throw new Error(
+          `Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`,
+        );
 
       if (initiateParameters.receivingAddress !== receivingAddress)
-        throw new Error(`Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`);
+        throw new Error(
+          `Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`,
+        );
 
       if (initiateParameters.netAmount !== netAmount)
-        throw new Error(`Net amount: expect ${netAmount}, actual ${initiateParameters.netAmount}`);
+        throw new Error(
+          `Net amount: expect ${netAmount}, actual ${initiateParameters.netAmount}`,
+        );
 
       if (initiateParameters.refundTimestamp < minRefundTimestamp)
-        throw new Error(`Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`);
+        throw new Error(
+          `Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`,
+        );
     } catch (e) {
       return {
         status: "Invalid",
@@ -250,12 +307,42 @@ export class TezosHelpers implements Helpers {
       nextBlockETA: headDetails.timestamp + this._timeBetweenBlocks,
     };
 
-    if (confirmations >= minConfirmations 
-      || headDetails.numEndorsements === 32 
-      || txBlockDetails.numEndorsements === 32) {
+    if (
+      confirmations >= minConfirmations ||
+      headDetails.numEndorsements === 32 ||
+      txBlockDetails.numEndorsements === 32
+    ) {
       res.status = "Confirmed";
     }
 
     return res;
+  }
+
+  encodePublicKey(pubKey: string): string {
+    const pref = {
+      ed: prefix["edpk"],
+      p2: prefix["p2pk"],
+      sp: prefix["sppk"],
+    };
+    const curve = pubKey.substring(0, 2);
+    if (Object.prototype.hasOwnProperty.call(pref, curve))
+      return Buffer.from(
+        b58cdecode(pubKey, Object.getOwnPropertyDescriptor(pref, curve)?.value),
+      ).toString("hex");
+    throw new Error("Unsupported Public Key Type");
+  }
+
+  encodeSignature(signature: string): string {
+    const pref = signature.startsWith("sig")
+      ? signature.substring(0, 3)
+      : signature.substring(0, 5);
+    if (Object.prototype.hasOwnProperty.call(prefix, pref))
+      return Buffer.from(
+        b58cdecode(
+          signature,
+          Object.getOwnPropertyDescriptor(prefix, pref)?.value,
+        ),
+      ).toString("hex");
+    throw new Error("Unsupported Signature Type");
   }
 }

@@ -6,7 +6,6 @@ import {
 } from "./types";
 
 export abstract class Helpers {
-
   /**
    * Get the details needed for `getAuthToken` request
    *
@@ -80,6 +79,31 @@ export abstract class Helpers {
     minRefundTimestamp: number,
     minConfirmations: number,
   ): Promise<SwapTransactionStatus>;
+
+  /**
+   * Estimates Miner Fee and Reward for Redeem to be used in a Swap
+   *
+   * @returns the minerFee and the rewardForRedeem
+   */
+  // public abstract estimateFees(
+  //   initiateParameters: InitiateParameters,
+  // ): Promise<Fees>;
+
+  /**
+   * Encodes Signature in a form compliant with Atomex
+   *
+   * @param signature signature to encode
+   * @returns encoded signature
+   */
+  public abstract encodeSignature(signature: string): string;
+
+  /**
+   * Encodes Public Key in a form compliant with Atomex
+   *
+   * @param publicKey public key
+   * @returns encoded public key
+   */
+  public abstract encodePublicKey(publicKey: string): string;
 }
 
 export const dt2ts = (isoTime: Date | string): number =>

@@ -1,11 +1,16 @@
 import elliptic from "elliptic";
 import Web3 from "web3";
+import { Transaction } from "web3-core";
 import { Contract } from "web3-eth-contract";
 import { AbiInput, AbiItem } from "web3-utils";
-import { Transaction } from "web3-core";
-import { InitiateParameters, PartialTransactionBody, SwapTransactionStatus, AuthMessage} from "./types";
-import { Helpers, now } from "./helpers";
 import config from "./config.json";
+import { Helpers, now } from "./helpers";
+import {
+  AuthMessage,
+  InitiateParameters,
+  PartialTransactionBody,
+  SwapTransactionStatus,
+} from "./types";
 
 export interface Function {
   types: AbiInput[];
@@ -15,7 +20,7 @@ export interface Function {
 /**
  * Ethereum Util class for Ethereum related Atomex helper functions
  */
-export class EthereumHelpers implements Helpers {
+export class EthereumHelpers extends Helpers {
   private _web3: Web3;
   private _contract: Contract;
   private _timeBetweenBlocks: number;
@@ -27,6 +32,7 @@ export class EthereumHelpers implements Helpers {
     contractAddress: string,
     timeBetweenBlocks: number,
   ) {
+    super();
     this._web3 = web3;
     this._contract = new web3.eth.Contract(jsonInterface, contractAddress);
     this._timeBetweenBlocks = timeBetweenBlocks;
@@ -37,7 +43,7 @@ export class EthereumHelpers implements Helpers {
           types: item.inputs!,
           signature: web3.eth.abi.encodeFunctionSignature(item as AbiItem),
         });
-    }); 
+    });
   }
 
   /**
@@ -47,10 +53,12 @@ export class EthereumHelpers implements Helpers {
    * @param rpc optional rpc endpoint to create eth chain client
    * @returns chain id of the connected chain
    */
-  static async create(network: "mainnet" | "testnet", rpcUri?: string): Promise<EthereumHelpers> {
+  static async create(
+    network: "mainnet" | "testnet",
+    rpcUri?: string,
+  ): Promise<EthereumHelpers> {
     const networkSettings = config.rpc.ethereum[network];
-    if (rpcUri !== undefined) 
-      networkSettings.rpc = rpcUri;
+    if (rpcUri !== undefined) networkSettings.rpc = rpcUri;
 
     const web3 = new Web3(networkSettings.rpc);
     const chainID = await web3.eth.getChainId();
@@ -77,7 +85,9 @@ export class EthereumHelpers implements Helpers {
     };
   }
 
-  buildInitiateTransaction(initiateParameters: InitiateParameters): PartialTransactionBody {
+  buildInitiateTransaction(
+    initiateParameters: InitiateParameters,
+  ): PartialTransactionBody {
     if (initiateParameters.refundTimestamp < now())
       throw new Error(
         `Swap timestamp is in the past: ${initiateParameters.refundTimestamp}`,
@@ -88,7 +98,7 @@ export class EthereumHelpers implements Helpers {
         "0x" + initiateParameters.secretHash,
         initiateParameters.receivingAddress,
         initiateParameters.refundTimestamp,
-        initiateParameters.rewardForRedeem
+        initiateParameters.rewardForRedeem,
       )
       .encodeABI();
     return {
@@ -114,7 +124,10 @@ export class EthereumHelpers implements Helpers {
     };
   }
 
-  buildAddTransaction(secretHash: string, amount: number): PartialTransactionBody {
+  buildAddTransaction(
+    secretHash: string,
+    amount: number,
+  ): PartialTransactionBody {
     const data = this._contract.methods.add(secretHash).encodeABI();
     return {
       data,
@@ -130,7 +143,9 @@ export class EthereumHelpers implements Helpers {
    * @returns contract address and tx data that can be used to make a contract call
    */
   buildActivateTransaction(secretHash: string) {
-    const data: string = this._contract.methods.activate(secretHash).encodeABI();
+    const data: string = this._contract.methods
+      .activate(secretHash)
+      .encodeABI();
     return {
       data,
       contractAddr: this._contract.options.address,
@@ -152,12 +167,15 @@ export class EthereumHelpers implements Helpers {
       secretHash: params["_hashedSecret"].slice(2),
       receivingAddress: params["_participant"],
       refundTimestamp: parseInt(params["_refundTimestamp"]),
-      rewardForRedeem: parseInt(this._web3.utils
-        .toBN(params["_payoff"]).toString()),
-      netAmount: parseInt(this._web3.utils
-        .toBN(transaction.value)
-        .sub(this._web3.utils.toBN(params["_payoff"]))
-        .toString()),
+      rewardForRedeem: parseInt(
+        this._web3.utils.toBN(params["_payoff"]).toString(),
+      ),
+      netAmount: parseInt(
+        this._web3.utils
+          .toBN(transaction.value)
+          .sub(this._web3.utils.toBN(params["_payoff"]))
+          .toString(),
+      ),
     };
   }
 
@@ -219,14 +237,26 @@ export class EthereumHelpers implements Helpers {
         parseInt(latestBlock.timestamp.toString()) + this._timeBetweenBlocks,
     };
 
-    if (confirmations >= minConfirmations) 
-      res.status = "Confirmed";
+    if (confirmations >= minConfirmations) res.status = "Confirmed";
 
     return res;
   }
 
   private hexSlice(i: number, j: number, bs: string) {
     return "0x" + bs.slice(i * 2 + 2, j * 2 + 2);
+  }
+
+  private getVRS(signature: string) {
+    const vals = [
+      this.hexSlice(64, (signature.length - 2) / 2, signature),
+      this.hexSlice(0, 32, signature),
+      this.hexSlice(32, 64, signature),
+    ];
+    return {
+      v: parseInt(vals[0].slice(2), 16),
+      r: vals[1].slice(2),
+      s: vals[2].slice(2),
+    };
   }
 
   /**
@@ -238,16 +268,7 @@ export class EthereumHelpers implements Helpers {
    */
   recoverPublicKey(msg: string, signature: string) {
     const hash = this._web3.eth.accounts.hashMessage(msg);
-    const vals = [
-      this.hexSlice(64, (signature.length - 2) / 2, signature),
-      this.hexSlice(0, 32, signature),
-      this.hexSlice(32, 64, signature),
-    ];
-    const vrs = {
-      v: parseInt(vals[0].slice(2), 16),
-      r: vals[1].slice(2),
-      s: vals[2].slice(2),
-    };
+    const vrs = this.getVRS(signature);
     const secp256k1 = new elliptic.ec("secp256k1");
     const ecPublicKey = secp256k1.recoverPubKey(
       Buffer.from(hash.slice(2), "hex"),
@@ -255,5 +276,15 @@ export class EthereumHelpers implements Helpers {
       vrs.v < 2 ? vrs.v : 1 - (vrs.v % 2),
     );
     return "0x" + ecPublicKey.encode("hex", false);
+  }
+
+  encodePublicKey(pubKey: string): string {
+    if (pubKey.startsWith("0x")) return pubKey.slice(2);
+    return pubKey;
+  }
+
+  encodeSignature(signature: string): string {
+    const vrs = this.getVRS(signature);
+    return vrs.r.padStart(64, "0") + vrs.s.padStart(64, "0");
   }
 }
