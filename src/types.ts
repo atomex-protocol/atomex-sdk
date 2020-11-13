@@ -211,11 +211,6 @@ export interface AuthMessage {
   algorithm: Algorithm;
 }
 
-export interface Fees {
-  minerFee: number;
-  rewardForRedeem: number;
-}
-
 export interface OrderPreview {
   price: number;
   amountSent: number;

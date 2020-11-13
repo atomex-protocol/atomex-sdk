@@ -39,8 +39,8 @@
     "typescript": "^4.0.5"
   },
   "dependencies": {
-    "@taquito/michelson-encoder": "^7.0.0-beta.0",
-    "@taquito/taquito": "^7.0.0-beta.0",
+    "@taquito/michelson-encoder": "^6.3.5-beta.0",
+    "@taquito/taquito": "^6.3.5-beta.0",
     "@types/elliptic": "^6.4.12",
     "@types/node-fetch": "^2.5.7",
     "elliptic": "^6.5.3",
