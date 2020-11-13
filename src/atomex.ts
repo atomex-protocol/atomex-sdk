@@ -244,8 +244,8 @@ export class Atomex {
     let reqEntry = -1;
     for (let i = 0; i < entries.length; i++) {
       if (
-        Math.max(...entries[i].qtyProfile) >= qtyOp(amount, entries[i].price) &&
-        entries[i].side == side
+        entries[i].side == side &&
+        Math.max(...entries[i].qtyProfile) >= qtyOp(amount, entries[i].price)
       ) {
         if (reqEntry == -1) reqEntry = i;
         else if (relOp(entries[i].price, entries[reqEntry].price)) {

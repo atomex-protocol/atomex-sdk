@@ -59,7 +59,8 @@ export class TezosHelpers extends Helpers {
     const networkSettings = config.rpc.tezos[network];
     if (rpcUri !== undefined) networkSettings.rpc = rpcUri;
 
-    const tezos = new TezosToolkit(networkSettings.rpc);
+    const tezos = new TezosToolkit();
+    tezos.setRpcProvider(networkSettings.rpc);
 
     const chainID = await tezos.rpc.getChainId();
     if (networkSettings.chainID !== chainID.toString())

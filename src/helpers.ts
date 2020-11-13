@@ -81,15 +81,6 @@ export abstract class Helpers {
   ): Promise<SwapTransactionStatus>;
 
   /**
-   * Estimates Miner Fee and Reward for Redeem to be used in a Swap
-   *
-   * @returns the minerFee and the rewardForRedeem
-   */
-  // public abstract estimateFees(
-  //   initiateParameters: InitiateParameters,
-  // ): Promise<Fees>;
-
-  /**
    * Encodes Signature in a form compliant with Atomex
    *
    * @param signature signature to encode
