@@ -216,3 +216,8 @@ export interface OrderPreview {
   amountSent: number;
   amountReceived: number;
 }
+
+export interface RedeemFees {
+  minerFee: number;
+  rewardForRedeem: number;
+}

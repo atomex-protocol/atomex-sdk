@@ -2,6 +2,7 @@ import {
   AuthMessage,
   InitiateParameters,
   PartialTransactionBody,
+  RedeemFees,
   SwapTransactionStatus,
 } from "./types";
 
@@ -95,6 +96,20 @@ export abstract class Helpers {
    * @returns encoded public key
    */
   public abstract encodePublicKey(publicKey: string): string;
+
+  /**
+   * Estimates Initiate fees for a Swap
+   *
+   * @returns the initiate fees for Swap
+   */
+  public abstract estimateInitiateFees(source: string): Promise<number>;
+
+  /**
+   * Estimates Miner Fee and Reward for Redeem to be used in a Swap
+   *
+   * @returns the minerFee and the rewardForRedeem
+   */
+  public abstract estimateRedeemFees(): Promise<RedeemFees>;
 }
 
 export const dt2ts = (isoTime: Date | string): number =>
