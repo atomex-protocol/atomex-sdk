@@ -15,6 +15,8 @@ describe("TezosHelpers test", () => {
     config.rpc.tezos.testnet.minimalFees,
     config.rpc.tezos.testnet.minimalNanotezPerGasUnit,
     config.rpc.tezos.testnet.minimalNanotezPerByte,
+    config.rpc.tezos.testnet.redeemTxSize,
+    config.rpc.tezos.testnet.initiateTxSize,
   );
 
   test("buildInitiateTransaction", () => {

@@ -33,6 +33,8 @@ export class TezosHelpers extends Helpers {
   private _minimalFees: number;
   private _minimalNanotezPerGasUnit: number;
   private _minimalNanotezPerByte: number;
+  private _redeemTxSize: number;
+  private _initiateTxSize: number;
 
   constructor(
     tezos: TezosToolkit,
@@ -43,6 +45,8 @@ export class TezosHelpers extends Helpers {
     minimalFees: number,
     minimalNanotezPerGasUnit: number,
     minimalNanotezPerByte: number,
+    redeemTxSize: number,
+    initiateTxSize: number,
   ) {
     super();
     this._tezos = tezos;
@@ -52,6 +56,8 @@ export class TezosHelpers extends Helpers {
     this._minimalFees = minimalFees;
     this._minimalNanotezPerGasUnit = minimalNanotezPerGasUnit;
     this._minimalNanotezPerByte = minimalNanotezPerByte;
+    this._redeemTxSize = redeemTxSize;
+    this._initiateTxSize = initiateTxSize;
     this._entrypoints = new Map<string, ParameterSchema>(
       Object.entries(entrypoints).map(([name, typeExpr]) => {
         return [name, new ParameterSchema(typeExpr)];
@@ -91,6 +97,8 @@ export class TezosHelpers extends Helpers {
       config.rpc.tezos[network].minimalFees,
       config.rpc.tezos[network].minimalNanotezPerGasUnit,
       config.rpc.tezos[network].minimalNanotezPerByte,
+      config.rpc.tezos[network].redeemTxSize,
+      config.rpc.tezos[network].initiateTxSize,
     );
   }
 
@@ -374,14 +382,14 @@ export class TezosHelpers extends Helpers {
       rewardForRedeem: 0,
       netAmount: 100,
     };
+
     const tx = this.buildInitiateTransaction(dummyTx);
     if (tx.amount == undefined) tx.amount = 0;
+
     const header = await this._tezos.rpc.getBlockHeader();
     const contract = await this._tezos.rpc.getContract(source);
-    console.log(contract);
     const op = await this._tezos.rpc.runOperation({
       chain_id: header.chain_id,
-
       operation: {
         branch: header.hash,
         signature:
@@ -401,8 +409,10 @@ export class TezosHelpers extends Helpers {
         ],
       },
     });
+
     let paidStorageDiff = 0,
       consumedGas = 0;
+
     (op.contents as OperationContentsAndResultTransaction[]).forEach((tx) => {
       consumedGas += parseInt(tx.metadata.operation_result.consumed_gas || "0");
       paidStorageDiff += parseInt(
@@ -410,19 +420,19 @@ export class TezosHelpers extends Helpers {
       );
     });
 
-    const txSize = 1000; //TODO: find txSize
-    const totalFees =
-      100 + 0.1 * consumedGas + 0.25 * txSize + paidStorageDiff * 1000 * 0.25;
-
-    return totalFees;
+    return (
+      this._minimalFees +
+      this._minimalNanotezPerGasUnit * consumedGas +
+      this._minimalNanotezPerByte * this._initiateTxSize +
+      paidStorageDiff * 1000 * this._minimalNanotezPerByte
+    );
   }
 
   async estimateRedeemFees(): Promise<RedeemFees> {
-    const txSize = 1000; //TODO: find txSize
     const fees =
       this._minimalFees +
       this._minimalNanotezPerGasUnit * this._gasLimit +
-      this._minimalNanotezPerByte * txSize;
+      this._minimalNanotezPerByte * this._redeemTxSize;
 
     return {
       minerFee: fees,
