@@ -2,6 +2,7 @@ import { ParameterSchema } from "@taquito/michelson-encoder";
 import {
   BlockResponse,
   OperationContentsAndResultTransaction,
+  OpKind,
 } from "@taquito/rpc";
 import { TezosToolkit } from "@taquito/taquito";
 import { b58cdecode, prefix } from "@taquito/utils";
@@ -12,6 +13,7 @@ import {
   AuthMessage,
   InitiateParameters,
   PartialTransactionBody,
+  RedeemFees,
   SwapTransactionStatus,
 } from "./types";
 
@@ -27,17 +29,29 @@ export class TezosHelpers extends Helpers {
   private _contractAddress: string;
   private _timeBetweenBlocks: number;
   private _entrypoints: Map<string, ParameterSchema>;
+  private _gasLimit: number;
+  private _minimalFees: number;
+  private _minimalNanotezPerGasUnit: number;
+  private _minimalNanotezPerByte: number;
 
   constructor(
     tezos: TezosToolkit,
     entrypoints: Record<string, any>,
     contractAddress: string,
     timeBetweenBlocks: number,
+    gasLimit: number,
+    minimalFees: number,
+    minimalNanotezPerGasUnit: number,
+    minimalNanotezPerByte: number,
   ) {
     super();
     this._tezos = tezos;
     this._contractAddress = contractAddress;
     this._timeBetweenBlocks = timeBetweenBlocks;
+    this._gasLimit = gasLimit;
+    this._minimalFees = minimalFees;
+    this._minimalNanotezPerGasUnit = minimalNanotezPerGasUnit;
+    this._minimalNanotezPerByte = minimalNanotezPerByte;
     this._entrypoints = new Map<string, ParameterSchema>(
       Object.entries(entrypoints).map(([name, typeExpr]) => {
         return [name, new ParameterSchema(typeExpr)];
@@ -73,6 +87,10 @@ export class TezosHelpers extends Helpers {
       config.contracts.XTZ.entrypoints,
       config.contracts.XTZ[network],
       config.rpc.tezos[network].blockTime,
+      config.rpc.tezos[network].gasLimit,
+      config.rpc.tezos[network].minimalFees,
+      config.rpc.tezos[network].minimalNanotezPerGasUnit,
+      config.rpc.tezos[network].minimalNanotezPerByte,
     );
   }
 
@@ -345,5 +363,70 @@ export class TezosHelpers extends Helpers {
         ),
       ).toString("hex");
     throw new Error("Unsupported Signature Type");
+  }
+
+  async estimateInitiateFees(source: string): Promise<number> {
+    const dummyTx = {
+      receivingAddress: "tz1aKTCbAUuea2RV9kxqRVRg3HT7f1RKnp6a",
+      secretHash:
+        "169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b",
+      refundTimestamp: 1702043022,
+      rewardForRedeem: 0,
+      netAmount: 100,
+    };
+    const tx = this.buildInitiateTransaction(dummyTx);
+    if (tx.amount == undefined) tx.amount = 0;
+    const header = await this._tezos.rpc.getBlockHeader();
+    const contract = await this._tezos.rpc.getContract(source);
+    console.log(contract);
+    const op = await this._tezos.rpc.runOperation({
+      chain_id: header.chain_id,
+
+      operation: {
+        branch: header.hash,
+        signature:
+          "sigUHx32f9wesZ1n2BWpixXz4AQaZggEtchaQNHYGRCoWNAXx45WGW2ua3apUUUAGMLPwAU41QoaFCzVSL61VaessLg4YbbP",
+        contents: [
+          {
+            amount: tx.amount.toString(),
+            counter: (parseInt(contract.counter || "0") + 1).toString(),
+            destination: this._contractAddress,
+            fee: "10000",
+            gas_limit: this._gasLimit.toString(),
+            kind: OpKind.TRANSACTION,
+            source: "tz1Y8UNsMSCXyDgma8Ya51eLx8Qu4AoLm8vt",
+            storage_limit: "300",
+            parameters: tx.data,
+          },
+        ],
+      },
+    });
+    let paidStorageDiff = 0,
+      consumedGas = 0;
+    (op.contents as OperationContentsAndResultTransaction[]).forEach((tx) => {
+      consumedGas += parseInt(tx.metadata.operation_result.consumed_gas || "0");
+      paidStorageDiff += parseInt(
+        tx.metadata.operation_result.paid_storage_size_diff || "0",
+      );
+    });
+
+    const txSize = 1000; //TODO: find txSize
+    const totalFees =
+      100 + 0.1 * consumedGas + 0.25 * txSize + paidStorageDiff * 1000 * 0.25;
+
+    return totalFees;
+  }
+
+  async estimateRedeemFees(): Promise<RedeemFees> {
+    const txSize = 1000; //TODO: find txSize
+    const fees =
+      this._minimalFees +
+      this._minimalNanotezPerGasUnit * this._gasLimit +
+      this._minimalNanotezPerByte * txSize;
+
+    return {
+      minerFee: fees,
+      rewardForRedeem: 2 * fees,
+    };
   }
 }

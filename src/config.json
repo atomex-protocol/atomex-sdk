@@ -15,24 +15,34 @@
       "mainnet": {
         "chainID": "1",
         "rpc": "https://mainnet.infura.io/v3/7cd728d2d3384719a630d836f1693c5c",
-        "blockTime": 10
+        "blockTime": 10,
+        "gasLimit": 10000
       },
       "testnet": {
         "chainID": "3",
         "rpc": "https://ropsten.infura.io/v3/7cd728d2d3384719a630d836f1693c5c",
-        "blockTime": 10
+        "blockTime": 10,
+        "gasLimit": 10000
       }
     },
     "tezos": {
       "mainnet": {
         "chainID": "NetXdQprcVkpaWU",
         "rpc": "https://rpc.tzkt.io/mainnet/",
-        "blockTime": 60
+        "blockTime": 60,
+        "gasLimit": 10000,
+        "minimalFees": 100,
+        "minimalNanotezPerGasUnit": 0.1,
+        "minimalNanotezPerByte": 0.25
       },
       "testnet": {
         "chainID": "NetXjD3HPJJjmcd",
         "rpc": "https://rpc.tzkt.io/carthagenet/",
-        "blockTime": 30
+        "blockTime": 30,
+        "gasLimit": 10000,
+        "minimalFees": 100,
+        "minimalNanotezPerGasUnit": 0.1,
+        "minimalNanotezPerByte": 0.25
       }
     }
   },

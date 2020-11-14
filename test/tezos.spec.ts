@@ -11,6 +11,10 @@ describe("TezosHelpers test", () => {
     config.contracts.XTZ.entrypoints,
     config.contracts.XTZ.testnet,
     config.rpc.tezos.testnet.blockTime,
+    config.rpc.tezos.testnet.gasLimit,
+    config.rpc.tezos.testnet.minimalFees,
+    config.rpc.tezos.testnet.minimalNanotezPerGasUnit,
+    config.rpc.tezos.testnet.minimalNanotezPerByte,
   );
 
   test("buildInitiateTransaction", () => {

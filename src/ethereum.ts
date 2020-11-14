@@ -9,6 +9,7 @@ import {
   AuthMessage,
   InitiateParameters,
   PartialTransactionBody,
+  RedeemFees,
   SwapTransactionStatus,
 } from "./types";
 
@@ -25,17 +26,20 @@ export class EthereumHelpers extends Helpers {
   private _contract: Contract;
   private _timeBetweenBlocks: number;
   private _functions: Map<string, Function>;
+  private _gasLimit: number;
 
   constructor(
     web3: Web3,
     jsonInterface: AbiItem[],
     contractAddress: string,
     timeBetweenBlocks: number,
+    gasLimit: number,
   ) {
     super();
     this._web3 = web3;
     this._contract = new web3.eth.Contract(jsonInterface, contractAddress);
     this._timeBetweenBlocks = timeBetweenBlocks;
+    this._gasLimit = gasLimit;
     this._functions = new Map<string, Function>();
     jsonInterface.forEach((item) => {
       if (item.type === "function")
@@ -72,6 +76,7 @@ export class EthereumHelpers extends Helpers {
       config.contracts.ETH.abi as AbiItem[],
       config.contracts.ETH[network],
       networkSettings.blockTime,
+      networkSettings.gasLimit,
     );
   }
 
@@ -286,5 +291,35 @@ export class EthereumHelpers extends Helpers {
   encodeSignature(signature: string): string {
     const vrs = this.getVRS(signature);
     return vrs.r.padStart(64, "0") + vrs.s.padStart(64, "0");
+  }
+
+  async estimateInitiateFees(source: string): Promise<number> {
+    const dummyTx = {
+      receivingAddress: "0xD04D3f604EAAB35Eb37D9fED352F8904D51D1e17",
+      secretHash:
+        "169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b",
+      refundTimestamp: 1702043022,
+      rewardForRedeem: 0,
+      netAmount: 100,
+    };
+    const txData = this.buildInitiateTransaction(dummyTx);
+    const gasPrice = await this._web3.eth.getGasPrice();
+    const gasEstimate = await this._web3.eth.estimateGas({
+      from: source,
+      to: txData.contractAddr,
+      data: txData.data,
+      value: txData.amount,
+    });
+    const fee = parseInt(gasPrice) * gasEstimate;
+    return fee;
+  }
+
+  async estimateRedeemFees(): Promise<RedeemFees> {
+    const gasPrice = await this._web3.eth.getGasPrice();
+    const fee = parseInt(gasPrice) * this._gasLimit;
+    return {
+      minerFee: fee,
+      rewardForRedeem: 2 * fee,
+    };
   }
 }
