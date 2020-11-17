@@ -453,9 +453,9 @@ export class TezosHelpers extends Helpers {
     return this.calcFees(consumedGas, paidStorageDiff, this._initiateTxSize);
   }
 
-  async estimateRedeemFees(source: string): Promise<RedeemFees> {
+  async estimateRedeemFees(recipient: string): Promise<RedeemFees> {
     let fees = this.calcFees(this._gasLimit, 0, this._redeemTxSize);
-    const revealedKey = await this._tezos.rpc.getManagerKey(source);
+    const revealedKey = await this._tezos.rpc.getManagerKey(recipient);
     if (revealedKey === null) {
       fees += 257 * this._costPerByte;
     }

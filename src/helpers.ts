@@ -100,6 +100,7 @@ export abstract class Helpers {
   /**
    * Estimates Initiate fees for a Swap
    *
+   * @param source the initiator address
    * @returns the initiate fees for Swap
    */
   public abstract estimateInitiateFees(source: string): Promise<number>;
@@ -107,9 +108,10 @@ export abstract class Helpers {
   /**
    * Estimates Miner Fee and Reward for Redeem to be used in a Swap
    *
+   * @param recipient the counter-party address
    * @returns the minerFee and the rewardForRedeem
    */
-  public abstract estimateRedeemFees(source: string): Promise<RedeemFees>;
+  public abstract estimateRedeemFees(recipient: string): Promise<RedeemFees>;
 }
 
 export const dt2ts = (isoTime: Date | string): number =>
