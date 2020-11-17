@@ -30,7 +30,7 @@ describe("TezosHelpers test", () => {
     });
 
     expect(tx.amount).toBe(110);
-    expect(tx.contractAddr).toBe(config.contracts.XTZ.testnet);
+    expect(tx.contractAddr).toBe(config.contracts.XTZ.testnet.address);
     expect(tx.data?.entrypoint).toBe("initiate");
   });
 
