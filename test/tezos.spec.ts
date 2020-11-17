@@ -9,14 +9,15 @@ describe("TezosHelpers test", () => {
   const tez = new TezosHelpers(
     new TezosToolkit(),
     config.contracts.XTZ.entrypoints,
-    config.contracts.XTZ.testnet,
+    config.contracts.XTZ.testnet.address,
     config.rpc.tezos.testnet.blockTime,
-    config.rpc.tezos.testnet.gasLimit,
+    config.contracts.XTZ.testnet.gasLimit,
     config.rpc.tezos.testnet.minimalFees,
     config.rpc.tezos.testnet.minimalNanotezPerGasUnit,
     config.rpc.tezos.testnet.minimalNanotezPerByte,
-    config.rpc.tezos.testnet.redeemTxSize,
-    config.rpc.tezos.testnet.initiateTxSize,
+    config.rpc.tezos.testnet.costPerByte,
+    config.contracts.XTZ.testnet.redeemTxSize,
+    config.contracts.XTZ.testnet.initiateTxSize,
   );
 
   test("buildInitiateTransaction", () => {

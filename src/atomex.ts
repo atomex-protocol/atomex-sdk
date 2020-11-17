@@ -20,12 +20,6 @@ import {
 interface Query {
   [key: string]: any;
 }
-type ArithmeticOP = (a: number, b: number) => number;
-type RelationalOP = (a: number, b: number) => boolean;
-const divOP: ArithmeticOP = (a, b) => a / b;
-const noOP: ArithmeticOP = (a, b) => a;
-const ltOP: RelationalOP = (a, b) => a < b;
-const gtOP: RelationalOP = (a, b) => a > b;
 
 export class Atomex {
   private _baseUrl: string;
@@ -59,16 +53,17 @@ export class Atomex {
     payload?: Query,
   ): Promise<T> {
     const url = new URL(path, this._baseUrl);
-    if (params !== undefined)
+    if (params !== undefined) {
       Object.keys(params).forEach((key) =>
         url.searchParams.append(key, params[key]),
       );
+    }
 
     const headers: Record<string, string> = {};
     if (auth) {
-      if (this._authToken === undefined)
+      if (this._authToken === undefined) {
         throw new Error("Auth token is undefined");
-
+      }
       headers["Authorization"] = `Bearer ${this._authToken}`;
     }
 
@@ -234,88 +229,78 @@ export class Atomex {
     return this.makeRequest("get", `/v1/Swaps/${swapID}`, true);
   }
 
-  private getSuitableEntry(
-    entries: Entry[],
-    side: Side,
+  getOrderSize(
     amount: number,
-    qtyOp: ArithmeticOP,
-    relOp: RelationalOP,
-  ): Entry {
-    let reqEntry = -1;
-    for (let i = 0; i < entries.length; i++) {
-      if (
-        entries[i].side == side &&
-        Math.max(...entries[i].qtyProfile) >= qtyOp(amount, entries[i].price)
-      ) {
-        if (reqEntry == -1) reqEntry = i;
-        else if (relOp(entries[i].price, entries[reqEntry].price)) {
-          reqEntry = i;
-        }
-      }
+    price: number,
+    side: Side,
+    direction: "Send" | "Receive",
+  ): number {
+    switch (side + direction) {
+      case "BuySend":
+      case "SellReceive":
+        return amount / price;
+      case "BuyReceive":
+      case "SellSend":
+        return amount;
+      default:
+        throw new Error("combination not possible");
     }
-    if (reqEntry == -1) {
-      throw new Error("No suitable entry found");
-    }
-    return entries[reqEntry];
   }
 
+  filterEntry(
+    entry: Entry,
+    amount: number,
+    side: Side,
+    direction: "Send" | "Receive",
+  ): boolean {
+    return (
+      entry.side !== side &&
+      Math.max(...entry.qtyProfile) >=
+        this.getOrderSize(amount, entry.price, side, direction)
+    );
+  }
+
+  /**
+   * Returns an approximate preview of the requested amount and expected receive amount
+   *
+   * @param orderBook order-book received from [[getOrderBook]]
+   * @param side side for the transaction Buy/Sell
+   * @param amount amount received/sent
+   * @param direction direction for the order - Send/Receive
+   */
   getOrderPreview(
     orderBook: OrderBook,
     side: Side,
     amount: number,
     direction: "Send" | "Receive",
   ): OrderPreview {
-    let entry: Entry, newAmount: number;
-    if (side === "Buy") {
-      if (direction == "Send") {
-        entry = this.getSuitableEntry(
-          orderBook.entries,
-          "Sell",
-          amount,
-          divOP,
-          ltOP,
-        );
-        newAmount = amount / entry.price;
-      } else {
-        entry = this.getSuitableEntry(
-          orderBook.entries,
-          "Sell",
-          amount,
-          noOP,
-          ltOP,
-        );
-        newAmount = amount * entry.price;
-      }
+    let entry: Entry | undefined, newAmount: number;
+    if (side == "Buy") {
+      // find least price entry
+      entry = [...orderBook.entries]
+        .reverse()
+        .find((x) => this.filterEntry(x, amount, side, direction));
     } else {
-      if (direction == "Send") {
-        entry = this.getSuitableEntry(
-          orderBook.entries,
-          "Buy",
-          amount,
-          noOP,
-          gtOP,
-        );
-        newAmount = amount * entry.price;
-      } else {
-        entry = this.getSuitableEntry(
-          orderBook.entries,
-          "Buy",
-          amount,
-          divOP,
-          gtOP,
-        );
-        newAmount = amount / entry.price;
-      }
+      // find max price entry
+      entry = orderBook.entries.find((x) =>
+        this.filterEntry(x, amount, side, direction),
+      );
     }
-    if (direction == "Send")
+
+    if (entry == undefined) {
+      throw new Error("No matching entry found");
+    }
+
+    if (direction == "Send") {
       return {
         price: entry.price,
         amountSent: amount,
-        amountReceived: newAmount,
+        amountReceived: this.getOrderSize(amount, entry.price, side, direction),
       };
+    }
     return {
       price: entry.price,
-      amountSent: newAmount,
+      amountSent: this.getOrderSize(amount, entry.price, side, direction),
       amountReceived: amount,
     };
   }

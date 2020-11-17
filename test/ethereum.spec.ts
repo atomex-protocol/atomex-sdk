@@ -10,9 +10,9 @@ describe("EthereumHelpers test", () => {
   const eth = new EthereumHelpers(
     new Web3(),
     config.contracts.ETH.abi as AbiItem[],
-    config.contracts.ETH.testnet,
+    config.contracts.ETH.testnet.address,
     config.rpc.ethereum.testnet.blockTime,
-    config.rpc.ethereum.testnet.gasLimit,
+    config.contracts.ETH.testnet.gasLimit,
   );
 
   test("buildInitiateTransaction", () => {
