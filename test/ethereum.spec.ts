@@ -24,7 +24,7 @@ describe("EthereumHelpers test", () => {
       secretHash: "00",
     });
     expect(tx.amount).toBe(110);
-    expect(tx.contractAddr).toBe(config.contracts.ETH.testnet);
+    expect(tx.contractAddr).toBe(config.contracts.ETH.testnet.address);
     expect(tx.data).toBeDefined();
   });
 
