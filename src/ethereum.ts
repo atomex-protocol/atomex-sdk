@@ -330,7 +330,7 @@ export class EthereumHelpers extends Helpers {
     return fee;
   }
 
-  async estimateRedeemFees(source: string): Promise<RedeemFees> {
+  async estimateRedeemFees(recipient: string): Promise<RedeemFees> {
     const gasPrice = await this._web3.eth.getGasPrice();
     const fee = parseInt(gasPrice) * this._gasLimit;
     return {
