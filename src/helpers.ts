@@ -109,7 +109,7 @@ export abstract class Helpers {
    *
    * @returns the minerFee and the rewardForRedeem
    */
-  public abstract estimateRedeemFees(): Promise<RedeemFees>;
+  public abstract estimateRedeemFees(source: string): Promise<RedeemFees>;
 }
 
 export const dt2ts = (isoTime: Date | string): number =>

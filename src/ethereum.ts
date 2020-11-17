@@ -42,11 +42,12 @@ export class EthereumHelpers extends Helpers {
     this._gasLimit = gasLimit;
     this._functions = new Map<string, Function>();
     jsonInterface.forEach((item) => {
-      if (item.type === "function")
+      if (item.type === "function") {
         this._functions.set(item.name!, {
           types: item.inputs!,
           signature: web3.eth.abi.encodeFunctionSignature(item as AbiItem),
         });
+      }
     });
   }
 
@@ -62,21 +63,24 @@ export class EthereumHelpers extends Helpers {
     rpcUri?: string,
   ): Promise<EthereumHelpers> {
     const networkSettings = config.rpc.ethereum[network];
-    if (rpcUri !== undefined) networkSettings.rpc = rpcUri;
+    if (rpcUri !== undefined) {
+      networkSettings.rpc = rpcUri;
+    }
 
     const web3 = new Web3(networkSettings.rpc);
     const chainID = await web3.eth.getChainId();
-    if (networkSettings.chainID !== chainID.toString())
+    if (networkSettings.chainID !== chainID.toString()) {
       throw new Error(
         `Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`,
       );
+    }
 
     return new EthereumHelpers(
       web3,
       config.contracts.ETH.abi as AbiItem[],
-      config.contracts.ETH[network],
+      config.contracts.ETH[network].address,
       networkSettings.blockTime,
-      networkSettings.gasLimit,
+      config.contracts.ETH[network].gasLimit,
     );
   }
 
@@ -93,10 +97,11 @@ export class EthereumHelpers extends Helpers {
   buildInitiateTransaction(
     initiateParameters: InitiateParameters,
   ): PartialTransactionBody {
-    if (initiateParameters.refundTimestamp < now())
+    if (initiateParameters.refundTimestamp < now()) {
       throw new Error(
         `Swap timestamp is in the past: ${initiateParameters.refundTimestamp}`,
       );
+    }
 
     const data: string = this._contract.methods
       .initiate(
@@ -160,8 +165,9 @@ export class EthereumHelpers extends Helpers {
   parseInitiateParameters(transaction: Transaction): InitiateParameters {
     const initiateMethod = this._functions.get("initiate")!;
 
-    if (!transaction.input.startsWith(initiateMethod.signature))
+    if (!transaction.input.startsWith(initiateMethod.signature)) {
       throw new Error(`Unexpected method signature: ${transaction.input}`);
+    }
 
     const params = this._web3.eth.abi.decodeParameters(
       initiateMethod.types,
@@ -196,32 +202,38 @@ export class EthereumHelpers extends Helpers {
     const transaction = await this._web3.eth.getTransaction(txID);
 
     try {
-      if (transaction === undefined)
+      if (transaction === undefined) {
         throw new Error(`Failed to retrieve transaction: ${txID}`);
+      }
 
-      if (transaction.to !== this._contract.options.address)
+      if (transaction.to !== this._contract.options.address) {
         throw new Error(`Wrong contract address: ${transaction.to}`);
+      }
 
       const initiateParameters = this.parseInitiateParameters(transaction);
-      if (initiateParameters.secretHash !== secretHash)
+      if (initiateParameters.secretHash !== secretHash) {
         throw new Error(
           `Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`,
         );
+      }
 
-      if (initiateParameters.receivingAddress !== receivingAddress)
+      if (initiateParameters.receivingAddress !== receivingAddress) {
         throw new Error(
           `Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`,
         );
+      }
 
-      if (initiateParameters.netAmount !== netAmount)
+      if (initiateParameters.netAmount !== netAmount) {
         throw new Error(
           `Net amount: expect ${netAmount}, actual ${initiateParameters.netAmount}`,
         );
+      }
 
-      if (initiateParameters.refundTimestamp < minRefundTimestamp)
+      if (initiateParameters.refundTimestamp < minRefundTimestamp) {
         throw new Error(
           `Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`,
         );
+      }
     } catch (e) {
       return {
         status: "Invalid",
@@ -242,7 +254,9 @@ export class EthereumHelpers extends Helpers {
         parseInt(latestBlock.timestamp.toString()) + this._timeBetweenBlocks,
     };
 
-    if (confirmations >= minConfirmations) res.status = "Confirmed";
+    if (confirmations >= minConfirmations) {
+      res.status = "Confirmed";
+    }
 
     return res;
   }
@@ -284,7 +298,9 @@ export class EthereumHelpers extends Helpers {
   }
 
   encodePublicKey(pubKey: string): string {
-    if (pubKey.startsWith("0x")) return pubKey.slice(2);
+    if (pubKey.startsWith("0x")) {
+      return pubKey.slice(2);
+    }
     return pubKey;
   }
 
@@ -295,12 +311,12 @@ export class EthereumHelpers extends Helpers {
 
   async estimateInitiateFees(source: string): Promise<number> {
     const dummyTx = {
-      receivingAddress: "0xD04D3f604EAAB35Eb37D9fED352F8904D51D1e17",
+      receivingAddress: "0x0000000000000000000000000000000000000000",
       secretHash:
-        "169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b",
-      refundTimestamp: 1702043022,
+        "0000000000000000000000000000000000000000000000000000000000000000",
+      refundTimestamp: 2147483647,
       rewardForRedeem: 0,
-      netAmount: 100,
+      netAmount: 0,
     };
     const txData = this.buildInitiateTransaction(dummyTx);
     const gasPrice = await this._web3.eth.getGasPrice();
@@ -314,7 +330,7 @@ export class EthereumHelpers extends Helpers {
     return fee;
   }
 
-  async estimateRedeemFees(): Promise<RedeemFees> {
+  async estimateRedeemFees(source: string): Promise<RedeemFees> {
     const gasPrice = await this._web3.eth.getGasPrice();
     const fee = parseInt(gasPrice) * this._gasLimit;
     return {

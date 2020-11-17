@@ -33,6 +33,7 @@ export class TezosHelpers extends Helpers {
   private _minimalFees: number;
   private _minimalNanotezPerGasUnit: number;
   private _minimalNanotezPerByte: number;
+  private _costPerByte: number;
   private _redeemTxSize: number;
   private _initiateTxSize: number;
 
@@ -45,6 +46,7 @@ export class TezosHelpers extends Helpers {
     minimalFees: number,
     minimalNanotezPerGasUnit: number,
     minimalNanotezPerByte: number,
+    costPerByte: number,
     redeemTxSize: number,
     initiateTxSize: number,
   ) {
@@ -56,6 +58,7 @@ export class TezosHelpers extends Helpers {
     this._minimalFees = minimalFees;
     this._minimalNanotezPerGasUnit = minimalNanotezPerGasUnit;
     this._minimalNanotezPerByte = minimalNanotezPerByte;
+    this._costPerByte = costPerByte;
     this._redeemTxSize = redeemTxSize;
     this._initiateTxSize = initiateTxSize;
     this._entrypoints = new Map<string, ParameterSchema>(
@@ -77,28 +80,32 @@ export class TezosHelpers extends Helpers {
     rpcUri?: string,
   ): Promise<TezosHelpers> {
     const networkSettings = config.rpc.tezos[network];
-    if (rpcUri !== undefined) networkSettings.rpc = rpcUri;
+    if (rpcUri !== undefined) {
+      networkSettings.rpc = rpcUri;
+    }
 
     const tezos = new TezosToolkit();
     tezos.setRpcProvider(networkSettings.rpc);
 
     const chainID = await tezos.rpc.getChainId();
-    if (networkSettings.chainID !== chainID.toString())
+    if (networkSettings.chainID !== chainID.toString()) {
       throw new Error(
         `Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`,
       );
+    }
 
     return new TezosHelpers(
       tezos,
       config.contracts.XTZ.entrypoints,
-      config.contracts.XTZ[network],
+      config.contracts.XTZ[network].address,
       config.rpc.tezos[network].blockTime,
-      config.rpc.tezos[network].gasLimit,
+      config.contracts.XTZ[network].gasLimit,
       config.rpc.tezos[network].minimalFees,
       config.rpc.tezos[network].minimalNanotezPerGasUnit,
       config.rpc.tezos[network].minimalNanotezPerByte,
-      config.rpc.tezos[network].redeemTxSize,
-      config.rpc.tezos[network].initiateTxSize,
+      config.rpc.tezos[network].costPerByte,
+      config.contracts.XTZ[network].redeemTxSize,
+      config.contracts.XTZ[network].initiateTxSize,
     );
   }
 
@@ -128,10 +135,11 @@ export class TezosHelpers extends Helpers {
   buildInitiateTransaction(
     initiateParameters: InitiateParameters,
   ): PartialTransactionBody {
-    if (initiateParameters.refundTimestamp < now())
+    if (initiateParameters.refundTimestamp < now()) {
       throw new Error(
         `Swap timestamp is in the past: ${initiateParameters.refundTimestamp}`,
       );
+    }
 
     const parameter = this._entrypoints
       .get("initiate")
@@ -199,11 +207,14 @@ export class TezosHelpers extends Helpers {
           if (
             content.kind !== "endorsement" ||
             !Object.prototype.hasOwnProperty.call(content, "metadata")
-          )
+          ) {
             return;
+          }
           const metadata = Object.getOwnPropertyDescriptor(content, "metadata")
             ?.value;
-          if (!Object.prototype.hasOwnProperty.call(metadata, "slots")) return;
+          if (!Object.prototype.hasOwnProperty.call(metadata, "slots")) {
+            return;
+          }
           const slots = Object.getOwnPropertyDescriptor(metadata, "slots")
             ?.value as number[];
           numEndorsements += slots.length;
@@ -220,16 +231,18 @@ export class TezosHelpers extends Helpers {
   parseInitiateParameters(
     content: OperationContentsAndResultTransaction,
   ): InitiateParameters {
-    if (content.parameters === undefined)
+    if (content.parameters === undefined) {
       throw new Error("Parameters are undefined");
+    }
 
     const params = this._entrypoints
       .get(content.parameters.entrypoint)
       ?.Execute(content.parameters.value);
-    if (params === undefined)
+    if (params === undefined) {
       throw new Error(
         `Unexpected entrypoint: ${content.parameters.entrypoint}`,
       );
+    }
 
     const initiateParams = (() => {
       switch (content.parameters.entrypoint) {
@@ -262,8 +275,9 @@ export class TezosHelpers extends Helpers {
     txID: string,
   ): OperationContentsAndResultTransaction {
     const opg = block.operations[3]?.find((opg) => opg.hash == txID);
-    if (opg === undefined)
+    if (opg === undefined) {
       throw new Error(`Operation not found: ${txID} @ ${block.hash}`);
+    }
 
     const content = <OperationContentsAndResultTransaction>(
       opg.contents.find(
@@ -271,8 +285,9 @@ export class TezosHelpers extends Helpers {
           c.kind == "transaction" && c.destination == this._contractAddress,
       )
     );
-    if (content === undefined)
+    if (content === undefined) {
       throw new Error(`Unsupported contract version is used`);
+    }
 
     return content as OperationContentsAndResultTransaction;
   }
@@ -294,25 +309,29 @@ export class TezosHelpers extends Helpers {
       const initiateParameters = this.parseInitiateParameters(
         this.findContractCall(block, txID),
       );
-      if (initiateParameters.secretHash !== secretHash)
+      if (initiateParameters.secretHash !== secretHash) {
         throw new Error(
           `Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`,
         );
+      }
 
-      if (initiateParameters.receivingAddress !== receivingAddress)
+      if (initiateParameters.receivingAddress !== receivingAddress) {
         throw new Error(
           `Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`,
         );
+      }
 
-      if (initiateParameters.netAmount !== netAmount)
+      if (initiateParameters.netAmount !== netAmount) {
         throw new Error(
           `Net amount: expect ${netAmount}, actual ${initiateParameters.netAmount}`,
         );
+      }
 
-      if (initiateParameters.refundTimestamp < minRefundTimestamp)
+      if (initiateParameters.refundTimestamp < minRefundTimestamp) {
         throw new Error(
           `Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`,
         );
+      }
     } catch (e) {
       return {
         status: "Invalid",
@@ -346,45 +365,54 @@ export class TezosHelpers extends Helpers {
   }
 
   encodePublicKey(pubKey: string): string {
-    const pref = {
-      ed: prefix["edpk"],
-      p2: prefix["p2pk"],
-      sp: prefix["sppk"],
-    };
     const curve = pubKey.substring(0, 2);
-    if (Object.prototype.hasOwnProperty.call(pref, curve))
-      return Buffer.from(
-        b58cdecode(pubKey, Object.getOwnPropertyDescriptor(pref, curve)?.value),
-      ).toString("hex");
-    throw new Error("Unsupported Public Key Type");
+    switch (curve) {
+      case "ed":
+        return Buffer.from(b58cdecode(pubKey, prefix["edpk"])).toString("hex");
+      case "p2":
+        return Buffer.from(b58cdecode(pubKey, prefix["p2pk"])).toString("hex");
+      case "sp":
+        return Buffer.from(b58cdecode(pubKey, prefix["sppk"])).toString("hex");
+      default:
+        throw new Error("Unsupported Public Key Type");
+    }
   }
 
   encodeSignature(signature: string): string {
     const pref = signature.startsWith("sig")
       ? signature.substring(0, 3)
       : signature.substring(0, 5);
-    if (Object.prototype.hasOwnProperty.call(prefix, pref))
+    if (Object.prototype.hasOwnProperty.call(prefix, pref)) {
       return Buffer.from(
         b58cdecode(
           signature,
           Object.getOwnPropertyDescriptor(prefix, pref)?.value,
         ),
       ).toString("hex");
+    }
     throw new Error("Unsupported Signature Type");
+  }
+
+  calcFees(gas = 0, storageDiff = 0, txSize = 0): number {
+    return (
+      this._minimalFees +
+      this._minimalNanotezPerGasUnit * gas +
+      this._minimalNanotezPerByte * txSize +
+      storageDiff * this._costPerByte
+    );
   }
 
   async estimateInitiateFees(source: string): Promise<number> {
     const dummyTx = {
-      receivingAddress: "tz1aKTCbAUuea2RV9kxqRVRg3HT7f1RKnp6a",
+      receivingAddress: "tz1Q2prWCrDGFDuGTe7axdt4z9e3QkCqdhmD",
       secretHash:
         "169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b",
-      refundTimestamp: 1702043022,
+      refundTimestamp: 2147483647,
       rewardForRedeem: 0,
       netAmount: 100,
     };
 
     const tx = this.buildInitiateTransaction(dummyTx);
-    if (tx.amount == undefined) tx.amount = 0;
 
     const header = await this._tezos.rpc.getBlockHeader();
     const contract = await this._tezos.rpc.getContract(source);
@@ -396,14 +424,14 @@ export class TezosHelpers extends Helpers {
           "sigUHx32f9wesZ1n2BWpixXz4AQaZggEtchaQNHYGRCoWNAXx45WGW2ua3apUUUAGMLPwAU41QoaFCzVSL61VaessLg4YbbP",
         contents: [
           {
-            amount: tx.amount.toString(),
+            amount: "0",
             counter: (parseInt(contract.counter || "0") + 1).toString(),
             destination: this._contractAddress,
-            fee: "10000",
-            gas_limit: this._gasLimit.toString(),
+            fee: this.calcFees(1040000, 60000, this._initiateTxSize).toString(),
+            gas_limit: "1040000",
             kind: OpKind.TRANSACTION,
-            source: "tz1Y8UNsMSCXyDgma8Ya51eLx8Qu4AoLm8vt",
-            storage_limit: "300",
+            source: source,
+            storage_limit: "60000",
             parameters: tx.data,
           },
         ],
@@ -412,28 +440,25 @@ export class TezosHelpers extends Helpers {
 
     let paidStorageDiff = 0,
       consumedGas = 0;
-
     (op.contents as OperationContentsAndResultTransaction[]).forEach((tx) => {
+      if (tx.metadata.operation_result.status !== "applied") {
+        throw new Error("Some error was encountered while estimating fees");
+      }
       consumedGas += parseInt(tx.metadata.operation_result.consumed_gas || "0");
       paidStorageDiff += parseInt(
         tx.metadata.operation_result.paid_storage_size_diff || "0",
       );
     });
 
-    return (
-      this._minimalFees +
-      this._minimalNanotezPerGasUnit * consumedGas +
-      this._minimalNanotezPerByte * this._initiateTxSize +
-      paidStorageDiff * 1000 * this._minimalNanotezPerByte
-    );
+    return this.calcFees(consumedGas, paidStorageDiff, this._initiateTxSize);
   }
 
-  async estimateRedeemFees(): Promise<RedeemFees> {
-    const fees =
-      this._minimalFees +
-      this._minimalNanotezPerGasUnit * this._gasLimit +
-      this._minimalNanotezPerByte * this._redeemTxSize;
-
+  async estimateRedeemFees(source: string): Promise<RedeemFees> {
+    let fees = this.calcFees(this._gasLimit, 0, this._redeemTxSize);
+    const revealedKey = await this._tezos.rpc.getManagerKey(source);
+    if (revealedKey === null) {
+      fees += 257 * this._costPerByte;
+    }
     return {
       minerFee: fees,
       rewardForRedeem: 2 * fees,
