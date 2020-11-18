@@ -334,7 +334,7 @@ export class EthereumHelpers extends Helpers {
     const gasPrice = await this._web3.eth.getGasPrice();
     const fee = parseInt(gasPrice) * this._gasLimit;
     return {
-      minerFee: fee,
+      totalCost: fee,
       rewardForRedeem: 2 * fee,
     };
   }

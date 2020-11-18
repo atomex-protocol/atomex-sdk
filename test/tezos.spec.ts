@@ -88,11 +88,7 @@ describe("TezosHelpers test", () => {
 
   test("calcFees", () => {
     const fees = tez.calcFees(1000, 100, 121);
-    const expectedFees =
-      config.rpc.tezos.testnet.minimalFees +
-      config.rpc.tezos.testnet.minimalNanotezPerGasUnit * 1000 +
-      config.rpc.tezos.testnet.minimalNanotezPerByte * 121 +
-      100 * config.rpc.tezos.testnet.costPerByte;
+    const expectedFees = 100 + 0.1 * 1000 + 1 * 121 + 100 * 250;
     expect(fees).toBe(expectedFees);
   });
 
@@ -117,7 +113,7 @@ describe("TezosHelpers test", () => {
       ) +
       257 * config.rpc.tezos.testnet.costPerByte;
     expect(fees).toStrictEqual({
-      minerFee: expectedMinerFees,
+      totalCost: expectedMinerFees,
       rewardForRedeem: 2 * expectedMinerFees,
     });
 
@@ -137,7 +133,7 @@ describe("TezosHelpers test", () => {
       config.contracts.XTZ.testnet.redeemTxSize,
     );
     expect(fees).toStrictEqual({
-      minerFee: expectedMinerFees,
+      totalCost: expectedMinerFees,
       rewardForRedeem: 2 * expectedMinerFees,
     });
   });
