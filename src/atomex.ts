@@ -234,14 +234,14 @@ export class Atomex {
     price: number,
     side: Side,
     direction: "Send" | "Receive",
-  ): number {
+  ) {
     switch (side + direction) {
       case "BuySend":
       case "SellReceive":
-        return amount / price;
+        return { orderSize: amount / price, amountExpected: amount / price };
       case "BuyReceive":
       case "SellSend":
-        return amount;
+        return { orderSize: amount, amountExpected: amount * price };
       default:
         throw new Error("combination not possible");
     }
@@ -256,7 +256,7 @@ export class Atomex {
     return (
       entry.side !== side &&
       Math.max(...entry.qtyProfile) >=
-        this.getOrderSize(amount, entry.price, side, direction)
+        this.getOrderSize(amount, entry.price, side, direction).orderSize
     );
   }
 
@@ -295,12 +295,14 @@ export class Atomex {
       return {
         price: entry.price,
         amountSent: amount,
-        amountReceived: this.getOrderSize(amount, entry.price, side, direction),
+        amountReceived: this.getOrderSize(amount, entry.price, side, direction)
+          .amountExpected,
       };
     }
     return {
       price: entry.price,
-      amountSent: this.getOrderSize(amount, entry.price, side, direction),
+      amountSent: this.getOrderSize(amount, entry.price, side, direction)
+        .amountExpected,
       amountReceived: amount,
     };
   }
