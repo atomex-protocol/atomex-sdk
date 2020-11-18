@@ -73,7 +73,7 @@ describe("EthereumHelpers test", () => {
     );
     const expectedMinerFees = 121 * config.contracts.ETH.testnet.gasLimit;
     expect(fees).toStrictEqual({
-      minerFee: expectedMinerFees,
+      totalCost: expectedMinerFees,
       rewardForRedeem: 2 * expectedMinerFees,
     });
   });

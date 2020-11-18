@@ -460,7 +460,7 @@ export class TezosHelpers extends Helpers {
       fees += 257 * this._costPerByte;
     }
     return {
-      minerFee: fees,
+      totalCost: fees,
       rewardForRedeem: 2 * fees,
     };
   }

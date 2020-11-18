@@ -218,6 +218,6 @@ export interface OrderPreview {
 }
 
 export interface RedeemFees {
-  minerFee: number;
+  totalCost: number;
   rewardForRedeem: number;
 }
