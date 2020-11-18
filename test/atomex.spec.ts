@@ -1,8 +1,12 @@
 import fetch from "node-fetch";
 import { mocked } from "ts-jest/utils";
-import { OrderPreview } from "../lib/types";
 import { Atomex } from "../src/atomex";
-import { AuthTokenRequest, AuthTokenResponse, OrderBook } from "../src/types";
+import {
+  AuthTokenRequest,
+  AuthTokenResponse,
+  OrderBook,
+  OrderPreview,
+} from "../src/types";
 import orderBook from "./data/order_book.json";
 import spec from "./data/swagger.json";
 const OpenAPISampler = require("openapi-sampler");
