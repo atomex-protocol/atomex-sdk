@@ -58,8 +58,8 @@ describe("EthereumHelpers test", () => {
   });
 
   test("estimateInitiateFees", async () => {
-    provider.injectResult(121);
-    provider.injectResult(12200);
+    provider.injectResult(121); //getGasPrice
+    provider.injectResult(12200); //estimateGas
     const fees = await eth.estimateInitiateFees(
       "0x0000000000000000000000000000000000000000",
     );
@@ -67,7 +67,7 @@ describe("EthereumHelpers test", () => {
   });
 
   test("estimateRedeemFees", async () => {
-    provider.injectResult(121);
+    provider.injectResult(121); //getGasPrice
     const fees = await eth.estimateRedeemFees(
       "0x0000000000000000000000000000000000000000",
     );
