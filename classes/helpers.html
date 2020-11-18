@@ -69,14 +69,15 @@
 				<ul class="tsd-hierarchy">
 					<li>
 						<span class="target">Helpers</span>
+						<ul class="tsd-hierarchy">
+							<li>
+								<a href="ethereumhelpers.html" class="tsd-signature-type">EthereumHelpers</a>
+							</li>
+							<li>
+								<a href="tezoshelpers.html" class="tsd-signature-type">TezosHelpers</a>
+							</li>
+						</ul>
 					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel">
-				<h3>Implemented by</h3>
-				<ul class="tsd-hierarchy">
-					<li><a href="ethereumhelpers.html" class="tsd-signature-type">EthereumHelpers</a></li>
-					<li><a href="tezoshelpers.html" class="tsd-signature-type">TezosHelpers</a></li>
 				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
@@ -90,6 +91,10 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="helpers.html#buildinitiatetransaction" class="tsd-kind-icon">build<wbr>Initiate<wbr>Transaction</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="helpers.html#buildredeemtransaction" class="tsd-kind-icon">build<wbr>Redeem<wbr>Transaction</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="helpers.html#buildrefundtransaction" class="tsd-kind-icon">build<wbr>Refund<wbr>Transaction</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="helpers.html#encodepublickey" class="tsd-kind-icon">encode<wbr>Public<wbr>Key</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="helpers.html#encodesignature" class="tsd-kind-icon">encode<wbr>Signature</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="helpers.html#estimateinitiatefees" class="tsd-kind-icon">estimate<wbr>Initiate<wbr>Fees</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="helpers.html#estimateredeemfees" class="tsd-kind-icon">estimate<wbr>Redeem<wbr>Fees</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="helpers.html#getauthmessage" class="tsd-kind-icon">get<wbr>Auth<wbr>Message</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="helpers.html#validateinitiatetransaction" class="tsd-kind-icon">validate<wbr>Initiate<wbr>Transaction</a></li>
 							</ul>
@@ -109,7 +114,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/e85d0ff/src/helpers.ts#L58">helpers.ts:58</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/helpers.ts#L58">helpers.ts:58</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -144,7 +149,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/e85d0ff/src/helpers.ts#L28">helpers.ts:28</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/helpers.ts#L28">helpers.ts:28</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -173,7 +178,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/e85d0ff/src/helpers.ts#L38">helpers.ts:38</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/helpers.ts#L38">helpers.ts:38</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -205,7 +210,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/e85d0ff/src/helpers.ts#L48">helpers.ts:48</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/helpers.ts#L48">helpers.ts:48</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -228,6 +233,134 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="encodepublickey" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> encode<wbr>Public<wbr>Key</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">encode<wbr>Public<wbr>Key<span class="tsd-signature-symbol">(</span>publicKey<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/helpers.ts#L98">helpers.ts:98</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Encodes Public Key in a form compliant with Atomex</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>publicKey: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>public key</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+							<p>encoded public key</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="encodesignature" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> encode<wbr>Signature</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">encode<wbr>Signature<span class="tsd-signature-symbol">(</span>signature<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/helpers.ts#L90">helpers.ts:90</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Encodes Signature in a form compliant with Atomex</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>signature: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>signature to encode</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+							<p>encoded signature</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="estimateinitiatefees" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> estimate<wbr>Initiate<wbr>Fees</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">estimate<wbr>Initiate<wbr>Fees<span class="tsd-signature-symbol">(</span>source<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/helpers.ts#L106">helpers.ts:106</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Estimates Initiate fees for a Swap</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>source: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>the initiator address</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>the initiate fees for Swap</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="estimateredeemfees" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> estimate<wbr>Redeem<wbr>Fees</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">estimate<wbr>Redeem<wbr>Fees<span class="tsd-signature-symbol">(</span>recipient<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/redeemfees.html" class="tsd-signature-type">RedeemFees</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/helpers.ts#L114">helpers.ts:114</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Estimates Miner Fee and Reward for Redeem to be used in a Swap</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>recipient: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>the counter-party address</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/redeemfees.html" class="tsd-signature-type">RedeemFees</a><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>the minerFee and the rewardForRedeem</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="getauthmessage" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagAbstract">Abstract</span> get<wbr>Auth<wbr>Message</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -237,7 +370,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/e85d0ff/src/helpers.ts#L17">helpers.ts:17</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/helpers.ts#L17">helpers.ts:17</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -277,7 +410,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/e85d0ff/src/helpers.ts#L74">helpers.ts:74</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/helpers.ts#L74">helpers.ts:74</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -358,6 +491,18 @@
 								<a href="helpers.html#buildrefundtransaction" class="tsd-kind-icon">build<wbr>Refund<wbr>Transaction</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="helpers.html#encodepublickey" class="tsd-kind-icon">encode<wbr>Public<wbr>Key</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="helpers.html#encodesignature" class="tsd-kind-icon">encode<wbr>Signature</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="helpers.html#estimateinitiatefees" class="tsd-kind-icon">estimate<wbr>Initiate<wbr>Fees</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="helpers.html#estimateredeemfees" class="tsd-kind-icon">estimate<wbr>Redeem<wbr>Fees</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="helpers.html#getauthmessage" class="tsd-kind-icon">get<wbr>Auth<wbr>Message</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
@@ -410,6 +555,9 @@
 						<a href="../interfaces/orderbook.html" class="tsd-kind-icon">Order<wbr>Book</a>
 					</li>
 					<li class=" tsd-kind-interface">
+						<a href="../interfaces/orderpreview.html" class="tsd-kind-icon">Order<wbr>Preview</a>
+					</li>
+					<li class=" tsd-kind-interface">
 						<a href="../interfaces/partialtransactionbody.html" class="tsd-kind-icon">Partial<wbr>Transaction<wbr>Body</a>
 					</li>
 					<li class=" tsd-kind-interface">
@@ -417,6 +565,9 @@
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="../interfaces/query.html" class="tsd-kind-icon">Query</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="../interfaces/redeemfees.html" class="tsd-kind-icon">Redeem<wbr>Fees</a>
 					</li>
 					<li class=" tsd-kind-interface">
 						<a href="../interfaces/swap.html" class="tsd-kind-icon">Swap</a>

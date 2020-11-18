@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>AuthMessage | Atomex SDK</title>
+	<title>OrderPreview | Atomex SDK</title>
 	<meta name="description" content="Documentation for Atomex SDK">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -54,10 +54,10 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="authmessage.html">AuthMessage</a>
+					<a href="orderpreview.html">OrderPreview</a>
 				</li>
 			</ul>
-			<h1>Interface AuthMessage</h1>
+			<h1>Interface OrderPreview</h1>
 		</div>
 	</div>
 </header>
@@ -68,7 +68,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">AuthMessage</span>
+						<span class="target">OrderPreview</span>
 					</li>
 				</ul>
 			</section>
@@ -79,10 +79,9 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authmessage.html#algorithm" class="tsd-kind-icon">algorithm</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authmessage.html#message" class="tsd-kind-icon">message</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authmessage.html#msgtosign" class="tsd-kind-icon">msg<wbr>ToSign</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="authmessage.html#timestamp" class="tsd-kind-icon">timestamp</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="orderpreview.html#amountreceived" class="tsd-kind-icon">amount<wbr>Received</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="orderpreview.html#amountsent" class="tsd-kind-icon">amount<wbr>Sent</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="orderpreview.html#price" class="tsd-kind-icon">price</a></li>
 							</ul>
 						</section>
 					</div>
@@ -91,42 +90,32 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="algorithm" class="tsd-anchor"></a>
-					<h3>algorithm</h3>
-					<div class="tsd-signature tsd-kind-icon">algorithm<span class="tsd-signature-symbol">:</span> <a href="../globals.html#algorithm" class="tsd-signature-type">Algorithm</a></div>
+					<a name="amountreceived" class="tsd-anchor"></a>
+					<h3>amount<wbr>Received</h3>
+					<div class="tsd-signature tsd-kind-icon">amount<wbr>Received<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/types.ts#L211">types.ts:211</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/types.ts#L217">types.ts:217</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="message" class="tsd-anchor"></a>
-					<h3>message</h3>
-					<div class="tsd-signature tsd-kind-icon">message<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="amountsent" class="tsd-anchor"></a>
+					<h3>amount<wbr>Sent</h3>
+					<div class="tsd-signature tsd-kind-icon">amount<wbr>Sent<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/types.ts#L209">types.ts:209</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/types.ts#L216">types.ts:216</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="msgtosign" class="tsd-anchor"></a>
-					<h3>msg<wbr>ToSign</h3>
-					<div class="tsd-signature tsd-kind-icon">msg<wbr>ToSign<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="price" class="tsd-anchor"></a>
+					<h3>price</h3>
+					<div class="tsd-signature tsd-kind-icon">price<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/types.ts#L210">types.ts:210</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="timestamp" class="tsd-anchor"></a>
-					<h3>timestamp</h3>
-					<div class="tsd-signature tsd-kind-icon">timestamp<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/types.ts#L208">types.ts:208</a></li>
+							<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/types.ts#L215">types.ts:215</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -160,27 +149,9 @@
 					<li class=" tsd-kind-interface">
 						<a href="addswaprequisites.html" class="tsd-kind-icon">Add<wbr>Swap<wbr>Requisites</a>
 					</li>
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-interface">
+					<li class=" tsd-kind-interface">
 						<a href="authmessage.html" class="tsd-kind-icon">Auth<wbr>Message</a>
-						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="authmessage.html#algorithm" class="tsd-kind-icon">algorithm</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="authmessage.html#message" class="tsd-kind-icon">message</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="authmessage.html#msgtosign" class="tsd-kind-icon">msg<wbr>ToSign</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="authmessage.html#timestamp" class="tsd-kind-icon">timestamp</a>
-							</li>
-						</ul>
 					</li>
-				</ul>
-				<ul class="after-current">
 					<li class=" tsd-kind-interface">
 						<a href="authtokenrequest.html" class="tsd-kind-icon">Auth<wbr>Token<wbr>Request</a>
 					</li>
@@ -211,9 +182,24 @@
 					<li class=" tsd-kind-interface">
 						<a href="orderbook.html" class="tsd-kind-icon">Order<wbr>Book</a>
 					</li>
-					<li class=" tsd-kind-interface">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface">
 						<a href="orderpreview.html" class="tsd-kind-icon">Order<wbr>Preview</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="orderpreview.html#amountreceived" class="tsd-kind-icon">amount<wbr>Received</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="orderpreview.html#amountsent" class="tsd-kind-icon">amount<wbr>Sent</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="orderpreview.html#price" class="tsd-kind-icon">price</a>
+							</li>
+						</ul>
 					</li>
+				</ul>
+				<ul class="after-current">
 					<li class=" tsd-kind-interface">
 						<a href="partialtransactionbody.html" class="tsd-kind-icon">Partial<wbr>Transaction<wbr>Body</a>
 					</li>
