@@ -88,7 +88,7 @@ describe("TezosHelpers test", () => {
 
   test("calcFees", () => {
     const fees = tez.calcFees(1000, 100, 121);
-    const expectedFees = 100 + 0.1 * 1000 + 1 * 121 + 100 * 250;
+    const expectedFees = 25321;
     expect(fees).toBe(expectedFees);
   });
 
