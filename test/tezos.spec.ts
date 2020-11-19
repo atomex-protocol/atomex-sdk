@@ -1,7 +1,11 @@
-import { OperationContentsAndResultTransaction } from "@taquito/rpc";
+import {
+  BlockResponse,
+  OperationContentsAndResultTransaction,
+} from "@taquito/rpc";
 import { TezosToolkit } from "@taquito/taquito";
 import config from "../src/config.json";
 import { now } from "../src/helpers";
+import block_data from "./data/tezos_block_data.json";
 import initiate_tx_default from "./data/tez_initiate_tx_default.json";
 import { GenerateMockRPCClient, GetTezosHelperInstance } from "./helpers/tezos";
 
@@ -28,14 +32,96 @@ describe("TezosHelpers test", () => {
     const content = initiate_tx_default as OperationContentsAndResultTransaction;
     const params = tez.parseInitiateParameters(content);
     expect(params.secretHash).toBe(
-      "e03f5c31bb7ef5cf87f2e06048d3fa1000e81f8f56957498c9aca8bbc1c070b2",
+      "c208b730e72b549634ad2cb377e7a045d43121df74c9ebbddaaa9d91234169fb",
     );
     expect(params.receivingAddress).toBe(
+      "tz1RL215HFeALUc1myZp3rKpSt9EuY5EUsbx",
+    );
+    expect(params.refundTimestamp).toBe(1605453897);
+    expect(params.netAmount).toBe(250000000);
+    expect(params.rewardForRedeem).toBe(0);
+  });
+
+  test("getAuthMessage", () => {
+    const t1 = Date.now();
+    const data = tez.getAuthMessage(
+      "HelloWorld",
       "tz1aKTCbAUuea2RV9kxqRVRg3HT7f1RKnp6a",
     );
-    expect(params.refundTimestamp).toBe(1604961711);
-    expect(params.netAmount).toBe(194992828);
-    expect(params.rewardForRedeem).toBe(0);
+    const t2 = Date.now();
+    expect(data.algorithm).toBe("Ed25519:Blake2b");
+    expect(data.message).toBe("HelloWorld");
+    expect(data.timestamp >= t1 && data.timestamp <= t2).toBe(true);
+    expect(data.msgToSign).toBe("HelloWorld" + data.timestamp.toString());
+  });
+
+  test("buildRedeemTransaction", () => {
+    const data = tez.buildRedeemTransaction("0000000000000000000000");
+    expect(data.amount).toBe(undefined);
+    expect(data.contractAddr).toBe(config.contracts.XTZ.testnet.address);
+    expect(data.data?.entrypoint).toBe("redeem");
+  });
+
+  test("buildRefundTransaction", () => {
+    const data = tez.buildRefundTransaction("0000000000000000000000");
+    expect(data.amount).toBe(undefined);
+    expect(data.contractAddr).toBe(config.contracts.XTZ.testnet.address);
+    expect(data.data?.entrypoint).toBe("refund");
+  });
+
+  test("buildAddTransaction", () => {
+    const data = tez.buildAddTransaction("0000000000000000000000", 100);
+    expect(data.amount).toBe(100);
+    expect(data.contractAddr).toBe(config.contracts.XTZ.testnet.address);
+    expect(data.data?.entrypoint).toBe("add");
+  });
+
+  test("getBlockDetails", () => {
+    const data = tez.getBlockDetails(block_data as BlockResponse);
+    expect(data.level).toBe(869273);
+    expect(data.numEndorsements).toBe(32);
+    expect(data.timestamp).toBe(1605436093);
+  });
+
+  test("findContractCall", () => {
+    const data = tez.findContractCall(
+      block_data as BlockResponse,
+      "ooojqzy45siei3Qs6H6QwoNqdQxiKmSZCXW9mCR5uqHiGrwLyWi",
+    );
+    expect(data).toStrictEqual(initiate_tx_default);
+  });
+
+  test("validateInitiateTransaction", async () => {
+    let data = await tez.validateInitiateTransaction(
+      869273,
+      "ooojqzy45siei3Qs6H6QwoNqdQxiKmSZCXW9mCR5uqHiGrwLyWi",
+      "c208b730e72b549634ad2cb377e7a045d43121df74c9ebbddaaa9d91234169fb",
+      "tz1RL215HFeALUc1myZp3rKpSt9EuY5EUsbx",
+      250000000,
+      1605453897,
+    );
+    expect(data).toStrictEqual({
+      status: "Confirmed",
+      confirmations: 0,
+      nextBlockETA: 1605436123,
+    });
+
+    //invalid details
+    data = await tez.validateInitiateTransaction(
+      869273,
+      "ooojqzy45siei3Qs6H6QwoNqdQxiKmSZCXW9mCR5uqHiHrwLyWi",
+      "c208b730e72b549634ad2cb377e7a045d43121df74c9ebbddaaa9d91234169fb",
+      "tz1RL215HFeALUc1myZp3rKpSt9EuY5EUsbx",
+      250000000,
+      1605453897,
+    );
+    expect(data).toStrictEqual({
+      status: "Invalid",
+      message:
+        "Operation not found: ooojqzy45siei3Qs6H6QwoNqdQxiKmSZCXW9mCR5uqHiHrwLyWi @ BLtY6fhCocbyucu1XR7CHPUE5sGQtmZxq9MoR1JGyBMEjJq2oz9",
+      confirmations: 0,
+      nextBlockETA: 0,
+    });
   });
 
   test("encodeSignature", () => {
