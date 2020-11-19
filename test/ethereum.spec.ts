@@ -105,7 +105,6 @@ describe("EthereumHelpers test", () => {
       1604545434,
       5,
     );
-    console.log(data);
     expect(data).toStrictEqual({
       status: "Invalid",
       message: "Cannot read property 'to' of null",
