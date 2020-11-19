@@ -159,7 +159,10 @@ export class TezosHelpers extends Helpers {
     };
   }
 
-  buildRedeemTransaction(secret: string): PartialTransactionBody {
+  buildRedeemTransaction(
+    secret: string,
+    hashedSecret = "",
+  ): PartialTransactionBody {
     return {
       data: {
         entrypoint: "redeem",

@@ -140,7 +140,7 @@ export class Atomex {
   async addOrder(addOrderRequest: AddOrderRequest): Promise<number> {
     return this.makeRequest<Record<string, number>>(
       "post",
-      "/Orders",
+      "/v1/Orders",
       true,
       {},
       addOrderRequest,

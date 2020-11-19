@@ -37,6 +37,7 @@ export abstract class Helpers {
    */
   public abstract buildRedeemTransaction(
     secret: string,
+    hashedSecret: string,
   ): PartialTransactionBody;
 
   /**

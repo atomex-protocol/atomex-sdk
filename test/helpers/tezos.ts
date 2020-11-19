@@ -1,7 +1,7 @@
 import { TezosToolkit } from "@taquito/taquito";
 import config from "../../src/config.json";
 import { TezosHelpers } from "../../src/tezos";
-
+import block_data from "../data/tezos_block_data.json";
 export const GenerateMockRPCClient = (
   status: string,
   gas: number,
@@ -13,6 +13,7 @@ export const GenerateMockRPCClient = (
     getBlockHeader: jest.fn(),
     getContract: jest.fn(),
     runOperation: jest.fn(),
+    getBlock: jest.fn(),
   };
   mockRpcClient.getContract.mockResolvedValue({ counter: "0" });
   mockRpcClient.getBlockHeader.mockResolvedValue({ hash: "test" });
@@ -30,6 +31,7 @@ export const GenerateMockRPCClient = (
     ],
   });
   mockRpcClient.getManagerKey.mockResolvedValue(revealedKey);
+  mockRpcClient.getBlock.mockResolvedValue(block_data);
   return mockRpcClient;
 };
 

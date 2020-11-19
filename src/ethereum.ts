@@ -118,8 +118,13 @@ export class EthereumHelpers extends Helpers {
     };
   }
 
-  buildRedeemTransaction(secret: string): PartialTransactionBody {
-    const data = this._contract.methods.redeem(secret).encodeABI();
+  buildRedeemTransaction(
+    secret: string,
+    hashedSecret: string,
+  ): PartialTransactionBody {
+    const data = this._contract.methods
+      .redeem(hashedSecret, secret)
+      .encodeABI();
     return {
       data,
       contractAddr: this._contract.options.address,
@@ -152,7 +157,7 @@ export class EthereumHelpers extends Helpers {
    * @param hashedSecret hashedSecret to identify swap
    * @returns contract address and tx data that can be used to make a contract call
    */
-  buildActivateTransaction(secretHash: string) {
+  buildActivateTransaction(secretHash: string): PartialTransactionBody {
     const data: string = this._contract.methods
       .activate(secretHash)
       .encodeABI();
