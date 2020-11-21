@@ -7,6 +7,9 @@ import config from "../src/config.json";
 import { now } from "../src/helpers";
 import block_data from "./data/tezos_block_data.json";
 import initiate_tx_default from "./data/tez_initiate_tx_default.json";
+import initiate_tx_def_entry from "./data/tez_initiate_tx_def_entry.json";
+import initiate_tx_fund from "./data/tez_initiate_tx_fund.json";
+import initiate_tx_iso from "./data/tez_initiate_tx_iso.json";
 import { GenerateMockRPCClient, GetTezosHelperInstance } from "./helpers/tezos";
 
 describe("TezosHelpers test", () => {
@@ -29,8 +32,10 @@ describe("TezosHelpers test", () => {
   });
 
   test("parseInitiateParameters", () => {
-    const content = initiate_tx_default as OperationContentsAndResultTransaction;
-    const params = tez.parseInitiateParameters(content);
+    // normal initiate entrypoint
+    let params = tez.parseInitiateParameters(
+      initiate_tx_default as OperationContentsAndResultTransaction,
+    );
     expect(params.secretHash).toBe(
       "c208b730e72b549634ad2cb377e7a045d43121df74c9ebbddaaa9d91234169fb",
     );
@@ -39,6 +44,48 @@ describe("TezosHelpers test", () => {
     );
     expect(params.refundTimestamp).toBe(1605453897);
     expect(params.netAmount).toBe(250000000);
+    expect(params.rewardForRedeem).toBe(0);
+
+    //  default entrypoint
+    params = tez.parseInitiateParameters(
+      initiate_tx_def_entry as OperationContentsAndResultTransaction,
+    );
+    expect(params.secretHash).toBe(
+      "c208b730e72b549634ad2cb377e7a045d43121df74c9ebbddaaa9d91234169fb",
+    );
+    expect(params.receivingAddress).toBe(
+      "tz1RL215HFeALUc1myZp3rKpSt9EuY5EUsbx",
+    );
+    expect(params.refundTimestamp).toBe(1605453897);
+    expect(params.netAmount).toBe(250000000);
+    expect(params.rewardForRedeem).toBe(0);
+
+    // fund entrypoint
+    params = tez.parseInitiateParameters(
+      initiate_tx_fund as OperationContentsAndResultTransaction,
+    );
+    expect(params.secretHash).toBe(
+      "c208b730e72b549634ad2cb377e7a045d43121df74c9ebbddaaa9d91234169fc",
+    );
+    expect(params.receivingAddress).toBe(
+      "tz1RL215HFeALUc1myZp3rKpSt9EuY5EUsbx",
+    );
+    expect(params.refundTimestamp).toBe(1605453897);
+    expect(params.netAmount).toBe(1000000);
+    expect(params.rewardForRedeem).toBe(0);
+
+    // refund time in iso format
+    params = tez.parseInitiateParameters(
+      initiate_tx_iso as OperationContentsAndResultTransaction,
+    );
+    expect(params.secretHash).toBe(
+      "11e809060d9265df73629aaccb8b98b68686a3a30b006c271fb986c5f523b97e",
+    );
+    expect(params.receivingAddress).toBe(
+      "tz1cnQZXoznhduu4MVWfJF6GSyP6mMHMbbWa",
+    );
+    expect(params.refundTimestamp).toBe(1604688969);
+    expect(params.netAmount).toBe(20000000);
     expect(params.rewardForRedeem).toBe(0);
   });
 
