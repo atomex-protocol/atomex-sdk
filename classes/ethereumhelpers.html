@@ -128,7 +128,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L29">ethereum.ts:29</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L29">ethereum.ts:29</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -160,13 +160,13 @@
 					<a name="buildactivatetransaction" class="tsd-anchor"></a>
 					<h3>build<wbr>Activate<wbr>Transaction</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">build<wbr>Activate<wbr>Transaction<span class="tsd-signature-symbol">(</span>secretHash<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>contractAddr<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>data<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></li>
+						<li class="tsd-signature tsd-kind-icon">build<wbr>Activate<wbr>Transaction<span class="tsd-signature-symbol">(</span>secretHash<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/partialtransactionbody.html" class="tsd-signature-type">PartialTransactionBody</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L155">ethereum.ts:155</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L160">ethereum.ts:160</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -180,16 +180,8 @@
 									<h5>secretHash: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{ </span>contractAddr<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>data<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></h4>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/partialtransactionbody.html" class="tsd-signature-type">PartialTransactionBody</a></h4>
 							<p>contract address and tx data that can be used to make a contract call</p>
-							<ul class="tsd-parameters">
-								<li class="tsd-parameter">
-									<h5>contract<wbr>Addr<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-								</li>
-								<li class="tsd-parameter">
-									<h5>data<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-								</li>
-							</ul>
 						</li>
 					</ul>
 				</section>
@@ -204,7 +196,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="helpers.html">Helpers</a>.<a href="helpers.html#buildaddtransaction">buildAddTransaction</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L137">ethereum.ts:137</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L142">ethereum.ts:142</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -231,7 +223,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="helpers.html">Helpers</a>.<a href="helpers.html#buildinitiatetransaction">buildInitiateTransaction</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L97">ethereum.ts:97</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L97">ethereum.ts:97</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -248,20 +240,23 @@
 					<a name="buildredeemtransaction" class="tsd-anchor"></a>
 					<h3>build<wbr>Redeem<wbr>Transaction</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
-						<li class="tsd-signature tsd-kind-icon">build<wbr>Redeem<wbr>Transaction<span class="tsd-signature-symbol">(</span>secret<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/partialtransactionbody.html" class="tsd-signature-type">PartialTransactionBody</a></li>
+						<li class="tsd-signature tsd-kind-icon">build<wbr>Redeem<wbr>Transaction<span class="tsd-signature-symbol">(</span>secret<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, hashedSecret<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/partialtransactionbody.html" class="tsd-signature-type">PartialTransactionBody</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Overrides <a href="helpers.html">Helpers</a>.<a href="helpers.html#buildredeemtransaction">buildRedeemTransaction</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L121">ethereum.ts:121</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L121">ethereum.ts:121</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>secret: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>hashedSecret: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="../interfaces/partialtransactionbody.html" class="tsd-signature-type">PartialTransactionBody</a></h4>
@@ -279,7 +274,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="helpers.html">Helpers</a>.<a href="helpers.html#buildrefundtransaction">buildRefundTransaction</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L129">ethereum.ts:129</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L134">ethereum.ts:134</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -303,7 +298,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="helpers.html">Helpers</a>.<a href="helpers.html#encodepublickey">encodePublicKey</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L300">ethereum.ts:300</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L305">ethereum.ts:305</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -327,7 +322,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="helpers.html">Helpers</a>.<a href="helpers.html#encodesignature">encodeSignature</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L307">ethereum.ts:307</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L312">ethereum.ts:312</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -351,7 +346,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="helpers.html">Helpers</a>.<a href="helpers.html#estimateinitiatefees">estimateInitiateFees</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L312">ethereum.ts:312</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L317">ethereum.ts:317</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -375,7 +370,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="helpers.html">Helpers</a>.<a href="helpers.html#estimateredeemfees">estimateRedeemFees</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L333">ethereum.ts:333</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L338">ethereum.ts:338</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -399,7 +394,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="helpers.html">Helpers</a>.<a href="helpers.html#getauthmessage">getAuthMessage</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L87">ethereum.ts:87</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L87">ethereum.ts:87</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -425,7 +420,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L165">ethereum.ts:165</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L170">ethereum.ts:170</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -448,7 +443,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L288">ethereum.ts:288</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L293">ethereum.ts:293</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -487,7 +482,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="helpers.html">Helpers</a>.<a href="helpers.html#validateinitiatetransaction">validateInitiateTransaction</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L193">ethereum.ts:193</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L198">ethereum.ts:198</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -528,7 +523,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/d85a168/src/ethereum.ts#L61">ethereum.ts:61</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/c7df326/src/ethereum.ts#L61">ethereum.ts:61</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
