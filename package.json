@@ -1,5 +1,5 @@
 {
-  "name": "atomex-sdk",
+  "name": "@atomex/sdk",
   "version": "0.1.0",
   "description": "Atomex SDK",
   "main": "lib/index.js",
@@ -14,12 +14,12 @@
     "type": "git",
     "url": "git+https://github.com/atomex-me/atomex-sdk-ts.git"
   },
-  "author": "Soumya Ghosh Dastidar",
+  "author": "Soumya Ghosh Dastidar, Michael Zaikin <mz@baking-bad.org>",
   "license": "GPLv3",
   "bugs": {
     "url": "https://github.com/atomex-me/atomex-sdk-ts/issues"
   },
-  "homepage": "https://github.com/atomex-me/atomex-sdk-ts#readme",
+  "homepage": "https://sdk.atomex.me",
   "devDependencies": {
     "@taquito/local-forging": "^7.0.0-beta.0",
     "@types/jest": "^26.0.15",

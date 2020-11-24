@@ -1,11 +1,12 @@
-name: Publish
+name: Release
 on:
   push:
-    branches:
-      - master
+    tags:
+      - '*.*.*'
+
 jobs:
   publish:
-    name: Build, test, and deploy typedoc to GH
+    name: Build, compile, and upload to NPM
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -25,15 +26,8 @@ jobs:
       - name: Build library
         run: make
 
-      - name: Run tests
-        run: make test
-
-      - name: Make TypeDoc
-        run: make typedoc
-
-      - name: Deploy to GH Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - uses: JS-DevTools/npm-publish@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./typedoc
-          cname: sdk.atomex.me
+          token: ${{ secrets.NPM_TOKEN }}
+          check-version: true
+          dry-run: true
