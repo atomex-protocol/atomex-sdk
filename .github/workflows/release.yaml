@@ -26,8 +26,13 @@ jobs:
       - name: Build library
         run: npm run compile
 
+      - name: Build github release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+
       - uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_AUTH_TOKEN }}
-          check-version: true
           dry-run: true
