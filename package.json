@@ -1,5 +1,5 @@
 {
-  "name": "@atomex/sdk",
+  "name": "atomex-sdk",
   "version": "0.1.0",
   "description": "Atomex SDK",
   "main": "lib/index.js",

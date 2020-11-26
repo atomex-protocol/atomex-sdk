@@ -5,7 +5,7 @@ on:
       - '*.*.*'
 
 jobs:
-  publish:
+  release:
     name: Build, compile, and upload to NPM
     runs-on: ubuntu-latest
     strategy:
@@ -35,4 +35,3 @@ jobs:
       - uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_AUTH_TOKEN }}
-          dry-run: true

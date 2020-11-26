@@ -3,7 +3,7 @@ import config from "./config.json";
 import {
   AddOrderRequest,
   AddSwapRequisites,
-  AuthTokenRequest as AuthRequest,
+  AuthTokenRequest,
   AuthTokenResponse,
   BookQuote,
   Entry,
@@ -94,7 +94,7 @@ export class Atomex {
    * @param authRequest details of the message, timeStamp and signed message with the algorithm used
    * @returns atomex authorization token with expiration time
    */
-  async getAuthToken(authRequest: AuthRequest): Promise<AuthTokenResponse> {
+  async getAuthToken(authRequest: AuthTokenRequest): Promise<AuthTokenResponse> {
     return this.makeRequest("post", "/v1/Token", false, {}, authRequest);
   }
 
