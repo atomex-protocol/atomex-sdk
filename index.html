@@ -65,18 +65,21 @@
 				<a href="#atomex-sdk" id="atomex-sdk" style="color: inherit; text-decoration: none;">
 					<h1>Atomex SDK</h1>
 				</a>
+				<p><a href="https://badge.fury.io/js/atomex-sdk"><img src="https://badge.fury.io/js/atomex-sdk.svg" alt="npm version"></a>
+					<a href="https://github.com/atomex-me/atomex-sdk-ts/actions?query=workflow%3ATests"><img src="https://github.com/atomex-me/atomex-sdk-ts/workflows/Tests/badge.svg?" alt="Tests"></a>
+				<a href="https://opensource.org/licenses/GPLv3"><img src="https://img.shields.io/badge/License-GPLv3-yellow.svg" alt="License: MIT"></a></p>
 				<p>Please read the following documents prior to start building on this SDK:</p>
 				<ol>
 					<li><a href="docs/overview.md">Overview of the Atomex protocol and roles</a></li>
 					<li><a href="docs/api.md">Atomex protocol entities and API guide</a></li>
-					<li><a href="docs/integration.md">Atomex integration best practices</a></li>
+					<li><a href="docs/integration.md">Atomex integration tutorial</a></li>
 				</ol>
 				<p>In order to run the interactive tutorial:</p>
 				<ol>
 					<li>Make sure all dependencies are installed <code>make install</code></li>
 					<li>Run <code>make tutorial</code></li>
 				</ol>
-				<p>Check out the docs at <a href="https://sdk.atomex.me">sdk.atomex.me</a></p>
+				<p>Check out the typedoc reference at <a href="https://sdk.atomex.me">sdk.atomex.me</a></p>
 				<a href="#sdk-components" id="sdk-components" style="color: inherit; text-decoration: none;">
 					<h2>SDK components</h2>
 				</a>
@@ -89,6 +92,113 @@
 				<ul>
 					<li><code>XTZ</code> (tez) — <code>TezosHelpers</code></li>
 					<li><code>ETH</code> (ether) — <code>EthereumHelpers</code></li>
+				</ul>
+				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+					<h2>Usage</h2>
+				</a>
+				<a href="#atomex-api" id="atomex-api" style="color: inherit; text-decoration: none;">
+					<h3>Atomex API</h3>
+				</a>
+				<p>Start working with Atomex API by creating an instance of the wrapper class. </p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> atomex = Atomex.create(<span class="hljs-string">&quot;testnet&quot;</span>)</code></pre>
+				<p>There are several predefined configs:</p>
+				<ul>
+					<li><code>mainnet</code> — for production use</li>
+					<li><code>testnet</code> — for testing purposes, on-chain operations tracked in:<ul>
+							<li>Ethereum: <em>Ropsten</em></li>
+							<li>Tezos: <em>Carthagenet</em></li>
+						</ul>
+					</li>
+					<li><code>localhost</code> — for Atomex developers only (debugging purposes)</li>
+				</ul>
+				<a href="#public-methods" id="public-methods" style="color: inherit; text-decoration: none;">
+					<h4>Public methods</h4>
+				</a>
+				<p>Market data can be queried without authentication.</p>
+				<ul>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#getsymbols"><code>Atomex.getSymbols</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#getquotes"><code>Atomex.getQuotes</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#getorderbook"><code>Atomex.getOrderBook</code></a></li>
+				</ul>
+				<p>There is also a helper for estimating order price:</p>
+				<ul>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#getorderpreview"><code>Atomex.getOrderPreview</code></a></li>
+				</ul>
+				<a href="#authentication" id="authentication" style="color: inherit; text-decoration: none;">
+					<h4>Authentication</h4>
+				</a>
+				<p>Atomex uses simple JWT scheme (without refresh tokens). Client is responsible for tracking the expiration and requesting new tokens.<br>Read more about the authentication process in the <a href="docs/overview.md#Client">overview</a>.</p>
+				<pre><code class="language-js"><span class="hljs-keyword">await</span> atomex.getAuthToken({
+    <span class="hljs-attr">timeStamp</span>: <span class="hljs-number">1606227074301</span>,
+    <span class="hljs-attr">message</span>: <span class="hljs-string">&#x27;Signing in &#x27;</span>,
+    <span class="hljs-attr">publicKey</span>:
+   <span class="hljs-string">&#x27;419491b1796b13d756d394ed925c10727bca06e97353c5ca09402a9b6b07abcc&#x27;</span>,
+    <span class="hljs-attr">signature</span>:
+   <span class="hljs-string">&#x27;d937f12e7509f9266376a4cc6b51af91ad9f2e2c55ce9b3dfd870fc2e9d604b390a0f15d7ea277f8b6b9dfc1bb2ef2218d5ec4f87ba0399e6f6fb6d31ed09e03&#x27;</span>,
+    <span class="hljs-attr">algorithm</span>: <span class="hljs-string">&#x27;Ed25519:Blake2b&#x27;</span>
+})</code></pre>
+				<p>The following structure is returned if everything is ok:</p>
+				<pre><code class="language-json">{ <span class="hljs-attr">&quot;id&quot;</span>:
+   <span class="hljs-string">&quot;dd03c7c3bc9daf23727d0c5759c72855eb1f36c9376f8a67b17fcd3dc07bfba1&quot;</span>,
+  <span class="hljs-attr">&quot;token&quot;</span>:
+   <span class="hljs-string">&quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImRkMDNjN2MzYmM5ZGFmMjM3MjdkMGM1NzU5YzcyODU1ZWIxZjM2YzkzNzZmOGE2N2IxN2ZjZDNkYzA3YmZiYTEiLCJuYmYiOjE2MDYyMzk5OTQsImV4cCI6MTYwNjMyNjM5NCwiaWF0IjoxNjA2MjM5OTk0fQ.ljwKxcQk5mPbRRzZ9qaZioe7U1_3I7riklGCEj2xXPA&quot;</span>,
+  <span class="hljs-attr">&quot;expires&quot;</span>: <span class="hljs-number">1606326394064</span> 
+}</code></pre>
+				<p>Assign the token to the Atomex instance:</p>
+				<pre><code class="language-js">atomex.setAuthToken(<span class="hljs-string">&quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImRkMDNjN2MzYmM5ZGFmMjM3MjdkMGM1NzU5YzcyODU1ZWIxZjM2YzkzNzZmOGE2N2IxN2ZjZDNkYzA3YmZiYTEiLCJuYmYiOjE2MDYyMzk5OTQsImV4cCI6MTYwNjMyNjM5NCwiaWF0IjoxNjA2MjM5OTk0fQ.ljwKxcQk5mPbRRzZ9qaZioe7U1_3I7riklGCEj2xXPA&quot;</span>)</code></pre>
+				<a href="#private-methods" id="private-methods" style="color: inherit; text-decoration: none;">
+					<h4>Private methods</h4>
+				</a>
+				<p>With auth token assigned we can work with <a href="docs/api.md#Orders">orders</a>:</p>
+				<ul>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#addorder"><code>Atomex.addOrder</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#cancelorder"><code>Atomex.cancelOrder</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#getorder"><code>Atomex.getOrder</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#getorders"><code>Atomex.getOrders</code></a></li>
+				</ul>
+				<p>And <a href="docs/api.md#Swaps">swaps</a>:</p>
+				<ul>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#addswaprequisites"><code>Atomex.addSwapRequisites</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#getswap"><code>Atomex.getSwap</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/atomex.html#getswaps"><code>Atomex.getSwaps</code></a></li>
+				</ul>
+				<a href="#helpers" id="helpers" style="color: inherit; text-decoration: none;">
+					<h3>Helpers</h3>
+				</a>
+				<p>For each currency create an according helper class instance:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> tez = <span class="hljs-keyword">await</span> TezosHelpers.create(<span class="hljs-string">&quot;testnet&quot;</span>);</code></pre>
+				<p>You can also specify custom RPC endpoint:</p>
+				<pre><code class="language-js">cosnt eth = <span class="hljs-keyword">await</span> EthereumHelpers.create(<span class="hljs-string">&quot;testnet&quot;</span>, <span class="hljs-string">&quot;https://ropsten.infura.io/v3/12345&quot;</span>);</code></pre>
+				<p>Helpers classes implement a single interface providing methods for interacting with Atomex contracts:</p>
+				<ul>
+					<li><a href="https://sdk.atomex.me/classes/helpers.html#buildinitiatetransaction"><code>Helpers.buildInitiateTransaction</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/helpers.html#buildaddtransaction"><code>Helpers.buildAddTransaction</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/helpers.html#buildredeemtransaction"><code>Helpers.buildRedeemTransaction</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/helpers.html#buildrefundtransaction"><code>Helpers.buildRefundTransaction</code></a></li>
+				</ul>
+				<p>Encoding/decoding crypto primitives:</p>
+				<ul>
+					<li><a href="https://sdk.atomex.me/classes/helpers.html#encodepublickey"><code>Helpers.encodePublicKey</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/helpers.html#encodesignature"><code>Helpers.encodeSignature</code></a></li>
+				</ul>
+				<p>Generating data for <code>Atomex.getAuthToken</code> request:</p>
+				<ul>
+					<li><a href="https://sdk.atomex.me/classes/helpers.html#getauthmessage"><code>Helpers.getAuthMessage</code></a></li>
+				</ul>
+				<p>Estimating fees:</p>
+				<ul>
+					<li><a href="https://sdk.atomex.me/classes/helpers.html#estimateinitiatefees"><code>Helpers.estimateInitiateFees</code></a></li>
+					<li><a href="https://sdk.atomex.me/classes/helpers.html#estimateredeemfees"><code>Helpers.estimateRedeemFees</code></a></li>
+				</ul>
+				<p>Tracking transaction confirmations and validating parameters:</p>
+				<ul>
+					<li><a href="https://sdk.atomex.me/classes/helpers.html#validateinitiatetransaction"><code>Helpers.validateInitiateTransaction</code></a></li>
+				</ul>
+				<a href="#currency-specific-helpers" id="currency-specific-helpers" style="color: inherit; text-decoration: none;">
+					<h4>Currency-specific helpers</h4>
+				</a>
+				<ul>
+					<li><a href="https://sdk.atomex.me/classes/ethereumhelpers.html#recoverpublickey"><code>EthereumHelpers.recoverPublicKey</code></a></li>
 				</ul>
 				<a href="#contributing" id="contributing" style="color: inherit; text-decoration: none;">
 					<h2>Contributing</h2>
