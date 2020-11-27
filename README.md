@@ -15,6 +15,10 @@ In order to run the interactive tutorial:
 
 Check out the typedoc reference at [sdk.atomex.me](https://sdk.atomex.me)
 
+## Installation
+
+`npm install atomex-sdk`
+
 ## SDK components
 
 The Atomex SDK has mainly 2 components:
