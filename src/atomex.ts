@@ -1,4 +1,4 @@
-import fetch from "isomorphic-unfetch";
+import isomorphicFetch from "isomorphic-unfetch";
 import config from "./config.json";
 import {
   AddOrderRequest,
@@ -52,6 +52,11 @@ export class Atomex {
     params?: Query,
     payload?: Query,
   ): Promise<T> {
+    const fetch =
+      typeof window === "undefined"
+        ? isomorphicFetch
+        : window.fetch.bind(window);
+
     const url = new URL(path, this._baseUrl);
     if (params !== undefined) {
       Object.keys(params).forEach((key) =>
@@ -94,7 +99,9 @@ export class Atomex {
    * @param authRequest details of the message, timeStamp and signed message with the algorithm used
    * @returns atomex authorization token with expiration time
    */
-  async getAuthToken(authRequest: AuthTokenRequest): Promise<AuthTokenResponse> {
+  async getAuthToken(
+    authRequest: AuthTokenRequest,
+  ): Promise<AuthTokenResponse> {
     return this.makeRequest("post", "/v1/Token", false, {}, authRequest);
   }
 
