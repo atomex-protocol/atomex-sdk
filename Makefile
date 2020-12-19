@@ -1,4 +1,5 @@
 .PHONY: test typedoc
+.ONESHELL:
 
 build:
 	npm run lint
