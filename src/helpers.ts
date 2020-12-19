@@ -72,7 +72,7 @@ export abstract class Helpers {
    * @returns status of tx, current no. of confirms and est. next block generation timestamp.
    * No. of confirmations and block timestamp is only returned when `status:Included`
    */
-  public abstract async validateInitiateTransaction(
+  public abstract validateInitiateTransaction(
     blockHeight: number,
     txID: string,
     secretHash: string,
