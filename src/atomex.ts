@@ -6,6 +6,7 @@ import {
   AuthTokenRequest,
   AuthTokenResponse,
   BookQuote,
+  Currency,
   Entry,
   GetOrdersRequest,
   GetSwapsRequest,
@@ -312,5 +313,19 @@ export class Atomex {
         .amountExpected,
       amountReceived: amount,
     };
+  }
+
+  /**
+   * Formatting an amount based on currency
+   *
+   * @param amount Amount received / sent
+   * @param currency Formatting currency
+   */
+  formatAmount(amount: number | string, currency: Currency): number {
+    return typeof amount === "string"
+      ? parseFloat(
+          parseFloat(amount).toFixed(config.rpc[currency].decimals.displayed),
+        )
+      : parseFloat(amount.toFixed(config.rpc[currency].decimals.displayed));
   }
 }
