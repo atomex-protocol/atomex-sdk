@@ -21,6 +21,10 @@
         "chainID": "3",
         "rpc": "https://ropsten.infura.io/v3/7cd728d2d3384719a630d836f1693c5c",
         "blockTime": 10
+      },
+      "decimals": {
+        "original": 18,
+        "displayed": 4
       }
     },
     "tezos": {
@@ -41,6 +45,10 @@
         "minimalNanotezPerGasUnit": 0.1,
         "minimalNanotezPerByte": 1,
         "costPerByte": 250
+      },
+      "decimals": {
+        "original": 6,
+        "displayed": 3
       }
     }
   },

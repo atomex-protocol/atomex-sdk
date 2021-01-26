@@ -1,3 +1,5 @@
+export type Currency = "ethereum" | "tezos";
+
 export type Side = "Buy" | "Sell";
 
 export type Sort = "Asc" | "Desc";

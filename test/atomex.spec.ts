@@ -658,4 +658,26 @@ describe("Atomex test", () => {
     };
     expect(orderPreview).toStrictEqual(expectedValue);
   });
+
+  test("formatAmount", () => {
+    const atomex = new Atomex("http://localost/");
+
+    /**
+     * String. Ethereum, tezos
+     */
+    expect(typeof atomex.formatAmount("320.9433", "ethereum")).toBe("number");
+    expect(atomex.formatAmount("320.9430111", "ethereum")).toBe(320.943);
+    expect(atomex.formatAmount("320.9435111", "ethereum")).toBe(320.9435);
+    expect(atomex.formatAmount("320.9430111", "tezos")).toBe(320.943);
+    expect(atomex.formatAmount("320.9435111", "tezos")).toBe(320.944);
+
+    /**
+     * Float. Ethereum, tezos
+     */
+    expect(typeof atomex.formatAmount(320.9433, "ethereum")).toBe("number");
+    expect(atomex.formatAmount(320.9430111, "ethereum")).toBe(320.943);
+    expect(atomex.formatAmount(320.9435111, "ethereum")).toBe(320.9435);
+    expect(atomex.formatAmount(320.9430111, "tezos")).toBe(320.943);
+    expect(atomex.formatAmount(320.9435111, "tezos")).toBe(320.944);
+  });
 });
