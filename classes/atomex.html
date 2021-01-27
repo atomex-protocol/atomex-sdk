@@ -89,6 +89,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="atomex.html#addswaprequisites" class="tsd-kind-icon">add<wbr>Swap<wbr>Requisites</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="atomex.html#cancelorder" class="tsd-kind-icon">cancel<wbr>Order</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="atomex.html#filterentry" class="tsd-kind-icon">filter<wbr>Entry</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="atomex.html#formatamount" class="tsd-kind-icon">format<wbr>Amount</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="atomex.html#getauthtoken" class="tsd-kind-icon">get<wbr>Auth<wbr>Token</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="atomex.html#getorder" class="tsd-kind-icon">get<wbr>Order</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="atomex.html#getorderbook" class="tsd-kind-icon">get<wbr>Order<wbr>Book</a></li>
@@ -118,7 +119,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L26">atomex.ts:26</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L27">atomex.ts:27</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -147,7 +148,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L147">atomex.ts:147</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L148">atomex.ts:148</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -179,7 +180,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L206">atomex.ts:206</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L207">atomex.ts:207</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -217,7 +218,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L186">atomex.ts:186</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L187">atomex.ts:187</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -261,7 +262,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L257">atomex.ts:257</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L258">atomex.ts:258</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -284,6 +285,43 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="formatamount" class="tsd-anchor"></a>
+					<h3>format<wbr>Amount</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">format<wbr>Amount<span class="tsd-signature-symbol">(</span>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span>, currency<span class="tsd-signature-symbol">: </span><a href="../globals.html#currency" class="tsd-signature-type">Currency</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L324">atomex.ts:324</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Formatting an amount based on currency</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>amount: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Amount received / sent</p>
+									</div>
+								</li>
+								<li>
+									<h5>currency: <a href="../globals.html#currency" class="tsd-signature-type">Currency</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Formatting currency</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="getauthtoken" class="tsd-anchor"></a>
 					<h3>get<wbr>Auth<wbr>Token</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -293,7 +331,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L102">atomex.ts:102</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L103">atomex.ts:103</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -330,7 +368,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L173">atomex.ts:173</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L174">atomex.ts:174</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -362,7 +400,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L137">atomex.ts:137</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L138">atomex.ts:138</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -394,7 +432,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L278">atomex.ts:278</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L279">atomex.ts:279</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -443,7 +481,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L239">atomex.ts:239</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L240">atomex.ts:240</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -483,7 +521,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L163">atomex.ts:163</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L164">atomex.ts:164</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -515,7 +553,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L123">atomex.ts:123</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L124">atomex.ts:124</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -547,7 +585,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L235">atomex.ts:235</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L236">atomex.ts:236</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -579,7 +617,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L225">atomex.ts:225</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L226">atomex.ts:226</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -611,7 +649,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L113">atomex.ts:113</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L114">atomex.ts:114</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -634,7 +672,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L44">atomex.ts:44</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L45">atomex.ts:45</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -670,7 +708,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/fc625c5/src/atomex.ts#L33">atomex.ts:33</a></li>
+									<li>Defined in <a href="https://github.com/atomex-me/atomex-sdk-ts/blob/a2bdb35/src/atomex.ts#L34">atomex.ts:34</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -716,6 +754,9 @@
 								<a href="atomex.html#filterentry" class="tsd-kind-icon">filter<wbr>Entry</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="atomex.html#formatamount" class="tsd-kind-icon">format<wbr>Amount</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="atomex.html#getauthtoken" class="tsd-kind-icon">get<wbr>Auth<wbr>Token</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
@@ -755,123 +796,6 @@
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-class">
-						<a href="ethereumhelpers.html" class="tsd-kind-icon">Ethereum<wbr>Helpers</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="helpers.html" class="tsd-kind-icon">Helpers</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="tezoshelpers.html" class="tsd-kind-icon">Tezos<wbr>Helpers</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/addorderrequest.html" class="tsd-kind-icon">Add<wbr>Order<wbr>Request</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/addswaprequisites.html" class="tsd-kind-icon">Add<wbr>Swap<wbr>Requisites</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/authmessage.html" class="tsd-kind-icon">Auth<wbr>Message</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/authtokenrequest.html" class="tsd-kind-icon">Auth<wbr>Token<wbr>Request</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/authtokenresponse.html" class="tsd-kind-icon">Auth<wbr>Token<wbr>Response</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/bookquote.html" class="tsd-kind-icon">Book<wbr>Quote</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/entry.html" class="tsd-kind-icon">Entry</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/function.html" class="tsd-kind-icon">Function</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/getordersrequest.html" class="tsd-kind-icon">Get<wbr>Orders<wbr>Request</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/getswapsrequest.html" class="tsd-kind-icon">Get<wbr>Swaps<wbr>Request</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/initiateparameters.html" class="tsd-kind-icon">Initiate<wbr>Parameters</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/order.html" class="tsd-kind-icon">Order</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/orderbook.html" class="tsd-kind-icon">Order<wbr>Book</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/orderpreview.html" class="tsd-kind-icon">Order<wbr>Preview</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/partialtransactionbody.html" class="tsd-kind-icon">Partial<wbr>Transaction<wbr>Body</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/proofoffunds.html" class="tsd-kind-icon">Proof<wbr>OfFunds</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/query.html" class="tsd-kind-icon">Query</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/redeemfees.html" class="tsd-kind-icon">Redeem<wbr>Fees</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/swap.html" class="tsd-kind-icon">Swap</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/swaprequisites.html" class="tsd-kind-icon">Swap<wbr>Requisites</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/swaptransactionstatus.html" class="tsd-kind-icon">Swap<wbr>Transaction<wbr>Status</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/symboldata.html" class="tsd-kind-icon">Symbol<wbr>Data</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/trade.html" class="tsd-kind-icon">Trade</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/transaction.html" class="tsd-kind-icon">Transaction</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="../interfaces/userswapdata.html" class="tsd-kind-icon">User<wbr>Swap<wbr>Data</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../globals.html#algorithm" class="tsd-kind-icon">Algorithm</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../globals.html#orderstatus" class="tsd-kind-icon">Order<wbr>Status</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../globals.html#ordertype" class="tsd-kind-icon">Order<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../globals.html#partystatus" class="tsd-kind-icon">Party<wbr>Status</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../globals.html#side" class="tsd-kind-icon">Side</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../globals.html#sort" class="tsd-kind-icon">Sort</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../globals.html#txstatus" class="tsd-kind-icon">Tx<wbr>Status</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="../globals.html#txtype" class="tsd-kind-icon">Tx<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../globals.html#dt2ts" class="tsd-kind-icon">dt2ts</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../globals.html#formattimestamp" class="tsd-kind-icon">format<wbr>Timestamp</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="../globals.html#now" class="tsd-kind-icon">now</a>
-					</li>
 				</ul>
 			</nav>
 		</div>
