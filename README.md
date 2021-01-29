@@ -10,8 +10,9 @@ Please read the following documents prior to start building on this SDK:
 3. [Atomex integration tutorial](docs/integration.md)
 
 In order to run the interactive tutorial:
-1. Make sure all dependencies are installed `make install`
-2. Run `make tutorial`
+1. Install [IJavacript](https://github.com/n-riesco/ijavascript#installation)
+2. Make sure all dependencies are installed `make install`
+3. Run `make tutorial`
 
 Check out the typedoc reference at [sdk.atomex.me](https://sdk.atomex.me)
 
