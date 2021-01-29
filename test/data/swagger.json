@@ -1,5 +1,5 @@
 {
-  "x-generator": "NSwag v13.6.2.0 (NJsonSchema v10.1.23.0 (Newtonsoft.Json v11.0.0.0))",
+  "x-generator": "NSwag v13.9.4.0 (NJsonSchema v10.3.1.0 (Newtonsoft.Json v11.0.0.0))",
   "openapi": "3.0.0",
   "info": {
     "title": "Atomex API",
@@ -718,59 +718,21 @@
               "format": "int64"
             },
             "x-position": 1
-          },
-          {
-            "name": "receivingAddress",
-            "in": "query",
-            "description": "Receiving address",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 2
-          },
-          {
-            "name": "lockTime",
-            "in": "query",
-            "description": "Lock time in seconds",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            },
-            "x-position": 3
-          },
-          {
-            "name": "refundAddress",
-            "in": "query",
-            "description": "Refund address",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 4
-          },
-          {
-            "name": "rewardForRedeem",
-            "in": "query",
-            "description": "Reward for redeem",
-            "schema": {
-              "type": "number",
-              "format": "decimal",
-              "default": 0.0
-            },
-            "x-position": 5
-          },
-          {
-            "name": "secretHash",
-            "in": "query",
-            "description": "Secret hash",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 6
           }
         ],
+        "requestBody": {
+          "x-name": "requisites",
+          "description": "Swap requisites",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdditionalRequisitesModel"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
         "responses": {
           "200": {
             "description": "",
@@ -1076,7 +1038,8 @@
           "price",
           "qty",
           "side",
-          "type"
+          "type",
+          "requisites"
         ],
         "properties": {
           "clientOrderId": {
@@ -1125,7 +1088,6 @@
           },
           "requisites": {
             "description": "Swap requisites",
-            "nullable": true,
             "oneOf": [
               {
                 "$ref": "#/components/schemas/RequisitesModel"
@@ -1207,9 +1169,8 @@
         "description": "Swap requisites",
         "additionalProperties": false,
         "required": [
-          "receivingAddress",
-          "rewardForRedeem",
-          "lockTime"
+          "baseCurrencyContract",
+          "quoteCurrencyContract"
         ],
         "properties": {
           "secretHash": {
@@ -1220,7 +1181,7 @@
           "receivingAddress": {
             "type": "string",
             "description": "Receiving address",
-            "minLength": 1
+            "nullable": true
           },
           "refundAddress": {
             "type": "string",
@@ -1236,6 +1197,16 @@
             "type": "integer",
             "description": "Lock time",
             "format": "int64"
+          },
+          "baseCurrencyContract": {
+            "type": "string",
+            "description": "Base currency contract address (`null` for Bitcoin based currencies)",
+            "minLength": 1
+          },
+          "quoteCurrencyContract": {
+            "type": "string",
+            "description": "Quote currency contract address (`null` for Bitcoin based currencies)",
+            "minLength": 1
           }
         }
       },
@@ -1606,6 +1577,43 @@
           }
         }
       },
+      "AdditionalRequisitesModel": {
+        "type": "object",
+        "description": "Swap requisites",
+        "additionalProperties": false,
+        "required": [
+          "receivingAddress",
+          "rewardForRedeem",
+          "lockTime"
+        ],
+        "properties": {
+          "secretHash": {
+            "type": "string",
+            "description": "Secret hash",
+            "nullable": true
+          },
+          "receivingAddress": {
+            "type": "string",
+            "description": "Receiving address",
+            "minLength": 1
+          },
+          "refundAddress": {
+            "type": "string",
+            "description": "Refund address",
+            "nullable": true
+          },
+          "rewardForRedeem": {
+            "type": "number",
+            "description": "Reward for redeem",
+            "format": "decimal"
+          },
+          "lockTime": {
+            "type": "integer",
+            "description": "Lock time",
+            "format": "int64"
+          }
+        }
+      },
       "SymbolModel": {
         "type": "object",
         "description": "Symbol information",
@@ -1680,7 +1688,7 @@
           },
           "algorithm": {
             "type": "string",
-            "description": "Signature algorithm. Supported values: `Ed25519`, `Ed25519:Blake2b`, `Sha256WithEcdsa:Secp256k1`, `Sha256WithEcdsa:Secp256r1`",
+            "description": "Signature algorithm. Supported values: `Ed25519`, `Ed25519:Blake2b`, `Sha256WithEcdsa:Secp256k1`, `Sha256WithEcdsa:BtcMsg`, `Keccak256WithEcdsa:Geth2940`, `Blake2bWithEcdsa:Secp256k1`, `Blake2bWithEcdsa:Secp256r1`",
             "minLength": 1
           }
         }

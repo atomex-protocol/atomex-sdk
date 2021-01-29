@@ -1,5 +1,3 @@
-export type Currency = "ethereum" | "tezos";
-
 export type Side = "Buy" | "Sell";
 
 export type Sort = "Asc" | "Desc";
@@ -38,7 +36,8 @@ export type Algorithm =
   | "Sha256WithEcdsa:Secp256k1"
   | "Blake2bWithEcdsa:Secp256k1"
   | "Blake2bWithEcdsa:Secp256r1"
-  | "Keccak256WithEcdsa:Geth2940";
+  | "Keccak256WithEcdsa:Geth2940"
+  | "Sha256WithEcdsa:BtcMsg";
 
 export interface BookQuote {
   symbol: string;
@@ -222,4 +221,11 @@ export interface OrderPreview {
 export interface RedeemFees {
   totalCost: number;
   rewardForRedeem: number;
+}
+
+export interface CurrencyConfig {
+  blockchain: string;
+  decimals: number;
+  displayDecimals: number;
+  contractAddress: string;
 }

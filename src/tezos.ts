@@ -79,7 +79,7 @@ export class TezosHelpers extends Helpers {
     network: "mainnet" | "testnet",
     rpcUri?: string,
   ): Promise<TezosHelpers> {
-    const networkSettings = config.rpc.tezos[network];
+    const networkSettings = config.blockchains.tezos.rpc[network];
     if (rpcUri !== undefined) {
       networkSettings.rpc = rpcUri;
     }
@@ -96,16 +96,16 @@ export class TezosHelpers extends Helpers {
 
     return new TezosHelpers(
       tezos,
-      config.contracts.XTZ.entrypoints,
-      config.contracts.XTZ[network].address,
-      config.rpc.tezos[network].blockTime,
-      config.contracts.XTZ[network].gasLimit,
-      config.rpc.tezos[network].minimalFees,
-      config.rpc.tezos[network].minimalNanotezPerGasUnit,
-      config.rpc.tezos[network].minimalNanotezPerByte,
-      config.rpc.tezos[network].costPerByte,
-      config.contracts.XTZ[network].redeemTxSize,
-      config.contracts.XTZ[network].initiateTxSize,
+      config.currencies.XTZ.contracts.entrypoints,
+      config.currencies.XTZ.contracts[network].address,
+      config.blockchains.tezos.rpc[network].blockTime,
+      config.currencies.XTZ.contracts[network].gasLimit,
+      config.blockchains.tezos.rpc[network].minimalFees,
+      config.blockchains.tezos.rpc[network].minimalNanotezPerGasUnit,
+      config.blockchains.tezos.rpc[network].minimalNanotezPerByte,
+      config.blockchains.tezos.rpc[network].costPerByte,
+      config.currencies.XTZ.contracts[network].redeemTxSize,
+      config.currencies.XTZ.contracts[network].initiateTxSize,
     );
   }
 

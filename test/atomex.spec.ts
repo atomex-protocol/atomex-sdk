@@ -23,7 +23,7 @@ beforeEach(() => {
 
 describe("Atomex test", () => {
   test("getAuthToken", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const req = <AuthTokenRequest>(
       OpenAPISampler.sample(
@@ -71,7 +71,7 @@ describe("Atomex test", () => {
   });
 
   test("getQuotes", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const res = OpenAPISampler.sample(
       spec.paths["/v1/MarketData/quotes"].get.responses[200].content[
@@ -106,7 +106,7 @@ describe("Atomex test", () => {
   });
 
   test("getSymbols", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const res = OpenAPISampler.sample(
       spec.paths["/v1/Symbols"].get.responses[200].content["application/json"]
@@ -136,7 +136,7 @@ describe("Atomex test", () => {
   });
 
   test("getOderBook", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const res = OpenAPISampler.sample(
       spec.paths["/v1/MarketData/book"].get.responses[200].content[
@@ -173,7 +173,7 @@ describe("Atomex test", () => {
   });
 
   test("getOrders", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const res = OpenAPISampler.sample(
       spec.paths["/v1/Orders"].get.responses[200].content["application/json"]
@@ -269,7 +269,7 @@ describe("Atomex test", () => {
   });
 
   test("getOder", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const res = OpenAPISampler.sample(
       spec.paths["/v1/Orders/{id}"].get.responses[200].content[
@@ -363,7 +363,7 @@ describe("Atomex test", () => {
   });
 
   test("addOrder", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const res = OpenAPISampler.sample(
       spec.paths["/v1/Orders"].post.responses[200].content["application/json"]
@@ -397,19 +397,22 @@ describe("Atomex test", () => {
       ],
       qty: 100,
       side: "Buy",
-      symbol: "ETH/BTC",
+      symbol: "XTZ/ETH",
       type: "FillOrKill",
     };
     const resp = await atomex.addOrder(data);
     expect(mocked(fetch).mock.calls.length).toBe(1);
     expect(mocked(fetch).mock.calls[0][0]).toBe("http://localhost/v1/Orders");
     expect(mocked(fetch).mock.calls[0][1]?.method).toBe("post");
+    
+    const body = JSON.parse(mocked(fetch).mock.calls[0][1]?.body?.toString() || "{}");
+    expect(body.requisites.baseCurrencyContract).toBe(atomex.getCurrencyConfig("XTZ").contractAddress);
 
     expect(typeof resp).toBe("number");
   });
 
   test("cancelOrder", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const res = OpenAPISampler.sample(
       spec.paths["/v1/Orders/{id}"].delete.responses[200].content[
@@ -439,7 +442,7 @@ describe("Atomex test", () => {
   });
 
   test("addSwapRequisites", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const res = OpenAPISampler.sample(
       spec.paths["/v1/Swaps/{id}/requisites"].post.responses[200].content[
@@ -474,7 +477,7 @@ describe("Atomex test", () => {
     expect(typeof resp).toBe("boolean");
   });
   test("getSwaps", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const res = OpenAPISampler.sample(
       spec.paths["/v1/Swaps"].get.responses[200].content["application/json"]
@@ -539,7 +542,7 @@ describe("Atomex test", () => {
   });
 
   test("getSwap", async () => {
-    const atomex = new Atomex("http://localhost", "");
+    const atomex = new Atomex("testnet", "http://localhost", "");
 
     const res = OpenAPISampler.sample(
       spec.paths["/v1/Swaps/{id}"].get.responses[200].content[
@@ -598,7 +601,7 @@ describe("Atomex test", () => {
   });
 
   test("getOrderSize", () => {
-    const atomex = new Atomex("http://localhost");
+    const atomex = new Atomex("testnet", "http://localhost");
     const amount = 1000,
       price = 0.01;
     let res = atomex.getOrderSize(1000, 0.01, "Buy", "Send");
@@ -621,7 +624,7 @@ describe("Atomex test", () => {
   });
 
   test("getOrderPreview", () => {
-    const atomex = new Atomex("http://localhost");
+    const atomex = new Atomex("testnet", "http://localhost");
 
     try {
       // should throw error as 1:1 match not found
@@ -660,24 +663,44 @@ describe("Atomex test", () => {
   });
 
   test("formatAmount", () => {
-    const atomex = new Atomex("http://localost/");
+    const atomex = new Atomex("testnet", "http://localost/");
 
     /**
      * String. Ethereum, tezos
      */
-    expect(typeof atomex.formatAmount("320.9433", "ethereum")).toBe("number");
-    expect(atomex.formatAmount("320.9430111", "ethereum")).toBe(320.943);
-    expect(atomex.formatAmount("320.9435111", "ethereum")).toBe(320.9435);
-    expect(atomex.formatAmount("320.9430111", "tezos")).toBe(320.943);
-    expect(atomex.formatAmount("320.9435111", "tezos")).toBe(320.944);
+    expect(typeof atomex.formatAmount("320.9433", "ETH")).toBe("number");
+    expect(atomex.formatAmount("320.9430111", "ETH")).toBe(320.943);
+    expect(atomex.formatAmount("320.9435111", "ETH")).toBe(320.9435);
+    expect(atomex.formatAmount("320.9430111", "XTZ")).toBe(320.943);
+    expect(atomex.formatAmount("320.9435111", "XTZ")).toBe(320.944);
 
     /**
      * Float. Ethereum, tezos
      */
-    expect(typeof atomex.formatAmount(320.9433, "ethereum")).toBe("number");
-    expect(atomex.formatAmount(320.9430111, "ethereum")).toBe(320.943);
-    expect(atomex.formatAmount(320.9435111, "ethereum")).toBe(320.9435);
-    expect(atomex.formatAmount(320.9430111, "tezos")).toBe(320.943);
-    expect(atomex.formatAmount(320.9435111, "tezos")).toBe(320.944);
+    expect(typeof atomex.formatAmount(320.9433, "ETH")).toBe("number");
+    expect(atomex.formatAmount(320.9430111, "ETH")).toBe(320.943);
+    expect(atomex.formatAmount(320.9435111, "ETH")).toBe(320.9435);
+    expect(atomex.formatAmount(320.9430111, "XTZ")).toBe(320.943);
+    expect(atomex.formatAmount(320.9435111, "XTZ")).toBe(320.944);
+  });
+
+  test("splitSymbol", () => {
+    const atomex = new Atomex("testnet", "http://localost/");
+
+    expect(atomex.splitSymbol("XTZ/ETH")).toStrictEqual(["XTZ", "ETH"]);
+  });
+
+  test("getCurrencyConfig", () => {
+    const atomex = new Atomex("testnet", "http://localost/");
+
+    expect(atomex.getCurrencyConfig("ETH").blockchain).toBe("ethereum");
+    expect(atomex.getCurrencyConfig("XTZ").blockchain).toBe("tezos");
+  });
+
+  test("getOrderSide", () => {
+    const atomex = new Atomex("testnet", "http://localost/");
+
+    expect(atomex.getOrderSide("XTZ/ETH", "ethereum", "tezos")).toBe("Buy");
+    expect(atomex.getOrderSide("XTZ/ETH", "tezos", "ethereum")).toBe("Sell");
   });
 });

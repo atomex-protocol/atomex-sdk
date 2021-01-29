@@ -6,7 +6,6 @@ import {
   AuthTokenRequest,
   AuthTokenResponse,
   BookQuote,
-  Currency,
   Entry,
   GetOrdersRequest,
   GetSwapsRequest,
@@ -16,6 +15,7 @@ import {
   Side,
   Swap,
   SymbolData,
+  CurrencyConfig,
 } from "./types";
 
 interface Query {
@@ -23,16 +23,18 @@ interface Query {
 }
 
 export class Atomex {
+  private _network: "mainnet" | "testnet";
   private _baseUrl: string;
   private _authToken?: string;
 
-  constructor(baseUrl: string, authToken?: string) {
+  constructor(network: "mainnet" | "testnet", baseUrl: string, authToken?: string) {
+    this._network = network;
     this._baseUrl = baseUrl;
     this._authToken = authToken;
   }
 
   static create(network: "mainnet" | "testnet" | "localhost"): Atomex {
-    return new Atomex(config.api[network].baseUrl);
+    return new Atomex(network == "mainnet" ? "mainnet" : "testnet", config.api[network].baseUrl);
   }
 
   /**
@@ -145,13 +147,20 @@ export class Atomex {
    * @param addOrderRequest details of the order being placed
    * @returns order id
    */
-  async addOrder(addOrderRequest: AddOrderRequest): Promise<number> {
+  async addOrder(addOrderRequest: AddOrderRequest): Promise<number> {    
+    const [baseConfig, quoteConfig] = this.splitSymbol(addOrderRequest.symbol).map(x => this.getCurrencyConfig(x));
+    const query: Query = addOrderRequest;
+    query.requisites = {
+      baseCurrencyContract: baseConfig.contractAddress,
+      quoteCurrencyContract: quoteConfig.contractAddress,
+      ...query.requisites 
+    }
     return this.makeRequest<Record<string, number>>(
       "post",
       "/v1/Orders",
       true,
       {},
-      addOrderRequest,
+      query,
     ).then((res) => res["orderId"]);
   }
 
@@ -316,16 +325,61 @@ export class Atomex {
   }
 
   /**
+   * Split Atomex trading pair to base and quote currencies
+   * 
+   * @param symbol Atomex trading pair {baseCurrency}/{quoteCurrency}
+   */
+  splitSymbol(symbol: string): [string, string] {
+    const [baseCurrency, quoteCurrency] = symbol.split('/', 2)
+    return [baseCurrency, quoteCurrency];
+  }
+
+  /**
+   * Get currency & network specific configuration
+   * 
+   * @param currency L1/L2 token symbol (uppercase)
+   */
+  getCurrencyConfig(currency: string): CurrencyConfig {
+    const currencyEntry = Object.entries(config.currencies).find(([k, v]) => k == currency);
+    if (currencyEntry == undefined) {
+      throw new Error(`No matching config section for ${currency}`)
+    }
+    return {
+      blockchain: currencyEntry[1].blockchain,
+      decimals: currencyEntry[1].decimals.original,
+      displayDecimals: currencyEntry[1].decimals.displayed,
+      contractAddress: currencyEntry[1].contracts[this._network].address
+    };
+  }
+
+  /**
    * Formatting an amount based on currency
    *
    * @param amount Amount received / sent
-   * @param currency Formatting currency
+   * @param currency L1/L2 token symbol (uppercase)
    */
-  formatAmount(amount: number | string, currency: Currency): number {
+  formatAmount(amount: number | string, currency: string): number {
+    const cfg = this.getCurrencyConfig(currency)
     return typeof amount === "string"
-      ? parseFloat(
-          parseFloat(amount).toFixed(config.rpc[currency].decimals.displayed),
-        )
-      : parseFloat(amount.toFixed(config.rpc[currency].decimals.displayed));
+      ? parseFloat(parseFloat(amount).toFixed(cfg.displayDecimals))
+      : parseFloat(amount.toFixed(cfg.displayDecimals));
+  }
+
+  /**
+   * Get order side for a particular trading pair given the bridge direction
+   * 
+   * @param symbol Atomex trading pair {baseCurrency}/{quoteCurrency}
+   * @param srcBlockchain Left bridge leg
+   * @param dstBlockchain Right bridge leg
+   */
+  getOrderSide(symbol: string, srcBlockchain: string, dstBlockchain: string): Side {
+    const [baseConfig, quoteConfig] = this.splitSymbol(symbol).map(x => this.getCurrencyConfig(x));
+    if (baseConfig.blockchain == srcBlockchain && quoteConfig.blockchain == dstBlockchain) {
+      return "Sell";
+    } else if (baseConfig.blockchain == dstBlockchain && quoteConfig.blockchain == srcBlockchain) {
+      return "Buy";
+    } else {
+      throw new Error(`Mismatch ${srcBlockchain} => ${dstBlockchain} (${symbol})`);
+    }
   }
 }

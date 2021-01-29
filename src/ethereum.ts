@@ -62,7 +62,7 @@ export class EthereumHelpers extends Helpers {
     network: "mainnet" | "testnet",
     rpcUri?: string,
   ): Promise<EthereumHelpers> {
-    const networkSettings = config.rpc.ethereum[network];
+    const networkSettings = config.blockchains.ethereum.rpc[network];
     if (rpcUri !== undefined) {
       networkSettings.rpc = rpcUri;
     }
@@ -77,10 +77,10 @@ export class EthereumHelpers extends Helpers {
 
     return new EthereumHelpers(
       web3,
-      config.contracts.ETH.abi as AbiItem[],
-      config.contracts.ETH[network].address,
+      config.currencies.ETH.contracts.abi as AbiItem[],
+      config.currencies.ETH.contracts[network].address,
       networkSettings.blockTime,
-      config.contracts.ETH[network].gasLimit,
+      config.currencies.ETH.contracts[network].gasLimit,
     );
   }
 

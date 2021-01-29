@@ -38,15 +38,15 @@ export const GenerateMockRPCClient = (
 export const GetTezosHelperInstance = (toolKit: TezosToolkit) => {
   return new TezosHelpers(
     toolKit,
-    config.contracts.XTZ.entrypoints,
-    config.contracts.XTZ.testnet.address,
-    config.rpc.tezos.testnet.blockTime,
-    config.contracts.XTZ.testnet.gasLimit,
-    config.rpc.tezos.testnet.minimalFees,
-    config.rpc.tezos.testnet.minimalNanotezPerGasUnit,
-    config.rpc.tezos.testnet.minimalNanotezPerByte,
-    config.rpc.tezos.testnet.costPerByte,
-    config.contracts.XTZ.testnet.redeemTxSize,
-    config.contracts.XTZ.testnet.initiateTxSize,
+    config.currencies.XTZ.contracts.entrypoints,
+    config.currencies.XTZ.contracts.testnet.address,
+    config.blockchains.tezos.rpc.testnet.blockTime,
+    config.currencies.XTZ.contracts.testnet.gasLimit,
+    config.blockchains.tezos.rpc.testnet.minimalFees,
+    config.blockchains.tezos.rpc.testnet.minimalNanotezPerGasUnit,
+    config.blockchains.tezos.rpc.testnet.minimalNanotezPerByte,
+    config.blockchains.tezos.rpc.testnet.costPerByte,
+    config.currencies.XTZ.contracts.testnet.redeemTxSize,
+    config.currencies.XTZ.contracts.testnet.initiateTxSize,
   );
 };
