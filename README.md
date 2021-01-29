@@ -1,6 +1,6 @@
 # Atomex SDK
 
-[![npm version](https://badge.fury.io/js/atomex-sdk.svg)](https://badge.fury.io/js/atomex-sdk)
+[![npm version](https://badge.fury.io/js/atomex-sdk.svg)](https://www.npmjs.com/package/atomex-sdk)
 [![Tests](https://github.com/atomex-me/atomex-sdk-ts/workflows/Tests/badge.svg?)](https://github.com/atomex-me/atomex-sdk-ts/actions?query=workflow%3ATests)
 [![License: MIT](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://opensource.org/licenses/GPLv3)
 
