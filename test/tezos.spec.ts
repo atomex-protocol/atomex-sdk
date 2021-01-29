@@ -27,7 +27,7 @@ describe("TezosHelpers test", () => {
     });
 
     expect(tx.amount).toBe(110);
-    expect(tx.contractAddr).toBe(config.contracts.XTZ.testnet.address);
+    expect(tx.contractAddr).toBe(config.currencies.XTZ.contracts.testnet.address);
     expect(tx.data?.entrypoint).toBe("initiate");
   });
 
@@ -105,21 +105,21 @@ describe("TezosHelpers test", () => {
   test("buildRedeemTransaction", () => {
     const data = tez.buildRedeemTransaction("0000000000000000000000");
     expect(data.amount).toBe(undefined);
-    expect(data.contractAddr).toBe(config.contracts.XTZ.testnet.address);
+    expect(data.contractAddr).toBe(config.currencies.XTZ.contracts.testnet.address);
     expect(data.data?.entrypoint).toBe("redeem");
   });
 
   test("buildRefundTransaction", () => {
     const data = tez.buildRefundTransaction("0000000000000000000000");
     expect(data.amount).toBe(undefined);
-    expect(data.contractAddr).toBe(config.contracts.XTZ.testnet.address);
+    expect(data.contractAddr).toBe(config.currencies.XTZ.contracts.testnet.address);
     expect(data.data?.entrypoint).toBe("refund");
   });
 
   test("buildAddTransaction", () => {
     const data = tez.buildAddTransaction("0000000000000000000000", 100);
     expect(data.amount).toBe(100);
-    expect(data.contractAddr).toBe(config.contracts.XTZ.testnet.address);
+    expect(data.contractAddr).toBe(config.currencies.XTZ.contracts.testnet.address);
     expect(data.data?.entrypoint).toBe("add");
   });
 
@@ -230,7 +230,7 @@ describe("TezosHelpers test", () => {
     const expectedFees = tez.calcFees(
       10000,
       100,
-      config.contracts.XTZ.testnet.initiateTxSize,
+      config.currencies.XTZ.contracts.testnet.initiateTxSize,
     );
     expect(fees).toBe(expectedFees);
   });
@@ -240,11 +240,11 @@ describe("TezosHelpers test", () => {
     let fees = await tez.estimateRedeemFees("address");
     let expectedMinerFees =
       tez.calcFees(
-        config.contracts.XTZ.testnet.gasLimit,
+        config.currencies.XTZ.contracts.testnet.gasLimit,
         0,
-        config.contracts.XTZ.testnet.redeemTxSize,
+        config.currencies.XTZ.contracts.testnet.redeemTxSize,
       ) +
-      257 * config.rpc.tezos.testnet.costPerByte;
+      257 * config.blockchains.tezos.rpc.testnet.costPerByte;
     expect(fees).toStrictEqual({
       totalCost: expectedMinerFees,
       rewardForRedeem: 2 * expectedMinerFees,
@@ -261,9 +261,9 @@ describe("TezosHelpers test", () => {
     const tezNew = GetTezosHelperInstance(toolKitNew);
     fees = await tezNew.estimateRedeemFees("address");
     expectedMinerFees = tez.calcFees(
-      config.contracts.XTZ.testnet.gasLimit,
+      config.currencies.XTZ.contracts.testnet.gasLimit,
       0,
-      config.contracts.XTZ.testnet.redeemTxSize,
+      config.currencies.XTZ.contracts.testnet.redeemTxSize,
     );
     expect(fees).toStrictEqual({
       totalCost: expectedMinerFees,

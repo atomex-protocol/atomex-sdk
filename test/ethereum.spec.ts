@@ -22,7 +22,7 @@ describe("EthereumHelpers test", () => {
       secretHash: "00",
     });
     expect(tx.amount).toBe(110);
-    expect(tx.contractAddr).toBe(config.contracts.ETH.testnet.address);
+    expect(tx.contractAddr).toBe(config.currencies.ETH.contracts.testnet.address);
     expect(tx.data).toBeDefined();
   });
 
@@ -42,28 +42,28 @@ describe("EthereumHelpers test", () => {
   test("buildRedeemTransaction", () => {
     const tx = eth.buildRedeemTransaction("0x00", "0x00");
     expect(tx.amount).toBe(undefined);
-    expect(tx.contractAddr).toBe(config.contracts.ETH.testnet.address);
+    expect(tx.contractAddr).toBe(config.currencies.ETH.contracts.testnet.address);
     expect(tx.data).toBeDefined();
   });
 
   test("buildRefundTransaction", () => {
     const tx = eth.buildRefundTransaction("0x00");
     expect(tx.amount).toBe(undefined);
-    expect(tx.contractAddr).toBe(config.contracts.ETH.testnet.address);
+    expect(tx.contractAddr).toBe(config.currencies.ETH.contracts.testnet.address);
     expect(tx.data).toBeDefined();
   });
 
   test("buildAddTransaction", () => {
     const tx = eth.buildAddTransaction("0x00", 1000);
     expect(tx.amount).toBe(1000);
-    expect(tx.contractAddr).toBe(config.contracts.ETH.testnet.address);
+    expect(tx.contractAddr).toBe(config.currencies.ETH.contracts.testnet.address);
     expect(tx.data).toBeDefined();
   });
 
   test("buildActivateTransaction", () => {
     const tx = eth.buildActivateTransaction("0x00");
     expect(tx.amount).toBe(undefined);
-    expect(tx.contractAddr).toBe(config.contracts.ETH.testnet.address);
+    expect(tx.contractAddr).toBe(config.currencies.ETH.contracts.testnet.address);
     expect(tx.data).toBeDefined();
   });
 
@@ -158,7 +158,7 @@ describe("EthereumHelpers test", () => {
     const fees = await eth.estimateRedeemFees(
       "0x0000000000000000000000000000000000000000",
     );
-    const expectedMinerFees = 121 * config.contracts.ETH.testnet.gasLimit;
+    const expectedMinerFees = 121 * config.currencies.ETH.contracts.testnet.gasLimit;
     expect(fees).toStrictEqual({
       totalCost: expectedMinerFees,
       rewardForRedeem: 2 * expectedMinerFees,
