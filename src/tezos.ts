@@ -5,7 +5,7 @@ import {
   OpKind,
 } from "@taquito/rpc";
 import { TezosToolkit } from "@taquito/taquito";
-import { b58cdecode, prefix } from "@taquito/utils";
+import { b58cdecode, prefix, validateAddress, ValidationResult } from "@taquito/utils";
 import config from "./config.json";
 import { dt2ts, Helpers, now } from "./helpers";
 import {
@@ -466,5 +466,9 @@ export class TezosHelpers extends Helpers {
       totalCost: fees,
       rewardForRedeem: 2 * fees,
     };
+  }
+
+  isValidAddress(address: string): boolean {
+    return validateAddress(address) == ValidationResult.VALID;
   }
 }

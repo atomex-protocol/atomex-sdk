@@ -270,4 +270,13 @@ describe("TezosHelpers test", () => {
       rewardForRedeem: 2 * expectedMinerFees,
     });
   });
+
+  test("isValidAddress", () => {
+    expect(tez.isValidAddress("tz1eKkWU5hGtfLUiqNpucHrXymm83z3DG9Sq")).toBe(true);
+    expect(tez.isValidAddress("tz28YZoayJjVz2bRgGeVjxE8NonMiJ3r2Wdu")).toBe(true);
+    expect(tez.isValidAddress("tz3agP9LGe2cXmKQyYn6T68BHKjjktDbbSWX")).toBe(true);
+    expect(tez.isValidAddress("KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY")).toBe(true);
+    expect(tez.isValidAddress("tz1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")).toBe(false);
+    expect(tez.isValidAddress("KT1bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")).toBe(false);
+  });
 });
