@@ -69,7 +69,7 @@ export class EthereumHelpers extends Helpers {
 
     const web3 = new Web3(networkSettings.rpc);
     const chainID = await web3.eth.getChainId();
-    if (networkSettings.chainID !== chainID.toString()) {
+    if (networkSettings.chainID !== chainID) {
       throw new Error(
         `Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`,
       );
@@ -342,5 +342,9 @@ export class EthereumHelpers extends Helpers {
       totalCost: fee,
       rewardForRedeem: 2 * fee,
     };
+  }
+
+  isValidAddress(address: string): boolean {
+    return this._web3.utils.isAddress(address);
   }
 }

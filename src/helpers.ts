@@ -12,6 +12,7 @@ export abstract class Helpers {
    *
    * @remarks the `msgToSign` value needs to be signed before being used for Auth
    * @param message message to include for the Atomex Authentication message
+   * @param address required for Tezos blockchain, in order to determine the EC algorithm
    * @returns details required for Atomex Auth
    */
   public abstract getAuthMessage(
@@ -113,6 +114,14 @@ export abstract class Helpers {
    * @returns the minerFee and the rewardForRedeem
    */
   public abstract estimateRedeemFees(recipient: string): Promise<RedeemFees>;
+
+  /**
+   * Check validity of an account address
+   * 
+   * @param address account address
+   * @returns true if valid, else false
+   */
+  public abstract isValidAddress(address: string): boolean;
 }
 
 export const dt2ts = (isoTime: Date | string): number =>
