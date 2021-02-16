@@ -4,29 +4,6 @@
     "entries": [
         {
             "side": "Buy",
-            "price": 0.210,
-            "qtyProfile": [
-                100,
-                20,
-                30,
-                1111,
-                200
-            ]
-        },
-        {
-            "side": "Sell",
-            "price": 0.127,
-            "qtyProfile": [
-                100,
-                20,
-                30,
-                1111,
-                200,
-                2000
-            ]
-        },
-        {
-            "side": "Buy",
             "price": 0.111,
             "qtyProfile": [
                 100,
@@ -38,8 +15,31 @@
             ]
         },
         {
+            "side": "Buy",
+            "price": 0.210,
+            "qtyProfile": [
+                100,
+                20,
+                30,
+                1111,
+                200
+            ]
+        },
+        {
             "side": "Sell",
-            "price": 0.001,
+            "price": 0.357,
+            "qtyProfile": [
+                100,
+                20,
+                30,
+                1111,
+                200,
+                2000
+            ]
+        },
+        {
+            "side": "Sell",
+            "price": 0.511,
             "qtyProfile": [
                 100,
                 20,

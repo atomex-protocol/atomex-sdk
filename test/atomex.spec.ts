@@ -600,66 +600,27 @@ describe("Atomex test", () => {
     expect(typeof resp.user).toBe(typeof resp.counterParty);
   });
 
-  test("getOrderSize", () => {
-    const atomex = new Atomex("testnet", "http://localhost");
-    const amount = 1000,
-      price = 0.01;
-    let res = atomex.getOrderSize(1000, 0.01, "Buy", "Send");
-    let expectedRes = {
-      orderSize: amount / price,
-      amountExpected: amount / price,
-    };
-    expect(res).toStrictEqual(expectedRes);
-    res = atomex.getOrderSize(1000, 0.01, "Sell", "Receive");
-    expect(res).toStrictEqual(expectedRes);
-
-    res = atomex.getOrderSize(1000, 0.01, "Buy", "Receive");
-    expectedRes = {
-      orderSize: amount,
-      amountExpected: amount * price,
-    };
-    expect(res).toStrictEqual(expectedRes);
-    res = atomex.getOrderSize(1000, 0.01, "Sell", "Send");
-    expect(res).toStrictEqual(expectedRes);
-  });
-
   test("getOrderPreview", () => {
     const atomex = new Atomex("testnet", "http://localhost");
 
-    try {
-      // should throw error as 1:1 match not found
-      atomex.getOrderPreview(orderBook as OrderBook, "Buy", 1000, "Send");
-      expect(true).toBe(false);
-    } catch (e) {
-      expect(e.message).toBe("No matching entry found");
-    }
-    // finds least matching entry
-    let orderPreview = atomex.getOrderPreview(
-      orderBook as OrderBook,
-      "Buy",
-      1000,
-      "Receive",
-    );
+    expect(() => atomex.getOrderPreview(orderBook as OrderBook, "Buy", 1000, "Send")).toThrow();
+    expect(() => atomex.getOrderPreview(orderBook as OrderBook, "Sell", 1000, "Receive")).toThrow();
+    expect(() => atomex.getOrderPreview(orderBook as OrderBook, "Buy", 2001, "Receive")).toThrow();
+    expect(() => atomex.getOrderPreview(orderBook as OrderBook, "Sell", 2001, "Send")).toThrow();
+
     let expectedValue: OrderPreview = {
       amountReceived: 1000,
-      amountSent: 1,
-      price: 0.001,
+      amountSent: 357,
+      price: 0.357,
     };
-    expect(orderPreview).toStrictEqual(expectedValue);
+    expect(atomex.getOrderPreview(orderBook as OrderBook, "Buy", 1000, "Receive")).toStrictEqual(expectedValue);
 
-    // finds max matching entry
-    orderPreview = atomex.getOrderPreview(
-      orderBook as OrderBook,
-      "Sell",
-      1500,
-      "Send",
-    );
     expectedValue = {
-      amountReceived: 166.5,
-      amountSent: 1500,
+      amountReceived: 222,
+      amountSent: 2000,
       price: 0.111,
     };
-    expect(orderPreview).toStrictEqual(expectedValue);
+    expect(atomex.getOrderPreview(orderBook as OrderBook, "Sell", 2000, "Send")).toStrictEqual(expectedValue);
   });
 
   test("formatAmount", () => {
@@ -702,5 +663,12 @@ describe("Atomex test", () => {
 
     expect(atomex.getOrderSide("XTZ/ETH", "ethereum", "tezos")).toBe("Buy");
     expect(atomex.getOrderSide("XTZ/ETH", "tezos", "ethereum")).toBe("Sell");
+  });
+
+  test("getMaxOrderSize", () => {
+    const atomex = new Atomex("testnet", "http://localost/");
+
+    expect(atomex.getMaxOrderSize(orderBook as OrderBook, "Buy")).toBe(2000);
+    expect(atomex.getMaxOrderSize(orderBook as OrderBook, "Sell")).toBe(2000);
   });
 });

@@ -246,37 +246,6 @@ export class Atomex {
     return this.makeRequest("get", `/v1/Swaps/${swapID}`, true);
   }
 
-  getOrderSize(
-    amount: number,
-    price: number,
-    side: Side,
-    direction: "Send" | "Receive",
-  ) {
-    switch (side + direction) {
-      case "BuySend":
-      case "SellReceive":
-        return { orderSize: amount / price, amountExpected: amount / price };
-      case "BuyReceive":
-      case "SellSend":
-        return { orderSize: amount, amountExpected: amount * price };
-      default:
-        throw new Error("combination not possible");
-    }
-  }
-
-  filterEntry(
-    entry: Entry,
-    amount: number,
-    side: Side,
-    direction: "Send" | "Receive",
-  ): boolean {
-    return (
-      entry.side !== side &&
-      Math.max(...entry.qtyProfile) >=
-        this.getOrderSize(amount, entry.price, side, direction).orderSize
-    );
-  }
-
   /**
    * Returns an approximate preview of the requested amount and expected receive amount
    *
@@ -290,38 +259,44 @@ export class Atomex {
     side: Side,
     amount: number,
     direction: "Send" | "Receive",
-  ): OrderPreview {
-    let entry: Entry | undefined, newAmount: number;
-    if (side == "Buy") {
-      // find least price entry
-      entry = [...orderBook.entries]
-        .reverse()
-        .find((x) => this.filterEntry(x, amount, side, direction));
-    } else {
-      // find max price entry
-      entry = orderBook.entries.find((x) =>
-        this.filterEntry(x, amount, side, direction),
-      );
+  ): OrderPreview {    
+    const availablePrices = orderBook.entries
+      .filter(entry => {
+        if (entry.side == side) {
+          return false;
+        }
+        const getOrderSize = () => {
+          switch (side + direction) {
+            case "BuySend":
+            case "SellReceive":
+              return amount / entry.price;
+            default:
+              return amount;
+          }
+        }
+        return getOrderSize() <= Math.max(...entry.qtyProfile);
+      })
+      .map(entry => entry.price)
+
+    if (availablePrices.length == 0) {
+      throw new Error(`No matching order found (${direction} ${amount} / ${side})`);
     }
 
-    if (entry == undefined) {
-      throw new Error("No matching entry found");
-    }
-
-    if (direction == "Send") {
-      return {
-        price: entry.price,
-        amountSent: amount,
-        amountReceived: this.getOrderSize(amount, entry.price, side, direction)
-          .amountExpected,
-      };
+    const bestPrice = side == "Buy" ? Math.min(...availablePrices) : Math.max(...availablePrices);
+    const getExpectedAmount = () => {
+      switch (side + direction) {
+        case "BuySend":
+        case "SellReceive":
+          return amount / bestPrice;
+        default:
+          return amount * bestPrice;
+      }
     }
     return {
-      price: entry.price,
-      amountSent: this.getOrderSize(amount, entry.price, side, direction)
-        .amountExpected,
-      amountReceived: amount,
-    };
+      price: bestPrice,
+      amountSent: direction == "Send" ? amount : getExpectedAmount(),
+      amountReceived: direction == "Receive" ? amount : getExpectedAmount()
+    }
   }
 
   /**
@@ -381,5 +356,17 @@ export class Atomex {
     } else {
       throw new Error(`Mismatch ${srcBlockchain} => ${dstBlockchain} (${symbol})`);
     }
+  }
+
+  /**
+   * Get maximum available liquidity
+   * 
+   * @param orderBook order-book received from [[getOrderBook]]
+   * @param side order side Buy/Sell
+   */
+  getMaxOrderSize(orderBook: OrderBook, side: Side): number {
+    return Math.max(...orderBook.entries
+      .filter(entry => entry.side != side)
+      .map(entry => Math.max(...entry.qtyProfile)));
   }
 }
