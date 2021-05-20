@@ -1,0 +1,716 @@
+{
+    "kind": "transaction",
+    "source": "tz1ek8QMGvoaCcKeLP1BmYMHKS7kDndpdq8N",
+    "fee": "22183",
+    "counter": "11581049",
+    "gas_limit": "110000",
+    "storage_limit": "350",
+    "amount": "0",
+    "destination": "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+    "parameters": {
+        "entrypoint": "initiate",
+        "value": {
+            "prim": "Pair",
+            "args": [
+                {
+                    "prim": "Pair",
+                    "args": [
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "bytes": "7b4bdf4e69fd6c17a0863dc6fa1c6ecd2ba2e905ab8482f801e2e9b8d9300723"
+                                },
+                                {
+                                    "string": "tz1aKTCbAUuea2RV9kxqRVRg3HT7f1RKnp6a"
+                                }
+                            ]
+                        },
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "int": "0"
+                                },
+                                {
+                                    "int": "1621243331"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "prim": "Pair",
+                    "args": [
+                        {
+                            "string": "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn"
+                        },
+                        {
+                            "int": "775549"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "metadata": {
+        "balance_updates": [
+            {
+                "kind": "contract",
+                "contract": "tz1ek8QMGvoaCcKeLP1BmYMHKS7kDndpdq8N",
+                "change": "-22183",
+                "origin": "block"
+            },
+            {
+                "kind": "freezer",
+                "category": "fees",
+                "delegate": "tz1gfArv665EUkSg2ojMBzcbfwuPxAvqPvjo",
+                "cycle": 360,
+                "change": "22183",
+                "origin": "block"
+            }
+        ],
+        "operation_result": {
+            "status": "applied",
+            "storage": {
+                "prim": "Pair",
+                "args": [
+                    {
+                        "int": "32"
+                    },
+                    {
+                        "prim": "Unit"
+                    }
+                ]
+            },
+            "big_map_diff": [
+                {
+                    "action": "update",
+                    "big_map": "32",
+                    "key_hash": "exprtvavZ17avUBBgGkaAuYmWTDbEmnLP9hZeVWrQAsFgBubfSRkB5",
+                    "key": {
+                        "bytes": "7b4bdf4e69fd6c17a0863dc6fa1c6ecd2ba2e905ab8482f801e2e9b8d9300723"
+                    },
+                    "value": {
+                        "prim": "Pair",
+                        "args": [
+                            {
+                                "prim": "Pair",
+                                "args": [
+                                    {
+                                        "prim": "Pair",
+                                        "args": [
+                                            {
+                                                "bytes": "0000d191a7224d6439ebef224615e093f804faab4c7e"
+                                            },
+                                            {
+                                                "bytes": "0000a106711b8a84a7c7fec3c2e9e3c70480287ffa95"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "prim": "Pair",
+                                        "args": [
+                                            {
+                                                "int": "0"
+                                            },
+                                            {
+                                                "int": "1621243331"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "prim": "Pair",
+                                "args": [
+                                    {
+                                        "bytes": "01a3d0f58d8964bd1b37fb0a0c197b38cf46608d4900"
+                                    },
+                                    {
+                                        "int": "775549"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "consumed_gas": "47053",
+            "consumed_milligas": "47052671",
+            "storage_size": "2975",
+            "lazy_storage_diff": [
+                {
+                    "kind": "big_map",
+                    "id": "32",
+                    "diff": {
+                        "action": "update",
+                        "updates": [
+                            {
+                                "key_hash": "exprtvavZ17avUBBgGkaAuYmWTDbEmnLP9hZeVWrQAsFgBubfSRkB5",
+                                "key": {
+                                    "bytes": "7b4bdf4e69fd6c17a0863dc6fa1c6ecd2ba2e905ab8482f801e2e9b8d9300723"
+                                },
+                                "value": {
+                                    "prim": "Pair",
+                                    "args": [
+                                        {
+                                            "prim": "Pair",
+                                            "args": [
+                                                {
+                                                    "prim": "Pair",
+                                                    "args": [
+                                                        {
+                                                            "bytes": "0000d191a7224d6439ebef224615e093f804faab4c7e"
+                                                        },
+                                                        {
+                                                            "bytes": "0000a106711b8a84a7c7fec3c2e9e3c70480287ffa95"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "prim": "Pair",
+                                                    "args": [
+                                                        {
+                                                            "int": "0"
+                                                        },
+                                                        {
+                                                            "int": "1621243331"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "prim": "Pair",
+                                            "args": [
+                                                {
+                                                    "bytes": "01a3d0f58d8964bd1b37fb0a0c197b38cf46608d4900"
+                                                },
+                                                {
+                                                    "int": "775549"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "internal_operation_results": [
+            {
+                "kind": "transaction",
+                "source": "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+                "nonce": 3,
+                "amount": "0",
+                "destination": "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+                "parameters": {
+                    "entrypoint": "transfer",
+                    "value": {
+                        "prim": "Pair",
+                        "args": [
+                            {
+                                "bytes": "0000d191a7224d6439ebef224615e093f804faab4c7e"
+                            },
+                            {
+                                "prim": "Pair",
+                                "args": [
+                                    {
+                                        "bytes": "011871cfab6dafee00330602b4342b6500c874c93b00"
+                                    },
+                                    {
+                                        "int": "775549"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "result": {
+                    "status": "applied",
+                    "storage": [
+                        {
+                            "int": "31"
+                        },
+                        [
+                            {
+                                "prim": "DUP"
+                            },
+                            {
+                                "prim": "CAR"
+                            },
+                            {
+                                "prim": "DIP",
+                                "args": [
+                                    [
+                                        {
+                                            "prim": "CDR"
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "prim": "DUP"
+                            },
+                            {
+                                "prim": "DUP"
+                            },
+                            {
+                                "prim": "CAR"
+                            },
+                            {
+                                "prim": "DIP",
+                                "args": [
+                                    [
+                                        {
+                                            "prim": "CDR"
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "prim": "DIP",
+                                "args": [
+                                    [
+                                        {
+                                            "prim": "DIP",
+                                            "args": [
+                                                {
+                                                    "int": "2"
+                                                },
+                                                [
+                                                    {
+                                                        "prim": "DUP"
+                                                    }
+                                                ]
+                                            ]
+                                        },
+                                        {
+                                            "prim": "DIG",
+                                            "args": [
+                                                {
+                                                    "int": "2"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "prim": "PUSH",
+                                "args": [
+                                    {
+                                        "prim": "string"
+                                    },
+                                    {
+                                        "string": "code"
+                                    }
+                                ]
+                            },
+                            {
+                                "prim": "PAIR"
+                            },
+                            {
+                                "prim": "PACK"
+                            },
+                            {
+                                "prim": "GET"
+                            },
+                            {
+                                "prim": "IF_NONE",
+                                "args": [
+                                    [
+                                        {
+                                            "prim": "NONE",
+                                            "args": [
+                                                {
+                                                    "prim": "lambda",
+                                                    "args": [
+                                                        {
+                                                            "prim": "pair",
+                                                            "args": [
+                                                                {
+                                                                    "prim": "bytes"
+                                                                },
+                                                                {
+                                                                    "prim": "big_map",
+                                                                    "args": [
+                                                                        {
+                                                                            "prim": "bytes"
+                                                                        },
+                                                                        {
+                                                                            "prim": "bytes"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "prim": "pair",
+                                                            "args": [
+                                                                {
+                                                                    "prim": "list",
+                                                                    "args": [
+                                                                        {
+                                                                            "prim": "operation"
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "prim": "big_map",
+                                                                    "args": [
+                                                                        {
+                                                                            "prim": "bytes"
+                                                                        },
+                                                                        {
+                                                                            "prim": "bytes"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    [
+                                        {
+                                            "prim": "UNPACK",
+                                            "args": [
+                                                {
+                                                    "prim": "lambda",
+                                                    "args": [
+                                                        {
+                                                            "prim": "pair",
+                                                            "args": [
+                                                                {
+                                                                    "prim": "bytes"
+                                                                },
+                                                                {
+                                                                    "prim": "big_map",
+                                                                    "args": [
+                                                                        {
+                                                                            "prim": "bytes"
+                                                                        },
+                                                                        {
+                                                                            "prim": "bytes"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "prim": "pair",
+                                                            "args": [
+                                                                {
+                                                                    "prim": "list",
+                                                                    "args": [
+                                                                        {
+                                                                            "prim": "operation"
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "prim": "big_map",
+                                                                    "args": [
+                                                                        {
+                                                                            "prim": "bytes"
+                                                                        },
+                                                                        {
+                                                                            "prim": "bytes"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "prim": "IF_NONE",
+                                            "args": [
+                                                [
+                                                    {
+                                                        "prim": "PUSH",
+                                                        "args": [
+                                                            {
+                                                                "prim": "string"
+                                                            },
+                                                            {
+                                                                "string": "UStore: failed to unpack code"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "prim": "FAILWITH"
+                                                    }
+                                                ],
+                                                []
+                                            ]
+                                        },
+                                        {
+                                            "prim": "SOME"
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "prim": "IF_NONE",
+                                "args": [
+                                    [
+                                        {
+                                            "prim": "DROP"
+                                        },
+                                        {
+                                            "prim": "DIP",
+                                            "args": [
+                                                [
+                                                    {
+                                                        "prim": "DUP"
+                                                    },
+                                                    {
+                                                        "prim": "PUSH",
+                                                        "args": [
+                                                            {
+                                                                "prim": "bytes"
+                                                            },
+                                                            {
+                                                                "bytes": "05010000000866616c6c6261636b"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "prim": "GET"
+                                                    },
+                                                    {
+                                                        "prim": "IF_NONE",
+                                                        "args": [
+                                                            [
+                                                                {
+                                                                    "prim": "PUSH",
+                                                                    "args": [
+                                                                        {
+                                                                            "prim": "string"
+                                                                        },
+                                                                        {
+                                                                            "string": "UStore: no field fallback"
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "prim": "FAILWITH"
+                                                                }
+                                                            ],
+                                                            []
+                                                        ]
+                                                    },
+                                                    {
+                                                        "prim": "UNPACK",
+                                                        "args": [
+                                                            {
+                                                                "prim": "lambda",
+                                                                "args": [
+                                                                    {
+                                                                        "prim": "pair",
+                                                                        "args": [
+                                                                            {
+                                                                                "prim": "pair",
+                                                                                "args": [
+                                                                                    {
+                                                                                        "prim": "string"
+                                                                                    },
+                                                                                    {
+                                                                                        "prim": "bytes"
+                                                                                    }
+                                                                                ]
+                                                                            },
+                                                                            {
+                                                                                "prim": "big_map",
+                                                                                "args": [
+                                                                                    {
+                                                                                        "prim": "bytes"
+                                                                                    },
+                                                                                    {
+                                                                                        "prim": "bytes"
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        ]
+                                                                    },
+                                                                    {
+                                                                        "prim": "pair",
+                                                                        "args": [
+                                                                            {
+                                                                                "prim": "list",
+                                                                                "args": [
+                                                                                    {
+                                                                                        "prim": "operation"
+                                                                                    }
+                                                                                ]
+                                                                            },
+                                                                            {
+                                                                                "prim": "big_map",
+                                                                                "args": [
+                                                                                    {
+                                                                                        "prim": "bytes"
+                                                                                    },
+                                                                                    {
+                                                                                        "prim": "bytes"
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "prim": "IF_NONE",
+                                                        "args": [
+                                                            [
+                                                                {
+                                                                    "prim": "PUSH",
+                                                                    "args": [
+                                                                        {
+                                                                            "prim": "string"
+                                                                        },
+                                                                        {
+                                                                            "string": "UStore: failed to unpack fallback"
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "prim": "FAILWITH"
+                                                                }
+                                                            ],
+                                                            []
+                                                        ]
+                                                    },
+                                                    {
+                                                        "prim": "SWAP"
+                                                    }
+                                                ]
+                                            ]
+                                        },
+                                        {
+                                            "prim": "PAIR"
+                                        },
+                                        {
+                                            "prim": "EXEC"
+                                        }
+                                    ],
+                                    [
+                                        {
+                                            "prim": "DIP",
+                                            "args": [
+                                                [
+                                                    {
+                                                        "prim": "SWAP"
+                                                    },
+                                                    {
+                                                        "prim": "DROP"
+                                                    },
+                                                    {
+                                                        "prim": "PAIR"
+                                                    }
+                                                ]
+                                            ]
+                                        },
+                                        {
+                                            "prim": "SWAP"
+                                        },
+                                        {
+                                            "prim": "EXEC"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ],
+                        {
+                            "int": "1"
+                        },
+                        {
+                            "prim": "False"
+                        }
+                    ],
+                    "big_map_diff": [
+                        {
+                            "action": "update",
+                            "big_map": "31",
+                            "key_hash": "exprubEsKPRqDxca1boSXzqAxuuBTDJgydmZtQD8i8WvYKrBxyTcmT",
+                            "key": {
+                                "bytes": "05070701000000066c65646765720a000000160000d191a7224d6439ebef224615e093f804faab4c7e"
+                            }
+                        },
+                        {
+                            "action": "update",
+                            "big_map": "31",
+                            "key_hash": "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
+                            "key": {
+                                "bytes": "05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"
+                            },
+                            "value": {
+                                "bytes": "05070700bdd55e0200000000"
+                            }
+                        },
+                        {
+                            "action": "update",
+                            "big_map": "31",
+                            "key_hash": "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
+                            "key": {
+                                "bytes": "05010000000b746f74616c537570706c79"
+                            },
+                            "value": {
+                                "bytes": "050098e1e8d78a02"
+                            }
+                        }
+                    ],
+                    "consumed_gas": "50774",
+                    "consumed_milligas": "50773204",
+                    "storage_size": "66580",
+                    "lazy_storage_diff": [
+                        {
+                            "kind": "big_map",
+                            "id": "31",
+                            "diff": {
+                                "action": "update",
+                                "updates": [
+                                    {
+                                        "key_hash": "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
+                                        "key": {
+                                            "bytes": "05010000000b746f74616c537570706c79"
+                                        },
+                                        "value": {
+                                            "bytes": "050098e1e8d78a02"
+                                        }
+                                    },
+                                    {
+                                        "key_hash": "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
+                                        "key": {
+                                            "bytes": "05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"
+                                        },
+                                        "value": {
+                                            "bytes": "05070700bdd55e0200000000"
+                                        }
+                                    },
+                                    {
+                                        "key_hash": "exprubEsKPRqDxca1boSXzqAxuuBTDJgydmZtQD8i8WvYKrBxyTcmT",
+                                        "key": {
+                                            "bytes": "05070701000000066c65646765720a000000160000d191a7224d6439ebef224615e093f804faab4c7e"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
