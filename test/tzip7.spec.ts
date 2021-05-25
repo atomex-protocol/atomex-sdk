@@ -10,7 +10,7 @@ describe("Tzip7Helpers test", () => {
     const tzbtc = GetTzBTCHelperInstance(toolKit);
 
     test("parseInitiateParameters", () => {
-        let params = tzbtc.parseInitiateParameters(
+        const params = tzbtc.parseInitiateParameters(
             initiate_tx as OperationContentsAndResultTransaction,
         );
         expect(params.secretHash).toBe(
