@@ -86,9 +86,7 @@ export class TezosHelpers extends Helpers {
       networkSettings.rpc = rpcUri;
     }
 
-    const tezos = new TezosToolkit();
-    tezos.setRpcProvider(networkSettings.rpc);
-
+    const tezos = new TezosToolkit(networkSettings.rpc);
     const chainID = await tezos.rpc.getChainId();
     if (networkSettings.chainID !== chainID.toString()) {
       throw new Error(
@@ -228,7 +226,7 @@ export class TezosHelpers extends Helpers {
     });
     return {
       numEndorsements,
-      level: block.metadata.level.level,
+      level: block.metadata.level!.level,
       timestamp: dt2ts(block.header.timestamp),
     };
   }
@@ -348,7 +346,7 @@ export class TezosHelpers extends Helpers {
       await this._tezos.rpc.getBlock({ block: "head" }),
     );
     const txBlockDetails = this.getBlockDetails(block);
-    const confirmations = headDetails.level - txBlockDetails.level;
+    const confirmations = headDetails.level! - txBlockDetails.level!;
 
     const res: SwapTransactionStatus = {
       status: "Included",
