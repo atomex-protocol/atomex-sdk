@@ -1,6 +1,7 @@
 import { TezosToolkit } from "@taquito/taquito";
 import config from "../../src/config.json";
 import { TezosHelpers } from "../../src/tezos";
+import { Tzip7Helpers } from "../../src/tzip7";
 import block_data from "../data/tezos_block_data.json";
 export const GenerateMockRPCClient = (
   status: string,
@@ -48,5 +49,21 @@ export const GetTezosHelperInstance = (toolKit: TezosToolkit) => {
     config.blockchains.tezos.rpc.testnet.costPerByte,
     config.currencies.XTZ.contracts.testnet.redeemTxSize,
     config.currencies.XTZ.contracts.testnet.initiateTxSize,
+  );
+};
+
+export const GetTzBTCHelperInstance = (toolKit: TezosToolkit) => {
+  return new Tzip7Helpers(
+    toolKit,
+    config.currencies.tzBTC.contracts.entrypoints,
+    config.currencies.tzBTC.contracts.mainnet.address,
+    config.blockchains.tezos.rpc.mainnet.blockTime,
+    config.currencies.tzBTC.contracts.mainnet.gasLimit,
+    config.blockchains.tezos.rpc.mainnet.minimalFees,
+    config.blockchains.tezos.rpc.mainnet.minimalNanotezPerGasUnit,
+    config.blockchains.tezos.rpc.mainnet.minimalNanotezPerByte,
+    config.blockchains.tezos.rpc.mainnet.costPerByte,
+    config.currencies.tzBTC.contracts.mainnet.redeemTxSize,
+    config.currencies.tzBTC.contracts.mainnet.initiateTxSize,
   );
 };

@@ -13,7 +13,7 @@ import initiate_tx_iso from "./data/tez_initiate_tx_iso.json";
 import { GenerateMockRPCClient, GetTezosHelperInstance } from "./helpers/tezos";
 
 describe("TezosHelpers test", () => {
-  const toolKit = new TezosToolkit();
+  const toolKit = new TezosToolkit(config.blockchains.tezos.rpc.testnet.rpc);
   toolKit["_context"].rpc = GenerateMockRPCClient("applied", 10000, 100, null);
   const tez = GetTezosHelperInstance(toolKit);
 
@@ -251,7 +251,7 @@ describe("TezosHelpers test", () => {
     });
 
     // revealed accounts
-    const toolKitNew = new TezosToolkit();
+    const toolKitNew = new TezosToolkit(config.blockchains.tezos.rpc.testnet.rpc);
     toolKitNew["_context"].rpc = GenerateMockRPCClient(
       "applied",
       10000,

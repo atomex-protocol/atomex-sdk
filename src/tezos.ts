@@ -25,17 +25,17 @@ const formatTimestamp = (timestamp: number) => {
  * Tezos Util class for Tezos related Atomex helper functions
  */
 export class TezosHelpers extends Helpers {
-  private _tezos: TezosToolkit;
-  private _contractAddress: string;
-  private _timeBetweenBlocks: number;
-  private _entrypoints: Map<string, ParameterSchema>;
-  private _gasLimit: number;
-  private _minimalFees: number;
-  private _minimalNanotezPerGasUnit: number;
-  private _minimalNanotezPerByte: number;
-  private _costPerByte: number;
-  private _redeemTxSize: number;
-  private _initiateTxSize: number;
+  protected _tezos: TezosToolkit;
+  protected _contractAddress: string;
+  protected _timeBetweenBlocks: number;
+  protected _entrypoints: Map<string, ParameterSchema>;
+  protected _gasLimit: number;
+  protected _minimalFees: number;
+  protected _minimalNanotezPerGasUnit: number;
+  protected _minimalNanotezPerByte: number;
+  protected _costPerByte: number;
+  protected _redeemTxSize: number;
+  protected _initiateTxSize: number;
 
   constructor(
     tezos: TezosToolkit,
@@ -72,11 +72,13 @@ export class TezosHelpers extends Helpers {
    * Connects to the supported tezos chain
    *
    * @param network networks supported by atomex, can be either mainnet or testnet
+   * @param currency either native currency (XTZ) or any supported FA1.2/FA2 token symbol
    * @param rpc optional rpc endpoint to create tezos chain client
    * @returns chain id of the connected chain
    */
   static async create(
     network: "mainnet" | "testnet",
+    currency: "XTZ" | "tzBTC" = "XTZ",
     rpcUri?: string,
   ): Promise<TezosHelpers> {
     const networkSettings = config.blockchains.tezos.rpc[network];
@@ -84,9 +86,7 @@ export class TezosHelpers extends Helpers {
       networkSettings.rpc = rpcUri;
     }
 
-    const tezos = new TezosToolkit();
-    tezos.setRpcProvider(networkSettings.rpc);
-
+    const tezos = new TezosToolkit(networkSettings.rpc);
     const chainID = await tezos.rpc.getChainId();
     if (networkSettings.chainID !== chainID.toString()) {
       throw new Error(
@@ -96,16 +96,16 @@ export class TezosHelpers extends Helpers {
 
     return new TezosHelpers(
       tezos,
-      config.currencies.XTZ.contracts.entrypoints,
-      config.currencies.XTZ.contracts[network].address,
+      config.currencies[currency].contracts.entrypoints,
+      config.currencies[currency].contracts[network].address,
       config.blockchains.tezos.rpc[network].blockTime,
-      config.currencies.XTZ.contracts[network].gasLimit,
+      config.currencies[currency].contracts[network].gasLimit,
       config.blockchains.tezos.rpc[network].minimalFees,
       config.blockchains.tezos.rpc[network].minimalNanotezPerGasUnit,
       config.blockchains.tezos.rpc[network].minimalNanotezPerByte,
       config.blockchains.tezos.rpc[network].costPerByte,
-      config.currencies.XTZ.contracts[network].redeemTxSize,
-      config.currencies.XTZ.contracts[network].initiateTxSize,
+      config.currencies[currency].contracts[network].redeemTxSize,
+      config.currencies[currency].contracts[network].initiateTxSize,
     );
   }
 
@@ -226,7 +226,7 @@ export class TezosHelpers extends Helpers {
     });
     return {
       numEndorsements,
-      level: block.metadata.level.level,
+      level: block.metadata.level!.level,
       timestamp: dt2ts(block.header.timestamp),
     };
   }
@@ -266,9 +266,7 @@ export class TezosHelpers extends Helpers {
       secretHash: initiateParams["settings"]["hashed_secret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["settings"]["refund_time"]),
-      netAmount:
-        parseInt(content.amount) -
-        parseInt(initiateParams["settings"]["payoff"]),
+      netAmount: parseInt(content.amount) - parseInt(initiateParams["settings"]["payoff"]),
       rewardForRedeem: parseInt(initiateParams["settings"]["payoff"]),
     };
   }
@@ -348,7 +346,7 @@ export class TezosHelpers extends Helpers {
       await this._tezos.rpc.getBlock({ block: "head" }),
     );
     const txBlockDetails = this.getBlockDetails(block);
-    const confirmations = headDetails.level - txBlockDetails.level;
+    const confirmations = headDetails.level! - txBlockDetails.level!;
 
     const res: SwapTransactionStatus = {
       status: "Included",
@@ -431,10 +429,10 @@ export class TezosHelpers extends Helpers {
             counter: (parseInt(contract.counter || "0") + 1).toString(),
             destination: this._contractAddress,
             fee: this.calcFees(1040000, 60000, this._initiateTxSize).toString(),
-            gas_limit: "1040000",
+            gas_limit: "1040000",  // TODO: move to config
             kind: OpKind.TRANSACTION,
             source: source,
-            storage_limit: "60000",
+            storage_limit: "60000",  // TODO: move to config
             parameters: tx.data,
           },
         ],

@@ -599,6 +599,172 @@
         "displayed": 3
       },
       "blockchain": "tezos"
+    },
+    "tzBTC": {
+      "contracts": {
+        "mainnet": {
+          "address": "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+          "redeemTxSize": 133,
+          "initiateTxSize": 250,
+          "gasLimit": 100000
+        },
+        "testnet": {
+          "address": "KT1TmsMjT1u9YqsKc4TnQfDDyJLD1KbAainP",
+          "redeemTxSize": 133,
+          "initiateTxSize": 250,
+          "gasLimit": 100000
+        },
+        "entrypoints": {
+          "default": {
+            "prim": "or",
+            "args": [
+              {
+                "prim": "or",
+                "args": [
+                  {
+                    "prim": "pair",
+                    "args": [
+                      {
+                        "prim": "pair",
+                        "args": [
+                          {
+                            "prim": "pair",
+                            "args": [
+                              {
+                                "prim": "bytes",
+                                "annots": [
+                                  "%hashedSecret"
+                                ]
+                              },
+                              {
+                                "prim": "address",
+                                "annots": [
+                                  "%participant"
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "prim": "pair",
+                            "args": [
+                              {
+                                "prim": "nat",
+                                "annots": [
+                                  "%payoffAmount"
+                                ]
+                              },
+                              {
+                                "prim": "timestamp",
+                                "annots": [
+                                  "%refundTime"
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "prim": "pair",
+                        "args": [
+                          {
+                            "prim": "address",
+                            "annots": [
+                              "%tokenAddress"
+                            ]
+                          },
+                          {
+                            "prim": "nat",
+                            "annots": [
+                              "%totalAmount"
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    "annots": [
+                      "%initiate"
+                    ]
+                  },
+                  {
+                    "prim": "bytes",
+                    "annots": [
+                      "%redeem"
+                    ]
+                  }
+                ]
+              },
+              {
+                "prim": "bytes",
+                "annots": [
+                  "%refund"
+                ]
+              }
+            ]
+          },
+          "refund": {
+            "prim": "bytes"
+          },
+          "redeem": {
+            "prim": "bytes"
+          },
+          "initiate": {
+            "prim": "pair",
+            "args": [
+              {
+                "prim": "pair",
+                "args": [
+                  {
+                    "prim": "pair",
+                    "args": [
+                      {
+                        "prim": "bytes",
+                        "annots": [
+                          "%hashedSecret"
+                        ]
+                      },
+                      {
+                        "prim": "address",
+                        "annots": [
+                          "%participant"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "prim": "nat",
+                    "annots": [
+                      "%payoffAmount"
+                    ]
+                  },
+                  {
+                    "prim": "timestamp",
+                    "annots": [
+                      "%refundTime"
+                    ]
+                  }
+                ]
+              },
+              {
+                "prim": "address",
+                "annots": [
+                  "%tokenAddress"
+                ]
+              },
+              {
+                "prim": "nat",
+                "annots": [
+                  "%totalAmount"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "decimals": {
+        "original": 8,
+        "displayed": 4
+      },
+      "blockchain": "tezos"
     }
   }
 }
