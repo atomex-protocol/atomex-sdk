@@ -600,7 +600,7 @@
       },
       "blockchain": "tezos"
     },
-    "tzBTC": {
+    "TZBTC": {
       "contracts": {
         "mainnet": {
           "address": "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
