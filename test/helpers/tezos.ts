@@ -55,15 +55,15 @@ export const GetTezosHelperInstance = (toolKit: TezosToolkit) => {
 export const GetTzBTCHelperInstance = (toolKit: TezosToolkit) => {
   return new Tzip7Helpers(
     toolKit,
-    config.currencies.tzBTC.contracts.entrypoints,
-    config.currencies.tzBTC.contracts.mainnet.address,
+    config.currencies.TZBTC.contracts.entrypoints,
+    config.currencies.TZBTC.contracts.mainnet.address,
     config.blockchains.tezos.rpc.mainnet.blockTime,
-    config.currencies.tzBTC.contracts.mainnet.gasLimit,
+    config.currencies.TZBTC.contracts.mainnet.gasLimit,
     config.blockchains.tezos.rpc.mainnet.minimalFees,
     config.blockchains.tezos.rpc.mainnet.minimalNanotezPerGasUnit,
     config.blockchains.tezos.rpc.mainnet.minimalNanotezPerByte,
     config.blockchains.tezos.rpc.mainnet.costPerByte,
-    config.currencies.tzBTC.contracts.mainnet.redeemTxSize,
-    config.currencies.tzBTC.contracts.mainnet.initiateTxSize,
+    config.currencies.TZBTC.contracts.mainnet.redeemTxSize,
+    config.currencies.TZBTC.contracts.mainnet.initiateTxSize,
   );
 };

@@ -5,7 +5,12 @@ import {
   OpKind,
 } from "@taquito/rpc";
 import { TezosToolkit } from "@taquito/taquito";
-import { b58cdecode, prefix, validateAddress, ValidationResult } from "@taquito/utils";
+import {
+  b58cdecode,
+  prefix,
+  validateAddress,
+  ValidationResult,
+} from "@taquito/utils";
 import config from "./config.json";
 import { dt2ts, Helpers, now } from "./helpers";
 import {
@@ -78,7 +83,7 @@ export class TezosHelpers extends Helpers {
    */
   static async create(
     network: "mainnet" | "testnet",
-    currency: "XTZ" | "tzBTC" = "XTZ",
+    currency: "XTZ" | "TZBTC" = "XTZ",
     rpcUri?: string,
   ): Promise<TezosHelpers> {
     const networkSettings = config.blockchains.tezos.rpc[network];
@@ -266,7 +271,9 @@ export class TezosHelpers extends Helpers {
       secretHash: initiateParams["settings"]["hashed_secret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["settings"]["refund_time"]),
-      netAmount: parseInt(content.amount) - parseInt(initiateParams["settings"]["payoff"]),
+      netAmount:
+        parseInt(content.amount) -
+        parseInt(initiateParams["settings"]["payoff"]),
       rewardForRedeem: parseInt(initiateParams["settings"]["payoff"]),
     };
   }
@@ -429,10 +436,10 @@ export class TezosHelpers extends Helpers {
             counter: (parseInt(contract.counter || "0") + 1).toString(),
             destination: this._contractAddress,
             fee: this.calcFees(1040000, 60000, this._initiateTxSize).toString(),
-            gas_limit: "1040000",  // TODO: move to config
+            gas_limit: "1040000", // TODO: move to config
             kind: OpKind.TRANSACTION,
             source: source,
-            storage_limit: "60000",  // TODO: move to config
+            storage_limit: "60000", // TODO: move to config
             parameters: tx.data,
           },
         ],
