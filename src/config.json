@@ -609,7 +609,7 @@
           "gasLimit": 100000
         },
         "testnet": {
-          "address": "KT1TmsMjT1u9YqsKc4TnQfDDyJLD1KbAainP",
+          "address": "KT1EdNAZTqjJFYRhQsQSnNGRomAhN6DpRup2",
           "redeemTxSize": 133,
           "initiateTxSize": 250,
           "gasLimit": 100000
