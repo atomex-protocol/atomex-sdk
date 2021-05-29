@@ -20,6 +20,8 @@ import {
   PartialTransactionBody,
   RedeemFees,
   SwapTransactionStatus,
+  TezosBasedCurrency,
+  Network
 } from "./types";
 
 const formatTimestamp = (timestamp: number) => {
@@ -82,8 +84,8 @@ export class TezosHelpers extends Helpers {
    * @returns chain id of the connected chain
    */
   static async create(
-    network: "mainnet" | "testnet",
-    currency: "XTZ" | "TZBTC" = "XTZ",
+    network: Network,
+    currency: TezosBasedCurrency = "XTZ",
     rpcUri?: string,
   ): Promise<TezosHelpers> {
     const networkSettings = config.blockchains.tezos.rpc[network];
