@@ -1,6 +1,6 @@
 {
   "name": "atomex-sdk",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Atomex SDK",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
