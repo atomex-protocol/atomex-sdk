@@ -39,6 +39,14 @@ export type Algorithm =
   | "Keccak256WithEcdsa:Geth2940"
   | "Sha256WithEcdsa:BtcMsg";
 
+export type TezosBasedCurrency = 
+  | "XTZ"
+  | "TZBTC";
+
+export type Network = 
+  | "testnet"
+  | "mainnet";
+
 export interface BookQuote {
   symbol: string;
   timeStamp: string;
