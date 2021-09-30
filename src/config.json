@@ -37,9 +37,9 @@
           "costPerByte": 250
         },
         "testnet": {
-          "chainID": "NetXSgo1ZT2DRUG",
-          "rpc": "https://rpc.tzkt.io/edo2net/",
-          "blockTime": 30,
+          "chainID": "NetXz969SFaFn8k",
+          "rpc": "https://rpc.tzkt.io/granadanet/",
+          "blockTime": 15,
           "minimalFees": 100,
           "minimalNanotezPerGasUnit": 0.1,
           "minimalNanotezPerByte": 1,
