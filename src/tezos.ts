@@ -215,7 +215,7 @@ export class TezosHelpers extends Helpers {
       ops.forEach((op) => {
         op.contents.forEach((content) => {
           if (
-            content.kind !== "endorsement" ||
+            content.kind !== "endorsement_with_slot" ||
             !Object.prototype.hasOwnProperty.call(content, "metadata")
           ) {
             return;
@@ -233,7 +233,7 @@ export class TezosHelpers extends Helpers {
     });
     return {
       numEndorsements,
-      level: block.metadata.level!.level,
+      level: block.metadata.level_info!.level,
       timestamp: dt2ts(block.header.timestamp),
     };
   }

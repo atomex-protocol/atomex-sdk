@@ -44,7 +44,7 @@
             }
         ],
         "baker": "tz3WXYtyDUNL91qfiCJtVUX746QpNv5i5ve5",
-        "level": {
+        "level_info": {
             "level": 869273,
             "level_position": 869272,
             "cycle": 424,
@@ -88,7 +88,7 @@
                 "branch": "BLBVcvCds9ctXYpC3R6H3MAuiMD45BgrQZhfG3zLAceV8WJTRYD",
                 "contents": [
                     {
-                        "kind": "endorsement",
+                        "kind": "endorsement_with_slot",
                         "level": 869272,
                         "metadata": {
                             "balance_updates": [
@@ -136,7 +136,7 @@
                 "branch": "BLBVcvCds9ctXYpC3R6H3MAuiMD45BgrQZhfG3zLAceV8WJTRYD",
                 "contents": [
                     {
-                        "kind": "endorsement",
+                        "kind": "endorsement_with_slot",
                         "level": 869272,
                         "metadata": {
                             "balance_updates": [
@@ -177,7 +177,7 @@
                 "branch": "BLBVcvCds9ctXYpC3R6H3MAuiMD45BgrQZhfG3zLAceV8WJTRYD",
                 "contents": [
                     {
-                        "kind": "endorsement",
+                        "kind": "endorsement_with_slot",
                         "level": 869272,
                         "metadata": {
                             "balance_updates": [
@@ -221,7 +221,7 @@
                 "branch": "BLBVcvCds9ctXYpC3R6H3MAuiMD45BgrQZhfG3zLAceV8WJTRYD",
                 "contents": [
                     {
-                        "kind": "endorsement",
+                        "kind": "endorsement_with_slot",
                         "level": 869272,
                         "metadata": {
                             "balance_updates": [
@@ -265,7 +265,7 @@
                 "branch": "BLBVcvCds9ctXYpC3R6H3MAuiMD45BgrQZhfG3zLAceV8WJTRYD",
                 "contents": [
                     {
-                        "kind": "endorsement",
+                        "kind": "endorsement_with_slot",
                         "level": 869272,
                         "metadata": {
                             "balance_updates": [
@@ -309,7 +309,7 @@
                 "branch": "BLBVcvCds9ctXYpC3R6H3MAuiMD45BgrQZhfG3zLAceV8WJTRYD",
                 "contents": [
                     {
-                        "kind": "endorsement",
+                        "kind": "endorsement_with_slot",
                         "level": 869272,
                         "metadata": {
                             "balance_updates": [
