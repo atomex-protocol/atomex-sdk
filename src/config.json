@@ -37,9 +37,9 @@
           "costPerByte": 250
         },
         "testnet": {
-          "chainID": "NetXSgo1ZT2DRUG",
-          "rpc": "https://rpc.tzkt.io/edo2net/",
-          "blockTime": 30,
+          "chainID": "NetXz969SFaFn8k",
+          "rpc": "https://rpc.tzkt.io/granadanet/",
+          "blockTime": 15,
           "minimalFees": 100,
           "minimalNanotezPerGasUnit": 0.1,
           "minimalNanotezPerByte": 1,
@@ -358,7 +358,7 @@
           "gasLimit": 15000
         },
         "testnet": {
-          "address": "KT1V6BakcVJVpkoWWZzTPATvw3kxYXaxj7pw",
+          "address": "KT1GyzWoSh9A2ACr1wQpBoGHiDrjT4oHJT2J",
           "redeemTxSize": 133,
           "initiateTxSize": 200,
           "gasLimit": 85000
@@ -609,7 +609,7 @@
           "gasLimit": 100000
         },
         "testnet": {
-          "address": "KT1EdNAZTqjJFYRhQsQSnNGRomAhN6DpRup2",
+          "address": "KT1UrqceFxiLbrLdWESwqgSfpZqrjLp7cKPf",
           "redeemTxSize": 133,
           "initiateTxSize": 250,
           "gasLimit": 100000
