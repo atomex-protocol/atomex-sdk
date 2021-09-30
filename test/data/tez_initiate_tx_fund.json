@@ -6,7 +6,7 @@
     "gas_limit": "68254",
     "storage_limit": "137",
     "amount": "1000000",
-    "destination": "KT1DEpTxK2qyFhTCT2QCZ1Ly4f43YVNbzHP1",
+    "destination": "KT1GyzWoSh9A2ACr1wQpBoGHiDrjT4oHJT2J",
     "parameters": {
         "entrypoint": "fund",
         "value": {
@@ -128,7 +128,7 @@
                 },
                 {
                     "kind": "contract",
-                    "contract": "KT1DEpTxK2qyFhTCT2QCZ1Ly4f43YVNbzHP1",
+                    "contract": "KT1GyzWoSh9A2ACr1wQpBoGHiDrjT4oHJT2J",
                     "change": "1000000"
                 }
             ],

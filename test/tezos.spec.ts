@@ -150,7 +150,7 @@ describe("TezosHelpers test", () => {
     expect(data).toStrictEqual({
       status: "Confirmed",
       confirmations: 0,
-      nextBlockETA: 1605436123,
+      nextBlockETA: 1605436108,
     });
 
     //invalid details

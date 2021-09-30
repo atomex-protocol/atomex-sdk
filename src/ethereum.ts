@@ -239,7 +239,7 @@ export class EthereumHelpers extends Helpers {
           `Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`,
         );
       }
-    } catch (e) {
+    } catch (e: any) {
       return {
         status: "Invalid",
         message: e.message,
