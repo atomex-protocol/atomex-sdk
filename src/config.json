@@ -37,8 +37,8 @@
           "costPerByte": 250
         },
         "testnet": {
-          "chainID": "NetXz969SFaFn8k",
-          "rpc": "https://rpc.tzkt.io/granadanet/",
+          "chainID": "NetXZSsxBpMQeAT",
+          "rpc": "https://rpc.tzkt.io/hangzhou2net/",
           "blockTime": 15,
           "minimalFees": 100,
           "minimalNanotezPerGasUnit": 0.1,
@@ -358,7 +358,7 @@
           "gasLimit": 15000
         },
         "testnet": {
-          "address": "KT1GyzWoSh9A2ACr1wQpBoGHiDrjT4oHJT2J",
+          "address": "KT1BpYoX7rGtEJp2gvtdLWGsfb3UriymcnHN",
           "redeemTxSize": 133,
           "initiateTxSize": 200,
           "gasLimit": 85000
@@ -609,7 +609,7 @@
           "gasLimit": 100000
         },
         "testnet": {
-          "address": "KT1UrqceFxiLbrLdWESwqgSfpZqrjLp7cKPf",
+          "address": "KT1B21GVfC5X1tk2PncVE1KoV7xGaFGb3KBZ",
           "redeemTxSize": 133,
           "initiateTxSize": 250,
           "gasLimit": 100000
