@@ -57,7 +57,7 @@ It's important to show the breakdown of the resulting costs to the user:
 
 ## tracking and validating the initiate tx
 
-In networks with probabilistic finality, as a rule, there are historically verified and commonly used numbers of confirmations that reduce the risk of rollback to negligible. However, it is sometimes possible to reduce this time slot without sacrificing security. E.g. in Tezos we can say that if the block includes 32 endorsements it's highly unlikely it will be reverted.
+In networks with probabilistic finality, as a rule, there are historically verified and commonly used numbers of confirmations that reduce the risk of rollback to negligible.
 
 Another compromise between UX responsiveness and rate limiting is the way you query the RPC node for validating the transaction. The recommended approach is to estimate the time till the next block, sleep for this period, and only after that start polling at a higher rate to catch the change of the head.
 

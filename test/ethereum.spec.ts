@@ -107,7 +107,7 @@ describe("EthereumHelpers test", () => {
     );
     expect(data).toStrictEqual({
       status: "Invalid",
-      message: "Cannot read property 'to' of null",
+      message: "Cannot read properties of null (reading 'to')",
       confirmations: 0,
       nextBlockETA: 0,
     });

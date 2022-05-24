@@ -126,7 +126,6 @@ describe("TezosHelpers test", () => {
   test("getBlockDetails", () => {
     const data = tez.getBlockDetails(block_data as BlockResponse);
     expect(data.level).toBe(869273);
-    expect(data.numEndorsements).toBe(32);
     expect(data.timestamp).toBe(1605436093);
   });
 
@@ -135,7 +134,7 @@ describe("TezosHelpers test", () => {
       block_data as BlockResponse,
       "ooojqzy45siei3Qs6H6QwoNqdQxiKmSZCXW9mCR5uqHiGrwLyWi",
     );
-    expect(data).toStrictEqual(initiate_tx_default);
+    expect(data).toStrictEqual([initiate_tx_default]);
   });
 
   test("validateInitiateTransaction", async () => {
@@ -148,7 +147,7 @@ describe("TezosHelpers test", () => {
       1605453897,
     );
     expect(data).toStrictEqual({
-      status: "Confirmed",
+      status: "Included",
       confirmations: 0,
       nextBlockETA: 1605436108,
     });

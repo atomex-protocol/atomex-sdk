@@ -204,35 +204,13 @@ export class TezosHelpers extends Helpers {
   }
 
   /**
-   * Get Block endorsements and level
+   * Get Block level
    *
    * @param blockLevel block level to identify the block
-   * @returns endorsements , level of the block and block generation time
+   * @returns level of the block and block generation time
    */
   getBlockDetails(block: BlockResponse) {
-    let numEndorsements = 0;
-    block.operations.forEach((ops) => {
-      ops.forEach((op) => {
-        op.contents.forEach((content) => {
-          if (
-            content.kind !== "endorsement_with_slot" ||
-            !Object.prototype.hasOwnProperty.call(content, "metadata")
-          ) {
-            return;
-          }
-          const metadata = Object.getOwnPropertyDescriptor(content, "metadata")
-            ?.value;
-          if (!Object.prototype.hasOwnProperty.call(metadata, "slots")) {
-            return;
-          }
-          const slots = Object.getOwnPropertyDescriptor(metadata, "slots")
-            ?.value as number[];
-          numEndorsements += slots.length;
-        });
-      });
-    });
     return {
-      numEndorsements,
       level: block.metadata.level_info!.level,
       timestamp: dt2ts(block.header.timestamp),
     };
@@ -283,23 +261,23 @@ export class TezosHelpers extends Helpers {
   findContractCall(
     block: BlockResponse,
     txID: string,
-  ): OperationContentsAndResultTransaction {
+  ): OperationContentsAndResultTransaction[] {
     const opg = block.operations[3]?.find((opg) => opg.hash == txID);
     if (opg === undefined) {
       throw new Error(`Operation not found: ${txID} @ ${block.hash}`);
     }
 
-    const content = <OperationContentsAndResultTransaction>(
-      opg.contents.find(
+    const contents = <OperationContentsAndResultTransaction[]>(
+      opg.contents.filter(
         (c) =>
           c.kind == "transaction" && c.destination == this._contractAddress,
       )
     );
-    if (content === undefined) {
+    if (contents.length === 0) {
       throw new Error(`Unsupported contract version is used`);
     }
 
-    return content as OperationContentsAndResultTransaction;
+    return contents;
   }
 
   async validateInitiateTransaction(
@@ -309,38 +287,40 @@ export class TezosHelpers extends Helpers {
     receivingAddress: string,
     netAmount: number,
     minRefundTimestamp: number,
-    minConfirmations = 5,
+    minConfirmations = 2,
   ): Promise<SwapTransactionStatus> {
     const block = await this._tezos.rpc.getBlock({
       block: blockHeight.toString(),
     });
 
     try {
-      const initiateParameters = this.parseInitiateParameters(
-        this.findContractCall(block, txID),
-      );
-      if (initiateParameters.secretHash !== secretHash) {
-        throw new Error(
-          `Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`,
-        );
-      }
+      const tx = this.findContractCall(block, txID).find(content => {
+        const initiateParameters = this.parseInitiateParameters(content);
+        if (initiateParameters.secretHash !== secretHash) {
+          console.log(`[${content.counter}] Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`);
+          return false;
+        }
 
-      if (initiateParameters.receivingAddress !== receivingAddress) {
-        throw new Error(
-          `Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`,
-        );
-      }
+        if (initiateParameters.receivingAddress !== receivingAddress) {
+          console.log(`[${content.counter}] Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`);
+          return false;
+        }
 
-      if (initiateParameters.netAmount !== netAmount) {
-        throw new Error(
-          `Net amount: expect ${netAmount}, actual ${initiateParameters.netAmount}`,
-        );
-      }
+        if (initiateParameters.netAmount !== netAmount) {
+          console.log(`[${content.counter}] Net amount: expect ${netAmount}, actual ${initiateParameters.netAmount}`);
+          return false;
+        }
 
-      if (initiateParameters.refundTimestamp < minRefundTimestamp) {
-        throw new Error(
-          `Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`,
-        );
+        if (initiateParameters.refundTimestamp < minRefundTimestamp) {
+          console.log(`[${content.counter}] Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`);
+          return false;
+        }
+
+        return true
+      }, this);
+      
+      if (tx === undefined) {
+        throw new Error(`Initiate transaction that satisfies the expected criteria is not found in ${txID} contents`)
       }
     } catch (e: any) {
       return {
@@ -363,11 +343,7 @@ export class TezosHelpers extends Helpers {
       nextBlockETA: headDetails.timestamp + this._timeBetweenBlocks,
     };
 
-    if (
-      confirmations >= minConfirmations ||
-      headDetails.numEndorsements === 32 ||
-      txBlockDetails.numEndorsements === 32
-    ) {
+    if (confirmations >= minConfirmations) {
       res.status = "Confirmed";
     }
 
