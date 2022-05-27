@@ -19,8 +19,8 @@
           "blockTime": 10
         },
         "testnet": {
-          "chainID": 3,
-          "rpc": "https://ropsten.infura.io/v3/7cd728d2d3384719a630d836f1693c5c",
+          "chainID": 5,
+          "rpc": "https://goerli.infura.io/v3/7cd728d2d3384719a630d836f1693c5c",
           "blockTime": 10
         }
       }
@@ -56,7 +56,7 @@
           "gasLimit": 200000
         },
         "testnet": {
-          "address": "0x527d1049837EdF5f99c287a41a87702686082bF8",
+          "address": "0x512fe6B803bA327DCeFBF2Cec7De333f761B0f2b",
           "gasLimit": 170000
         },
         "abi": [

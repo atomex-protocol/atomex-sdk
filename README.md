@@ -46,7 +46,7 @@ const atomex = Atomex.create("testnet")
 There are several predefined configs:
 * `mainnet` — for production use
 * `testnet` — for testing purposes, on-chain operations tracked in:
-   - Ethereum: *Ropsten*
+   - Ethereum: *Goerli*
    - Tezos: *Carthagenet*
 * `localhost` — for Atomex developers only (debugging purposes)
 
@@ -116,7 +116,7 @@ const tez = await TezosHelpers.create("testnet");
 
 You can also specify custom RPC endpoint:
 ```js
-cosnt eth = await EthereumHelpers.create("testnet", "https://ropsten.infura.io/v3/12345");
+cosnt eth = await EthereumHelpers.create("testnet", "https://goerli.infura.io/v3/12345");
 ```
 
 Helpers classes implement a single interface providing methods for interacting with Atomex contracts:
