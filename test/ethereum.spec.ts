@@ -83,15 +83,15 @@ describe("EthereumHelpers test", () => {
     let data = await eth.validateInitiateTransaction(
       1000,
       "txID",
-      "e0f9d71ecb40fa22b0146e8e8b1668a0cce1d3651c421ec1f8a344353320cb77",
-      "0x9ffDD2871e06Df76E7245b8Be91E2af409F37Eda",
-      35369500000000000,
+      "798ba2cf284d2edd7d302030511cab47c8c1025e73f2d4db751e098ac5e41c19",
+      "0x080950fCc712749A236daBaBd528bbFb141eA484",
+      45369500000000000,
       1604545434,
       5,
     );
     expect(data).toStrictEqual({
       status: "Confirmed",
-      confirmations: 10,
+      confirmations: 2051224,
       nextBlockETA: 1604546010,
     });
 
@@ -99,15 +99,15 @@ describe("EthereumHelpers test", () => {
     data = await eth.validateInitiateTransaction(
       1000,
       "txID",
-      "e0f971ecb40fa22b0146e8e8b1668a0cce1d3651c421ec1f8a344353320cb77",
-      "0x9ffDD2871e06Df76E7245b8Be91E2af409F37Eda",
-      35369500000000000,
+      "798ba2cf284d2edd7d302030511cab47c8c1025e73f2d4db751e098ac5e41c191",
+      "0x080950fCc712749A236daBaBd528bbFb141eA484",
+      45369500000000000,
       1604545434,
       5,
     );
     expect(data).toStrictEqual({
       status: "Invalid",
-      message: "Cannot read property 'to' of null",
+      message: "Cannot read properties of null (reading 'to')",
       confirmations: 0,
       nextBlockETA: 0,
     });
@@ -116,14 +116,14 @@ describe("EthereumHelpers test", () => {
   test("parseInitiateParameters", () => {
     const params = eth.parseInitiateParameters(initiate_tx as Transaction);
     expect(params.secretHash).toBe(
-      "e0f9d71ecb40fa22b0146e8e8b1668a0cce1d3651c421ec1f8a344353320cb77",
+      "798ba2cf284d2edd7d302030511cab47c8c1025e73f2d4db751e098ac5e41c19",
     );
-    expect(params.refundTimestamp).toBe(1604545434);
-    expect(params.rewardForRedeem).toBe(10000000000000000);
+    expect(params.refundTimestamp).toBe(1653657642920);
+    expect(params.rewardForRedeem).toBe(0);
     expect(params.receivingAddress.toLowerCase()).toBe(
-      "0x9ffDD2871e06Df76E7245b8Be91E2af409F37Eda".toLowerCase(),
+      "0x080950fcc712749a236dababd528bbfb141ea484".toLowerCase(),
     );
-    expect(params.netAmount).toBe(45369500000000000 - 10000000000000000);
+    expect(params.netAmount).toBe(45369500000000000);
   });
 
   test("encodeSignature", () => {
