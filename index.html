@@ -111,7 +111,7 @@
 				<ul>
 					<li><code>mainnet</code> — for production use</li>
 					<li><code>testnet</code> — for testing purposes, on-chain operations tracked in:<ul>
-							<li>Ethereum: <em>Ropsten</em></li>
+							<li>Ethereum: <em>Goerli</em></li>
 							<li>Tezos: <em>Carthagenet</em></li>
 						</ul>
 					</li>
@@ -174,7 +174,7 @@
 				<p>For each currency create an according helper class instance:</p>
 				<pre><code class="language-js"><span class="hljs-keyword">const</span> tez = <span class="hljs-keyword">await</span> TezosHelpers.create(<span class="hljs-string">&quot;testnet&quot;</span>);</code></pre>
 				<p>You can also specify custom RPC endpoint:</p>
-				<pre><code class="language-js">cosnt eth = <span class="hljs-keyword">await</span> EthereumHelpers.create(<span class="hljs-string">&quot;testnet&quot;</span>, <span class="hljs-string">&quot;https://ropsten.infura.io/v3/12345&quot;</span>);</code></pre>
+				<pre><code class="language-js">cosnt eth = <span class="hljs-keyword">await</span> EthereumHelpers.create(<span class="hljs-string">&quot;testnet&quot;</span>, <span class="hljs-string">&quot;https://goerli.infura.io/v3/12345&quot;</span>);</code></pre>
 				<p>Helpers classes implement a single interface providing methods for interacting with Atomex contracts:</p>
 				<ul>
 					<li><a href="https://sdk.atomex.me/classes/helpers.html#buildinitiatetransaction"><code>Helpers.buildInitiateTransaction</code></a></li>
