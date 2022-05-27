@@ -85,7 +85,7 @@ describe("EthereumHelpers test", () => {
       "txID",
       "798ba2cf284d2edd7d302030511cab47c8c1025e73f2d4db751e098ac5e41c19",
       "0x080950fCc712749A236daBaBd528bbFb141eA484",
-      45369500000000000,
+      1000000000000000,
       1604545434,
       5,
     );
@@ -101,7 +101,7 @@ describe("EthereumHelpers test", () => {
       "txID",
       "798ba2cf284d2edd7d302030511cab47c8c1025e73f2d4db751e098ac5e41c191",
       "0x080950fCc712749A236daBaBd528bbFb141eA484",
-      45369500000000000,
+      1000000000000000,
       1604545434,
       5,
     );
@@ -123,7 +123,7 @@ describe("EthereumHelpers test", () => {
     expect(params.receivingAddress.toLowerCase()).toBe(
       "0x080950fcc712749a236dababd528bbfb141ea484".toLowerCase(),
     );
-    expect(params.netAmount).toBe(45369500000000000);
+    expect(params.netAmount).toBe(1000000000000000);
   });
 
   test("encodeSignature", () => {
