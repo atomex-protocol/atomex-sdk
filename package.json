@@ -22,7 +22,7 @@
   },
   "homepage": "https://sdk.atomex.me",
   "devDependencies": {
-    "@taquito/local-forging": "^9.0.1",
+    "@taquito/local-forging": "^13.0.0",
     "@types/jest": "^26.0.15",
     "@types/openapi-sampler": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^4.3.0",
@@ -41,8 +41,8 @@
     "web3-fake-provider": "^0.1.0"
   },
   "dependencies": {
-    "@taquito/michelson-encoder": "^9.0.1",
-    "@taquito/taquito": "^9.0.1",
+    "@taquito/michelson-encoder": "^13.0.0",
+    "@taquito/taquito": "^13.0.0",
     "@types/elliptic": "^6.4.12",
     "@types/node-fetch": "^2.5.7",
     "elliptic": "^6.5.3",
