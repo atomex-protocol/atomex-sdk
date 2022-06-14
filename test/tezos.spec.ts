@@ -124,14 +124,14 @@ describe("TezosHelpers test", () => {
   });
 
   test("getBlockDetails", () => {
-    const data = tez.getBlockDetails(block_data as BlockResponse);
+    const data = tez.getBlockDetails(block_data as unknown as BlockResponse);
     expect(data.level).toBe(869273);
     expect(data.timestamp).toBe(1605436093);
   });
 
   test("findContractCall", () => {
     const data = tez.findContractCall(
-      block_data as BlockResponse,
+      block_data as unknown as BlockResponse,
       "ooojqzy45siei3Qs6H6QwoNqdQxiKmSZCXW9mCR5uqHiGrwLyWi",
     );
     expect(data).toStrictEqual([initiate_tx_default]);
