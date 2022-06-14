@@ -37,7 +37,7 @@
     "prettier": "^2.1.2",
     "ts-jest": "^26.4.4",
     "typedoc": "^0.22.17",
-    "typescript": "^4.1.0",
+    "typescript": "^4.7.3",
     "web3-fake-provider": "^0.1.0"
   },
   "dependencies": {
