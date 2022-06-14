@@ -222,7 +222,7 @@ export class EthereumHelpers extends Helpers {
         );
       }
 
-      if (initiateParameters.receivingAddress !== receivingAddress) {
+      if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase()) {
         throw new Error(
           `Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`,
         );
