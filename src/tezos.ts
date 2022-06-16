@@ -300,7 +300,7 @@ export class TezosHelpers extends Helpers {
           return false;
         }
 
-        if (initiateParameters.receivingAddress !== receivingAddress) {
+        if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase()) {
           console.log(`[${content.counter}] Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`);
           return false;
         }
