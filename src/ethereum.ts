@@ -196,14 +196,16 @@ export class EthereumHelpers extends Helpers {
   }
 
   async validateInitiateTransaction(
-    blockHeight: number,
+    _blockHeight: number,
     txID: string,
     secretHash: string,
     receivingAddress: string,
-    netAmount: number,
+    amount: number,
+    payoff: number,
     minRefundTimestamp: number,
     minConfirmations: number,
   ): Promise<SwapTransactionStatus> {
+    const netAmount = amount - payoff;
     const transaction = await this._web3.eth.getTransaction(txID);
 
     try {

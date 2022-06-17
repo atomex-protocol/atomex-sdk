@@ -284,10 +284,12 @@ export class TezosHelpers extends Helpers {
     txID: string,
     secretHash: string,
     receivingAddress: string,
-    netAmount: number,
+    amount: number,
+    payoff: number,
     minRefundTimestamp: number,
     minConfirmations = 2,
   ): Promise<SwapTransactionStatus> {
+    const netAmount = amount - payoff;
     const block = await this._tezos.rpc.getBlock({
       block: blockHeight.toString(),
     });

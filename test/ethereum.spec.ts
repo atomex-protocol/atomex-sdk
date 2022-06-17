@@ -86,6 +86,7 @@ describe("EthereumHelpers test", () => {
       "798ba2cf284d2edd7d302030511cab47c8c1025e73f2d4db751e098ac5e41c19",
       "0x080950fCc712749A236daBaBd528bbFb141eA484",
       1000000000000000,
+      0,
       1604545434,
       5,
     );
@@ -102,6 +103,7 @@ describe("EthereumHelpers test", () => {
       "798ba2cf284d2edd7d302030511cab47c8c1025e73f2d4db751e098ac5e41c191",
       "0x080950fCc712749A236daBaBd528bbFb141eA484",
       1000000000000000,
+      0,
       1604545434,
       5,
     );

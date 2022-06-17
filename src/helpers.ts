@@ -78,7 +78,8 @@ export abstract class Helpers {
     txID: string,
     secretHash: string,
     receivingAddress: string,
-    netAmount: number,
+    amount: number,
+    payoff: number,
     minRefundTimestamp: number,
     minConfirmations: number,
   ): Promise<SwapTransactionStatus>;
