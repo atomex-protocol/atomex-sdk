@@ -203,7 +203,7 @@ export class EthereumHelpers extends Helpers {
     amount: number,
     payoff: number,
     minRefundTimestamp: number,
-    minConfirmations: number,
+    minConfirmations: number = 2,
   ): Promise<SwapTransactionStatus> {
     const netAmount = amount - payoff;
     const transaction = await this._web3.eth.getTransaction(txID);
