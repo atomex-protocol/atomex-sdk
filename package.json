@@ -9,7 +9,8 @@
     "start": "node lib/index.js",
     "lint": "eslint . --ext .ts",
     "dep-check": "dependency-check ./package.json --no-dev",
-    "test": "jest"
+    "test": "jest",
+    "typedoc": "typedoc"
   },
   "repository": {
     "type": "git",

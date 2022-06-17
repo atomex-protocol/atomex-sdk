@@ -9,19 +9,4 @@
     "resolveJsonModule": true
   },
   "include": ["src"],
-  "typedocOptions": {
-    "src": [
-    "./src",
-    ],
-  "mode": "file",
-  "includeDeclarations": true,
-  "out": "./docs",
-  "excludePrivate": true,
-  "excludeProtected": true,
-  "excludeExternals": true,
-  "name": "Atomex SDK",
-  "ignoreCompilerErrors": true,
-  "plugin": "none",
-  "listInvalidSymbolLinks": true,
-  }
 }
