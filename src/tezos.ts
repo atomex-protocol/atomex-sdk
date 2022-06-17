@@ -237,9 +237,8 @@ export class TezosHelpers extends Helpers {
         case "initiate":
           return params;
         case "fund":
-          return params["initiate"];
         case "default":
-          return params["fund"]["initiate"];
+          return params["initiate"];
         default:
           throw new Error(
             `Unexpected entrypoint: ${content.parameters.entrypoint}`,
@@ -301,7 +300,7 @@ export class TezosHelpers extends Helpers {
           return false;
         }
 
-        if (initiateParameters.receivingAddress !== receivingAddress) {
+        if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase()) {
           console.log(`[${content.counter}] Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`);
           return false;
         }
@@ -318,7 +317,7 @@ export class TezosHelpers extends Helpers {
 
         return true
       }, this);
-      
+
       if (tx === undefined) {
         throw new Error(`Initiate transaction that satisfies the expected criteria is not found in ${txID} contents`)
       }
