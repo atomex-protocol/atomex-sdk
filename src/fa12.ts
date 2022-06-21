@@ -8,13 +8,13 @@ import { TezosToolkit } from "@taquito/taquito";
 /**
  * TZIP-7 Util class for Tezos FA1.2 tokens related Atomex helper functions
  */
- export class Tzip7Helpers extends TezosHelpers {
+ export class FA12Helpers extends TezosHelpers {
 
     /**
      * Connects to the supported tezos chain
      *
      * @param network networks supported by atomex, can be either mainnet or testnet
-     * @param currency either native currency (XTZ) or any supported FA1.2/FA2 token symbol
+     * @param currency FA1.2 token symbol
      * @param rpc optional rpc endpoint to create tezos chain client
      * @returns chain id of the connected chain
      */
@@ -36,7 +36,7 @@ import { TezosToolkit } from "@taquito/taquito";
         );
       }
 
-      return new Tzip7Helpers(
+      return new FA12Helpers(
         tezos,
         config.currencies[currency].contracts.entrypoints,
         config.currencies[currency].contracts[network].address,

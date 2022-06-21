@@ -766,7 +766,7 @@
       },
       "blockchain": "tezos"
     },
-    "USDT": {
+    "USDT_XTZ": {
       "contracts": {
         "mainnet": {
           "address": "<mainnet address>",
