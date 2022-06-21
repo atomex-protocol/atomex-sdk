@@ -41,6 +41,7 @@ export type Algorithm =
 
 export type TezosBasedCurrency = 
   | "XTZ"
+  | "USDT"
   | "TZBTC";
 
 export type Network = 
