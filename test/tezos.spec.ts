@@ -144,6 +144,7 @@ describe("TezosHelpers test", () => {
       "c208b730e72b549634ad2cb377e7a045d43121df74c9ebbddaaa9d91234169fb",
       "tz1RL215HFeALUc1myZp3rKpSt9EuY5EUsbx",
       250000000,
+      0,
       1605453897,
     );
     expect(data).toStrictEqual({
@@ -159,12 +160,48 @@ describe("TezosHelpers test", () => {
       "c208b730e72b549634ad2cb377e7a045d43121df74c9ebbddaaa9d91234169fb",
       "tz1RL215HFeALUc1myZp3rKpSt9EuY5EUsbx",
       250000000,
+      0,
       1605453897,
     );
     expect(data).toStrictEqual({
       status: "Invalid",
       message:
         "Operation not found: ooojqzy45siei3Qs6H6QwoNqdQxiKmSZCXW9mCR5uqHiHrwLyWi @ BLtY6fhCocbyucu1XR7CHPUE5sGQtmZxq9MoR1JGyBMEjJq2oz9",
+      confirmations: 0,
+      nextBlockETA: 0,
+    });
+  });
+
+  test("validateInitiateTransaction with payoff", async () => {
+    let data = await tez.validateInitiateTransaction(
+      869273,
+      "onneiobL9cyMjZtWBXQG9uFFodaqAsHhtnv1EufGeGVxjsjgV3T",
+      "fe2f3b987a22dd17b844282a4c4b3442a3b6d8172855c91898b14ed4b12468ac",
+      "tz1LS4SQJj4BuNBLAsBPgZo9cNPTrBtr5tZA",
+      7590455,
+      145966,
+      1655493207,
+    );
+    expect(data).toStrictEqual({
+      status: "Included",
+      confirmations: 0,
+      nextBlockETA: 1605436108,
+    });
+
+    //invalid details
+    data = await tez.validateInitiateTransaction(
+      869273,
+      "onneiobL9cyMjZtWBXQG9uFFodaqAsHhtnv1EufGeGVxjsjgV3T",
+      "fe2f3b987a22dd17b844282a4c4b3442a3b6d8172855c91898b14ed4b12468ac",
+      "tz1LS4SQJj4BuNBLAsBPgZo9cNPTrBtr5tZA",
+      7444489,
+      145966,
+      1655493207,
+    );
+    expect(data).toStrictEqual({
+      status: "Invalid",
+      message:
+        "Initiate transaction that satisfies the expected criteria is not found in onneiobL9cyMjZtWBXQG9uFFodaqAsHhtnv1EufGeGVxjsjgV3T contents",
       confirmations: 0,
       nextBlockETA: 0,
     });
