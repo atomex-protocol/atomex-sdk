@@ -65,8 +65,8 @@ export class FA2Helpers extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: parseInt(initiateParams["totalAmount"]),
-      rewardForRedeem: 0
+      netAmount: parseInt(initiateParams["totalAmount"]) - parseInt(initiateParams["payoffAmount"]),
+      rewardForRedeem: parseInt(initiateParams["payoffAmount"]),
     };
   }
 
