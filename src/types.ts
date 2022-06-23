@@ -237,4 +237,5 @@ export interface CurrencyConfig {
   decimals: number;
   displayDecimals: number;
   contractAddress: string;
+  tokenAddress?: string;
 }

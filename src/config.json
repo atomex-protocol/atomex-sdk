@@ -604,12 +604,14 @@
       "contracts": {
         "mainnet": {
           "address": "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+          "tokenAddress": "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
           "redeemTxSize": 133,
           "initiateTxSize": 250,
           "gasLimit": 100000
         },
         "testnet": {
           "address": "KT1Jj1jzDQbDRHt4u7M73DUrBDV1napRbNFr",
+          "tokenAddress": "",
           "redeemTxSize": 133,
           "initiateTxSize": 250,
           "gasLimit": 100000
@@ -770,25 +772,27 @@
       "contracts": {
         "mainnet": {
           "address": "<mainnet address>",
+          "tokenAddress": "",
           "redeemTxSize": 20000,
           "initiateTxSize": 20000,
           "gasLimit": 400000
         },
         "testnet": {
           "address": "KT1HHjNxi3okxxGJT1SPPhpcs3gMQt8hqixY",
+          "tokenAddress": "KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR",
           "redeemTxSize": 20000,
           "initiateTxSize": 20000,
           "gasLimit": 400000
         },
         "entrypoints": {
           "default": {
-            "prim": "parameter",
+            "prim": "or",
             "args": [
               {
                 "prim": "or",
                 "args": [
                   {
-                    "prim": "or",
+                    "prim": "pair",
                     "args": [
                       {
                         "prim": "pair",
@@ -797,37 +801,15 @@
                             "prim": "pair",
                             "args": [
                               {
-                                "prim": "pair",
-                                "args": [
-                                  {
-                                    "prim": "bytes",
-                                    "annots": [
-                                      "%hashedSecret"
-                                    ]
-                                  },
-                                  {
-                                    "prim": "address",
-                                    "annots": [
-                                      "%participant"
-                                    ]
-                                  }
+                                "prim": "bytes",
+                                "annots": [
+                                  "%hashedSecret"
                                 ]
                               },
                               {
-                                "prim": "pair",
-                                "args": [
-                                  {
-                                    "prim": "nat",
-                                    "annots": [
-                                      "%payoffAmount"
-                                    ]
-                                  },
-                                  {
-                                    "prim": "timestamp",
-                                    "annots": [
-                                      "%refundTime"
-                                    ]
-                                  }
+                                "prim": "address",
+                                "annots": [
+                                  "%participant"
                                 ]
                               }
                             ]
@@ -836,49 +818,66 @@
                             "prim": "pair",
                             "args": [
                               {
-                                "prim": "pair",
-                                "args": [
-                                  {
-                                    "prim": "address",
-                                    "annots": [
-                                      "%tokenAddress"
-                                    ]
-                                  },
-                                  {
-                                    "prim": "nat",
-                                    "annots": [
-                                      "%tokenId"
-                                    ]
-                                  }
+                                "prim": "nat",
+                                "annots": [
+                                  "%payoffAmount"
+                                ]
+                              },
+                              {
+                                "prim": "timestamp",
+                                "annots": [
+                                  "%refundTime"
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "prim": "pair",
+                        "args": [
+                          {
+                            "prim": "pair",
+                            "args": [
+                              {
+                                "prim": "address",
+                                "annots": [
+                                  "%tokenAddress"
                                 ]
                               },
                               {
                                 "prim": "nat",
                                 "annots": [
-                                  "%totalAmount"
+                                  "%tokenId"
                                 ]
                               }
                             ]
+                          },
+                          {
+                            "prim": "nat",
+                            "annots": [
+                              "%totalAmount"
+                            ]
                           }
-                        ],
-                        "annots": [
-                          "%initiate"
-                        ]
-                      },
-                      {
-                        "prim": "bytes",
-                        "annots": [
-                          "%redeem"
                         ]
                       }
+                    ],
+                    "annots": [
+                      "%initiate"
                     ]
                   },
                   {
                     "prim": "bytes",
                     "annots": [
-                      "%refund"
+                      "%redeem"
                     ]
                   }
+                ]
+              },
+              {
+                "prim": "bytes",
+                "annots": [
+                  "%refund"
                 ]
               }
             ]
