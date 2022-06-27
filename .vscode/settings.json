@@ -1,0 +1,24 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  "[typescript]": {
+    "editor.tabSize": 2,
+  },
+  "[javascript]": {
+    "editor.tabSize": 2
+  },
+  "files.insertFinalNewline": true,
+  "files.eol": "\n",
+  "javascript.preferences.quoteStyle": "single",
+  "typescript.preferences.quoteStyle": "single",
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+  ],
+  "cSpell.language": "en",
+  "cSpell.words": [
+    "atomex"
+  ]
+}
