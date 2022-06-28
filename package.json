@@ -37,6 +37,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "bignumber.js": "^9.0.2"
+    "bignumber.js": "^9.0.2",
+    "web3": "^1.7.4"
   }
 }
