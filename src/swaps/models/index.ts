@@ -1,5 +1,4 @@
-export type { AtomexNetwork } from './network';
-export type { Side } from './side';
+export type { Side } from '../../common/side';
 export type { SwapParticipant } from './swapParticipant';
 export type { SwapParticipantRequisites } from './swapParticipantRequisites';
 export type { SwapParticipantStatus } from './swapParticipantStatus';

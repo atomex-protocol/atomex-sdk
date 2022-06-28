@@ -1,6 +1,6 @@
-import type BigNumber from 'bignumber.js';
+import type { BigNumber } from 'bignumber.js';
 
-import type { Side } from './side';
+import type { Side } from '../../common';
 import type { SwapParticipant } from './swapParticipant';
 
 export interface Swap {

@@ -1,4 +1,4 @@
-import type BigNumber from 'bignumber.js';
+import type { BigNumber } from 'bignumber.js';
 
 export interface SwapParticipantRequisites {
   readonly secretHash: string | null;

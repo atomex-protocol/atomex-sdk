@@ -1,6 +1,6 @@
-import type BigNumber from 'bignumber.js';
+import type { BigNumber } from 'bignumber.js';
 
-import type { Transaction } from '../blockchain';
+import type { Transaction } from '../../blockchain';
 import type { SwapParticipantRequisites } from './swapParticipantRequisites';
 import type { SwapParticipantStatus } from './swapParticipantStatus';
 import type { SwapTransactionType } from './swapTransactionType';
