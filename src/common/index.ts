@@ -1,2 +1,4 @@
-export type { Side } from './side';
-export type { Currency } from './currency';
+export * from './models';
+export type { CurrenciesProvider } from './currenciesProvider';
+
+export { InMemoryCurrenciesProvider } from './inMemoryCurrenciesProvider';
