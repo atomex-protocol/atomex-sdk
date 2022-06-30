@@ -111,7 +111,7 @@ export class AuthorizationManager {
     this._authTokenData.set(authToken.address, authTokenData);
 
     if (isNeedSave)
-      authToken = await this.store.saveAuthToken(authToken.address, authToken);
+      authToken = await this.store.upsertAuthToken(authToken.address, authToken);
 
     return authToken;
   }
