@@ -9,6 +9,7 @@ export interface AtomexOptions {
   client: AtomexClient;
   store: AtomexStore;
   currenciesProvider: CurrenciesProvider;
+  authorizationManager: AuthorizationManager;
   blockchains: {
     [blockchain: string]: {
       [network: string]: AtomexBlockchainOptions;
@@ -20,7 +21,6 @@ export interface AtomexBlockchainOptions {
   atomexProtocol: AtomexProtocol;
   signer: Signer;
   providers: AtomexProviders;
-  authorizationManager?: AuthorizationManager;
 }
 
 export interface AtomexProviders {
