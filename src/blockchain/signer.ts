@@ -4,7 +4,7 @@ import type { AtomexSignature } from './models';
 export interface Signer {
   readonly atomexNetwork: AtomexNetwork;
 
-  getAddress(): Promise<string>;
-  getPublicKey(): Promise<string>;
+  getAddress(): Promise<string> | string;
+  getPublicKey(): Promise<string> | string;
   sign(message: string): Promise<AtomexSignature>;
 }
