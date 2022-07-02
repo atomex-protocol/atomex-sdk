@@ -59,6 +59,7 @@
   },
   "scripts": {
     "build": "node ./scripts/build.mjs",
+    "lint": "eslint . --ext .ts",
     "check-types": "tsc --project tsconfig.build.json",
     "watch": "tsc --project tsconfig.json --watch"
   },
