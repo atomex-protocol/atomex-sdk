@@ -1,6 +1,6 @@
 import type { BigNumber } from 'bignumber.js';
 
-import { Currency } from '../../common/currency';
+import { Currency } from '../../common';
 
 export interface InitiateParameters {
   readonly amount: BigNumber;
