@@ -19,6 +19,9 @@
   ],
   "cSpell.language": "en",
   "cSpell.words": [
-    "atomex"
+    "atomex",
+    "tezos",
+    "outdir",
+    "esbuild"
   ]
 }

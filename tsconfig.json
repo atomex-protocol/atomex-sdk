@@ -10,12 +10,10 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "allowJs": false,
-    "sourceMap": true,
-    "declaration": true,
-    "declarationDir": "dist/types",
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": true
   },
   "include": [
     "src"
