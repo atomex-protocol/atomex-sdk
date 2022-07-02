@@ -1,0 +1,92 @@
+name: Atomex SDK
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+env:
+  node-version: 16
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@master
+
+      - name: Set up Node.js ${{ env.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.node-version }}
+          cache: 'npm'
+
+      - name: Print environment info
+        run: |
+          node --version
+          npm --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the package
+        run: npm run build
+
+      - name: Upload the build as an artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: atomex-sdk
+          path: |
+            dist
+            package.json
+            README.md
+            LICENSE
+          retention-days: 7
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@master
+
+      - name: Set up Node.js ${{ env.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.node-version }}
+          cache: 'npm'
+
+      - name: Print environment info
+        run: |
+          node --version
+          npm --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+  release:
+    name: Publish to the dist branch
+    runs-on: ubuntu-latest
+    needs: [build, lint]
+    if: github.ref == 'refs/heads/master'
+    env:
+      publish_branch: dist
+    steps:
+      - name: Download the build from the artifacts storage
+        uses: actions/download-artifact@v3
+        with:
+          name: atomex-sdk
+
+      - name: Push to the ${{ env.publish_branch }} branch
+        uses: peaceiris/actions-gh-pages@068dc23d9710f1ba62e86896f84735d869951305 # v3.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          destination_dir: packages/atomex-sdk 
+          publish_branch: ${{ env.publish_branch }}
+
+      
