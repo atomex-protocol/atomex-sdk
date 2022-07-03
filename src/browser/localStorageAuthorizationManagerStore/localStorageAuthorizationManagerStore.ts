@@ -9,7 +9,7 @@ type PreDefinedStoreStrategyName = 'single-key' | 'multiple-keys';
 export class LocalStorageAuthorizationManagerStore implements AuthorizationManagerStore {
   protected readonly storeStrategy: StoreStrategy;
 
-  constructor(storeStrategy: PreDefinedStoreStrategyName | StoreStrategy) {
+  constructor(storeStrategy: PreDefinedStoreStrategyName | StoreStrategy = 'single-key') {
     this.storeStrategy = typeof storeStrategy === 'string'
       ? this.createPreDefinedStoreStrategy(storeStrategy)
       : storeStrategy;
