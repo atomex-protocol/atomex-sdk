@@ -1,5 +1,5 @@
-import type { Swap } from '../swaps';
-import type { Transaction } from './models';
+import type { Swap } from '../swaps/index';
+import type { Transaction } from './models/index';
 import type { TransactionsProvider } from './transactionsProvider';
 
 export interface SwapTransactionsProvider extends TransactionsProvider {

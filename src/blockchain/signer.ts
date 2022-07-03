@@ -1,5 +1,5 @@
-import type { AtomexNetwork } from '../common';
-import type { AtomexSignature } from './models';
+import type { AtomexNetwork } from '../common/index';
+import type { AtomexSignature } from './models/index';
 
 export interface Signer {
   readonly atomexNetwork: AtomexNetwork;

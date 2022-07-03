@@ -1,5 +1,5 @@
 import type { AuthToken } from '../authorization/index';
-import type { AuthorizationManagerStore } from '../stores';
+import type { AuthorizationManagerStore } from '../stores/index';
 
 export class LocalStorageAuthorizationManagerStore implements AuthorizationManagerStore {
   getAuthToken(address: string): Promise<AuthToken | undefined> {

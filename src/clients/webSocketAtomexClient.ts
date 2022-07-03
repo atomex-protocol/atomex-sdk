@@ -1,6 +1,6 @@
-import type { AuthorizationManager } from '../authorization';
-import type { AtomexNetwork } from '../common';
-import type { Swap } from '../swaps';
+import type { AuthorizationManager } from '../authorization/index';
+import type { AtomexNetwork } from '../common/index';
+import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 
 export class WebSocketAtomexClient implements AtomexClient {

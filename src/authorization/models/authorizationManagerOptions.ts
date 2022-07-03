@@ -1,6 +1,6 @@
-import type { Signer } from '../../blockchain';
-import type { AtomexNetwork } from '../../common';
-import type { AuthorizationManagerStore } from '../../stores';
+import type { Signer } from '../../blockchain/index';
+import type { AtomexNetwork } from '../../common/index';
+import type { AuthorizationManagerStore } from '../../stores/index';
 
 export interface AuthorizationManagerOptions {
   atomexNetwork: AtomexNetwork;

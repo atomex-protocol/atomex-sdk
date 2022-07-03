@@ -1,4 +1,4 @@
-export type { Side } from '../../common';
+export type { Side } from '../../common/index';
 export type { SwapParticipant } from './swapParticipant';
 export type { SwapParticipantRequisites } from './swapParticipantRequisites';
 export type { SwapParticipantStatus } from './swapParticipantStatus';

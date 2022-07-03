@@ -1,8 +1,12 @@
-import type { Signer } from '../blockchain';
-import type { AtomexNetwork } from '../common';
-import type { AuthorizationManagerStore } from '../stores';
-import { atomexUtils } from '../utils';
-import type { AuthenticationRequestData, AuthenticationResponseData, AuthorizationManagerOptions, AuthToken, AuthTokenData } from './models';
+import type { Signer } from '../blockchain/index';
+import type { AtomexNetwork } from '../common/index';
+import { fetch } from '../native/index';
+import type { AuthorizationManagerStore } from '../stores/index';
+import { atomexUtils } from '../utils/index';
+import type {
+  AuthenticationRequestData, AuthenticationResponseData, AuthorizationManagerOptions,
+  AuthToken, AuthTokenData
+} from './models/index';
 
 export class AuthorizationManager {
   protected static readonly DEFAULT_AUTH_MESSAGE = 'Signing in ';
@@ -77,13 +81,16 @@ export class AuthorizationManager {
       throw new Error(`Not found: the corresponding signer by the ${address} address`);
 
     const timeStamp = this.getAuthorizationTimeStamp(authMessage);
-    const signature = await signer.sign(authMessage + timeStamp);
+    const atomexSignature = await signer.sign(authMessage + timeStamp);
+
+    if (atomexSignature.address !== address)
+      throw new Error('Invalid address in the signed data');
 
     const authenticationResponseData = await this.requestAuthToken({
       message: authMessage,
-      publicKey: signature.publicKey,
-      algorithm: signature.algorithm,
-      signature: signature.value,
+      publicKey: atomexSignature.publicKeyBytes,
+      algorithm: atomexSignature.algorithm,
+      signature: atomexSignature.signatureBytes,
       timeStamp
     });
 
@@ -150,9 +157,12 @@ export class AuthorizationManager {
   }
 
   protected async requestAuthToken(requestData: AuthenticationRequestData): Promise<AuthenticationResponseData> {
-    // TODO: use isomorphic fetch
     const response = await fetch(this.authorizationUrl.href, {
       method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(requestData)
     });
 

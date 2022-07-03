@@ -1,8 +1,8 @@
 import type { BigNumber } from 'bignumber.js';
 
-import { Currency, Side } from '../../common';
-import { OrderType } from '../../exchange';
-import { SwapParticipantRequisites } from '../../swaps';
+import { Currency, Side } from '../../common/index';
+import { OrderType } from '../../exchange/index';
+import { SwapParticipantRequisites } from '../../swaps/index';
 
 export interface NewSwapRequest {
   from: Currency['id'];

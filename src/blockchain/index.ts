@@ -1,4 +1,4 @@
-export * from './models';
+export * from './models/index';
 
 export type { AtomexProtocol } from './atomexProtocol';
 export type { BalancesProvider } from './balancesProvider';

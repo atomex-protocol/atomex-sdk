@@ -1,5 +1,5 @@
-import type { AtomexNetwork } from '../common';
-import type { Swap } from '../swaps';
+import type { AtomexNetwork } from '../common/index';
+import type { Swap } from '../swaps/index';
 
 export interface AtomexClient {
   readonly atomexNetwork: AtomexNetwork;

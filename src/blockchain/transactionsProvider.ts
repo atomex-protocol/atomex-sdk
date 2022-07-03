@@ -1,4 +1,4 @@
-import type { Transaction } from './models';
+import type { Transaction } from './models/index';
 
 export interface TransactionsProvider {
   getTransaction(transactionHash: string): Promise<Transaction>;

@@ -1,4 +1,4 @@
-import { AuthToken } from '../authorization';
+import { AuthToken } from '../authorization/index';
 
 export interface AuthorizationManagerStore {
   getAuthToken(address: string): Promise<AuthToken | undefined>;

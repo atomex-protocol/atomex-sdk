@@ -1,7 +1,7 @@
-import type { AuthToken } from '../authorization';
-import { CurrenciesProvider } from '../common';
-import type { Swap } from '../swaps';
-import { type AtomexOptions, type NewSwapRequest, SwapOperationCompleteStage } from './models';
+import type { AuthToken } from '../authorization/index';
+import { CurrenciesProvider } from '../common/index';
+import type { Swap } from '../swaps/index';
+import { type AtomexOptions, type NewSwapRequest, SwapOperationCompleteStage } from './models/index';
 
 export class Atomex {
   protected readonly authorizationManager;

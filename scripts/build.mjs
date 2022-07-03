@@ -23,15 +23,19 @@ const makeAllPackagesExternalPlugin = {
  */
 const applyPlatformModulesPlugin = {
   name: 'apply-platform-modules-plugin',
-  setup: build => build.onResolve(
-    { filter: /index.abstract/ },
-    args => {
-      let updatedPath = args.path.match(/.(js|ts,mjs,mts)/) ? args.path : args.path + '.ts';
-      updatedPath = updatedPath.replace('abstract', build.initialOptions.platform === 'browser' ? 'browser' : 'node');
+  setup: build => {
 
-      return { path: path.join(args.resolveDir, updatedPath) };
-    }
-  )
+    const extensionRegEx = /\.(js|mjs)$/;
+    build.onResolve(
+      { filter: /index.abstract/ },
+      args => {
+        let updatedPath = extensionRegEx.test(args.path) ? args.path.replace(extensionRegEx, ext => ext.replace('js', 'ts')) : args.path + '.ts';
+        updatedPath = updatedPath.replace('abstract', build.initialOptions.platform === 'browser' ? 'browser' : 'node');
+
+        return { path: path.join(args.resolveDir, updatedPath) };
+      }
+    );
+  }
 };
 
 /**

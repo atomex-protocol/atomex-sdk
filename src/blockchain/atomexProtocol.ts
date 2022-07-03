@@ -1,4 +1,4 @@
-import type { InitiateParameters, RedeemParameters, RefundParameters, Transaction } from './models';
+import type { InitiateParameters, RedeemParameters, RefundParameters, Transaction } from './models/index';
 
 export interface AtomexProtocol {
   readonly version: 1;

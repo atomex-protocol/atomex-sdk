@@ -1,4 +1,4 @@
-import { Currency } from '../../common';
+import { Currency } from '../../common/index';
 
 export interface TezosCurrency extends Currency {
   readonly name: 'Tezos';

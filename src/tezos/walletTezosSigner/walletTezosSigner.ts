@@ -1,12 +1,12 @@
 import { BeaconWallet } from '@taquito/beacon-wallet';
 import { TempleWallet } from '@temple-wallet/dapp';
 
-import type { AtomexSignature, Signer } from '../../blockchain';
-import type { AtomexNetwork } from '../../common';
-import { BeaconTezosWalletSigner } from './beaconTezosWalletSigner';
-import { TempleTezosWalletSigner } from './templeTezosWalletSigner';
+import type { AtomexSignature, Signer } from '../../blockchain/index';
+import type { AtomexNetwork } from '../../common/index';
+import { BeaconWalletTezosSigner } from './beaconWalletTezosSigner';
+import { TempleWalletTezosSigner } from './templeWalletTezosSigner';
 
-export class TezosWalletSigner implements Signer {
+export class WalletTezosSigner implements Signer {
   protected readonly internalSigner: Signer;
 
   constructor(
@@ -30,9 +30,9 @@ export class TezosWalletSigner implements Signer {
 
   protected createInternalSigner() {
     if (this.wallet instanceof BeaconWallet)
-      return new BeaconTezosWalletSigner(this.atomexNetwork, this.wallet);
+      return new BeaconWalletTezosSigner(this.atomexNetwork, this.wallet);
     else if (this.wallet instanceof TempleWallet)
-      return new TempleTezosWalletSigner(this.atomexNetwork, this.wallet);
+      return new TempleWalletTezosSigner(this.atomexNetwork, this.wallet);
     else
       throw new Error('Unknown Tezos wallet');
   }

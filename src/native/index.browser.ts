@@ -1,2 +1,7 @@
+export { Buffer } from 'buffer';
+
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-export { };
+const fetchNative = fetch;
+export {
+  fetchNative as fetch
+};

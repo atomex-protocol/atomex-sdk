@@ -1,4 +1,4 @@
-import type { AtomexNetwork } from '../common';
+import type { AtomexNetwork } from '../common/index';
 
 export const ensureNetworksAreSame = (
   value1: { atomexNetwork: AtomexNetwork } | AtomexNetwork,
