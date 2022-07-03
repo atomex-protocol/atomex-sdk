@@ -13,7 +13,7 @@ export class Atomex {
   }
 
   async start() {
-    await this.authorizationManager.initialize();
+    // TODO
   }
 
   authorize(address: string, forceRequestNewToken = false): Promise<AuthToken> {
