@@ -3,6 +3,7 @@ import { InMemorySigner } from '@taquito/signer';
 import type { AtomexSignature, Signer } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
 import { converters } from '../utils/index';
+import { TezosAtomexSignatureTypes } from './models/index';
 import { decodePublicKey, signingUtils } from './utils/index';
 
 export class InMemoryTezosSigner implements Signer {
@@ -37,7 +38,8 @@ export class InMemoryTezosSigner implements Signer {
       address,
       algorithm,
       publicKeyBytes,
-      signatureBytes
+      signatureBytes,
+      type: TezosAtomexSignatureTypes.Raw
     };
   }
 }

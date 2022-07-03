@@ -4,4 +4,5 @@ export interface AuthenticationRequestData {
   readonly publicKey: string;
   readonly signature: string;
   readonly algorithm: string;
+  readonly type: string;
 }

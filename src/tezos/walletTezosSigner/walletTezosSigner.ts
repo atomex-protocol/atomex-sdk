@@ -29,10 +29,10 @@ export class WalletTezosSigner implements Signer {
   }
 
   protected createInternalSigner() {
-    if (this.wallet instanceof BeaconWallet)
-      return new BeaconWalletTezosSigner(this.atomexNetwork, this.wallet);
-    else if (this.wallet instanceof TempleWallet)
-      return new TempleWalletTezosSigner(this.atomexNetwork, this.wallet);
+    if ((this.wallet as BeaconWallet).client?.name !== undefined)
+      return new BeaconWalletTezosSigner(this.atomexNetwork, (this.wallet as BeaconWallet));
+    else if ((this.wallet as TempleWallet).permission !== undefined && (this.wallet as TempleWallet).connected !== undefined)
+      return new TempleWalletTezosSigner(this.atomexNetwork, (this.wallet as TempleWallet));
     else
       throw new Error('Unknown Tezos wallet');
   }

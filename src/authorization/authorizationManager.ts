@@ -90,6 +90,7 @@ export class AuthorizationManager {
       message: authMessage,
       publicKey: atomexSignature.publicKeyBytes,
       algorithm: atomexSignature.algorithm,
+      type: atomexSignature.type || 'raw',
       signature: atomexSignature.signatureBytes,
       timeStamp
     });

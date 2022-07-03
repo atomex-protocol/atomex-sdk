@@ -6,5 +6,6 @@ export interface Signer {
 
   getAddress(): Promise<string> | string;
   getPublicKey(): Promise<string> | string;
+
   sign(message: string): Promise<AtomexSignature>;
 }

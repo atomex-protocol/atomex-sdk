@@ -3,8 +3,9 @@ import type { BeaconWallet } from '@taquito/beacon-wallet';
 
 import type { AtomexSignature, Signer } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
-import { converters } from '../../utils/index';
+import { TezosAtomexSignatureTypes } from '../models/index';
 import { decodePublicKey, signingUtils } from '../utils/index';
+import { decodeSignature } from '../utils/signing';
 
 export class BeaconWalletTezosSigner implements Signer {
   constructor(
@@ -30,20 +31,20 @@ export class BeaconWalletTezosSigner implements Signer {
       this.getAddress(),
       this.getPublicKey(),
       this.beaconWallet.client.requestSignPayload({
-        payload: message,
+        payload: signingUtils.getWalletMichelineMessage(message),
         signingType: SigningType.MICHELINE,
       })
     ]);
-
     const algorithm = signingUtils.getTezosSigningAlgorithm(publicKey);
     const publicKeyBytes = decodePublicKey(publicKey);
-    const signatureBytes = converters.stringToBytes(signature.signature);
+    const signatureBytes = decodeSignature(signature.signature);
 
     return {
       address,
       algorithm,
       publicKeyBytes,
       signatureBytes,
+      type: TezosAtomexSignatureTypes.WalletMicheline
     };
   }
 }

@@ -2,8 +2,9 @@ import type { TempleWallet } from '@temple-wallet/dapp';
 
 import type { AtomexSignature, Signer } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
-import { converters } from '../../utils/index';
+import { TezosAtomexSignatureTypes } from '../models/index';
 import { decodePublicKey, signingUtils } from '../utils/index';
+import { decodeSignature } from '../utils/signing';
 
 export class TempleWalletTezosSigner implements Signer {
   constructor(
@@ -28,18 +29,19 @@ export class TempleWalletTezosSigner implements Signer {
     const [address, publicKey, signature] = await Promise.all([
       this.getAddress(),
       this.getPublicKey(),
-      this.templeWallet.sign(message)
+      this.templeWallet.sign(signingUtils.getWalletMichelineMessage(message))
     ]);
 
     const algorithm = signingUtils.getTezosSigningAlgorithm(publicKey);
     const publicKeyBytes = decodePublicKey(publicKey);
-    const signatureBytes = converters.stringToBytes(signature);
+    const signatureBytes = decodeSignature(signature);
 
     return {
       address,
       algorithm,
       publicKeyBytes,
       signatureBytes,
+      type: TezosAtomexSignatureTypes.WalletMicheline
     };
   }
 }

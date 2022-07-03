@@ -10,11 +10,10 @@ export class LocalStorageAuthorizationManagerStore implements AuthorizationManag
     return Promise.resolve(JSON.parse(rawAuthToken));
   }
 
-  getAuthTokens(...addresses: string[]): Promise<AuthToken[]> {
-    return Promise.all(addresses
-      .map(address => this.getAuthToken(address) as unknown as AuthToken)
-      .filter(Boolean)
-    );
+  async getAuthTokens(...addresses: string[]): Promise<AuthToken[]> {
+    const result = await Promise.all(addresses.map(address => this.getAuthToken(address)));
+
+    return result.filter(Boolean) as AuthToken[];
   }
 
   upsertAuthToken(address: string, authToken: AuthToken): Promise<AuthToken> {
