@@ -67,6 +67,13 @@
     "check-types": "tsc --project tsconfig.build.json",
     "watch": "tsc --project tsconfig.json --watch"
   },
+  "typesVersions": {
+    "*": {
+      "development": [
+        "dist/types/index.d.ts"
+      ]
+    }
+  },
   "license": "GPLv3",
   "author": "Andrew Skubarenko <andrew.skubarenko@gmail.com>, Michael Zaikin <mz@baking-bad.org>",
   "homepage": "https://sdk.atomex.me",
