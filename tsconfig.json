@@ -12,6 +12,7 @@
     "allowJs": false,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "noEmit": true
   },
