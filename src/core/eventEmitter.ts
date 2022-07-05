@@ -35,3 +35,5 @@ export class EventEmitter<T extends readonly unknown[]> implements PublicEventEm
         }
     }
 }
+
+export type ToEventEmitter<T> = T extends PublicEventEmitter<infer TArgs> ? EventEmitter<TArgs> : never;
