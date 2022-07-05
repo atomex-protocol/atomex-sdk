@@ -1,10 +1,10 @@
 import { OperationContentsAndResultTransaction } from "@taquito/rpc";
 import { TezosToolkit } from "@taquito/taquito";
 import { GenerateMockRPCClient, GetTzBTCHelperInstance } from "./helpers/tezos";
-import initiate_tx from "./data/tzip7_initiate_tx.json";
+import initiate_tx from "./data/fa12_initiate_tx.json";
 import config from "../src/config.json";
 
-describe("Tzip7Helpers test", () => {
+describe("FA12Helpers test", () => {
     const toolKit = new TezosToolkit(config.blockchains.tezos.rpc.testnet.rpc);
     toolKit["_context"].rpc = GenerateMockRPCClient("applied", 10000, 100, null);
     const tzbtc = GetTzBTCHelperInstance(toolKit);

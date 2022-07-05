@@ -340,6 +340,7 @@ export class Atomex {
       decimals: currencyEntry[1].decimals.original,
       displayDecimals: currencyEntry[1].decimals.displayed,
       contractAddress: currencyEntry[1].contracts[this._network].address,
+      tokenAddress: (currencyEntry[1].contracts[this._network] as any).tokenAddress
     };
   }
 

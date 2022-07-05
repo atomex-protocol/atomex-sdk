@@ -41,6 +41,7 @@ export type Algorithm =
 
 export type TezosBasedCurrency = 
   | "XTZ"
+  | "USDT_XTZ"
   | "TZBTC";
 
 export type Network = 
@@ -236,4 +237,5 @@ export interface CurrencyConfig {
   decimals: number;
   displayDecimals: number;
   contractAddress: string;
+  tokenAddress?: string;
 }

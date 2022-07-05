@@ -1,7 +1,7 @@
 import { TezosToolkit } from "@taquito/taquito";
 import config from "../../src/config.json";
 import { TezosHelpers } from "../../src/tezos";
-import { Tzip7Helpers } from "../../src/tzip7";
+import { FA12Helpers } from "../../src/fa12";
 import block_data from "../data/tezos_block_data.json";
 export const GenerateMockRPCClient = (
   status: string,
@@ -53,7 +53,7 @@ export const GetTezosHelperInstance = (toolKit: TezosToolkit) => {
 };
 
 export const GetTzBTCHelperInstance = (toolKit: TezosToolkit) => {
-  return new Tzip7Helpers(
+  return new FA12Helpers(
     toolKit,
     config.currencies.TZBTC.contracts.entrypoints,
     config.currencies.TZBTC.contracts.mainnet.address,
