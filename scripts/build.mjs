@@ -109,7 +109,7 @@ try {
 
     await build({
       ...getBrowserJsOptions(isProduction),
-      format: 'cjs'
+      format: 'esm'
     });
   }
 
