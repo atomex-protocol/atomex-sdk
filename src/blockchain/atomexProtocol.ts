@@ -1,9 +1,6 @@
-import type { InitiateParameters, RedeemParameters, RefundParameters, Transaction } from './models/index';
+import type { AtomexNetwork } from '../index';
 
 export interface AtomexProtocol {
-  readonly version: 1;
-
-  initiate(params: InitiateParameters): Promise<Transaction>;
-  redeem(params: RedeemParameters): Promise<Transaction>;
-  refund(params: RefundParameters): Promise<Transaction>;
+  readonly version: number;
+  readonly network: AtomexNetwork;
 }
