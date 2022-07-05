@@ -8,6 +8,8 @@ import { decodePublicKey, signingUtils } from '../utils/index';
 import { decodeSignature } from '../utils/signing';
 
 export class BeaconWalletTezosSigner implements Signer {
+  readonly blockchain = 'tezos';
+
   constructor(
     readonly atomexNetwork: AtomexNetwork,
     protected readonly beaconWallet: BeaconWallet

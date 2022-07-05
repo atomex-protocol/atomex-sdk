@@ -1,4 +1,4 @@
-import type { Signer } from '../blockchain/index';
+import type { Signer, SignersManager } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
 import { fetch } from '../native/index';
 import type { AuthorizationManagerStore } from '../stores/index';
@@ -15,23 +15,22 @@ export class AuthorizationManager {
 
   readonly atomexNetwork: AtomexNetwork;
 
+  protected readonly signersManager: SignersManager;
   protected readonly store: AuthorizationManagerStore;
   protected readonly authorizationUrl: URL;
   protected readonly expiringNotificationTimeInSeconds: number;
 
-  private readonly _signers: Set<Signer> = new Set();
   private readonly _authTokenData: Map<string, AuthTokenData> = new Map();
 
   constructor(options: AuthorizationManagerOptions) {
     this.atomexNetwork = options.atomexNetwork;
     this.store = options.store;
+    this.signersManager = options.signersManager;
+
+    atomexUtils.ensureNetworksAreSame(this, this.signersManager);
 
     this.authorizationUrl = new URL(AuthorizationManager.DEFAULT_GET_AUTH_TOKEN_URI, options.authorizationBaseUrl);
     this.expiringNotificationTimeInSeconds = options.expiringNotificationTimeInSeconds || AuthorizationManager.DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS;
-  }
-
-  protected get signers(): Set<Signer> {
-    return this._signers;
   }
 
   protected get authTokenData(): ReadonlyMap<string, AuthTokenData> {
@@ -45,15 +44,17 @@ export class AuthorizationManager {
   async authorize(
     address: string,
     forceRequestNewToken = false,
+    blockchain?: string,
     authMessage: string = AuthorizationManager.DEFAULT_AUTH_MESSAGE
   ): Promise<AuthToken> {
     if (!forceRequestNewToken) {
-      const authToken = this.getAuthToken(address);
+      const authToken = this.getAuthToken(address) || (await this.loadAuthTokenFromStore(address));
+
       if (authToken && !this.isTokenExpiring(authToken))
         return authToken;
     }
 
-    const signer = await this.findSignerByAddress(address);
+    const signer = await this.signersManager.findSigner(address, blockchain);
     if (!signer)
       throw new Error(`Not found: the corresponding signer by the ${address} address`);
 
@@ -90,27 +91,13 @@ export class AuthorizationManager {
     return authToken ? this.unregisterAuthToken(authToken) : false;
   }
 
-  async addSigner(signer: Signer): Promise<Signer> {
-    atomexUtils.ensureNetworksAreSame(this, signer);
-    this._signers.add(signer);
-
-    const address = await signer.getAddress();
+  async loadAuthTokenFromStore(address: string): Promise<AuthToken | undefined> {
     const authToken = await this.store.getAuthToken(address);
 
-    if (authToken)
-      await this.registerAuthToken(authToken, false);
+    if (!authToken)
+      return undefined;
 
-    return signer;
-  }
-
-  async removeSigner(signer: Signer): Promise<boolean>;
-  async removeSigner(address: string): Promise<boolean>;
-  async removeSigner(signerOrAddress: Signer | string): Promise<boolean> {
-    const signer = typeof signerOrAddress === 'string'
-      ? (await this.findSignerByAddress(signerOrAddress))
-      : signerOrAddress;
-
-    return signer ? this._signers.delete(signer) : false;
+    return await this.registerAuthToken(authToken, false);
   }
 
   protected async registerAuthToken(authToken: AuthToken, isNeedSave: boolean): Promise<AuthToken | undefined> {
@@ -177,37 +164,6 @@ export class AuthorizationManager {
       throw new Error(await response.text());
 
     return response.json();
-  }
-
-  protected async findSignerByAddress(address: string): Promise<Signer | undefined> {
-    if (!this.signers.size)
-      return undefined;
-
-    const signerAndAddressPromises: Array<Promise<[signer: Signer, address: string]>> = [];
-    for (const signer of this.signers) {
-      const addressOrPromise = signer.getAddress();
-      if (typeof addressOrPromise === 'string') {
-        if (addressOrPromise === address)
-          return signer;
-        else
-          continue;
-      }
-
-      signerAndAddressPromises.push(addressOrPromise.then(address => [signer, address]));
-    }
-
-    const signerAndAddressResults = await Promise.allSettled(signerAndAddressPromises);
-    for (const signerAndAddressResult of signerAndAddressResults) {
-      if (signerAndAddressResult.status !== 'fulfilled') {
-        // TODO: warning if status === 'rejected'
-        continue;
-      }
-
-      if (signerAndAddressResult.value[1] === address)
-        return signerAndAddressResult.value[0];
-    }
-
-    return undefined;
   }
 
   protected authTokenExpiringTimeoutCallback = (authToken: AuthToken) => {

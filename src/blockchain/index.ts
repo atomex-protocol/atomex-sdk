@@ -1,4 +1,5 @@
 export * from './models/index';
+export { SignersManager } from './signersManager';
 
 export type { AtomexProtocol } from './atomexProtocol';
 export type { AtomexProtocolV1 } from './atomexProtocolV1';

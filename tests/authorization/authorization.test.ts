@@ -1,3 +1,4 @@
+import { SignersManager } from '../../src/blockchain/signersManager';
 import {
   AuthorizationManager, InMemoryAuthorizationManagerStore, InMemoryTezosSigner,
   type AtomexNetwork
@@ -6,17 +7,19 @@ import {
 describe('Atomex authorization', () => {
   const authTokenExpirationPeriodMs = 24 * 60 * 60 * 1000;
   const atomexNetwork: AtomexNetwork = 'testnet';
+  const signersManager = new SignersManager(atomexNetwork);
   const signer = new InMemoryTezosSigner(atomexNetwork, 'edskReuKVn9gfiboVjbcPkNnhLiyyFLDAwB3CHemb43zpKG3MpBf2CvwDNML2FitCP8fvdLXi4jdDVR1PHB4V9D8BWoYB4SQCU');
   let authorizationManager: AuthorizationManager;
 
   beforeEach(async () => {
     authorizationManager = new AuthorizationManager({
       atomexNetwork,
+      signersManager,
       store: new InMemoryAuthorizationManagerStore(),
       authorizationBaseUrl: 'https://api.test.atomex.me'
     });
 
-    await authorizationManager.addSigner(signer);
+    await signersManager.addSigner(signer);
   });
 
   test('first authorization', async () => {

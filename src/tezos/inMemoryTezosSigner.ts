@@ -6,6 +6,8 @@ import { TezosAtomexSignatureTypes } from './models/index';
 import { decodePublicKey, signingUtils } from './utils/index';
 
 export class InMemoryTezosSigner implements Signer {
+  readonly blockchain = 'tezos';
+
   protected readonly internalInMemorySigner: InMemorySigner;
 
   constructor(readonly atomexNetwork: AtomexNetwork, secretKey: string) {

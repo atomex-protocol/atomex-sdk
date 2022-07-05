@@ -7,6 +7,8 @@ import { decodePublicKey, signingUtils } from '../utils/index';
 import { decodeSignature } from '../utils/signing';
 
 export class TempleWalletTezosSigner implements Signer {
+  readonly blockchain = 'tezos';
+
   constructor(
     readonly atomexNetwork: AtomexNetwork,
     protected readonly templeWallet: TempleWallet

@@ -1,5 +1,6 @@
 export { Atomex } from './atomex';
 export { AuthorizationManager } from './authorization/index';
+export { SignersManager } from './blockchain/index';
 export { InMemoryAuthorizationManagerStore } from './stores/index';
 export * from './tezos/index';
 export * from './browser/index';
