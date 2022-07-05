@@ -8,7 +8,7 @@ export class Atomex {
   readonly currenciesProvider: CurrenciesProvider;
 
   constructor(options: AtomexOptions) {
-    this.currenciesProvider = options.currenciesProvider;
+    this.currenciesProvider = options.providers.currenciesProvider;
     this.authorizationManager = options.authorizationManager;
   }
 
