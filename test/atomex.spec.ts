@@ -661,8 +661,8 @@ describe("Atomex test", () => {
   test("getOrderSide", () => {
     const atomex = new Atomex("testnet", "http://localost/");
 
-    expect(atomex.getOrderSide("XTZ/ETH", "ethereum", "tezos")).toBe("Buy");
-    expect(atomex.getOrderSide("XTZ/ETH", "tezos", "ethereum")).toBe("Sell");
+    expect(atomex.getOrderSide("XTZ/ETH", "ETH", "XTZ")).toBe("Buy");
+    expect(atomex.getOrderSide("XTZ/ETH", "XTZ", "ETH")).toBe("Sell");
   });
 
   test("getMaxOrderSize", () => {

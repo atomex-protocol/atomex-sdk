@@ -361,32 +361,23 @@ export class Atomex {
    * Get order side for a particular trading pair given the bridge direction
    *
    * @param symbol Atomex trading pair {baseCurrency}/{quoteCurrency}
-   * @param srcBlockchain Left bridge leg
-   * @param dstBlockchain Right bridge leg
+   * @param fromCurrency Currency to send
+   * @param toCurrency Currency to receive
    */
   getOrderSide(
     symbol: string,
-    srcBlockchain: string,
-    dstBlockchain: string,
+    fromCurrency: string,
+    toCurrency: string,
   ): Side {
-    const [baseConfig, quoteConfig] = this.splitSymbol(symbol).map((x) =>
-      this.getCurrencyConfig(x),
-    );
-    if (
-      baseConfig.blockchain == srcBlockchain &&
-      quoteConfig.blockchain == dstBlockchain
-    ) {
+    const [baseCurrency, quoteCurrency] = this.splitSymbol(symbol);
+
+    if (baseCurrency === fromCurrency && quoteCurrency === toCurrency)
       return "Sell";
-    } else if (
-      baseConfig.blockchain == dstBlockchain &&
-      quoteConfig.blockchain == srcBlockchain
-    ) {
+
+    if (quoteCurrency === fromCurrency && baseCurrency === toCurrency)
       return "Buy";
-    } else {
-      throw new Error(
-        `Mismatch ${srcBlockchain} => ${dstBlockchain} (${symbol})`,
-      );
-    }
+
+    throw new Error(`Mismatch ${fromCurrency} => ${toCurrency} (${symbol})`);
   }
 
   /**
