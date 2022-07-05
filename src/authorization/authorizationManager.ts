@@ -84,6 +84,12 @@ export class AuthorizationManager {
     return authToken;
   }
 
+  async unauthorize(address: string): Promise<boolean> {
+    const authToken = this.getAuthToken(address);
+
+    return authToken ? this.unregisterAuthToken(authToken) : false;
+  }
+
   async addSigner(signer: Signer): Promise<Signer> {
     atomexUtils.ensureNetworksAreSame(this, signer);
     this._signers.add(signer);
