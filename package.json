@@ -1,53 +1,95 @@
 {
   "name": "atomex-sdk",
-  "version": "0.1.17",
+  "version": "0.2.0",
   "description": "Atomex SDK",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "scripts": {
-    "compile": "tsc",
-    "start": "node lib/index.js",
-    "lint": "eslint . --ext .ts",
-    "dep-check": "dependency-check ./package.json --no-dev",
-    "test": "jest",
-    "typedoc": "typedoc"
+  "engines": {
+    "node": ">=16.14.0",
+    "npm": ">=8.7.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/atomex-me/atomex-sdk-ts.git"
-  },
-  "author": "Soumya Ghosh Dastidar, Michael Zaikin <mz@baking-bad.org>",
-  "license": "GPLv3",
-  "bugs": {
-    "url": "https://github.com/atomex-me/atomex-sdk-ts/issues"
-  },
-  "homepage": "https://sdk.atomex.me",
-  "devDependencies": {
-    "@taquito/local-forging": "^13.0.0",
-    "@types/jest": "^26.0.15",
-    "@types/openapi-sampler": "^1.0.0",
-    "@typescript-eslint/eslint-plugin": "^4.3.0",
-    "@typescript-eslint/parser": "^4.3.0",
-    "dependency-check": "^4.1.0",
-    "eslint": "^7.10.0",
-    "eslint-config-prettier": "^6.12.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "jest": "^26.6.3",
-    "js-sha256": "^0.9.0",
-    "openapi-sampler": "^1.0.0-beta.18",
-    "prettier": "^2.1.2",
-    "ts-jest": "^26.4.4",
-    "typedoc": "^0.22.17",
-    "typescript": "^4.7.3",
-    "web3-fake-provider": "^0.1.0"
+  "main": "dist/node/index.js",
+  "module": "dist/node/index.mjs",
+  "browser": "dist/browser/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/node/index.mjs",
+        "require": "./dist/node/index.cjs",
+        "default": "./dist/node/index.mjs"
+      },
+      "browser": {
+        "import": "./dist/browser/index.js",
+        "default": "./dist/browser/index.js"
+      },
+      "default": "./dist/node/index.js"
+    },
+    "./development": {
+      "node": {
+        "import": "./dist/node/development/index.mjs",
+        "require": "./dist/node/development/index.cjs",
+        "default": "./dist/node/development/index.mjs"
+      },
+      "browser": {
+        "import": "./dist/browser/development/index.js",
+        "default": "./dist/browser/development/index.js"
+      },
+      "default": "./dist/node/development/index.js"
+    }
   },
   "dependencies": {
-    "@taquito/michelson-encoder": "^13.0.0",
+    "@taquito/beacon-wallet": "^13.0.0",
+    "@taquito/signer": "^13.0.0",
     "@taquito/taquito": "^13.0.0",
-    "@types/elliptic": "^6.4.12",
-    "@types/node-fetch": "^2.5.7",
-    "elliptic": "^6.5.3",
-    "isomorphic-unfetch": "^3.1.0",
-    "web3": "^1.3.0"
+    "bignumber.js": "^9.0.2",
+    "lodash.isplainobject": "^4.0.6",
+    "node-fetch": "^2.6.7",
+    "web3": "^1.7.4"
+  },
+  "peerDependencies": {
+    "@airgap/beacon-sdk": "^3.1.1",
+    "@temple-wallet/dapp": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^28.1.3",
+    "@types/lodash.isplainobject": "^4.0.7",
+    "@types/node-fetch": "^2.6.2",
+    "@typescript-eslint/eslint-plugin": "^5.29.0",
+    "@typescript-eslint/parser": "^5.29.0",
+    "esbuild": "^0.14.48",
+    "eslint": "^8.18.0",
+    "eslint-plugin-import": "^2.26.0",
+    "jest": "^28.1.1",
+    "ts-jest": "^28.0.5",
+    "typescript": "^4.7.4"
+  },
+  "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "test": "jest --coverage",
+    "lint": "eslint . --ext .ts",
+    "check-types": "tsc --project tsconfig.build.json",
+    "watch": "tsc --project tsconfig.json --watch"
+  },
+  "typesVersions": {
+    "*": {
+      "development": [
+        "dist/types/index.d.ts"
+      ]
+    }
+  },
+  "license": "GPLv3",
+  "author": "Andrew Skubarenko <andrew.skubarenko@gmail.com>, Michael Zaikin <mz@baking-bad.org>",
+  "homepage": "https://sdk.atomex.me",
+  "keywords": [
+    "atomex"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atomex-protocol/atomex-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atomex-protocol/atomex-sdk/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,5 +1,10 @@
-export * from "./atomex";
-export * from "./ethereum";
-export * from "./helpers";
-export * from "./tezos";
-export * from "./tzip7";
+export { Atomex } from './atomex';
+export { AuthorizationManager } from './authorization/index';
+export { InMemoryAuthorizationManagerStore } from './stores/index';
+export * from './tezos/index';
+export * from './browser/index';
+
+export type { AuthToken } from './authorization/index';
+export type { AtomexOptions } from './atomex/index';
+export type { AtomexStore, AuthorizationManagerStore } from './stores/index';
+export type { AtomexNetwork, Currency, Side } from './common/index';

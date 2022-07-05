@@ -1,12 +1,26 @@
 {
   "compilerOptions": {
-    "declaration": true,
-    "outDir": "lib",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "NodeNext",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "strict": true,
-    "target": "es5",
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "resolveJsonModule": true
+    "noUncheckedIndexedAccess": true,
+    "allowJs": false,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "noEmit": true
   },
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests"
+  ],
 }

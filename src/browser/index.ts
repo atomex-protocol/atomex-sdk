@@ -1,0 +1,1 @@
+export { LocalStorageAuthorizationManagerStore } from './localStorageAuthorizationManagerStore';
