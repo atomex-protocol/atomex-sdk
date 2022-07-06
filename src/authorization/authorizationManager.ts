@@ -68,7 +68,7 @@ export class AuthorizationManager {
       message: authMessage,
       publicKey: atomexSignature.publicKeyBytes,
       algorithm: atomexSignature.algorithm,
-      type: atomexSignature.type || 'raw',
+      signingMessageType: atomexSignature.signingMessageType,
       signature: atomexSignature.signatureBytes,
       timeStamp
     });
