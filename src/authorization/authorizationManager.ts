@@ -190,25 +190,4 @@ export class AuthorizationManager {
   protected isTokenExpiring(authToken: AuthToken) {
     return (authToken.expired.getTime() - Date.now()) <= (this.expiringNotificationTimeInSeconds * 1000);
   }
-
-  private static async groupSignersByAddress(signers: readonly Signer[], targetMap: Map<string, Signer>) {
-    const addressResults = await Promise.allSettled(signers.map(signer => signer.getAddress()));
-
-    targetMap.clear();
-    for (let i = 0; i < addressResults.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const addressResult = addressResults[i]!;
-
-      if (addressResult.status !== 'fulfilled') {
-        // TODO: warning if status === 'rejected'
-        continue;
-      }
-
-      const signer = signers[i];
-      if (!signer)
-        throw new Error('Signers collection has been changed!');
-
-      targetMap.set(addressResult.value, signer);
-    }
-  }
 }
