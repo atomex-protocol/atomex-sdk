@@ -1,3 +1,3 @@
-export type { AuthToken } from './models/index';
+export type { AuthToken, AuthorizationManagerOptions } from './models/index';
 
 export { AuthorizationManager } from './authorizationManager';

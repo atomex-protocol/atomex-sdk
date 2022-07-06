@@ -2,3 +2,4 @@ export { LocalStorageAuthorizationManagerStore } from './localStorageAuthorizati
 export { DefaultSerializedAuthTokenMapper } from './defaultSerializedAuthTokenMapper';
 
 export type { SerializedAuthTokenMapper } from './serializedAuthTokenMapper';
+export type { SerializedAuthToken } from './serializedAuthToken';

@@ -1,2 +1,2 @@
 export { Atomex } from './atomex';
-export type { AtomexOptions } from './models/index';
+export type { AtomexOptions, NewSwapRequest } from './models/index';

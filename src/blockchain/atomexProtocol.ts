@@ -1,4 +1,4 @@
-import type { AtomexNetwork } from '../index';
+import type { AtomexNetwork } from '../common/index';
 
 export interface AtomexProtocol {
   readonly version: number;

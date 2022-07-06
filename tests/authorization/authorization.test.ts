@@ -1,6 +1,5 @@
-import { SignersManager } from '../../src/blockchain/signersManager';
 import {
-  AuthorizationManager, InMemoryAuthorizationManagerStore, InMemoryTezosSigner,
+  AuthorizationManager, SignersManager, InMemoryAuthorizationManagerStore, InMemoryTezosSigner,
   type AtomexNetwork
 } from '../../src/index';
 
