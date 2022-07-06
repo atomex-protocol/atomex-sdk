@@ -1,23 +1,20 @@
-import type { AuthToken } from '../authorization/index';
-import { CurrenciesProvider } from '../common/index';
+import type { SignersManager } from '../blockchain/index';
+import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
 import type { Swap } from '../swaps/index';
-import { type AtomexOptions, type NewSwapRequest, SwapOperationCompleteStage } from './models/index';
+import { SwapOperationCompleteStage, type AtomexOptions, type NewSwapRequest } from './models/index';
 
 export class Atomex {
-  protected readonly authorizationManager;
+  readonly atomexNetwork: AtomexNetwork;
+  readonly authorization;
+  readonly signers: SignersManager;
+
   readonly currenciesProvider: CurrenciesProvider;
 
   constructor(options: AtomexOptions) {
+    this.atomexNetwork = options.atomexNetwork;
     this.currenciesProvider = options.providers.currenciesProvider;
-    this.authorizationManager = options.authorizationManager;
-  }
-
-  async start() {
-    // TODO
-  }
-
-  authorize(address: string, forceRequestNewToken = false): Promise<AuthToken> {
-    return this.authorizationManager.authorize(address, forceRequestNewToken);
+    this.signers = options.signersManager;
+    this.authorization = options.authorizationManager;
   }
 
   async swap(newSwapRequest: NewSwapRequest, completeStage: SwapOperationCompleteStage): Promise<Swap>;

@@ -1,6 +1,8 @@
 import type { AuthToken } from '../../authorization/index';
 import type { AuthorizationManagerStore } from '../../stores/index';
+import { DefaultSerializedAuthTokenMapper } from './defaultSerializedAuthTokenMapper';
 import { MultipleKeysStoreStrategy } from './multipleKeysStoreStrategy';
+import type { SerializedAuthTokenMapper } from './serializedAuthTokenMapper';
 import { SingleKeyStoreStrategy } from './singleKeyStoreStrategy';
 import type { StoreStrategy } from './storeStrategy';
 
@@ -9,9 +11,12 @@ type PreDefinedStoreStrategyName = 'single-key' | 'multiple-keys';
 export class LocalStorageAuthorizationManagerStore implements AuthorizationManagerStore {
   protected readonly storeStrategy: StoreStrategy;
 
-  constructor(storeStrategy: PreDefinedStoreStrategyName | StoreStrategy = 'single-key') {
+  constructor(
+    storeStrategy: PreDefinedStoreStrategyName | StoreStrategy = 'single-key',
+    serializedAuthTokenMapper: SerializedAuthTokenMapper = new DefaultSerializedAuthTokenMapper()
+  ) {
     this.storeStrategy = typeof storeStrategy === 'string'
-      ? this.createPreDefinedStoreStrategy(storeStrategy)
+      ? this.createPreDefinedStoreStrategy(storeStrategy, serializedAuthTokenMapper)
       : storeStrategy;
   }
 
@@ -37,12 +42,12 @@ export class LocalStorageAuthorizationManagerStore implements AuthorizationManag
     return Promise.resolve(this.storeStrategy.removeAuthToken(address));
   }
 
-  private createPreDefinedStoreStrategy(strategyName: PreDefinedStoreStrategyName) {
+  private createPreDefinedStoreStrategy(strategyName: PreDefinedStoreStrategyName, serializedAuthTokenMapper: SerializedAuthTokenMapper) {
     switch (strategyName) {
       case 'single-key':
-        return new SingleKeyStoreStrategy(globalThis.localStorage);
+        return new SingleKeyStoreStrategy(globalThis.localStorage, serializedAuthTokenMapper);
       case 'multiple-keys':
-        return new MultipleKeysStoreStrategy(globalThis.localStorage);
+        return new MultipleKeysStoreStrategy(globalThis.localStorage, serializedAuthTokenMapper);
       default:
         throw new Error(`Unknown the store strategy name: ${strategyName}`);
     }

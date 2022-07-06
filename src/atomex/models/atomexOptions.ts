@@ -1,11 +1,12 @@
 import type { AuthorizationManager } from '../../authorization/index';
-import type { AtomexProtocol, BalancesProvider, Signer, SwapTransactionsProvider } from '../../blockchain/index';
+import type { AtomexProtocol, BalancesProvider, SignersManager, SwapTransactionsProvider } from '../../blockchain/index';
 import { AtomexNetwork, CurrenciesProvider } from '../../common/index';
 import type { ExchangeService } from '../../exchange/index';
 
 export interface AtomexOptions {
-  network: AtomexNetwork;
+  atomexNetwork: AtomexNetwork;
   authorizationManager: AuthorizationManager;
+  signersManager: SignersManager;
   providers: AtomexProviders;
   services: AtomexServices;
   blockchains: {
@@ -25,7 +26,6 @@ export interface AtomexServices {
 
 export interface AtomexBlockchainOptions {
   atomexProtocol: AtomexProtocol;
-  signer: Signer;
   providers: AtomexBlockchainProviders;
 }
 

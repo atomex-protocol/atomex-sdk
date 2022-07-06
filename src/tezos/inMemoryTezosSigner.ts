@@ -2,10 +2,11 @@ import { InMemorySigner } from '@taquito/signer';
 
 import type { AtomexSignature, Signer } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
-import { TezosAtomexSignatureTypes } from './models/index';
 import { decodePublicKey, signingUtils } from './utils/index';
 
 export class InMemoryTezosSigner implements Signer {
+  readonly blockchain = 'tezos';
+
   protected readonly internalInMemorySigner: InMemorySigner;
 
   constructor(readonly atomexNetwork: AtomexNetwork, secretKey: string) {
@@ -21,7 +22,7 @@ export class InMemoryTezosSigner implements Signer {
   }
 
   async sign(message: string): Promise<AtomexSignature> {
-    const messageBytes = signingUtils.getRawMessage(message);
+    const messageBytes = signingUtils.getRawSigningData(message);
 
     const [address, publicKey, rawSignature] = await Promise.all([
       this.getAddress(),
@@ -37,8 +38,7 @@ export class InMemoryTezosSigner implements Signer {
       address,
       algorithm,
       publicKeyBytes,
-      signatureBytes,
-      type: TezosAtomexSignatureTypes.Raw
+      signatureBytes
     };
   }
 }

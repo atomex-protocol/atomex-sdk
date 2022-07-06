@@ -1,1 +1,1 @@
-export * from './models/index';
+export type { Swap, SwapParticipant, SwapParticipantRequisites, SwapParticipantStatus } from './models/index';

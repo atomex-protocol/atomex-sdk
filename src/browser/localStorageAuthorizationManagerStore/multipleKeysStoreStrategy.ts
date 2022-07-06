@@ -1,4 +1,5 @@
 import type { AuthToken } from '../../index';
+import type { SerializedAuthTokenMapper } from './serializedAuthTokenMapper';
 import type { StoreStrategy } from './storeStrategy';
 
 export class MultipleKeysStoreStrategy implements StoreStrategy {
@@ -6,6 +7,7 @@ export class MultipleKeysStoreStrategy implements StoreStrategy {
 
   constructor(
     protected readonly localStorage: Storage,
+    protected readonly serializedAuthTokenMapper: SerializedAuthTokenMapper,
     readonly keyPrefix: string = MultipleKeysStoreStrategy.DefaultKeyPrefix
   ) {
   }
@@ -13,7 +15,8 @@ export class MultipleKeysStoreStrategy implements StoreStrategy {
   getAuthToken(address: string): AuthToken | undefined {
     const rawAuthToken = localStorage.getItem(this.getKey(address));
 
-    return rawAuthToken ? JSON.parse(rawAuthToken) : undefined;
+    return (rawAuthToken && this.serializedAuthTokenMapper.mapSerializedAuthTokenToAuthToken(JSON.parse(rawAuthToken))
+      || undefined);
   }
 
   getAuthTokens(addresses: string[]): AuthToken[] {
@@ -22,7 +25,11 @@ export class MultipleKeysStoreStrategy implements StoreStrategy {
   }
 
   upsertAuthToken(address: string, authToken: AuthToken): AuthToken {
-    localStorage.setItem(this.getKey(address), JSON.stringify(authToken));
+    const serializedAuthToken = this.serializedAuthTokenMapper.mapAuthTokenToSerializedAuthToken(authToken);
+    if (!serializedAuthToken)
+      throw new Error(`The authToken of the ${address} address can't be stored: serialization is failed`);
+
+    localStorage.setItem(this.getKey(address), JSON.stringify(serializedAuthToken));
 
     return authToken;
   }

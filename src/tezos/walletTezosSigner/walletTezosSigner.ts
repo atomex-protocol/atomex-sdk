@@ -7,6 +7,8 @@ import { BeaconWalletTezosSigner } from './beaconWalletTezosSigner';
 import { TempleWalletTezosSigner } from './templeWalletTezosSigner';
 
 export class WalletTezosSigner implements Signer {
+  readonly blockchain = 'tezos';
+
   protected readonly internalSigner: Signer;
 
   constructor(
