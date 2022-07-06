@@ -3,5 +3,5 @@ export interface AtomexSignature {
   readonly algorithm: string;
   readonly publicKeyBytes: string;
   readonly signatureBytes: string;
-  readonly signingMessageType?: string;
+  readonly signingDataType?: string;
 }

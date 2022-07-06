@@ -1,4 +1,4 @@
-export enum TezosAtomexSigningMessageType {
+export enum TezosAtomexSigningDataType {
   RawMicheline = 'tezos/raw-micheline',
   WalletMicheline = 'tezos/wallet-micheline'
 }

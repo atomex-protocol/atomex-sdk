@@ -3,7 +3,7 @@ import type { BeaconWallet } from '@taquito/beacon-wallet';
 
 import type { AtomexSignature, Signer } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
-import { TezosAtomexSigningMessageType } from '../models/index';
+import { TezosAtomexSigningDataType } from '../models/index';
 import { decodePublicKey, signingUtils } from '../utils/index';
 import { decodeSignature } from '../utils/signing';
 
@@ -46,7 +46,7 @@ export class BeaconWalletTezosSigner implements Signer {
       algorithm,
       publicKeyBytes,
       signatureBytes,
-      signingMessageType: TezosAtomexSigningMessageType.WalletMicheline
+      signingDataType: TezosAtomexSigningDataType.WalletMicheline
     };
   }
 }
