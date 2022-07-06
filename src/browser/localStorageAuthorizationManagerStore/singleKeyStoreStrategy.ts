@@ -56,7 +56,11 @@ export class SingleKeyStoreStrategy implements StoreStrategy {
       return false;
 
     delete serializedAuthTokensStoreObject[address];
-    this.localStorage.setItem(this.key, JSON.stringify(serializedAuthTokensStoreObject));
+
+    if (Object.keys(serializedAuthTokensStoreObject).length)
+      this.localStorage.setItem(this.key, JSON.stringify(serializedAuthTokensStoreObject));
+    else
+      this.localStorage.removeItem(this.key);
 
     return true;
   }
