@@ -1,5 +1,6 @@
-import type { Signer, SignersManager } from '../blockchain/index';
+import type { SignersManager } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
+import { EventEmitter, type ToEventEmitter, type PublicEventEmitter } from '../core/index';
 import { fetch } from '../native/index';
 import type { AuthorizationManagerStore } from '../stores/index';
 import { atomexUtils } from '../utils/index';
@@ -9,6 +10,9 @@ import type {
 } from './models/index';
 
 export class AuthorizationManager {
+  readonly authTokenExpiring: PublicEventEmitter<readonly [expiringAuthToken: AuthToken]> = new EventEmitter();
+  readonly authTokenExpired: PublicEventEmitter<readonly [expiredAuthToken: AuthToken]> = new EventEmitter();
+
   protected static readonly DEFAULT_AUTH_MESSAGE = 'Signing in ';
   protected static readonly DEFAULT_GET_AUTH_TOKEN_URI = '/v1/token';
   protected static readonly DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS = 60;
@@ -132,7 +136,8 @@ export class AuthorizationManager {
     const tokenDuration = authToken.expired.getTime() - Date.now();
     if (tokenDuration <= 0) {
       this.store.removeAuthToken(authToken);
-      // TODO: emit the "authTokenExpired" event
+      (this.authTokenExpired as ToEventEmitter<this['authTokenExpired']>).emit(authToken);
+
       return;
     }
 
@@ -179,12 +184,12 @@ export class AuthorizationManager {
       ...authTokenData,
       watcherId: newWatcherId
     });
-    // TODO: emit the "authTokenExpiring" event
+    (this.authTokenExpiring as ToEventEmitter<this['authTokenExpiring']>).emit(authToken);
   };
 
   protected authTokenExpiredTimeoutCallback = (authToken: AuthToken) => {
-    // TODO: emit the "authTokenExpired" event
     this.unregisterAuthToken(authToken);
+    (this.authTokenExpired as ToEventEmitter<this['authTokenExpired']>).emit(authToken);
   };
 
   protected isTokenExpiring(authToken: AuthToken) {
