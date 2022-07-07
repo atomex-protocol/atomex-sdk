@@ -4,6 +4,8 @@ on:
     branches:
       - master
       - develop
+    tags:
+      - 'v*.*.*'
   pull_request:
 env:
   node-version: 16
@@ -120,4 +122,30 @@ jobs:
           destination_dir: packages/atomex-sdk 
           publish_branch: ${{ env.publish_branch }}
 
+  publish:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    needs: [build, lint, test]
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    steps:
+      - name: Download the build from the artifacts storage
+        uses: actions/download-artifact@v3
+        with:
+          name: atomex-sdk
+
+      - name: Set up Node.js ${{ env.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: ${{ env.node-version }}
+
+      - name: Print environment info
+        run: |
+          node --version
+          npm --version
+
+      - name: Publish
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
       
