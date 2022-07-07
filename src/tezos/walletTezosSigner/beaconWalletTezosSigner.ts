@@ -16,16 +16,12 @@ export class BeaconWalletTezosSigner implements Signer {
   ) {
   }
 
-  getAddress(): Promise<string> | string {
+  getAddress(): Promise<string> {
     return this.beaconWallet.getPKH();
   }
 
-  async getPublicKey(): Promise<string> {
-    const publicKey = (await this.beaconWallet.client.getActiveAccount())?.publicKey;
-    if (!publicKey)
-      throw new Error('BeaconWallet: public key is unavailable');
-
-    return publicKey;
+  async getPublicKey(): Promise<string | undefined> {
+    return (await this.beaconWallet.client.getActiveAccount())?.publicKey;
   }
 
   async sign(message: string): Promise<AtomexSignature> {
@@ -37,6 +33,10 @@ export class BeaconWalletTezosSigner implements Signer {
         signingType: SigningType.MICHELINE,
       })
     ]);
+
+    if (!publicKey)
+      throw new Error('BeaconWallet: public key is unavailable');
+
     const algorithm = signingUtils.getTezosSigningAlgorithm(publicKey);
     const publicKeyBytes = decodePublicKey(publicKey);
     const signatureBytes = decodeSignature(signature.signature);

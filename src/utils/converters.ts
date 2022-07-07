@@ -2,20 +2,21 @@ import BigNumber from 'bignumber.js';
 
 import { Buffer } from '../native';
 
-export const stringToUint8Array = (hex: string): Uint8Array => {
+export const hexStringToUint8Array = (hex: string): Uint8Array => {
   const integers = hex.match(/[\da-f]{2}/gi)?.map(val => parseInt(val, 16));
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   return new Uint8Array(integers!);
 };
 
-export const stringToBytes = (value: string): string => Buffer.from(value, 'utf8').toString('hex');
-export const bytesToString = (value: string): string => Buffer.from(stringToUint8Array(value)).toString('utf8');
+export const uint8ArrayToHexString = (value: Uint8Array): string => Buffer.from(value).toString('hex');
+export const stringToHexString = (value: string): string => Buffer.from(value, 'utf8').toString('hex');
+export const hexStringToString = (value: string): string => Buffer.from(hexStringToUint8Array(value)).toString('utf8');
 
-export const objectToBytes = (value: Record<string, unknown>): string => stringToBytes(JSON.stringify(value));
-export const bytesToObject = <T extends Record<string, unknown> = Record<string, unknown>>(value: string): T | null => {
+export const objectToHexString = (value: Record<string, unknown>): string => stringToHexString(JSON.stringify(value));
+export const hexStringToObject = <T extends Record<string, unknown> = Record<string, unknown>>(value: string): T | null => {
   try {
-    return JSON.parse(bytesToString(value));
+    return JSON.parse(hexStringToString(value));
   }
   catch {
     return null;

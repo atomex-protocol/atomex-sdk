@@ -6,7 +6,7 @@ export interface Signer {
   readonly blockchain: string;
 
   getAddress(): Promise<string> | string;
-  getPublicKey(): Promise<string> | string;
+  getPublicKey(): Promise<string | undefined> | string | undefined;
 
   sign(message: string): Promise<AtomexSignature>;
 }

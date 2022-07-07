@@ -13,11 +13,11 @@ export class InMemoryTezosSigner implements Signer {
     this.internalInMemorySigner = new InMemorySigner(secretKey);
   }
 
-  getAddress(): Promise<string> | string {
+  getAddress(): Promise<string> {
     return this.internalInMemorySigner.publicKeyHash();
   }
 
-  getPublicKey(): Promise<string> | string {
+  getPublicKey(): Promise<string> {
     return this.internalInMemorySigner.publicKey();
   }
 
