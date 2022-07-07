@@ -1,3 +1,4 @@
+import type { AuthorizationManager } from '../authorization';
 import config from './config.json';
 import {
   AddOrderRequest,
@@ -25,6 +26,7 @@ export class Atomex {
   private _network: 'mainnet' | 'testnet';
   private _baseUrl: string;
   private _authToken?: string;
+  private _authorizationManager?: AuthorizationManager;
 
   constructor(
     network: 'mainnet' | 'testnet',
@@ -43,6 +45,16 @@ export class Atomex {
     );
   }
 
+  setAuthorizationManager(authorizationManager: AuthorizationManager) {
+    this._authorizationManager = authorizationManager;
+  }
+
+  private getLocalAuthToken(address: string) {
+    const authToken = this._authorizationManager?.getAuthToken(address);
+
+    return authToken?.value;
+  }
+
   /**
    * Initialize Atomex authorization token
    *
@@ -57,7 +69,7 @@ export class Atomex {
   private async makeRequest<T>(
     method: 'get' | 'post' | 'delete',
     path: string,
-    auth = false,
+    auth: boolean | string = false,
     params?: Query,
     payload?: Query,
   ): Promise<T> {
@@ -70,10 +82,12 @@ export class Atomex {
 
     const headers: Record<string, string> = {};
     if (auth) {
-      if (this._authToken === undefined) {
+      const authToken = typeof auth === 'string' ? this.getLocalAuthToken(auth) : this._authToken;
+
+      if (!authToken)
         throw new Error('Auth token is undefined');
-      }
-      headers['Authorization'] = `Bearer ${this._authToken}`;
+
+      headers['Authorization'] = `Bearer ${authToken}`;
     }
 
     let body = undefined;
@@ -162,7 +176,7 @@ export class Atomex {
     return this.makeRequest<Record<string, number>>(
       'post',
       '/v1/Orders',
-      true,
+      addOrderRequest.requisites?.receivingAddress || true,
       {},
       query,
     ).then(res => res['orderId']!);
@@ -171,21 +185,23 @@ export class Atomex {
   /**
    * Query and filter all available orders in Atomex
    *
+   * @param {string?} address
    * @param getOrdersRequest optional filters for querying all orders
    * @returns list of orders
    */
-  async getOrders(getOrdersRequest?: GetOrdersRequest): Promise<Order[]> {
-    return this.makeRequest('get', '/v1/Orders', true, { ...getOrdersRequest });
+  async getOrders(address?: string, getOrdersRequest?: GetOrdersRequest): Promise<Order[]> {
+    return this.makeRequest('get', '/v1/Orders', address || true, { ...getOrdersRequest });
   }
 
   /**
    * Query specific Order using Order ID
    *
    * @param orderID order id to query
+   * @param {string?} address
    * @returns details of requested order
    */
-  async getOrder(orderID: string): Promise<Order> {
-    return this.makeRequest('get', `/v1/Orders/${orderID}`, true);
+  async getOrder(orderID: string, address?: string): Promise<Order> {
+    return this.makeRequest('get', `/v1/Orders/${orderID}`, address || true);
   }
 
   /**
@@ -194,18 +210,19 @@ export class Atomex {
    * @param orderID id of order to cancel
    * @param symbol symbol used in the order. A list of all symbols can be found using [[getSymbols]]
    * @param side side of the order `Buy` or `Sell`
-   * @param authToken atomex authorization token
+   * @param {string?} address
    * @returns true/false value depending on operation success
    */
   async cancelOrder(
     orderID: string,
     symbol: string,
     side: Side,
+    address: string,
   ): Promise<boolean> {
     return this.makeRequest<Record<string, boolean>>(
       'delete',
       `/v1/Orders/${orderID}`,
-      true,
+      address || true,
       { symbol, side },
     ).then(res => res['result']!);
   }
@@ -224,7 +241,7 @@ export class Atomex {
     return this.makeRequest<Record<string, boolean>>(
       'post',
       `/v1/Swaps/${swapID}/requisites`,
-      true,
+      swapRequisites?.receivingAddress || true,
       {},
       swapRequisites,
     ).then(res => res['result']!);
@@ -233,21 +250,24 @@ export class Atomex {
   /**
    * Query and filter all available swaps in Atomex
    *
+   * 
+   * @param {string?} address
    * @param getSwapsRequest filters for querying all swaps
    * @returns a list of swaps
    */
-  async getSwaps(getSwapsRequest?: GetSwapsRequest): Promise<Swap[]> {
-    return this.makeRequest('get', '/v1/Swaps', true, { ...getSwapsRequest });
+  async getSwaps(address?: string, getSwapsRequest?: GetSwapsRequest): Promise<Swap[]> {
+    return this.makeRequest('get', '/v1/Swaps', address || true, { ...getSwapsRequest });
   }
 
   /**
    * Query specific Swap using Swap ID
    *
    * @param swapID Atomex internal swap id
+   * @param {string?} address
    * @returns details of swap requested
    */
-  async getSwap(swapID: string): Promise<Swap> {
-    return this.makeRequest('get', `/v1/Swaps/${swapID}`, true);
+  async getSwap(swapID: string, address?: string): Promise<Swap> {
+    return this.makeRequest('get', `/v1/Swaps/${swapID}`, address || true);
   }
 
   /**
