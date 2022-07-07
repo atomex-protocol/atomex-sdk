@@ -37,3 +37,4 @@ export class EventEmitter<T extends readonly unknown[]> implements PublicEventEm
 }
 
 export type ToEventEmitter<T> = T extends PublicEventEmitter<infer TArgs> ? EventEmitter<TArgs> : never;
+export type ToEventEmitters<T> = T extends Record<infer K, PublicEventEmitter<infer TArgs>> ? Record<K, EventEmitter<TArgs>> : never;

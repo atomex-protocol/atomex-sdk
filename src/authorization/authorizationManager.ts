@@ -1,6 +1,6 @@
 import type { SignersManager } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
-import { EventEmitter, type ToEventEmitter, type PublicEventEmitter } from '../core/index';
+import { EventEmitter, type ToEventEmitters, type PublicEventEmitter } from '../core/index';
 import { fetch } from '../native/index';
 import type { AuthorizationManagerStore } from '../stores/index';
 import { atomexUtils } from '../utils/index';
@@ -9,9 +9,24 @@ import type {
   AuthToken, AuthTokenData
 } from './models/index';
 
+interface AuthorizationManagerEvents {
+  readonly authorized: PublicEventEmitter<readonly [authToken: AuthToken]>;
+  readonly unauthorized: PublicEventEmitter<readonly [authToken: AuthToken]>;
+  readonly authTokenExpiring: PublicEventEmitter<readonly [expiringAuthToken: AuthToken]>;
+  readonly authTokenExpired: PublicEventEmitter<readonly [expiredAuthToken: AuthToken]>;
+}
+
 export class AuthorizationManager {
-  readonly authTokenExpiring: PublicEventEmitter<readonly [expiringAuthToken: AuthToken]> = new EventEmitter();
-  readonly authTokenExpired: PublicEventEmitter<readonly [expiredAuthToken: AuthToken]> = new EventEmitter();
+  readonly events: AuthorizationManagerEvents = {
+    authorized: new EventEmitter(),
+    unauthorized: new EventEmitter(),
+    authTokenExpiring: new EventEmitter(),
+    authTokenExpired: new EventEmitter()
+  };
+  // readonly authorized: PublicEventEmitter<readonly [authToken: AuthToken]> = new EventEmitter();
+  // readonly unauthorized: PublicEventEmitter<readonly [authToken: AuthToken]> = new EventEmitter();
+  // readonly authTokenExpiring: PublicEventEmitter<readonly [expiringAuthToken: AuthToken]> = new EventEmitter();
+  // readonly authTokenExpired: PublicEventEmitter<readonly [expiredAuthToken: AuthToken]> = new EventEmitter();
 
   protected static readonly DEFAULT_AUTH_MESSAGE = 'Signing in ';
   protected static readonly DEFAULT_GET_AUTH_TOKEN_URI = '/v1/token';
@@ -118,6 +133,7 @@ export class AuthorizationManager {
     if (isNeedSave)
       authToken = await this.store.upsertAuthToken(authToken.address, authToken);
 
+    (this.events as ToEventEmitters<this['events']>).authorized.emit(authToken);
     return authToken;
   }
 
@@ -127,16 +143,19 @@ export class AuthorizationManager {
       return false;
 
     this.untrackAuthToken(authTokenData.watcherId);
-    const result = await this.store.removeAuthToken(authToken);
+    const result = (await this.store.removeAuthToken(authToken) && this._authTokenData.delete(authToken.address));
 
-    return result ? this._authTokenData.delete(authToken.address) : result;
+    if (result)
+      (this.events as ToEventEmitters<this['events']>).unauthorized.emit(authToken);
+
+    return result;
   }
 
   protected trackAuthToken(authToken: AuthToken): AuthTokenData['watcherId'] {
     const tokenDuration = authToken.expired.getTime() - Date.now();
     if (tokenDuration <= 0) {
       this.store.removeAuthToken(authToken);
-      (this.authTokenExpired as ToEventEmitter<this['authTokenExpired']>).emit(authToken);
+      (this.events as ToEventEmitters<this['events']>).authTokenExpired.emit(authToken);
 
       return;
     }
@@ -184,12 +203,12 @@ export class AuthorizationManager {
       ...authTokenData,
       watcherId: newWatcherId
     });
-    (this.authTokenExpiring as ToEventEmitter<this['authTokenExpiring']>).emit(authToken);
+    (this.events as ToEventEmitters<this['events']>).authTokenExpiring.emit(authToken);
   };
 
   protected authTokenExpiredTimeoutCallback = (authToken: AuthToken) => {
     this.unregisterAuthToken(authToken);
-    (this.authTokenExpired as ToEventEmitter<this['authTokenExpired']>).emit(authToken);
+    (this.events as ToEventEmitters<this['events']>).authTokenExpired.emit(authToken);
   };
 
   protected isTokenExpiring(authToken: AuthToken) {
