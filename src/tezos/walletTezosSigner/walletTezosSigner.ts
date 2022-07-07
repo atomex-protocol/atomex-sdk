@@ -1,5 +1,5 @@
-import { BeaconWallet } from '@taquito/beacon-wallet';
-import { TempleWallet } from '@temple-wallet/dapp';
+import type { BeaconWallet } from '@taquito/beacon-wallet';
+import type { TempleWallet } from '@temple-wallet/dapp';
 
 import type { AtomexSignature, Signer } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
@@ -22,7 +22,7 @@ export class WalletTezosSigner implements Signer {
     return this.internalSigner.getAddress();
   }
 
-  getPublicKey(): Promise<string> | string {
+  getPublicKey(): Promise<string | undefined> | string | undefined {
     return this.internalSigner.getPublicKey();
   }
 

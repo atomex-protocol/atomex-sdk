@@ -15,16 +15,12 @@ export class TempleWalletTezosSigner implements Signer {
   ) {
   }
 
-  getAddress(): Promise<string> | string {
+  getAddress(): Promise<string> {
     return this.templeWallet.getPKH();
   }
 
-  getPublicKey(): Promise<string> | string {
-    const publicKey = this.templeWallet.permission?.publicKey;
-    if (!publicKey)
-      throw new Error('TempleWallet: public key is unavailable');
-
-    return publicKey;
+  getPublicKey(): string | undefined {
+    return this.templeWallet.permission?.publicKey;
   }
 
   async sign(message: string): Promise<AtomexSignature> {
@@ -33,6 +29,9 @@ export class TempleWalletTezosSigner implements Signer {
       this.getPublicKey(),
       this.templeWallet.sign(signingUtils.getWalletMichelineSigningData(message))
     ]);
+
+    if (!publicKey)
+      throw new Error('TempleWallet: public key is unavailable');
 
     const algorithm = signingUtils.getTezosSigningAlgorithm(publicKey);
     const publicKeyBytes = decodePublicKey(publicKey);
