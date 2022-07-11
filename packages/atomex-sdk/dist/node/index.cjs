@@ -45,6 +45,7 @@ __export(src_exports, {
   atomexUtils: () => atomexUtils_exports,
   converters: () => converters_exports,
   legacy: () => legacy_exports,
+  prepareTimeoutDuration: () => prepareTimeoutDuration,
   textUtils: () => text_exports,
   wait: () => wait
 });
@@ -174,6 +175,7 @@ var padEnd = (string, maxLength, fillString = " ") => String.prototype.padEnd !=
 
 // src/utils/index.ts
 var wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+var prepareTimeoutDuration = (durationMs) => Math.min(durationMs, 2147483647);
 
 // src/authorization/authorizationManager.ts
 var _AuthorizationManager = class {
@@ -276,7 +278,7 @@ var _AuthorizationManager = class {
       return;
     }
     const expiringTokenDuration = tokenDuration - this.expiringNotificationTimeInSeconds * 1e3;
-    const watcherId = setTimeout(this.authTokenExpiringTimeoutCallback, expiringTokenDuration, authToken);
+    const watcherId = setTimeout(this.authTokenExpiringTimeoutCallback, prepareTimeoutDuration(expiringTokenDuration), authToken);
     return watcherId;
   }
   untrackAuthToken(authTokenWatcherId) {
@@ -304,7 +306,7 @@ var _AuthorizationManager = class {
       return;
     clearTimeout(authTokenData.watcherId);
     const duration = authToken.expired.getTime() - Date.now();
-    const newWatcherId = setTimeout(this.authTokenExpiredTimeoutCallback, duration, authToken);
+    const newWatcherId = setTimeout(this.authTokenExpiredTimeoutCallback, prepareTimeoutDuration(duration), authToken);
     this._authTokenData.set(authToken.address, {
       ...authTokenData,
       watcherId: newWatcherId
@@ -2698,6 +2700,7 @@ var FA2Helpers = class extends TezosHelpers {
   atomexUtils,
   converters,
   legacy,
+  prepareTimeoutDuration,
   textUtils,
   wait
 });
