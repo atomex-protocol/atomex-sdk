@@ -161,10 +161,16 @@ jobs:
           name: atomex-sdk
           path: atomex-sdk
 
+      - Archive the build
+        run: |
+          tar -cvf atomex-sdk.tar atomex-sdk
+          tar -czvf atomex-sdk.tar.gz atomex-sdk
+
       - name: Create GitHub Release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            atomex-sdk
+            *.tar
+            *.tar.gz
