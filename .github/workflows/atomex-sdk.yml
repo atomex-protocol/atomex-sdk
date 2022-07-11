@@ -159,6 +159,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: atomex-sdk
+          path: atomex-sdk
 
       - name: Create GitHub Release
         uses: "marvinpinto/action-automatic-releases@latest"
@@ -166,4 +167,4 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            *.*
+            atomex-sdk
