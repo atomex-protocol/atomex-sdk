@@ -3,7 +3,7 @@ import type { AtomexNetwork } from '../common/index';
 import { EventEmitter, type ToEventEmitters, type PublicEventEmitter } from '../core/index';
 import { fetch } from '../native/index';
 import type { AuthorizationManagerStore } from '../stores/index';
-import { atomexUtils } from '../utils/index';
+import { atomexUtils, prepareTimeoutDuration } from '../utils/index';
 import type {
   AuthenticationRequestData, AuthenticationResponseData, AuthorizationManagerOptions,
   AuthToken, AuthTokenData
@@ -161,7 +161,7 @@ export class AuthorizationManager {
     }
 
     const expiringTokenDuration = tokenDuration - (this.expiringNotificationTimeInSeconds * 1000);
-    const watcherId = setTimeout(this.authTokenExpiringTimeoutCallback, expiringTokenDuration, authToken);
+    const watcherId = setTimeout(this.authTokenExpiringTimeoutCallback, prepareTimeoutDuration(expiringTokenDuration), authToken);
 
     return watcherId;
   }
@@ -197,7 +197,7 @@ export class AuthorizationManager {
 
     clearTimeout(authTokenData.watcherId);
     const duration = authToken.expired.getTime() - Date.now();
-    const newWatcherId = setTimeout(this.authTokenExpiredTimeoutCallback, duration, authToken);
+    const newWatcherId = setTimeout(this.authTokenExpiredTimeoutCallback, prepareTimeoutDuration(duration), authToken);
 
     this._authTokenData.set(authToken.address, {
       ...authTokenData,
