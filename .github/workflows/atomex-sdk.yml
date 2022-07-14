@@ -161,7 +161,7 @@ jobs:
           name: atomex-sdk
           path: atomex-sdk
 
-      - Archive the build
+      - name: Archive the build
         run: |
           tar -cvf atomex-sdk.tar atomex-sdk
           tar -czvf atomex-sdk.tar.gz atomex-sdk
