@@ -4,7 +4,8 @@ import {
 } from '../../src/index';
 
 describe('Atomex authorization', () => {
-  const authTokenExpirationPeriodMs = 24 * 60 * 60 * 1000;
+  // TODO: Use test hours
+  const authTokenExpirationPeriodMs = 720 * 60 * 60 * 1000;
   const atomexNetwork: AtomexNetwork = 'testnet';
   const signersManager = new SignersManager(atomexNetwork);
   const signer = new InMemoryTezosSigner(atomexNetwork, 'edskReuKVn9gfiboVjbcPkNnhLiyyFLDAwB3CHemb43zpKG3MpBf2CvwDNML2FitCP8fvdLXi4jdDVR1PHB4V9D8BWoYB4SQCU');
