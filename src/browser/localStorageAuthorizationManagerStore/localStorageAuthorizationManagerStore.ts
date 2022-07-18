@@ -6,7 +6,7 @@ import type { SerializedAuthTokenMapper } from './serializedAuthTokenMapper';
 import { SingleKeyStoreStrategy } from './singleKeyStoreStrategy';
 import type { StoreStrategy } from './storeStrategy';
 
-type PreDefinedStoreStrategyName = 'single-key' | 'multiple-keys';
+export type PreDefinedStoreStrategyName = 'single-key' | 'multiple-keys';
 
 export class LocalStorageAuthorizationManagerStore implements AuthorizationManagerStore {
   protected readonly storeStrategy: StoreStrategy;

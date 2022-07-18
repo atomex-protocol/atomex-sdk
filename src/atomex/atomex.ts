@@ -1,20 +1,42 @@
-import type { SignersManager } from '../blockchain/index';
-import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
+import type { AuthorizationManager } from '../authorization/index';
+import type { Signer, SignersManager } from '../blockchain/index';
 import type { Swap } from '../swaps/index';
-import { SwapOperationCompleteStage, type AtomexOptions, type NewSwapRequest } from './models/index';
+import type { AtomexContext } from './atomexContext';
+import {
+  SwapOperationCompleteStage, type AtomexBlockchainOptions,
+  type AtomexOptions, type NewSwapRequest
+} from './models/index';
 
 export class Atomex {
-  readonly atomexNetwork: AtomexNetwork;
-  readonly authorization;
+  readonly authorization: AuthorizationManager;
   readonly signers: SignersManager;
 
-  readonly currenciesProvider: CurrenciesProvider;
+  protected readonly atomexContext: AtomexContext;
 
-  constructor(options: AtomexOptions) {
-    this.atomexNetwork = options.atomexNetwork;
-    this.currenciesProvider = options.providers.currenciesProvider;
-    this.signers = options.signersManager;
-    this.authorization = options.authorizationManager;
+  constructor(readonly options: AtomexOptions) {
+    this.atomexContext = options.atomexContext;
+    this.signers = options.managers.signersManager;
+    this.authorization = options.managers.authorizationManager;
+
+    if (options.blockchains)
+      for (const blockchainName of Object.keys(options.blockchains))
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.addBlockchain(_context => options.blockchains![blockchainName]!);
+  }
+
+  get atomexNetwork() {
+    return this.atomexContext.atomexNetwork;
+  }
+
+  async addSigner(signer: Signer) {
+    await this.signers.addSigner(signer);
+
+    await this.options.blockchains?.[signer.blockchain]?.mainnet.blockchainToolkitProvider.addSigner(signer);
+  }
+
+  addBlockchain(factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions) {
+    const blockchainOptions = factoryMethod(this.atomexContext);
+    // TODO
   }
 
   async swap(newSwapRequest: NewSwapRequest, completeStage: SwapOperationCompleteStage): Promise<Swap>;
