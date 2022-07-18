@@ -1,11 +1,13 @@
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork, CollectionSelector } from '../common/index';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest } from '../exchange/index';
+import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import { atomexUtils } from '../utils';
 import type { AtomexClient } from './atomexClient';
 
 export class MixedApiAtomexClient implements AtomexClient {
+  readonly events: ExchangeServiceEvents;
+
   constructor(
     readonly atomexNetwork: AtomexNetwork,
     readonly restAtomexClient: AtomexClient,
@@ -13,18 +15,12 @@ export class MixedApiAtomexClient implements AtomexClient {
   ) {
     atomexUtils.ensureNetworksAreSame(this, restAtomexClient);
     atomexUtils.ensureNetworksAreSame(this, webSocketAtomexClient);
-  }
 
-  get orderUpdated() {
-    return this.webSocketAtomexClient.orderUpdated;
-  }
-
-  get orderBookUpdated() {
-    return this.webSocketAtomexClient.orderBookUpdated;
-  }
-
-  get topOfBookUpdated() {
-    return this.webSocketAtomexClient.topOfBookUpdated;
+    this.events = {
+      orderBookUpdated: this.webSocketAtomexClient.events.orderBookUpdated,
+      orderUpdated: this.webSocketAtomexClient.events.orderUpdated,
+      topOfBookUpdated: this.webSocketAtomexClient.events.topOfBookUpdated
+    };
   }
 
   getOrder(orderId: string): Promise<Order | undefined> {

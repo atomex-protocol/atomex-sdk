@@ -1,15 +1,17 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork, CollectionSelector } from '../common/index';
-import { EventEmitter, type PublicEventEmitter, type ToEventEmitter } from '../core';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest } from '../exchange/index';
+import { EventEmitter } from '../core';
+import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 
 export class WebSocketAtomexClient implements AtomexClient {
-  readonly orderUpdated: PublicEventEmitter<readonly [updatedOrder: Order]> = new EventEmitter();
-  readonly orderBookUpdated: PublicEventEmitter<readonly [updatedOrderBook: OrderBook]> = new EventEmitter();
-  readonly topOfBookUpdated: PublicEventEmitter<readonly [updatedQuotes: readonly Quote[]]> = new EventEmitter();
+  readonly events: ExchangeServiceEvents = {
+    orderUpdated: new EventEmitter(),
+    orderBookUpdated: new EventEmitter(),
+    topOfBookUpdated: new EventEmitter()
+  };
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,

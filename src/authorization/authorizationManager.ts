@@ -23,10 +23,6 @@ export class AuthorizationManager {
     authTokenExpiring: new EventEmitter(),
     authTokenExpired: new EventEmitter()
   };
-  // readonly authorized: PublicEventEmitter<readonly [authToken: AuthToken]> = new EventEmitter();
-  // readonly unauthorized: PublicEventEmitter<readonly [authToken: AuthToken]> = new EventEmitter();
-  // readonly authTokenExpiring: PublicEventEmitter<readonly [expiringAuthToken: AuthToken]> = new EventEmitter();
-  // readonly authTokenExpired: PublicEventEmitter<readonly [expiredAuthToken: AuthToken]> = new EventEmitter();
 
   protected static readonly DEFAULT_AUTH_MESSAGE = 'Signing in ';
   protected static readonly DEFAULT_GET_AUTH_TOKEN_URI = '/v1/token';
