@@ -19,20 +19,22 @@ export class AtomexBuilder {
   }
 
   constructor(
-    readonly options: DeepReadonly<AtomexBuilderOptions>,
+    protected readonly options: DeepReadonly<AtomexBuilderOptions>,
     protected readonly atomexContext: AtomexContext = new AtomexContext(options.atomexNetwork)
   ) {
   }
 
-  useAuthorizationManager(customAuthorizationManagerFactory: NonNullable<AtomexBuilder['customAuthorizationManagerFactory']>) {
+  useAuthorizationManager(customAuthorizationManagerFactory: NonNullable<AtomexBuilder['customAuthorizationManagerFactory']>): AtomexBuilder {
     this.customAuthorizationManagerFactory = customAuthorizationManagerFactory;
+    return this;
   }
 
-  useSignersManager(customSignersManagerFactory: NonNullable<AtomexBuilder['customSignersManagerFactory']>) {
+  useSignersManager(customSignersManagerFactory: NonNullable<AtomexBuilder['customSignersManagerFactory']>): AtomexBuilder {
     this.customSignersManagerFactory = customSignersManagerFactory;
+    return this;
   }
 
-  createAuthorizationManager() {
+  protected createAuthorizationManager() {
     const defaultAuthorizationManagerOptions = config[this.atomexContext.atomexNetwork].authorization;
 
     return this.customAuthorizationManagerFactory
@@ -40,7 +42,7 @@ export class AtomexBuilder {
       : createDefaultAuthorizationManager(this.atomexContext, defaultAuthorizationManagerOptions, this.options);
   }
 
-  createSignersManager() {
+  protected createSignersManager() {
     return this.customSignersManagerFactory
       ? this.customSignersManagerFactory(this.atomexContext, this.options)
       : new SignersManager(this.atomexContext.atomexNetwork);
