@@ -1,13 +1,17 @@
-import type { SignersManager } from '../blockchain/index';
-import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
+import type { AuthorizationManager } from '../authorization/index';
+import type { Signer, SignersManager } from '../blockchain/index';
 import type { Swap } from '../swaps/index';
-import { SwapOperationCompleteStage, type AtomexOptions, type NewSwapRequest } from './models/index';
+import type { AtomexContext } from './atomexContext';
+import { SwapOperationCompleteStage, type AtomexBlockchainOptions, type AtomexOptions, type NewSwapRequest } from './models/index';
 export declare class Atomex {
-    readonly atomexNetwork: AtomexNetwork;
-    readonly authorization: import("../index").AuthorizationManager;
+    readonly options: AtomexOptions;
+    readonly authorization: AuthorizationManager;
     readonly signers: SignersManager;
-    readonly currenciesProvider: CurrenciesProvider;
+    protected readonly atomexContext: AtomexContext;
     constructor(options: AtomexOptions);
+    get atomexNetwork(): import("../index").AtomexNetwork;
+    addSigner(signer: Signer): Promise<void>;
+    addBlockchain(factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions): void;
     swap(newSwapRequest: NewSwapRequest, completeStage: SwapOperationCompleteStage): Promise<Swap>;
     swap(swapId: Swap['id'], completeStage: SwapOperationCompleteStage): Promise<Swap>;
 }

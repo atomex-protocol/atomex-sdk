@@ -1,30 +1,36 @@
 import type { AuthorizationManager } from '../../authorization/index';
-import type { AtomexProtocol, BalancesProvider, SignersManager, SwapTransactionsProvider } from '../../blockchain/index';
-import { AtomexNetwork, CurrenciesProvider } from '../../common/index';
-import type { ExchangeService } from '../../exchange/index';
+import type { AtomexProtocol, BalancesProvider, BlockchainToolkitProvider, CurrencyBalanceProvider, SignersManager, SwapTransactionsProvider } from '../../blockchain/index';
+import type { Currency } from '../../common/index';
+import type { ExchangeManager, ExchangeService } from '../../exchange/index';
+import { AtomexContext } from '../atomexContext';
 export interface AtomexOptions {
-    atomexNetwork: AtomexNetwork;
+    atomexContext: AtomexContext;
+    managers: AtomexManagers;
+    blockchains?: Record<string, AtomexBlockchainOptions>;
+}
+export interface AtomexManagers {
     authorizationManager: AuthorizationManager;
     signersManager: SignersManager;
-    providers: AtomexProviders;
-    services: AtomexServices;
-    blockchains: {
-        [blockchain: string]: {
-            [network: string]: AtomexBlockchainOptions;
-        };
-    };
-}
-export interface AtomexProviders {
-    currenciesProvider: CurrenciesProvider;
+    exchangeManager: ExchangeManager;
 }
 export interface AtomexServices {
     exchangeService: ExchangeService;
 }
 export interface AtomexBlockchainOptions {
-    atomexProtocol: AtomexProtocol;
-    providers: AtomexBlockchainProviders;
+    mainnet: AtomexBlockchainNetworkOptions;
+    testnet?: AtomexBlockchainNetworkOptions;
 }
-export interface AtomexBlockchainProviders {
+export interface AtomexBlockchainNetworkOptions {
+    blockchainToolkitProvider: BlockchainToolkitProvider;
     balancesProvider: BalancesProvider;
     swapTransactionsProvider: SwapTransactionsProvider;
+    currencies: Currency[];
+    currencyOptions: Record<Currency['id'], AtomexCurrencyOptions>;
+    [name: string | number]: unknown;
+}
+export interface AtomexCurrencyOptions {
+    atomexProtocol: AtomexProtocol;
+    currencyBalanceProvider?: CurrencyBalanceProvider;
+    swapTransactionsProvider?: SwapTransactionsProvider;
+    [name: string | number]: unknown;
 }

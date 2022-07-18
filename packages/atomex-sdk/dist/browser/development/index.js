@@ -29,52 +29,105 @@ var __publicField = (obj, key, value) => {
 // src/atomex/atomex.ts
 var Atomex = class {
   constructor(options) {
-    __publicField(this, "atomexNetwork");
+    this.options = options;
     __publicField(this, "authorization");
     __publicField(this, "signers");
-    __publicField(this, "currenciesProvider");
-    this.atomexNetwork = options.atomexNetwork;
-    this.currenciesProvider = options.providers.currenciesProvider;
-    this.signers = options.signersManager;
-    this.authorization = options.authorizationManager;
+    __publicField(this, "atomexContext");
+    this.atomexContext = options.atomexContext;
+    this.signers = options.managers.signersManager;
+    this.authorization = options.managers.authorizationManager;
+    if (options.blockchains)
+      for (const blockchainName of Object.keys(options.blockchains))
+        this.addBlockchain((_context) => options.blockchains[blockchainName]);
+  }
+  get atomexNetwork() {
+    return this.atomexContext.atomexNetwork;
+  }
+  async addSigner(signer) {
+    var _a, _b;
+    await this.signers.addSigner(signer);
+    await ((_b = (_a = this.options.blockchains) == null ? void 0 : _a[signer.blockchain]) == null ? void 0 : _b.mainnet.blockchainToolkitProvider.addSigner(signer));
+  }
+  addBlockchain(factoryMethod) {
+    const blockchainOptions = factoryMethod(this.atomexContext);
   }
   async swap(newSwapRequestOrSwapId, completeStage) {
     throw new Error("Not implemented");
   }
 };
 
-// src/core/eventEmitter.ts
-var EventEmitter = class {
-  constructor() {
-    __publicField(this, "listeners", /* @__PURE__ */ new Set());
-  }
-  addListener(listener) {
-    this.listeners.add(listener);
-    return this;
-  }
-  removeListener(listener) {
-    if (this.listeners.has(listener))
-      this.listeners.delete(listener);
-    return this;
-  }
-  removeAllListeners() {
-    this.listeners = /* @__PURE__ */ new Set();
-    return this;
-  }
-  emit(...args) {
-    if (!this.listeners.size)
-      return;
-    if (this.listeners.size === 1) {
-      this.listeners.values().next().value(...args);
-    } else {
-      [...this.listeners].forEach((listener) => listener(...args));
-    }
+// src/atomex/atomexContext.ts
+var _AtomexContext = class {
+  constructor(atomexNetwork) {
+    this.atomexNetwork = atomexNetwork;
+    __publicField(this, "id");
+    __publicField(this, "managers");
+    __publicField(this, "services");
+    this.id = _AtomexContext.idCounter++;
+    this.managers = new AtomexContextManagersSection(this);
+    this.services = new AtomexContextServicesSection(this);
   }
 };
-
-// src/native/index.browser.ts
-import { Buffer as Buffer2 } from "buffer";
-var fetchNative = fetch;
+var AtomexContext = _AtomexContext;
+__publicField(AtomexContext, "idCounter", 0);
+var AtomexContextManagersSection = class {
+  constructor(context) {
+    this.context = context;
+    __publicField(this, "_signersManager");
+    __publicField(this, "_authorizationManager");
+    __publicField(this, "_exchangeManager");
+  }
+  get signersManager() {
+    if (!this._signersManager)
+      throw new AtomexComponentNotResolvedError("managers.signersManager");
+    return this._signersManager;
+  }
+  set signersManager(signersManager) {
+    this._signersManager = signersManager;
+  }
+  get authorizationManager() {
+    if (!this._authorizationManager)
+      throw new AtomexComponentNotResolvedError("managers.authorizationManager");
+    return this._authorizationManager;
+  }
+  set authorizationManager(authorizationManager) {
+    this._authorizationManager = authorizationManager;
+  }
+  get exchangeManager() {
+    if (!this._exchangeManager)
+      throw new AtomexComponentNotResolvedError("managers.exchangeManager");
+    return this._exchangeManager;
+  }
+  set exchangeManager(exchangeManager) {
+    this._exchangeManager = exchangeManager;
+  }
+};
+var AtomexContextServicesSection = class {
+  constructor(context) {
+    this.context = context;
+    __publicField(this, "_exchangeService");
+  }
+  get exchangeService() {
+    if (!this._exchangeService)
+      throw new AtomexComponentNotResolvedError("services.exchangeService");
+    return this._exchangeService;
+  }
+  set exchangeService(exchangeService) {
+    this._exchangeService = exchangeService;
+  }
+};
+var AtomexComponentNotResolvedError = class extends Error {
+  constructor(componentName) {
+    super(AtomexComponentNotResolvedError.getMessage(componentName));
+    __publicField(this, "name");
+    __publicField(this, "componentName");
+    this.componentName = componentName;
+    this.name = this.constructor.name;
+  }
+  static getMessage(componentName) {
+    return `Atomex "${componentName}" component has not resolved yet`;
+  }
+};
 
 // src/utils/converters.ts
 var converters_exports = {};
@@ -89,6 +142,12 @@ __export(converters_exports, {
   uint8ArrayToHexString: () => uint8ArrayToHexString
 });
 import BigNumber from "bignumber.js";
+
+// src/native/index.browser.ts
+import { Buffer as Buffer2 } from "buffer";
+var fetchNative = fetch;
+
+// src/utils/converters.ts
 var hexStringToUint8Array = (hex) => {
   var _a;
   const integers = (_a = hex.match(/[\da-f]{2}/gi)) == null ? void 0 : _a.map((val) => parseInt(val, 16));
@@ -153,154 +212,6 @@ var padEnd = (string, maxLength, fillString = " ") => String.prototype.padEnd !=
 var wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 var prepareTimeoutDuration = (durationMs) => Math.min(durationMs, 2147483647);
 
-// src/authorization/authorizationManager.ts
-var _AuthorizationManager = class {
-  constructor(options) {
-    __publicField(this, "events", {
-      authorized: new EventEmitter(),
-      unauthorized: new EventEmitter(),
-      authTokenExpiring: new EventEmitter(),
-      authTokenExpired: new EventEmitter()
-    });
-    __publicField(this, "atomexNetwork");
-    __publicField(this, "signersManager");
-    __publicField(this, "store");
-    __publicField(this, "authorizationUrl");
-    __publicField(this, "expiringNotificationTimeInSeconds");
-    __publicField(this, "_authTokenData", /* @__PURE__ */ new Map());
-    __publicField(this, "authTokenExpiringTimeoutCallback", (authToken) => {
-      const authTokenData = this._authTokenData.get(authToken.address);
-      if (!authTokenData)
-        return;
-      clearTimeout(authTokenData.watcherId);
-      const duration = authToken.expired.getTime() - Date.now();
-      const newWatcherId = setTimeout(this.authTokenExpiredTimeoutCallback, prepareTimeoutDuration(duration), authToken);
-      this._authTokenData.set(authToken.address, __spreadProps(__spreadValues({}, authTokenData), {
-        watcherId: newWatcherId
-      }));
-      this.events.authTokenExpiring.emit(authToken);
-    });
-    __publicField(this, "authTokenExpiredTimeoutCallback", (authToken) => {
-      this.unregisterAuthToken(authToken);
-      this.events.authTokenExpired.emit(authToken);
-    });
-    this.atomexNetwork = options.atomexNetwork;
-    this.store = options.store;
-    this.signersManager = options.signersManager;
-    atomexUtils_exports.ensureNetworksAreSame(this, this.signersManager);
-    this.authorizationUrl = new URL(_AuthorizationManager.DEFAULT_GET_AUTH_TOKEN_URI, options.authorizationBaseUrl);
-    this.expiringNotificationTimeInSeconds = options.expiringNotificationTimeInSeconds || _AuthorizationManager.DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS;
-  }
-  get authTokenData() {
-    return this._authTokenData;
-  }
-  getAuthToken(address) {
-    var _a;
-    return (_a = this.authTokenData.get(address)) == null ? void 0 : _a.authToken;
-  }
-  async authorize(address, forceRequestNewToken = false, blockchain, authMessage = _AuthorizationManager.DEFAULT_AUTH_MESSAGE) {
-    if (!forceRequestNewToken) {
-      const authToken2 = this.getAuthToken(address) || await this.loadAuthTokenFromStore(address);
-      if (authToken2 && !this.isTokenExpiring(authToken2))
-        return authToken2;
-    }
-    const signer = await this.signersManager.findSigner(address, blockchain);
-    if (!signer)
-      throw new Error(`Not found: the corresponding signer by the ${address} address`);
-    const timeStamp = this.getAuthorizationTimeStamp(authMessage);
-    const atomexSignature = await signer.sign(authMessage + timeStamp);
-    if (atomexSignature.address !== address)
-      throw new Error("Invalid address in the signed data");
-    const authenticationResponseData = await this.requestAuthToken({
-      message: authMessage,
-      publicKey: atomexSignature.publicKeyBytes,
-      algorithm: atomexSignature.algorithm,
-      signingDataType: atomexSignature.signingDataType,
-      signature: atomexSignature.signatureBytes,
-      timeStamp
-    });
-    const authToken = {
-      value: authenticationResponseData.token,
-      userId: authenticationResponseData.id,
-      address,
-      expired: new Date(authenticationResponseData.expires)
-    };
-    await this.registerAuthToken(authToken, true);
-    return authToken;
-  }
-  async unauthorize(address) {
-    const authToken = this.getAuthToken(address);
-    return authToken ? this.unregisterAuthToken(authToken) : false;
-  }
-  async loadAuthTokenFromStore(address) {
-    const authToken = await this.store.getAuthToken(address);
-    if (!authToken)
-      return void 0;
-    return await this.registerAuthToken(authToken, false);
-  }
-  async registerAuthToken(authToken, isNeedSave) {
-    const watcherId = this.trackAuthToken(authToken);
-    if (!watcherId)
-      return;
-    const authTokenData = {
-      authToken,
-      watcherId
-    };
-    this._authTokenData.set(authToken.address, authTokenData);
-    if (isNeedSave)
-      authToken = await this.store.upsertAuthToken(authToken.address, authToken);
-    this.events.authorized.emit(authToken);
-    return authToken;
-  }
-  async unregisterAuthToken(authToken) {
-    const authTokenData = this._authTokenData.get(authToken.address);
-    if (!authTokenData)
-      return false;
-    this.untrackAuthToken(authTokenData.watcherId);
-    const result = await this.store.removeAuthToken(authToken) && this._authTokenData.delete(authToken.address);
-    if (result)
-      this.events.unauthorized.emit(authToken);
-    return result;
-  }
-  trackAuthToken(authToken) {
-    const tokenDuration = authToken.expired.getTime() - Date.now();
-    if (tokenDuration <= 0) {
-      this.store.removeAuthToken(authToken);
-      this.events.authTokenExpired.emit(authToken);
-      return;
-    }
-    const expiringTokenDuration = tokenDuration - this.expiringNotificationTimeInSeconds * 1e3;
-    const watcherId = setTimeout(this.authTokenExpiringTimeoutCallback, prepareTimeoutDuration(expiringTokenDuration), authToken);
-    return watcherId;
-  }
-  untrackAuthToken(authTokenWatcherId) {
-    clearTimeout(authTokenWatcherId);
-  }
-  getAuthorizationTimeStamp(_authMessage) {
-    return Date.now();
-  }
-  async requestAuthToken(requestData) {
-    const response = await fetchNative(this.authorizationUrl.href, {
-      method: "POST",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(requestData)
-    });
-    if (!response.ok)
-      throw new Error(await response.text());
-    return response.json();
-  }
-  isTokenExpiring(authToken) {
-    return authToken.expired.getTime() - Date.now() <= this.expiringNotificationTimeInSeconds * 1e3;
-  }
-};
-var AuthorizationManager = _AuthorizationManager;
-__publicField(AuthorizationManager, "DEFAULT_AUTH_MESSAGE", "Signing in ");
-__publicField(AuthorizationManager, "DEFAULT_GET_AUTH_TOKEN_URI", "/v1/token");
-__publicField(AuthorizationManager, "DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS", 60);
-
 // src/blockchain/signersManager.ts
 var SignersManager = class {
   constructor(atomexNetwork) {
@@ -347,133 +258,31 @@ var SignersManager = class {
   }
 };
 
-// src/browser/localStorageAuthorizationManagerStore/defaultSerializedAuthTokenMapper.ts
-var DefaultSerializedAuthTokenMapper = class {
-  mapAuthTokenToSerializedAuthToken(authToken) {
-    return {
-      a: authToken.address,
-      u: authToken.userId,
-      e: authToken.expired.getTime(),
-      v: authToken.value
-    };
+// src/core/eventEmitter.ts
+var EventEmitter = class {
+  constructor() {
+    __publicField(this, "listeners", /* @__PURE__ */ new Set());
   }
-  mapSerializedAuthTokenToAuthToken(serializedAuthToken) {
-    return {
-      address: serializedAuthToken.a,
-      userId: serializedAuthToken.u,
-      expired: new Date(serializedAuthToken.e),
-      value: serializedAuthToken.v
-    };
+  addListener(listener) {
+    this.listeners.add(listener);
+    return this;
   }
-};
-
-// src/browser/localStorageAuthorizationManagerStore/multipleKeysStoreStrategy.ts
-var _MultipleKeysStoreStrategy = class {
-  constructor(localStorage2, serializedAuthTokenMapper, keyPrefix = _MultipleKeysStoreStrategy.DefaultKeyPrefix) {
-    this.localStorage = localStorage2;
-    this.serializedAuthTokenMapper = serializedAuthTokenMapper;
-    this.keyPrefix = keyPrefix;
+  removeListener(listener) {
+    if (this.listeners.has(listener))
+      this.listeners.delete(listener);
+    return this;
   }
-  getAuthToken(address) {
-    const rawAuthToken = localStorage.getItem(this.getKey(address));
-    return rawAuthToken && this.serializedAuthTokenMapper.mapSerializedAuthTokenToAuthToken(JSON.parse(rawAuthToken)) || void 0;
+  removeAllListeners() {
+    this.listeners = /* @__PURE__ */ new Set();
+    return this;
   }
-  getAuthTokens(addresses) {
-    return addresses.map((address) => this.getAuthToken(address)).filter(Boolean);
-  }
-  upsertAuthToken(address, authToken) {
-    const serializedAuthToken = this.serializedAuthTokenMapper.mapAuthTokenToSerializedAuthToken(authToken);
-    if (!serializedAuthToken)
-      throw new Error(`The authToken of the ${address} address can't be stored: serialization is failed`);
-    localStorage.setItem(this.getKey(address), JSON.stringify(serializedAuthToken));
-    return authToken;
-  }
-  removeAuthToken(address) {
-    localStorage.removeItem(this.getKey(address));
-    return true;
-  }
-  getKey(address) {
-    return this.keyPrefix + address;
-  }
-};
-var MultipleKeysStoreStrategy = _MultipleKeysStoreStrategy;
-__publicField(MultipleKeysStoreStrategy, "DefaultKeyPrefix", "authToken:");
-
-// src/browser/localStorageAuthorizationManagerStore/singleKeyStoreStrategy.ts
-var _SingleKeyStoreStrategy = class {
-  constructor(localStorage2, serializedAuthTokenMapper, keyPrefix = _SingleKeyStoreStrategy.DefaultKeyPrefix) {
-    this.localStorage = localStorage2;
-    this.serializedAuthTokenMapper = serializedAuthTokenMapper;
-    this.keyPrefix = keyPrefix;
-  }
-  get key() {
-    return this.keyPrefix;
-  }
-  getAuthToken(address) {
-    const serializedAuthTokensStoreObject = this.getSerializedAuthTokensStoreObject();
-    return serializedAuthTokensStoreObject[address] && (this.serializedAuthTokenMapper.mapSerializedAuthTokenToAuthToken(serializedAuthTokensStoreObject[address]) || void 0);
-  }
-  getAuthTokens(addresses) {
-    const serializedAuthTokensStoreObject = this.getSerializedAuthTokensStoreObject();
-    return Object.values(serializedAuthTokensStoreObject).map((serializedAuthToken) => this.serializedAuthTokenMapper.mapSerializedAuthTokenToAuthToken(serializedAuthToken)).filter((authToken) => !!authToken && addresses.indexOf(authToken.address) > -1);
-  }
-  upsertAuthToken(address, authToken) {
-    const serializedAuthTokensStoreObject = this.getSerializedAuthTokensStoreObject();
-    const serializedAuthToken = this.serializedAuthTokenMapper.mapAuthTokenToSerializedAuthToken(authToken);
-    if (!serializedAuthToken)
-      throw new Error(`The authToken of the ${address} address can't be stored: serialization is failed`);
-    serializedAuthTokensStoreObject[address] = serializedAuthToken;
-    this.localStorage.setItem(this.key, JSON.stringify(serializedAuthTokensStoreObject));
-    return authToken;
-  }
-  removeAuthToken(address) {
-    const serializedAuthTokensStoreObject = this.getSerializedAuthTokensStoreObject();
-    if (!serializedAuthTokensStoreObject[address])
-      return false;
-    delete serializedAuthTokensStoreObject[address];
-    if (Object.keys(serializedAuthTokensStoreObject).length)
-      this.localStorage.setItem(this.key, JSON.stringify(serializedAuthTokensStoreObject));
-    else
-      this.localStorage.removeItem(this.key);
-    return true;
-  }
-  getSerializedAuthTokensStoreObject() {
-    const rawAuthTokens = this.localStorage.getItem(this.key);
-    if (!rawAuthTokens)
-      return {};
-    return JSON.parse(rawAuthTokens);
-  }
-};
-var SingleKeyStoreStrategy = _SingleKeyStoreStrategy;
-__publicField(SingleKeyStoreStrategy, "DefaultKeyPrefix", "authTokens");
-
-// src/browser/localStorageAuthorizationManagerStore/localStorageAuthorizationManagerStore.ts
-var LocalStorageAuthorizationManagerStore = class {
-  constructor(storeStrategy = "single-key", serializedAuthTokenMapper = new DefaultSerializedAuthTokenMapper()) {
-    __publicField(this, "storeStrategy");
-    this.storeStrategy = typeof storeStrategy === "string" ? this.createPreDefinedStoreStrategy(storeStrategy, serializedAuthTokenMapper) : storeStrategy;
-  }
-  getAuthToken(address) {
-    return Promise.resolve(this.storeStrategy.getAuthToken(address));
-  }
-  getAuthTokens(...addresses) {
-    return Promise.resolve(this.storeStrategy.getAuthTokens(addresses));
-  }
-  upsertAuthToken(address, authToken) {
-    return Promise.resolve(this.storeStrategy.upsertAuthToken(address, authToken));
-  }
-  removeAuthToken(addressOrAuthToken) {
-    const address = typeof addressOrAuthToken === "string" ? addressOrAuthToken : addressOrAuthToken.address;
-    return Promise.resolve(this.storeStrategy.removeAuthToken(address));
-  }
-  createPreDefinedStoreStrategy(strategyName, serializedAuthTokenMapper) {
-    switch (strategyName) {
-      case "single-key":
-        return new SingleKeyStoreStrategy(globalThis.localStorage, serializedAuthTokenMapper);
-      case "multiple-keys":
-        return new MultipleKeysStoreStrategy(globalThis.localStorage, serializedAuthTokenMapper);
-      default:
-        throw new Error(`Unknown the store strategy name: ${strategyName}`);
+  emit(...args) {
+    if (!this.listeners.size)
+      return;
+    if (this.listeners.size === 1) {
+      this.listeners.values().next().value(...args);
+    } else {
+      [...this.listeners].forEach((listener) => listener(...args));
     }
   }
 };
@@ -635,6 +444,448 @@ var InMemoryCurrenciesProvider = class {
   }
 };
 
+// src/exchange/exchangeManager.ts
+var ExchangeManager = class {
+  constructor(exchangeService) {
+    this.exchangeService = exchangeService;
+    __publicField(this, "orderUpdated", new EventEmitter());
+    __publicField(this, "orderBookUpdated", new EventEmitter());
+    __publicField(this, "topOfBookUpdated", new EventEmitter());
+    __publicField(this, "handleExchangeServiceOrderBookUpdated", (updatedOrderBook) => {
+      this.orderBookUpdated.emit(updatedOrderBook);
+    });
+    __publicField(this, "handleExchangeServiceTopOfBookUpdated", (updatedQuotes) => {
+      this.topOfBookUpdated.emit(updatedQuotes);
+    });
+    __publicField(this, "handleExchangeServiceOrderUpdated", (updatedOrder) => {
+      this.orderUpdated.emit(updatedOrder);
+    });
+    this.attachEvents();
+  }
+  getOrder(orderId, mode = 2 /* SafeMerged */) {
+    throw new Error("Not implemented");
+  }
+  getOrders(selector, mode = 2 /* SafeMerged */) {
+    throw new Error("Not implemented");
+  }
+  getSymbols() {
+    throw new Error("Not implemented");
+  }
+  getTopOfBook() {
+    throw new Error("Not implemented");
+  }
+  getOrderBook() {
+    throw new Error("Not implemented");
+  }
+  getRewardForRedeem(nativeTokenUsdPrice, nativeTokenCurrencyPrice) {
+    throw new Error("Not implemented");
+  }
+  addOrder(newOrderRequest) {
+    throw new Error("Not implemented");
+  }
+  cancelOrder(orderId) {
+    throw new Error("Not implemented");
+  }
+  cancelAllOrders() {
+    throw new Error("Not implemented");
+  }
+  attachEvents() {
+    this.exchangeService.orderUpdated.addListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.orderBookUpdated.addListener(this.handleExchangeServiceOrderBookUpdated);
+    this.exchangeService.topOfBookUpdated.addListener(this.handleExchangeServiceTopOfBookUpdated);
+  }
+  detachEvents() {
+    this.exchangeService.orderUpdated.removeListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.orderBookUpdated.removeListener(this.handleExchangeServiceOrderBookUpdated);
+    this.exchangeService.topOfBookUpdated.removeListener(this.handleExchangeServiceTopOfBookUpdated);
+  }
+};
+
+// src/authorization/authorizationManager.ts
+var _AuthorizationManager = class {
+  constructor(options) {
+    __publicField(this, "events", {
+      authorized: new EventEmitter(),
+      unauthorized: new EventEmitter(),
+      authTokenExpiring: new EventEmitter(),
+      authTokenExpired: new EventEmitter()
+    });
+    __publicField(this, "atomexNetwork");
+    __publicField(this, "signersManager");
+    __publicField(this, "store");
+    __publicField(this, "authorizationUrl");
+    __publicField(this, "expiringNotificationTimeInSeconds");
+    __publicField(this, "_authTokenData", /* @__PURE__ */ new Map());
+    __publicField(this, "authTokenExpiringTimeoutCallback", (authToken) => {
+      const authTokenData = this._authTokenData.get(authToken.address);
+      if (!authTokenData)
+        return;
+      clearTimeout(authTokenData.watcherId);
+      const duration = authToken.expired.getTime() - Date.now();
+      const newWatcherId = setTimeout(this.authTokenExpiredTimeoutCallback, prepareTimeoutDuration(duration), authToken);
+      this._authTokenData.set(authToken.address, __spreadProps(__spreadValues({}, authTokenData), {
+        watcherId: newWatcherId
+      }));
+      this.events.authTokenExpiring.emit(authToken);
+    });
+    __publicField(this, "authTokenExpiredTimeoutCallback", (authToken) => {
+      this.unregisterAuthToken(authToken);
+      this.events.authTokenExpired.emit(authToken);
+    });
+    this.atomexNetwork = options.atomexNetwork;
+    this.store = options.store;
+    this.signersManager = options.signersManager;
+    atomexUtils_exports.ensureNetworksAreSame(this, this.signersManager);
+    this.authorizationUrl = new URL(_AuthorizationManager.DEFAULT_GET_AUTH_TOKEN_URI, options.authorizationBaseUrl);
+    this.expiringNotificationTimeInSeconds = options.expiringNotificationTimeInSeconds || _AuthorizationManager.DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS;
+  }
+  get authTokenData() {
+    return this._authTokenData;
+  }
+  getAuthToken(address) {
+    var _a;
+    return (_a = this.authTokenData.get(address)) == null ? void 0 : _a.authToken;
+  }
+  async authorize(address, forceRequestNewToken = false, blockchain, authMessage = _AuthorizationManager.DEFAULT_AUTH_MESSAGE) {
+    if (!forceRequestNewToken) {
+      const authToken2 = this.getAuthToken(address) || await this.loadAuthTokenFromStore(address);
+      if (authToken2 && !this.isTokenExpiring(authToken2))
+        return authToken2;
+    }
+    const signer = await this.signersManager.findSigner(address, blockchain);
+    if (!signer)
+      throw new Error(`Not found: the corresponding signer by the ${address} address`);
+    const timeStamp = this.getAuthorizationTimeStamp(authMessage);
+    const atomexSignature = await signer.sign(authMessage + timeStamp);
+    if (atomexSignature.address !== address)
+      throw new Error("Invalid address in the signed data");
+    const authenticationResponseData = await this.requestAuthToken({
+      message: authMessage,
+      publicKey: atomexSignature.publicKeyBytes,
+      algorithm: atomexSignature.algorithm,
+      signingDataType: atomexSignature.signingDataType,
+      signature: atomexSignature.signatureBytes,
+      timeStamp
+    });
+    const authToken = {
+      value: authenticationResponseData.token,
+      userId: authenticationResponseData.id,
+      address,
+      expired: new Date(authenticationResponseData.expires)
+    };
+    await this.registerAuthToken(authToken, true);
+    return authToken;
+  }
+  async unauthorize(address) {
+    const authToken = this.getAuthToken(address);
+    return authToken ? this.unregisterAuthToken(authToken) : false;
+  }
+  async loadAuthTokenFromStore(address) {
+    const authToken = await this.store.getAuthToken(address);
+    if (!authToken)
+      return void 0;
+    return await this.registerAuthToken(authToken, false);
+  }
+  async registerAuthToken(authToken, isNeedSave) {
+    const watcherId = this.trackAuthToken(authToken);
+    if (!watcherId)
+      return;
+    const authTokenData = {
+      authToken,
+      watcherId
+    };
+    this._authTokenData.set(authToken.address, authTokenData);
+    if (isNeedSave)
+      authToken = await this.store.upsertAuthToken(authToken.address, authToken);
+    this.events.authorized.emit(authToken);
+    return authToken;
+  }
+  async unregisterAuthToken(authToken) {
+    const authTokenData = this._authTokenData.get(authToken.address);
+    if (!authTokenData)
+      return false;
+    this.untrackAuthToken(authTokenData.watcherId);
+    const result = await this.store.removeAuthToken(authToken) && this._authTokenData.delete(authToken.address);
+    if (result)
+      this.events.unauthorized.emit(authToken);
+    return result;
+  }
+  trackAuthToken(authToken) {
+    const tokenDuration = authToken.expired.getTime() - Date.now();
+    if (tokenDuration <= 0) {
+      this.store.removeAuthToken(authToken);
+      this.events.authTokenExpired.emit(authToken);
+      return;
+    }
+    const expiringTokenDuration = tokenDuration - this.expiringNotificationTimeInSeconds * 1e3;
+    const watcherId = setTimeout(this.authTokenExpiringTimeoutCallback, prepareTimeoutDuration(expiringTokenDuration), authToken);
+    return watcherId;
+  }
+  untrackAuthToken(authTokenWatcherId) {
+    clearTimeout(authTokenWatcherId);
+  }
+  getAuthorizationTimeStamp(_authMessage) {
+    return Date.now();
+  }
+  async requestAuthToken(requestData) {
+    const response = await fetchNative(this.authorizationUrl.href, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(requestData)
+    });
+    if (!response.ok)
+      throw new Error(await response.text());
+    return response.json();
+  }
+  isTokenExpiring(authToken) {
+    return authToken.expired.getTime() - Date.now() <= this.expiringNotificationTimeInSeconds * 1e3;
+  }
+};
+var AuthorizationManager = _AuthorizationManager;
+__publicField(AuthorizationManager, "DEFAULT_AUTH_MESSAGE", "Signing in ");
+__publicField(AuthorizationManager, "DEFAULT_GET_AUTH_TOKEN_URI", "/v1/token");
+__publicField(AuthorizationManager, "DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS", 60);
+
+// src/browser/localStorageAuthorizationManagerStore/defaultSerializedAuthTokenMapper.ts
+var DefaultSerializedAuthTokenMapper = class {
+  mapAuthTokenToSerializedAuthToken(authToken) {
+    return {
+      a: authToken.address,
+      u: authToken.userId,
+      e: authToken.expired.getTime(),
+      v: authToken.value
+    };
+  }
+  mapSerializedAuthTokenToAuthToken(serializedAuthToken) {
+    return {
+      address: serializedAuthToken.a,
+      userId: serializedAuthToken.u,
+      expired: new Date(serializedAuthToken.e),
+      value: serializedAuthToken.v
+    };
+  }
+};
+
+// src/browser/localStorageAuthorizationManagerStore/multipleKeysStoreStrategy.ts
+var _MultipleKeysStoreStrategy = class {
+  constructor(localStorage2, serializedAuthTokenMapper, keyPrefix = _MultipleKeysStoreStrategy.DefaultKeyPrefix) {
+    this.localStorage = localStorage2;
+    this.serializedAuthTokenMapper = serializedAuthTokenMapper;
+    this.keyPrefix = keyPrefix;
+  }
+  getAuthToken(address) {
+    const rawAuthToken = localStorage.getItem(this.getKey(address));
+    return rawAuthToken && this.serializedAuthTokenMapper.mapSerializedAuthTokenToAuthToken(JSON.parse(rawAuthToken)) || void 0;
+  }
+  getAuthTokens(addresses) {
+    return addresses.map((address) => this.getAuthToken(address)).filter(Boolean);
+  }
+  upsertAuthToken(address, authToken) {
+    const serializedAuthToken = this.serializedAuthTokenMapper.mapAuthTokenToSerializedAuthToken(authToken);
+    if (!serializedAuthToken)
+      throw new Error(`The authToken of the ${address} address can't be stored: serialization is failed`);
+    localStorage.setItem(this.getKey(address), JSON.stringify(serializedAuthToken));
+    return authToken;
+  }
+  removeAuthToken(address) {
+    localStorage.removeItem(this.getKey(address));
+    return true;
+  }
+  getKey(address) {
+    return this.keyPrefix + address;
+  }
+};
+var MultipleKeysStoreStrategy = _MultipleKeysStoreStrategy;
+__publicField(MultipleKeysStoreStrategy, "DefaultKeyPrefix", "authToken:");
+
+// src/browser/localStorageAuthorizationManagerStore/singleKeyStoreStrategy.ts
+var _SingleKeyStoreStrategy = class {
+  constructor(localStorage2, serializedAuthTokenMapper, keyPrefix = _SingleKeyStoreStrategy.DefaultKeyPrefix) {
+    this.localStorage = localStorage2;
+    this.serializedAuthTokenMapper = serializedAuthTokenMapper;
+    this.keyPrefix = keyPrefix;
+  }
+  get key() {
+    return this.keyPrefix;
+  }
+  getAuthToken(address) {
+    const serializedAuthTokensStoreObject = this.getSerializedAuthTokensStoreObject();
+    return serializedAuthTokensStoreObject[address] && (this.serializedAuthTokenMapper.mapSerializedAuthTokenToAuthToken(serializedAuthTokensStoreObject[address]) || void 0);
+  }
+  getAuthTokens(addresses) {
+    const serializedAuthTokensStoreObject = this.getSerializedAuthTokensStoreObject();
+    return Object.values(serializedAuthTokensStoreObject).map((serializedAuthToken) => this.serializedAuthTokenMapper.mapSerializedAuthTokenToAuthToken(serializedAuthToken)).filter((authToken) => !!authToken && addresses.indexOf(authToken.address) > -1);
+  }
+  upsertAuthToken(address, authToken) {
+    const serializedAuthTokensStoreObject = this.getSerializedAuthTokensStoreObject();
+    const serializedAuthToken = this.serializedAuthTokenMapper.mapAuthTokenToSerializedAuthToken(authToken);
+    if (!serializedAuthToken)
+      throw new Error(`The authToken of the ${address} address can't be stored: serialization is failed`);
+    serializedAuthTokensStoreObject[address] = serializedAuthToken;
+    this.localStorage.setItem(this.key, JSON.stringify(serializedAuthTokensStoreObject));
+    return authToken;
+  }
+  removeAuthToken(address) {
+    const serializedAuthTokensStoreObject = this.getSerializedAuthTokensStoreObject();
+    if (!serializedAuthTokensStoreObject[address])
+      return false;
+    delete serializedAuthTokensStoreObject[address];
+    if (Object.keys(serializedAuthTokensStoreObject).length)
+      this.localStorage.setItem(this.key, JSON.stringify(serializedAuthTokensStoreObject));
+    else
+      this.localStorage.removeItem(this.key);
+    return true;
+  }
+  getSerializedAuthTokensStoreObject() {
+    const rawAuthTokens = this.localStorage.getItem(this.key);
+    if (!rawAuthTokens)
+      return {};
+    return JSON.parse(rawAuthTokens);
+  }
+};
+var SingleKeyStoreStrategy = _SingleKeyStoreStrategy;
+__publicField(SingleKeyStoreStrategy, "DefaultKeyPrefix", "authTokens");
+
+// src/browser/localStorageAuthorizationManagerStore/localStorageAuthorizationManagerStore.ts
+var LocalStorageAuthorizationManagerStore = class {
+  constructor(storeStrategy = "single-key", serializedAuthTokenMapper = new DefaultSerializedAuthTokenMapper()) {
+    __publicField(this, "storeStrategy");
+    this.storeStrategy = typeof storeStrategy === "string" ? this.createPreDefinedStoreStrategy(storeStrategy, serializedAuthTokenMapper) : storeStrategy;
+  }
+  getAuthToken(address) {
+    return Promise.resolve(this.storeStrategy.getAuthToken(address));
+  }
+  getAuthTokens(...addresses) {
+    return Promise.resolve(this.storeStrategy.getAuthTokens(addresses));
+  }
+  upsertAuthToken(address, authToken) {
+    return Promise.resolve(this.storeStrategy.upsertAuthToken(address, authToken));
+  }
+  removeAuthToken(addressOrAuthToken) {
+    const address = typeof addressOrAuthToken === "string" ? addressOrAuthToken : addressOrAuthToken.address;
+    return Promise.resolve(this.storeStrategy.removeAuthToken(address));
+  }
+  createPreDefinedStoreStrategy(strategyName, serializedAuthTokenMapper) {
+    switch (strategyName) {
+      case "single-key":
+        return new SingleKeyStoreStrategy(globalThis.localStorage, serializedAuthTokenMapper);
+      case "multiple-keys":
+        return new MultipleKeysStoreStrategy(globalThis.localStorage, serializedAuthTokenMapper);
+      default:
+        throw new Error(`Unknown the store strategy name: ${strategyName}`);
+    }
+  }
+};
+
+// src/stores/inMemoryAuthorizationManagerStore.ts
+var InMemoryAuthorizationManagerStore = class {
+  constructor() {
+    __publicField(this, "authTokensMap", /* @__PURE__ */ new Map());
+  }
+  getAuthToken(address) {
+    return Promise.resolve(this.authTokensMap.get(address));
+  }
+  getAuthTokens(...addresses) {
+    return Promise.resolve(addresses.reduce((result, address) => {
+      const authToken = this.authTokensMap.get(address);
+      if (authToken)
+        result.push(authToken);
+      return result;
+    }, []));
+  }
+  upsertAuthToken(address, authToken) {
+    this.authTokensMap.set(address, authToken);
+    return Promise.resolve(authToken);
+  }
+  removeAuthToken(addressOrAuthToken) {
+    const address = typeof addressOrAuthToken === "string" ? addressOrAuthToken : addressOrAuthToken.address;
+    return Promise.resolve(this.authTokensMap.delete(address));
+  }
+};
+
+// src/atomexBuilder/atomexComponents/authorizationManager.ts
+var createDefaultAuthorizationManager = (atomexContext, options, _builderOptions) => {
+  const environment = globalThis.window ? "browser" : "node";
+  return new AuthorizationManager({
+    atomexNetwork: atomexContext.atomexNetwork,
+    signersManager: atomexContext.managers.signersManager,
+    authorizationBaseUrl: options.authorizationBaseUrl,
+    store: environment === "browser" ? new LocalStorageAuthorizationManagerStore(options.store.browser.storeStrategy) : new InMemoryAuthorizationManagerStore()
+  });
+};
+
+// src/atomexBuilder/atomexConfig.ts
+var atomexMainnetConfig = {
+  authorization: {
+    authorizationBaseUrl: "https://api.atomex.me",
+    store: {
+      node: {},
+      browser: {
+        storeStrategy: "single-key"
+      }
+    }
+  }
+};
+var atomexTestnetConfig = {
+  authorization: {
+    authorizationBaseUrl: "https://api.test.atomex.me",
+    store: {
+      node: {},
+      browser: {
+        storeStrategy: "single-key"
+      }
+    }
+  }
+};
+var config = {
+  mainnet: atomexMainnetConfig,
+  testnet: atomexTestnetConfig
+};
+
+// src/atomexBuilder/atomexBuilder.ts
+var AtomexBuilder = class {
+  constructor(options, atomexContext = new AtomexContext(options.atomexNetwork)) {
+    this.options = options;
+    this.atomexContext = atomexContext;
+    __publicField(this, "customAuthorizationManagerFactory");
+    __publicField(this, "customSignersManagerFactory");
+  }
+  get controlledAtomexContext() {
+    return this.atomexContext;
+  }
+  useAuthorizationManager(customAuthorizationManagerFactory) {
+    this.customAuthorizationManagerFactory = customAuthorizationManagerFactory;
+  }
+  useSignersManager(customSignersManagerFactory) {
+    this.customSignersManagerFactory = customSignersManagerFactory;
+  }
+  createAuthorizationManager() {
+    const defaultAuthorizationManagerOptions = config[this.atomexContext.atomexNetwork].authorization;
+    return this.customAuthorizationManagerFactory ? this.customAuthorizationManagerFactory(this.atomexContext, defaultAuthorizationManagerOptions, this.options) : createDefaultAuthorizationManager(this.atomexContext, defaultAuthorizationManagerOptions, this.options);
+  }
+  createSignersManager() {
+    return this.customSignersManagerFactory ? this.customSignersManagerFactory(this.atomexContext, this.options) : new SignersManager(this.atomexContext.atomexNetwork);
+  }
+  build() {
+    this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
+    this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
+    const atomexClient = new MixedApiAtomexClient(this.atomexContext.atomexNetwork, new RestAtomexClient(this.atomexContext.atomexNetwork, this.controlledAtomexContext.managers.authorizationManager), new WebSocketAtomexClient(this.atomexContext.atomexNetwork, this.controlledAtomexContext.managers.authorizationManager));
+    this.controlledAtomexContext.services.exchangeService = atomexClient;
+    this.controlledAtomexContext.managers.exchangeManager = new ExchangeManager(this.atomexContext.services.exchangeService);
+    return new Atomex({
+      atomexContext: this.atomexContext,
+      managers: {
+        signersManager: this.atomexContext.managers.signersManager,
+        authorizationManager: this.atomexContext.managers.authorizationManager,
+        exchangeManager: this.atomexContext.managers.exchangeManager
+      }
+    });
+  }
+};
+
 // src/ethereum/utils/index.ts
 import { ec as EC } from "elliptic";
 var secp256k1Curve = null;
@@ -701,32 +952,6 @@ var _Web3EthereumSigner = class {
 };
 var Web3EthereumSigner = _Web3EthereumSigner;
 __publicField(Web3EthereumSigner, "signingAlgorithm", "Keccak256WithEcdsa:Geth2940");
-
-// src/stores/inMemoryAuthorizationManagerStore.ts
-var InMemoryAuthorizationManagerStore = class {
-  constructor() {
-    __publicField(this, "authTokensMap", /* @__PURE__ */ new Map());
-  }
-  getAuthToken(address) {
-    return Promise.resolve(this.authTokensMap.get(address));
-  }
-  getAuthTokens(...addresses) {
-    return Promise.resolve(addresses.reduce((result, address) => {
-      const authToken = this.authTokensMap.get(address);
-      if (authToken)
-        result.push(authToken);
-      return result;
-    }, []));
-  }
-  upsertAuthToken(address, authToken) {
-    this.authTokensMap.set(address, authToken);
-    return Promise.resolve(authToken);
-  }
-  removeAuthToken(addressOrAuthToken) {
-    const address = typeof addressOrAuthToken === "string" ? addressOrAuthToken : addressOrAuthToken.address;
-    return Promise.resolve(this.authTokensMap.delete(address));
-  }
-};
 
 // src/tezos/walletTezosSigner/beaconWalletTezosSigner.ts
 import { SigningType } from "@airgap/beacon-sdk";
@@ -2666,6 +2891,7 @@ var FA2Helpers = class extends TezosHelpers {
 };
 export {
   Atomex,
+  AtomexBuilder,
   AuthorizationManager,
   DefaultSerializedAuthTokenMapper,
   ImportantDataReceivingMode,
