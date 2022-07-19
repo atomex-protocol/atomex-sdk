@@ -1,10 +1,10 @@
 import { Atomex, AtomexContext } from '../atomex/index';
 import { AuthorizationManager } from '../authorization/index';
 import { SignersManager } from '../blockchain/signersManager';
-import { MixedApiAtomexClient, RestAtomexClient, WebSocketAtomexClient } from '../clients/index';
 import type { DeepReadonly } from '../core/index';
 import { ExchangeManager } from '../exchange/exchangeManager';
 import type { AtomexBuilderOptions } from './atomexBuilderOptions';
+import { createDefaultExchangeService } from './atomexComponents/exchangeService';
 import { AuthorizationManagerDefaultComponentOptions, createDefaultAuthorizationManager } from './atomexComponents/index';
 import { config } from './atomexConfig';
 import type { ControlledAtomexContext } from './controlledAtomexContext';
@@ -13,6 +13,7 @@ import type { CustomAtomexComponentFactory } from './customAtomexComponentFactor
 export class AtomexBuilder {
   protected customAuthorizationManagerFactory?: CustomAtomexComponentFactory<AuthorizationManager, AuthorizationManagerDefaultComponentOptions>;
   protected customSignersManagerFactory?: CustomAtomexComponentFactory<SignersManager>;
+  protected customExchangeManagerFactory?: CustomAtomexComponentFactory<ExchangeManager>;
 
   private get controlledAtomexContext(): ControlledAtomexContext {
     return this.atomexContext;
@@ -34,6 +35,27 @@ export class AtomexBuilder {
     return this;
   }
 
+  useExchangeManager(customExchangeManagerFactory: NonNullable<AtomexBuilder['customExchangeManagerFactory']>): AtomexBuilder {
+    this.customExchangeManagerFactory = customExchangeManagerFactory;
+    return this;
+  }
+
+  build(): Atomex {
+    this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
+    this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
+    this.controlledAtomexContext.services.exchangeService = this.createDefaultExchangeService();
+    this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
+
+    return new Atomex({
+      atomexContext: this.atomexContext,
+      managers: {
+        signersManager: this.atomexContext.managers.signersManager,
+        authorizationManager: this.atomexContext.managers.authorizationManager,
+        exchangeManager: this.atomexContext.managers.exchangeManager
+      }
+    });
+  }
+
   protected createAuthorizationManager() {
     const defaultAuthorizationManagerOptions = config[this.atomexContext.atomexNetwork].authorization;
 
@@ -48,26 +70,15 @@ export class AtomexBuilder {
       : new SignersManager(this.atomexContext.atomexNetwork);
   }
 
-  build(): Atomex {
-    this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
-    this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
+  protected createDefaultExchangeService() {
+    const defaultExchangeManagerOptions = config[this.atomexContext.atomexNetwork].exchange;
 
-    const atomexClient = new MixedApiAtomexClient(
-      this.atomexContext.atomexNetwork,
-      new RestAtomexClient(this.atomexContext.atomexNetwork, this.controlledAtomexContext.managers.authorizationManager),
-      new WebSocketAtomexClient(this.atomexContext.atomexNetwork, this.controlledAtomexContext.managers.authorizationManager)
-    );
-    this.controlledAtomexContext.services.exchangeService = atomexClient;
+    return createDefaultExchangeService(this.atomexContext, defaultExchangeManagerOptions);
+  }
 
-    this.controlledAtomexContext.managers.exchangeManager = new ExchangeManager(this.atomexContext.services.exchangeService);
-
-    return new Atomex({
-      atomexContext: this.atomexContext,
-      managers: {
-        signersManager: this.atomexContext.managers.signersManager,
-        authorizationManager: this.atomexContext.managers.authorizationManager,
-        exchangeManager: this.atomexContext.managers.exchangeManager
-      }
-    });
+  protected createExchangeManager() {
+    return this.customExchangeManagerFactory
+      ? this.customExchangeManagerFactory(this.atomexContext, this.options)
+      : new ExchangeManager(this.atomexContext.services.exchangeService);
   }
 }

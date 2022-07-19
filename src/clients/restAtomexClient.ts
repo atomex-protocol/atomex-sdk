@@ -6,17 +6,28 @@ import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, Exchange
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 
+export interface RestAtomexClientOptions {
+  atomexNetwork: AtomexNetwork; //Do we really need it?
+  authorizationManager: AuthorizationManager;
+  apiBaseUrl: string;
+}
+
 export class RestAtomexClient implements AtomexClient {
+  readonly atomexNetwork: AtomexNetwork;
+
   readonly events: ExchangeServiceEvents = {
     orderUpdated: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
 
-  constructor(
-    readonly atomexNetwork: AtomexNetwork,
-    protected readonly authorizationManager: AuthorizationManager
-  ) {
+  protected readonly authorizationManager: AuthorizationManager;
+  protected readonly apiBaseUrl: string;
+
+  constructor(options: RestAtomexClientOptions) {
+    this.atomexNetwork = options.atomexNetwork;
+    this.authorizationManager = options.authorizationManager;
+    this.apiBaseUrl = options.apiBaseUrl;
   }
 
   getOrder(orderId: string): Promise<Order | undefined> {
@@ -32,10 +43,15 @@ export class RestAtomexClient implements AtomexClient {
   }
 
   getTopOfBook(): Promise<Quote[]> {
+    const url = `${this.apiBaseUrl}/v1/MarketData/quotes`;
+
+    //http://api.test.atomex.me/v1/MarketData/quotes
     throw new Error('Method not implemented.');
   }
 
   getOrderBook(): Promise<OrderBook> {
+    const url = `${this.apiBaseUrl}/v1/MarketData/book`;
+
     throw new Error('Method not implemented.');
   }
 

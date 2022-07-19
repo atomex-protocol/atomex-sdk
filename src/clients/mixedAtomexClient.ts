@@ -10,8 +10,8 @@ export class MixedApiAtomexClient implements AtomexClient {
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,
-    readonly restAtomexClient: AtomexClient,
-    readonly webSocketAtomexClient: AtomexClient
+    protected readonly restAtomexClient: AtomexClient,
+    protected readonly webSocketAtomexClient: AtomexClient
   ) {
     atomexUtils.ensureNetworksAreSame(this, restAtomexClient);
     atomexUtils.ensureNetworksAreSame(this, webSocketAtomexClient);
