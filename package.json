@@ -63,12 +63,14 @@
     "eslint": "^8.18.0",
     "eslint-plugin-import": "^2.26.0",
     "jest": "^28.1.1",
+    "jest-fetch-mock": "^3.0.3",
     "ts-jest": "^28.0.5",
     "typescript": "^4.7.4"
   },
   "scripts": {
     "build": "node ./scripts/build.mjs",
     "test": "jest --coverage",
+    "test-watch": "jest --watch",
     "lint": "eslint . --ext .ts",
     "check-types": "tsc --project tsconfig.build.json",
     "watch": "tsc --project tsconfig.json --watch"

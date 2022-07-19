@@ -1,7 +1,6 @@
 import type { SignersManager } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
 import { EventEmitter, type ToEventEmitters, type PublicEventEmitter } from '../core/index';
-import { fetch } from '../native/index';
 import type { AuthorizationManagerStore } from '../stores/index';
 import { atomexUtils, prepareTimeoutDuration } from '../utils/index';
 import type {

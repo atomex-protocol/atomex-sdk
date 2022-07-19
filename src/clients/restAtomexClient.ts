@@ -1,3 +1,5 @@
+import BigNumber from 'bignumber.js';
+
 import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork, CollectionSelector } from '../common/index';
@@ -5,6 +7,7 @@ import { EventEmitter } from '../core';
 import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
+import { QuoteDto } from './dtos';
 
 export interface RestAtomexClientOptions {
   atomexNetwork: AtomexNetwork; //Do we really need it?
@@ -42,11 +45,12 @@ export class RestAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getTopOfBook(): Promise<Quote[]> {
-    const url = `${this.apiBaseUrl}/v1/MarketData/quotes`;
+  async getTopOfBook(): Promise<Quote[]> {
+    const topOfBookUrl = `${this.apiBaseUrl}/v1/MarketData/quotes`;
+    const response = await fetch(topOfBookUrl);
+    const quotesDto: QuoteDto[] = await response.json();
 
-    //http://api.test.atomex.me/v1/MarketData/quotes
-    throw new Error('Method not implemented.');
+    return this.mapQuoteDtosToQuotes(quotesDto);
   }
 
   getOrderBook(): Promise<OrderBook> {
@@ -73,5 +77,21 @@ export class RestAtomexClient implements AtomexClient {
 
   getSwap(swapId: string): Promise<Swap> {
     throw new Error('Not implemented');
+  }
+
+  private mapQuoteDtosToQuotes(quoteDtos: QuoteDto[]): Quote[] {
+    const quotes: Quote[] = [];
+    for (const dto of quoteDtos) {
+      quotes.push({
+        ask: new BigNumber(dto.ask),
+        bid: new BigNumber(dto.bid),
+        symbol: dto.symbol,
+        timeStamp: new Date(dto.timeStamp),
+        baseCurrency: '',
+        quoteCurrency: ''
+      });
+    }
+
+    return quotes;
   }
 }
