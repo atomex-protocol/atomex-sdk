@@ -5,7 +5,7 @@ import type { OrderStatus } from './orderStatus';
 import type { OrderType } from './orderType';
 
 export interface Order {
-  readonly id: string;
+  readonly id: number;
   readonly clientOrderId: string;
   readonly type: OrderType
   readonly side: Side;
