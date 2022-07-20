@@ -3,10 +3,17 @@ import BigNumber from 'bignumber.js';
 import { QuoteDto } from '../../../src/clients/dtos';
 import { Quote } from '../../../src/exchange/index';
 
-const validQuotesTestCases: ReadonlyArray<readonly [
+const validTopOfBookTestCases: ReadonlyArray<readonly [
   message: string,
   testValue: readonly [dtos: QuoteDto[], quotes: Quote[]]
 ]> = [
+    [
+      'Empty result',
+      [
+        [],
+        []
+      ]
+    ],
     [
       'Simple quotes',
       [
@@ -32,4 +39,4 @@ const validQuotesTestCases: ReadonlyArray<readonly [
     ]
   ];
 
-export default validQuotesTestCases;
+export default validTopOfBookTestCases;

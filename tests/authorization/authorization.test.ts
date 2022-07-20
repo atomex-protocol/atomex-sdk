@@ -6,9 +6,10 @@ import {
   type AtomexNetwork
 } from '../../src/index';
 
-const fetchMock = fetch as FetchMock;
 
 describe('Atomex authorization', () => {
+  const fetchMock = fetch as FetchMock;
+
   // TODO: Use test hours
   const authTokenExpirationPeriodMs = 720 * 60 * 60 * 1000;
   const atomexNetwork: AtomexNetwork = 'testnet';

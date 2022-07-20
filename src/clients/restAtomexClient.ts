@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork, CollectionSelector } from '../common/index';
-import { EventEmitter } from '../core';
+import { DeepRequired, EventEmitter } from '../core';
 import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
@@ -13,6 +13,11 @@ export interface RestAtomexClientOptions {
   atomexNetwork: AtomexNetwork; //Do we really need it?
   authorizationManager: AuthorizationManager;
   apiBaseUrl: string;
+}
+
+interface SendRequestOptions {
+  urlPath: string;
+  params?: { [key: string]: string };
 }
 
 export class RestAtomexClient implements AtomexClient {
@@ -45,10 +50,13 @@ export class RestAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  async getTopOfBook(): Promise<Quote[]> {
-    const topOfBookUrl = `${this.apiBaseUrl}/v1/MarketData/quotes`;
-    const response = await fetch(topOfBookUrl);
-    const quotesDto: QuoteDto[] = await response.json();
+  async getTopOfBook(symbols?: string[]): Promise<Quote[]> {
+    const urlPath = '/v1/MarketData/quotes';
+    const params = symbols && symbols.length
+      ? { symbols: symbols.join(',') }
+      : undefined;
+
+    const quotesDto = await this.sendRequest<QuoteDto[]>({ urlPath, params });
 
     return this.mapQuoteDtosToQuotes(quotesDto);
   }
@@ -77,6 +85,31 @@ export class RestAtomexClient implements AtomexClient {
 
   getSwap(swapId: string): Promise<Swap> {
     throw new Error('Not implemented');
+  }
+
+  private async sendRequest<T>(options: SendRequestOptions): Promise<T> {
+    const url = new URL(options.urlPath, this.apiBaseUrl);
+
+    if (options.params)
+      this.setSearchParams(url, options.params);
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      throw Error(errBody);
+    }
+
+    return await response.json();
+  }
+
+  private setSearchParams(url: URL, params: DeepRequired<SendRequestOptions['params']>) {
+    for (const key in params) {
+      const value = params[key];
+      if (value) {
+        url.searchParams.set(key, value);
+      }
+    }
   }
 
   private mapQuoteDtosToQuotes(quoteDtos: QuoteDto[]): Quote[] {

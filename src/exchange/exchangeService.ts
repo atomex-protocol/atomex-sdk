@@ -14,7 +14,7 @@ export interface ExchangeService {
   getOrder(orderId: string): Promise<Order | undefined>;
   getOrders(selector?: CollectionSelector): Promise<Order[]>;
   getSymbols(): Promise<ExchangeSymbol>;
-  getTopOfBook(): Promise<Quote[]>;
+  getTopOfBook(symbols?: string[]): Promise<Quote[]>;
   getOrderBook(): Promise<OrderBook>;
 
   addOrder(newOrderRequest: NewOrderRequest): Promise<number>;
