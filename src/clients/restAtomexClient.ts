@@ -8,16 +8,12 @@ import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, Exchange
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 import { QuoteDto, SymbolDto } from './dtos';
+import { RequestSender } from './requestSender';
 
 export interface RestAtomexClientOptions {
   atomexNetwork: AtomexNetwork; //Do we really need it?
   authorizationManager: AuthorizationManager;
   apiBaseUrl: string;
-}
-
-interface SendRequestOptions {
-  urlPath: string;
-  params?: { [key: string]: string };
 }
 
 export class RestAtomexClient implements AtomexClient {
@@ -31,11 +27,13 @@ export class RestAtomexClient implements AtomexClient {
 
   protected readonly authorizationManager: AuthorizationManager;
   protected readonly apiBaseUrl: string;
+  protected readonly requestSender;
 
   constructor(options: RestAtomexClientOptions) {
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
     this.apiBaseUrl = options.apiBaseUrl;
+    this.requestSender = new RequestSender(this.apiBaseUrl);
   }
 
   getOrder(orderId: string): Promise<Order | undefined> {
@@ -48,7 +46,7 @@ export class RestAtomexClient implements AtomexClient {
 
   async getSymbols(): Promise<ExchangeSymbol[]> {
     const urlPath = '/v1/Symbols';
-    const symbolDtos = await this.sendRequest<SymbolDto[]>({ urlPath });
+    const symbolDtos = await this.requestSender.send<SymbolDto[]>({ urlPath });
 
     return this.mapSymbolDtosToSymbols(symbolDtos);
   }
@@ -59,7 +57,7 @@ export class RestAtomexClient implements AtomexClient {
       ? { symbols: symbols.join(',') }
       : undefined;
 
-    const quoteDtos = await this.sendRequest<QuoteDto[]>({ urlPath, params });
+    const quoteDtos = await this.requestSender.send<QuoteDto[]>({ urlPath, params });
 
     return this.mapQuoteDtosToQuotes(quoteDtos);
   }
@@ -88,31 +86,6 @@ export class RestAtomexClient implements AtomexClient {
 
   getSwap(swapId: string): Promise<Swap> {
     throw new Error('Not implemented');
-  }
-
-  private async sendRequest<T>(options: SendRequestOptions): Promise<T> {
-    const url = new URL(options.urlPath, this.apiBaseUrl);
-
-    if (options.params)
-      this.setSearchParams(url, options.params);
-
-    const response = await fetch(url.toString());
-
-    if (!response.ok) {
-      const errBody = await response.text();
-      throw Error(errBody);
-    }
-
-    return await response.json();
-  }
-
-  private setSearchParams(url: URL, params: DeepRequired<SendRequestOptions['params']>) {
-    for (const key in params) {
-      const value = params[key];
-      if (value) {
-        url.searchParams.set(key, value);
-      }
-    }
   }
 
   private mapQuoteDtosToQuotes(quoteDtos: QuoteDto[]): Quote[] {
