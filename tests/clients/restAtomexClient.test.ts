@@ -19,29 +19,27 @@ describe('Rest Atomex Client', () => {
     });
   });
 
-  test.each(validTopOfBookTestCases)('returns TopOfBook: %s', async (_, [responseDtos, expectedQuotes]) => {
-    fetchMock.mockResponseOnce(JSON.stringify(responseDtos));
+  describe('method TopOfBook', () => {
+    test.each(validTopOfBookTestCases)('returns TopOfBook (%s)', async (_, [responseDtos, expectedQuotes]) => {
+      fetchMock.mockResponseOnce(JSON.stringify(responseDtos));
 
-    const quotes = await client.getTopOfBook();
-    expect(quotes).not.toBeNull();
-    expect(quotes).not.toBeUndefined();
-    expect(quotes.length).toBe(expectedQuotes.length);
-    expect(quotes).toEqual(expectedQuotes);
+      const quotes = await client.getTopOfBook();
+      expect(quotes).not.toBeNull();
+      expect(quotes).not.toBeUndefined();
+      expect(quotes.length).toBe(expectedQuotes.length);
+      expect(quotes).toEqual(expectedQuotes);
 
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/MarketData/quotes`);
-  });
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/MarketData/quotes`);
+    });
 
-  test.each(validTopOfBookTestCases)('returns filtered TopOfBook: %s', async (_, [responseDtos, expectedQuotes]) => {
-    fetchMock.mockResponseOnce(JSON.stringify(responseDtos));
+    test('passes the symbols filter to search params', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([]));
 
-    const quotes = await client.getTopOfBook(['ETH/BTC', 'XTZ/BTC']);
-    expect(quotes).not.toBeNull();
-    expect(quotes).not.toBeUndefined();
-    expect(quotes.length).toBe(expectedQuotes.length);
-    expect(quotes).toEqual(expectedQuotes);
+      await client.getTopOfBook(['ETH/BTC', 'XTZ/BTC']);
 
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/MarketData/quotes?symbols=${encodeURIComponent('ETH/BTC,XTZ/BTC')}`);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/MarketData/quotes?symbols=${encodeURIComponent('ETH/BTC,XTZ/BTC')}`);
+    });
   });
 });
