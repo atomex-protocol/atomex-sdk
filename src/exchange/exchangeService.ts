@@ -15,7 +15,7 @@ export interface ExchangeService {
   getOrders(selector?: CollectionSelector): Promise<Order[]>;
   getSymbols(): Promise<ExchangeSymbol[]>;
   getTopOfBook(symbols?: string[]): Promise<Quote[]>;
-  getOrderBook(): Promise<OrderBook>;
+  getOrderBook(symbol: string): Promise<OrderBook>;
 
   addOrder(newOrderRequest: NewOrderRequest): Promise<number>;
   cancelOrder(orderId: number): Promise<boolean>;

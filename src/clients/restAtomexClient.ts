@@ -3,11 +3,11 @@ import BigNumber from 'bignumber.js';
 import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork, CollectionSelector } from '../common/index';
-import { DeepRequired, EventEmitter } from '../core';
+import { EventEmitter } from '../core';
 import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
-import { QuoteDto, SymbolDto } from './dtos';
+import { OrderBookDto, QuoteDto, SymbolDto } from './dtos';
 import { RequestSender } from './requestSender';
 
 export interface RestAtomexClientOptions {
@@ -62,10 +62,12 @@ export class RestAtomexClient implements AtomexClient {
     return this.mapQuoteDtosToQuotes(quoteDtos);
   }
 
-  getOrderBook(): Promise<OrderBook> {
-    const url = `${this.apiBaseUrl}/v1/MarketData/book`;
+  async getOrderBook(symbol: string): Promise<OrderBook> {
+    const urlPath = '/v1/MarketData/book';
+    const params = { symbol };
+    const orderBookDto = await this.requestSender.send<OrderBookDto>({ urlPath, params });
 
-    throw new Error('Method not implemented.');
+    return this.mapOrderBookDtoToOrderBook(orderBookDto);
   }
 
   addOrder(newOrderRequest: NewOrderRequest): Promise<number> {
@@ -91,15 +93,15 @@ export class RestAtomexClient implements AtomexClient {
   private mapQuoteDtosToQuotes(quoteDtos: QuoteDto[]): Quote[] {
     const quotes: Quote[] = [];
     for (const dto of quoteDtos) {
-      const symbols = dto.symbol.split('/');
+      const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(dto.symbol);
 
       quotes.push({
         ask: new BigNumber(dto.ask),
         bid: new BigNumber(dto.bid),
         symbol: dto.symbol,
         timeStamp: new Date(dto.timeStamp),
-        quoteCurrency: symbols[0] || '',
-        baseCurrency: symbols[1] || ''
+        quoteCurrency,
+        baseCurrency
       });
     }
 
@@ -116,5 +118,28 @@ export class RestAtomexClient implements AtomexClient {
     }
 
     return symbols;
+  }
+
+  private mapOrderBookDtoToOrderBook(orderBookDto: OrderBookDto): OrderBook {
+    const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
+
+    const orderBook: OrderBook = {
+      updateId: orderBookDto.updateId,
+      quoteCurrency,
+      baseCurrency,
+      entries: orderBookDto.entries.map(e => ({
+        side: e.side,
+        price: new BigNumber(e.price),
+        qtyProfile: e.qtyProfile
+      }))
+    };
+
+    return orderBook;
+  }
+
+  private getQuoteBaseCurrenciesBySymbol(symbol: string): [quoteCurrency: string, baseCurrency: string] {
+    const [quoteCurrency = '', baseCurrency = ''] = symbol.split('/');
+
+    return [quoteCurrency, baseCurrency];
   }
 }

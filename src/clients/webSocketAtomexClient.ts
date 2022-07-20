@@ -35,7 +35,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getOrderBook(): Promise<OrderBook> {
+  getOrderBook(symbol: string): Promise<OrderBook> {
     throw new Error('Method not implemented.');
   }
 

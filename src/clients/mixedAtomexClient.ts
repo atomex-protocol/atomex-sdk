@@ -39,8 +39,8 @@ export class MixedApiAtomexClient implements AtomexClient {
     return this.restAtomexClient.getTopOfBook(symbols);
   }
 
-  getOrderBook(): Promise<OrderBook> {
-    return this.restAtomexClient.getOrderBook();
+  getOrderBook(symbol: string): Promise<OrderBook> {
+    return this.restAtomexClient.getOrderBook(symbol);
   }
 
   addOrder(newOrderRequest: NewOrderRequest): Promise<number> {

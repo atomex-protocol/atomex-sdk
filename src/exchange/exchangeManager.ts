@@ -34,7 +34,7 @@ export class ExchangeManager {
     throw new Error('Not implemented');
   }
 
-  getOrderBook(): Promise<OrderBook> {
+  getOrderBook(symbol: string): Promise<OrderBook> {
     throw new Error('Not implemented');
   }
 
