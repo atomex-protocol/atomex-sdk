@@ -115,13 +115,15 @@ export class RestAtomexClient implements AtomexClient {
   private mapQuoteDtosToQuotes(quoteDtos: QuoteDto[]): Quote[] {
     const quotes: Quote[] = [];
     for (const dto of quoteDtos) {
+      const symbols = dto.symbol.split('/');
+
       quotes.push({
         ask: new BigNumber(dto.ask),
         bid: new BigNumber(dto.bid),
         symbol: dto.symbol,
         timeStamp: new Date(dto.timeStamp),
-        baseCurrency: '',
-        quoteCurrency: ''
+        quoteCurrency: symbols[0] || '',
+        baseCurrency: symbols[1] || ''
       });
     }
 

@@ -31,8 +31,8 @@ const validTopOfBookTestCases: ReadonlyArray<readonly [
             timeStamp: new Date(1658231388786),
             bid: new BigNumber(0.06976116),
             ask: new BigNumber(0.07041282),
-            quoteCurrency: '',
-            baseCurrency: ''
+            quoteCurrency: 'ETH',
+            baseCurrency: 'BTC'
           }
         ]
       ]
