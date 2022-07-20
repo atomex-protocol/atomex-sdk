@@ -91,31 +91,27 @@ export class RestAtomexClient implements AtomexClient {
   }
 
   private mapQuoteDtosToQuotes(quoteDtos: QuoteDto[]): Quote[] {
-    const quotes: Quote[] = [];
-    for (const dto of quoteDtos) {
+    const quotes: Quote[] = quoteDtos.map(dto => {
       const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(dto.symbol);
 
-      quotes.push({
+      return {
         ask: new BigNumber(dto.ask),
         bid: new BigNumber(dto.bid),
         symbol: dto.symbol,
         timeStamp: new Date(dto.timeStamp),
         quoteCurrency,
         baseCurrency
-      });
-    }
+      };
+    });
 
     return quotes;
   }
 
   private mapSymbolDtosToSymbols(symbolDtos: SymbolDto[]): ExchangeSymbol[] {
-    const symbols: ExchangeSymbol[] = [];
-    for (const dto of symbolDtos) {
-      symbols.push({
-        name: dto.name,
-        minimumQty: new BigNumber(dto.minimumQty)
-      });
-    }
+    const symbols: ExchangeSymbol[] = symbolDtos.map(dto => ({
+      name: dto.name,
+      minimumQty: new BigNumber(dto.minimumQty)
+    }));
 
     return symbols;
   }
