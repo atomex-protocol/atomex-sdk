@@ -26,7 +26,7 @@ export class ExchangeManager {
     throw new Error('Not implemented');
   }
 
-  getSymbols(): Promise<ExchangeSymbol> {
+  getSymbols(): Promise<ExchangeSymbol[]> {
     throw new Error('Not implemented');
   }
 

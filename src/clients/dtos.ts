@@ -4,3 +4,8 @@ export interface QuoteDto {
   bid: number;
   ask: number;
 }
+
+export interface SymbolDto {
+  name: string;
+  minimumQty: number;
+}

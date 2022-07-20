@@ -7,7 +7,7 @@ import { DeepRequired, EventEmitter } from '../core';
 import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
-import { QuoteDto } from './dtos';
+import { QuoteDto, SymbolDto } from './dtos';
 
 export interface RestAtomexClientOptions {
   atomexNetwork: AtomexNetwork; //Do we really need it?
@@ -46,8 +46,11 @@ export class RestAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getSymbols(): Promise<ExchangeSymbol> {
-    throw new Error('Method not implemented.');
+  async getSymbols(): Promise<ExchangeSymbol[]> {
+    const urlPath = '/v1/Symbols';
+    const symbolDtos = await this.sendRequest<SymbolDto[]>({ urlPath });
+
+    return this.mapSymbolDtosToSymbols(symbolDtos);
   }
 
   async getTopOfBook(symbols?: string[]): Promise<Quote[]> {
@@ -56,9 +59,9 @@ export class RestAtomexClient implements AtomexClient {
       ? { symbols: symbols.join(',') }
       : undefined;
 
-    const quotesDto = await this.sendRequest<QuoteDto[]>({ urlPath, params });
+    const quoteDtos = await this.sendRequest<QuoteDto[]>({ urlPath, params });
 
-    return this.mapQuoteDtosToQuotes(quotesDto);
+    return this.mapQuoteDtosToQuotes(quoteDtos);
   }
 
   getOrderBook(): Promise<OrderBook> {
@@ -128,5 +131,17 @@ export class RestAtomexClient implements AtomexClient {
     }
 
     return quotes;
+  }
+
+  private mapSymbolDtosToSymbols(symbolDtos: SymbolDto[]): ExchangeSymbol[] {
+    const symbols: ExchangeSymbol[] = [];
+    for (const dto of symbolDtos) {
+      symbols.push({
+        name: dto.name,
+        minimumQty: new BigNumber(dto.minimumQty)
+      });
+    }
+
+    return symbols;
   }
 }

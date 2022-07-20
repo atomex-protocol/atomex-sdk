@@ -31,7 +31,7 @@ export class MixedApiAtomexClient implements AtomexClient {
     return this.restAtomexClient.getOrders(selector);
   }
 
-  getSymbols(): Promise<ExchangeSymbol> {
+  getSymbols(): Promise<ExchangeSymbol[]> {
     return this.restAtomexClient.getSymbols();
   }
 

@@ -1,6 +1,7 @@
 import { FetchMock } from 'jest-fetch-mock';
 
 import { AuthorizationManager, RestAtomexClient } from '../../src/index';
+import validSymbolsCases from './testCases/validSymbolsCases';
 import validTopOfBookTestCases from './testCases/validTopOfBookTestCases';
 
 describe('Rest Atomex Client', () => {
@@ -19,8 +20,8 @@ describe('Rest Atomex Client', () => {
     });
   });
 
-  describe('method TopOfBook', () => {
-    test.each(validTopOfBookTestCases)('returns TopOfBook (%s)', async (_, [responseDtos, expectedQuotes]) => {
+  describe('method getTopOfBook', () => {
+    test.each(validTopOfBookTestCases)('returns correct data (%s)', async (_, [responseDtos, expectedQuotes]) => {
       fetchMock.mockResponseOnce(JSON.stringify(responseDtos));
 
       const quotes = await client.getTopOfBook();
@@ -40,6 +41,21 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/MarketData/quotes?symbols=${encodeURIComponent('ETH/BTC,XTZ/BTC')}`);
+    });
+  });
+
+  describe('method getSymbols', () => {
+    test.each(validSymbolsCases)('returns correct data (%s)', async (_, [responseDtos, expectedSymbols]) => {
+      fetchMock.mockResponseOnce(JSON.stringify(responseDtos));
+
+      const quotes = await client.getSymbols();
+      expect(quotes).not.toBeNull();
+      expect(quotes).not.toBeUndefined();
+      expect(quotes.length).toBe(expectedSymbols.length);
+      expect(quotes).toEqual(expectedSymbols);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Symbols`);
     });
   });
 });

@@ -1,4 +1,6 @@
+import BigNumber from 'bignumber.js';
+
 export interface ExchangeSymbol {
   readonly name: string;
-  readonly minimumQty: string;
+  readonly minimumQty: BigNumber;
 }

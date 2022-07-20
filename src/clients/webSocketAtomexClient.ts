@@ -27,7 +27,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getSymbols(): Promise<ExchangeSymbol> {
+  getSymbols(): Promise<ExchangeSymbol[]> {
     throw new Error('Method not implemented.');
   }
 
