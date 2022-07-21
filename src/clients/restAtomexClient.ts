@@ -8,7 +8,7 @@ import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServi
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 import { OrderBookDto, OrderDto, QuoteDto, SymbolDto } from './dtos';
-import { RequestSender } from './requestSender';
+import { HttpClient } from './requestSender';
 
 export interface RestAtomexClientOptions {
   atomexNetwork: AtomexNetwork; //Do we really need it?
@@ -27,24 +27,26 @@ export class RestAtomexClient implements AtomexClient {
 
   protected readonly authorizationManager: AuthorizationManager;
   protected readonly apiBaseUrl: string;
-  protected readonly requestSender: RequestSender;
+  protected readonly httpClient: HttpClient;
 
   constructor(options: RestAtomexClientOptions) {
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
     this.apiBaseUrl = options.apiBaseUrl;
-    this.requestSender = new RequestSender(this.apiBaseUrl);
+    this.httpClient = new HttpClient(this.apiBaseUrl);
   }
 
   async getOrder(orderId: number): Promise<Order | undefined> {
     const urlPath = `/v1/Orders/${orderId}`;
-    const orderDto = await this.requestSender.send<OrderDto>({ urlPath });
+    const authToken = this.authorizationManager.getAuthToken('')?.value;
+    const orderDto = await this.httpClient.request<OrderDto>({ urlPath, authToken });
 
     return this.mapOrderDtoToOrder(orderDto);
   }
 
   async getOrders(selector?: OrdersSelector | undefined): Promise<Order[]> {
     const urlPath = '/v1/Orders';
+    const authToken = this.authorizationManager.getAuthToken('')?.value;
     const params = {
       ...selector,
       sortAsc: undefined,
@@ -53,14 +55,14 @@ export class RestAtomexClient implements AtomexClient {
         : undefined,
     };
 
-    const orderDtos = await this.requestSender.send<OrderDto[]>({ urlPath, params });
+    const orderDtos = await this.httpClient.request<OrderDto[]>({ urlPath, authToken, params });
 
     return this.mapOrderDtosToOrders(orderDtos);
   }
 
   async getSymbols(): Promise<ExchangeSymbol[]> {
     const urlPath = '/v1/Symbols';
-    const symbolDtos = await this.requestSender.send<SymbolDto[]>({ urlPath });
+    const symbolDtos = await this.httpClient.request<SymbolDto[]>({ urlPath });
 
     return this.mapSymbolDtosToSymbols(symbolDtos);
   }
@@ -71,7 +73,7 @@ export class RestAtomexClient implements AtomexClient {
       ? { symbols: symbols.join(',') }
       : undefined;
 
-    const quoteDtos = await this.requestSender.send<QuoteDto[]>({ urlPath, params });
+    const quoteDtos = await this.httpClient.request<QuoteDto[]>({ urlPath, params });
 
     return this.mapQuoteDtosToQuotes(quoteDtos);
   }
@@ -79,7 +81,7 @@ export class RestAtomexClient implements AtomexClient {
   async getOrderBook(symbol: string): Promise<OrderBook> {
     const urlPath = '/v1/MarketData/book';
     const params = { symbol };
-    const orderBookDto = await this.requestSender.send<OrderBookDto>({ urlPath, params });
+    const orderBookDto = await this.httpClient.request<OrderBookDto>({ urlPath, params });
 
     return this.mapOrderBookDtoToOrderBook(orderBookDto);
   }
