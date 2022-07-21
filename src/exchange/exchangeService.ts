@@ -11,7 +11,7 @@ export interface ExchangeServiceEvents {
 export interface ExchangeService {
   readonly events: ExchangeServiceEvents;
 
-  getOrder(orderId: string): Promise<Order | undefined>;
+  getOrder(orderId: number): Promise<Order | undefined>;
   getOrders(selector?: CollectionSelector): Promise<Order[]>;
   getSymbols(): Promise<ExchangeSymbol[]>;
   getTopOfBook(symbols?: string[]): Promise<Quote[]>;

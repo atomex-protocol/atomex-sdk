@@ -1,14 +1,14 @@
 import BigNumber from 'bignumber.js';
 
 import { OrderDto } from '../../../src/clients/dtos';
-import { Order, OrderStatus } from '../../../src/exchange/index';
+import { Order } from '../../../src/exchange/index';
 
 const validOrderBookCases: ReadonlyArray<readonly [
   message: string,
   testValue: readonly [dto: OrderDto, orderBook: Order]
 ]> = [
     [
-      'Simple order',
+      'Simple buy order',
       [
         {
           id: 176941,
@@ -117,21 +117,147 @@ const validOrderBookCases: ReadonlyArray<readonly [
         {
           id: 176941,
           clientOrderId: '_ea3tfrzcm',
+          symbol: 'XTZ/ETH',
           side: 'Buy',
           type: 'SolidFillOrKill',
           leaveQty: new BigNumber(0.000000000),
-          status: OrderStatus.Filled,
+          status: 'Filled',
           timeStamp: new Date('2022-07-20T18:28:14.521308Z'),
           from: {
             currencyId: 'ETH',
-            amount: new BigNumber(0),
-            price: new BigNumber(0)
+            amount: new BigNumber(0.0099999999997128),
+            price: new BigNumber(9.200859360).div(new BigNumber(0.0099999999997128))
           },
           to: {
             currencyId: 'XTZ',
-            amount: new BigNumber(0),
-            price: new BigNumber(0)
-          }
+            amount: new BigNumber(9.200859360),
+            price: new BigNumber(0.001086855)
+          },
+          swapIds: [386]
+        }
+      ]
+    ],
+    [
+      'Simple sell order',
+      [
+        {
+          id: 180183,
+          clientOrderId: '_eqcjx83x9',
+          symbol: 'XTZ/ETH',
+          side: 'Sell',
+          timeStamp: '2022-07-21T10:58:11.698128Z',
+          price: 0.001053590,
+          qty: 10.000000000,
+          leaveQty: 0.000000000,
+          type: 'SolidFillOrKill',
+          status: 'Filled',
+          trades: [
+            {
+              orderId: 180183,
+              price: 0.001053590,
+              qty: 10.000000000
+            }
+          ],
+          swaps: [
+            {
+              id: 387,
+              symbol: 'XTZ/ETH',
+              side: 'Sell',
+              timeStamp: '2022-07-21T10:58:11.698128Z',
+              price: 0.001053590,
+              qty: 10.000000000,
+              secret: '3d8075c84383367908bb48c6e89dd6caf698d203d0c9ee908197078262388d39',
+              secretHash: 'd13e978b506d6591a8413b0df2fe50633ae9e56382a8c893bdced902bf45285a',
+              isInitiator: false,
+              user: {
+                requisites: {
+                  secretHash: null,
+                  receivingAddress: '0x45659bd6fa53541e6528baedef8800497a89ff2a',
+                  refundAddress: null,
+                  rewardForRedeem: 0.000000000,
+                  lockTime: 18000,
+                  baseCurrencyContract: 'KT1SJMtHZFSPva5AzQEx5btBuQ8BjvXqort3',
+                  quoteCurrencyContract: '0x512fe6B803bA327DCeFBF2Cec7De333f761B0f2b'
+                },
+                status: 'Initiated',
+                trades: [
+                  {
+                    orderId: 180183,
+                    price: 0.001053590,
+                    qty: 10.000000000
+                  }
+                ],
+                transactions: [
+                  {
+                    currency: 'XTZ',
+                    txId: 'oo3jQxwepJrD7fmDA2v4ZVa1tHAPL44Ag5ZsQ1ZJpvbHeqaz95d',
+                    blockHeight: 885298,
+                    confirmations: 0,
+                    status: 'Confirmed',
+                    type: 'Lock'
+                  }
+                ]
+              },
+              counterParty: {
+                requisites: {
+                  secretHash: 'd13e978b506d6591a8413b0df2fe50633ae9e56382a8c893bdced902bf45285a',
+                  receivingAddress: 'tz1WeXk76h2uFzLZbS9KaQK3JSFVLCRf9wP8',
+                  refundAddress: null,
+                  rewardForRedeem: 0.000000000,
+                  lockTime: 36000,
+                  baseCurrencyContract: 'KT1SJMtHZFSPva5AzQEx5btBuQ8BjvXqort3',
+                  quoteCurrencyContract: '0x512fe6B803bA327DCeFBF2Cec7De333f761B0f2b'
+                },
+                status: 'Redeemed',
+                trades: [
+                  {
+                    orderId: 180137,
+                    price: 0.001053590,
+                    qty: 10.000000000
+                  }
+                ],
+                transactions: [
+                  {
+                    currency: 'ETH',
+                    txId: '0xb05434794be53ee2dfa6066d99253cff2d9f1d9e51dac453f9fea4adfd3b9c73',
+                    blockHeight: 7264862,
+                    confirmations: 0,
+                    status: 'Confirmed',
+                    type: 'Lock'
+                  },
+                  {
+                    currency: 'XTZ',
+                    txId: 'ooPrwt9FHuJ38ZQ8ZXNZdZyRYrbzQZtivLHEVKd8gbXbDM748Qb',
+                    blockHeight: 885302,
+                    confirmations: 0,
+                    status: 'Confirmed',
+                    type: 'Redeem'
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          id: 180183,
+          clientOrderId: '_eqcjx83x9',
+          symbol: 'XTZ/ETH',
+          side: 'Sell',
+          type: 'SolidFillOrKill',
+          leaveQty: new BigNumber(0.000000000),
+          status: 'Filled',
+          timeStamp: new Date('2022-07-21T10:58:11.698128Z'),
+          from: {
+            currencyId: 'XTZ',
+            amount: new BigNumber(10),
+            price: new BigNumber(0.001053590)
+          },
+          to: {
+            currencyId: 'ETH',
+            amount: new BigNumber(0.01053590),
+            price: new BigNumber(10.000000000).div(new BigNumber(0.01053590))
+          },
+          swapIds: [387]
         }
       ]
     ]

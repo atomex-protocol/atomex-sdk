@@ -23,7 +23,7 @@ export class MixedApiAtomexClient implements AtomexClient {
     };
   }
 
-  getOrder(orderId: string): Promise<Order | undefined> {
+  getOrder(orderId: number): Promise<Order | undefined> {
     return this.restAtomexClient.getOrder(orderId);
   }
 

@@ -18,7 +18,7 @@ export class ExchangeManager {
     this.attachEvents();
   }
 
-  getOrder(orderId: string, mode = ImportantDataReceivingMode.SafeMerged): Promise<Result<Order | undefined>> {
+  getOrder(orderId: number, mode = ImportantDataReceivingMode.SafeMerged): Promise<Result<Order | undefined>> {
     throw new Error('Not implemented');
   }
 

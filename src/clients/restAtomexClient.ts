@@ -4,10 +4,10 @@ import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork, CollectionSelector } from '../common/index';
 import { EventEmitter } from '../core';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
+import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
-import { OrderBookDto, QuoteDto, SymbolDto } from './dtos';
+import { OrderBookDto, OrderDto, QuoteDto, SymbolDto } from './dtos';
 import { RequestSender } from './requestSender';
 
 export interface RestAtomexClientOptions {
@@ -36,12 +36,18 @@ export class RestAtomexClient implements AtomexClient {
     this.requestSender = new RequestSender(this.apiBaseUrl);
   }
 
-  getOrder(orderId: string): Promise<Order | undefined> {
-    throw new Error('Method not implemented.');
+  async getOrder(orderId: number): Promise<Order | undefined> {
+    const urlPath = `/v1/Orders/${orderId}`;
+    const orderDto = await this.requestSender.send<OrderDto>({ urlPath });
+
+    return this.mapOrderDtoToOrder(orderDto);
   }
 
-  getOrders(selector?: CollectionSelector | undefined): Promise<Order[]> {
-    throw new Error('Method not implemented.');
+  async getOrders(selector?: CollectionSelector | undefined): Promise<Order[]> {
+    const urlPath = '/v1/Orders';
+    const orderDtos = await this.requestSender.send<OrderDto[]>({ urlPath });
+
+    return this.mapOrderDtosToOrders(orderDtos);
   }
 
   async getSymbols(): Promise<ExchangeSymbol[]> {
@@ -131,6 +137,47 @@ export class RestAtomexClient implements AtomexClient {
     };
 
     return orderBook;
+  }
+
+  private mapOrderDtoToOrder(orderDto: OrderDto): Order {
+    const [quoteCurrencyId, baseCurrencyId] = this.getQuoteBaseCurrenciesBySymbol(orderDto.symbol);
+
+    const quoteCurrencyAmount = new BigNumber(orderDto.qty);
+    const quoteCurrencyPrice = new BigNumber(orderDto.price);
+    const baseCurrencyAmount = quoteCurrencyPrice.multipliedBy(quoteCurrencyAmount);
+    const baseCurrencyPrice = quoteCurrencyAmount.div(baseCurrencyAmount);
+
+    const quoteCurrency: Order['from'] = {
+      currencyId: quoteCurrencyId,
+      amount: quoteCurrencyAmount,
+      price: quoteCurrencyPrice,
+    };
+
+    const baseCurrency: Order['from'] = {
+      currencyId: baseCurrencyId,
+      amount: baseCurrencyAmount,
+      price: baseCurrencyPrice,
+    };
+
+    return {
+      id: orderDto.id,
+      clientOrderId: orderDto.clientOrderId,
+      side: orderDto.side,
+      symbol: orderDto.symbol,
+      leaveQty: new BigNumber(orderDto.leaveQty),
+      timeStamp: new Date(orderDto.timeStamp),
+      type: orderDto.type,
+      status: orderDto.status,
+      swapIds: orderDto.swaps?.map(s => s.id) || [],
+      from: orderDto.side === 'Buy' ? baseCurrency : quoteCurrency,
+      to: orderDto.side === 'Buy' ? quoteCurrency : baseCurrency
+    };
+  }
+
+  private mapOrderDtosToOrders(orderDtos: OrderDto[]): Order[] {
+    const orders = orderDtos.map(dto => this.mapOrderDtoToOrder(dto));
+
+    return orders;
   }
 
   private getQuoteBaseCurrenciesBySymbol(symbol: string): [quoteCurrency: string, baseCurrency: string] {

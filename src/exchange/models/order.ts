@@ -7,6 +7,7 @@ import type { OrderType } from './orderType';
 export interface Order {
   readonly id: number;
   readonly clientOrderId: string;
+  readonly symbol: string;
   readonly type: OrderType
   readonly side: Side;
   readonly from: OrderCurrency,
@@ -14,6 +15,7 @@ export interface Order {
   readonly timeStamp: Date;
   readonly leaveQty: BigNumber;
   readonly status: OrderStatus;
+  readonly swapIds: number[]
 }
 
 interface OrderCurrency {

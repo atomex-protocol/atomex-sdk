@@ -1,7 +1,7 @@
 import { FetchMock } from 'jest-fetch-mock';
 
 import { AuthorizationManager, RestAtomexClient } from '../../src/index';
-import { validOrderBookCases, validSymbolsCases, validTopOfBookTestCases } from './testCases';
+import { validOrderBookCases, validOrderCases, validSymbolsCases, validTopOfBookTestCases } from './testCases';
 
 describe('Rest Atomex Client', () => {
   const fetchMock = fetch as FetchMock;
@@ -23,11 +23,11 @@ describe('Rest Atomex Client', () => {
     test.each(validSymbolsCases)('returns correct data (%s)', async (_, [responseDtos, expectedSymbols]) => {
       fetchMock.mockResponseOnce(JSON.stringify(responseDtos));
 
-      const quotes = await client.getSymbols();
-      expect(quotes).not.toBeNull();
-      expect(quotes).not.toBeUndefined();
-      expect(quotes.length).toBe(expectedSymbols.length);
-      expect(quotes).toEqual(expectedSymbols);
+      const symbols = await client.getSymbols();
+      expect(symbols).not.toBeNull();
+      expect(symbols).not.toBeUndefined();
+      expect(symbols.length).toBe(expectedSymbols.length);
+      expect(symbols).toEqual(expectedSymbols);
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Symbols`);
@@ -59,8 +59,8 @@ describe('Rest Atomex Client', () => {
   });
 
   describe('getOrderBook', () => {
-    test.each(validOrderBookCases)('returns correct data (%s)', async (_, [responseDtos, expectedOrderBook]) => {
-      fetchMock.mockResponseOnce(JSON.stringify(responseDtos));
+    test.each(validOrderBookCases)('returns correct data (%s)', async (_, [responseDto, expectedOrderBook]) => {
+      fetchMock.mockResponseOnce(JSON.stringify(responseDto));
 
       const orderBook = await client.getOrderBook('ETH/BTC');
       expect(orderBook).not.toBeNull();
@@ -69,6 +69,35 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/MarketData/book?symbol=${encodeURIComponent('ETH/BTC')}`);
+    });
+  });
+
+  describe('GetOrder', () => {
+    test.each(validOrderCases)('returns correct data (%s)', async (_, [responseDto, expectedOrder]) => {
+      fetchMock.mockResponseOnce(JSON.stringify(responseDto));
+
+      const order = await client.getOrder(123);
+      expect(order).not.toBeNull();
+      expect(order).not.toBeUndefined();
+      expect(order).toEqual(expectedOrder);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Orders/123`);
+    });
+  });
+
+
+  describe('GetOrders', () => {
+    test.each(validOrderCases)('returns correct data (%s)', async (_, [responseDto, expectedOrder]) => {
+      fetchMock.mockResponseOnce(JSON.stringify([responseDto]));
+
+      const order = await client.getOrders();
+      expect(order).not.toBeNull();
+      expect(order).not.toBeUndefined();
+      expect(order).toEqual([expectedOrder]);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Orders`);
     });
   });
 });

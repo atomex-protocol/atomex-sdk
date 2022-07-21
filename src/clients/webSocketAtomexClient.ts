@@ -19,7 +19,7 @@ export class WebSocketAtomexClient implements AtomexClient {
   ) {
   }
 
-  getOrder(orderId: string): Promise<Order | undefined> {
+  getOrder(orderId: number): Promise<Order | undefined> {
     throw new Error('Method not implemented.');
   }
 
