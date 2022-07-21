@@ -7,8 +7,8 @@ import { EventEmitter } from '../core';
 import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
-import { OrderBookDto, OrderDto, QuoteDto, SymbolDto } from './dtos';
-import { HttpClient } from './requestSender';
+import { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SymbolDto } from './dtos';
+import { HttpClient } from './httpClient';
 
 export interface RestAtomexClientOptions {
   atomexNetwork: AtomexNetwork; //Do we really need it?
@@ -86,8 +86,29 @@ export class RestAtomexClient implements AtomexClient {
     return this.mapOrderBookDtoToOrderBook(orderBookDto);
   }
 
-  addOrder(newOrderRequest: NewOrderRequest): Promise<number> {
-    throw new Error('Method not implemented.');
+  async addOrder(newOrderRequest: NewOrderRequest): Promise<number> {
+    const urlPath = '/v1/Orders';
+    const address = newOrderRequest.requisites?.receivingAddress || '';
+    const authToken = this.authorizationManager.getAuthToken(address)?.value;
+    const payload = {
+      clientOrderId: newOrderRequest.clientOrderId,
+      side: newOrderRequest.side,
+      type: newOrderRequest.type,
+      proofsOfFunds: newOrderRequest.proofsOfFunds,
+      requisites: newOrderRequest.requisites,
+      amount: newOrderRequest.amount.toString(),
+      price: newOrderRequest.price.toString(),
+      symbol: '' //todo
+    };
+
+    const newOrderDto = await this.httpClient.request<CreatedOrderDto>({
+      urlPath,
+      authToken,
+      method: 'POST',
+      payload
+    });
+
+    return newOrderDto.orderId;
   }
 
   cancelOrder(orderId: number): Promise<boolean> {

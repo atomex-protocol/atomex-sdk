@@ -1,8 +1,10 @@
+import BigNumber from 'bignumber.js';
 import { FetchMock } from 'jest-fetch-mock';
 
+import { NewOrderRequest } from '../../src/exchange/index';
 import { AtomexNetwork, AuthorizationManager, AuthToken, InMemoryAuthorizationManagerStore, InMemoryTezosSigner, RestAtomexClient, SignersManager } from '../../src/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
-import { validOrderBookCases, validOrderCases, validSymbolsCases, validTopOfBookTestCases } from './testCases';
+import { validAddOrderTestCases, validOrderBookCases, validOrderCases, validSymbolsCases, validTopOfBookTestCases } from './testCases';
 
 describe('Rest Atomex Client', () => {
   const fetchMock = fetch as FetchMock;
@@ -222,4 +224,38 @@ describe('Rest Atomex Client', () => {
       })
     );
   });
+
+  describe('AddOrder', () => {
+    test.each(validAddOrderTestCases)('passes and returns correct data (%s)', async (_, [responseDto, expectedOrderId]) => {
+      fetchMock.mockResponseOnce(JSON.stringify(responseDto));
+
+      const newOrderRequest: NewOrderRequest = {
+        amount: new BigNumber(1),
+        price: new BigNumber(2),
+        from: 'ETH',
+        to: 'XTZ',
+        clientOrderId: 'client-order-id',
+        side: 'Buy',
+        type: 'FillOrKill'
+      };
+
+      const orderId = await client.addOrder(newOrderRequest);
+
+      expect(orderId).toEqual(expectedOrderId);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Orders`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Authorization': `Bearer ${testAuthToken.value}`,
+            'Content-Type': 'application/json'
+          }),
+          body: expect.anything()
+        })
+      );
+    });
+  });
 });
+

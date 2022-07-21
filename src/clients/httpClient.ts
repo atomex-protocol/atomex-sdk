@@ -1,10 +1,14 @@
 import { DeepRequired } from '../core/index';
 
+type QueryParams = { [key: string]: string | number | boolean | null | undefined };
+type Payload = { [key: string]: unknown };
+
 interface HttpClientOptions {
   urlPath: string;
   method?: 'GET' | 'POST' | 'DELETE'
   authToken?: string;
-  params?: { [key: string]: string | number | boolean | null | undefined };
+  params?: QueryParams;
+  payload?: Payload;
 }
 
 export class HttpClient {
@@ -18,13 +22,10 @@ export class HttpClient {
     if (options.params)
       this.setSearchParams(url, options.params);
 
-    const headers: { [key: string]: string } = {};
-    if (options.authToken)
-      headers['Authorization'] = `Bearer ${options.authToken}`;
-
     const response = await fetch(url.toString(), {
+      headers: this.createHeaders(options),
       method: options.method || 'GET',
-      headers
+      body: options.payload ? JSON.stringify(options.payload) : undefined
     });
 
     if (!response.ok) {
@@ -41,5 +42,16 @@ export class HttpClient {
       if (value !== null && value !== undefined)
         url.searchParams.set(key, String(value));
     }
+  }
+
+  private createHeaders(options: HttpClientOptions): { [key: string]: string } {
+    const headers: { [key: string]: string } = {};
+    if (options.authToken)
+      headers['Authorization'] = `Bearer ${options.authToken}`;
+
+    if (options.method === 'POST' && options.payload)
+      headers['Content-Type'] = 'application/json';
+
+    return headers;
   }
 }

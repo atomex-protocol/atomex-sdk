@@ -99,3 +99,7 @@ export interface TransactionDto {
   status: TransactionStatus;
   type: TransactionType;
 }
+
+export interface CreatedOrderDto {
+  orderId: number;
+}
