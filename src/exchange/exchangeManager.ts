@@ -1,9 +1,9 @@
 import type { BigNumber } from 'bignumber.js';
 
-import { ImportantDataReceivingMode, type CollectionSelector } from '../common/index';
+import { ImportantDataReceivingMode } from '../common/index';
 import { EventEmitter, type ToEventEmitter, type Result } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
-import type { ExchangeSymbol, NewOrderRequest, Order, OrderBook, Quote } from './models/index';
+import type { ExchangeSymbol, NewOrderRequest, Order, OrderBook, OrdersSelector, Quote } from './models/index';
 
 export class ExchangeManager {
   readonly events: ExchangeServiceEvents = {
@@ -22,7 +22,7 @@ export class ExchangeManager {
     throw new Error('Not implemented');
   }
 
-  getOrders(selector?: CollectionSelector, mode = ImportantDataReceivingMode.SafeMerged): Promise<Result<Order[]>> {
+  getOrders(selector?: OrdersSelector, mode = ImportantDataReceivingMode.SafeMerged): Promise<Result<Order[]>> {
     throw new Error('Not implemented');
   }
 

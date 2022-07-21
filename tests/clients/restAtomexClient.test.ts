@@ -100,4 +100,64 @@ describe('Rest Atomex Client', () => {
       expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Orders`);
     });
   });
+
+  test.each([true, false])('passes the active filter (%s) to search params', async filterValue => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getOrders({ active: filterValue });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Orders?active=${filterValue}`);
+  });
+
+  test.each([[true, 'Asc'], [false, 'Desc']])('passes the sortAsc filter (%s) to search params', async (filterValue, expectedQueryValue) => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getOrders({ sortAsc: filterValue });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Orders?sort=${expectedQueryValue}`);
+  });
+
+  test.each([0, 100])('passes the limit filter (%s) to search params', async filterValue => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getOrders({ limit: filterValue });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Orders?limit=${filterValue}`);
+  });
+
+  test.each([2, 150])('passes the offset filter (%s) to search params', async filterValue => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getOrders({ offset: filterValue });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Orders?offset=${filterValue}`);
+  });
+
+  test('passes the symbols filter to search params', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getOrders({ symbols: 'ETH/BTC' });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Orders?symbols=${encodeURIComponent('ETH/BTC')}`);
+  });
+
+  test('passes all filter values to search params', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getOrders({
+      active: true,
+      limit: 10,
+      offset: 20,
+      symbols: 'ETH/BTC',
+      sortAsc: true
+    });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Orders?active=true&limit=10&offset=20&symbols=${encodeURIComponent('ETH/BTC')}&sort=Asc`);
+  });
 });

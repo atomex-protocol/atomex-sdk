@@ -5,3 +5,4 @@ export type { ExchangeSymbol } from './exchangeSymbol';
 export type { NewOrderRequest } from './newOrderRequest';
 export type { Quote } from './quote';
 export type { OrderBook, OrderBookEntry } from './orderBook';
+export type { OrdersSelector } from './ordersSelector';

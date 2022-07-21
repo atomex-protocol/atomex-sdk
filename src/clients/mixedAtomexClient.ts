@@ -1,6 +1,6 @@
 import type { Transaction } from '../blockchain/index';
-import type { AtomexNetwork, CollectionSelector } from '../common/index';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
+import type { AtomexNetwork } from '../common/index';
+import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import { atomexUtils } from '../utils';
 import type { AtomexClient } from './atomexClient';
@@ -27,7 +27,7 @@ export class MixedApiAtomexClient implements AtomexClient {
     return this.restAtomexClient.getOrder(orderId);
   }
 
-  getOrders(selector?: CollectionSelector | undefined): Promise<Order[]> {
+  getOrders(selector?: OrdersSelector | undefined): Promise<Order[]> {
     return this.restAtomexClient.getOrders(selector);
   }
 

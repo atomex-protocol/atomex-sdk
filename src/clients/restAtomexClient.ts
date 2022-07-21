@@ -2,9 +2,9 @@ import BigNumber from 'bignumber.js';
 
 import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
-import type { AtomexNetwork, CollectionSelector } from '../common/index';
+import type { AtomexNetwork } from '../common/index';
 import { EventEmitter } from '../core';
-import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
+import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 import { OrderBookDto, OrderDto, QuoteDto, SymbolDto } from './dtos';
@@ -27,7 +27,7 @@ export class RestAtomexClient implements AtomexClient {
 
   protected readonly authorizationManager: AuthorizationManager;
   protected readonly apiBaseUrl: string;
-  protected readonly requestSender;
+  protected readonly requestSender: RequestSender;
 
   constructor(options: RestAtomexClientOptions) {
     this.atomexNetwork = options.atomexNetwork;
@@ -43,9 +43,17 @@ export class RestAtomexClient implements AtomexClient {
     return this.mapOrderDtoToOrder(orderDto);
   }
 
-  async getOrders(selector?: CollectionSelector | undefined): Promise<Order[]> {
+  async getOrders(selector?: OrdersSelector | undefined): Promise<Order[]> {
     const urlPath = '/v1/Orders';
-    const orderDtos = await this.requestSender.send<OrderDto[]>({ urlPath });
+    const params = {
+      ...selector,
+      sortAsc: undefined,
+      sort: selector?.sortAsc !== undefined
+        ? selector.sortAsc ? 'Asc' : 'Desc'
+        : undefined,
+    };
+
+    const orderDtos = await this.requestSender.send<OrderDto[]>({ urlPath, params });
 
     return this.mapOrderDtosToOrders(orderDtos);
   }

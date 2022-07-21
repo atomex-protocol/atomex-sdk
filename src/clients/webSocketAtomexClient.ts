@@ -1,8 +1,8 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
-import type { AtomexNetwork, CollectionSelector } from '../common/index';
+import type { AtomexNetwork } from '../common/index';
 import { EventEmitter } from '../core';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents } from '../exchange/index';
+import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 
@@ -23,7 +23,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getOrders(selector?: CollectionSelector | undefined): Promise<Order[]> {
+  getOrders(selector?: OrdersSelector | undefined): Promise<Order[]> {
     throw new Error('Method not implemented.');
   }
 

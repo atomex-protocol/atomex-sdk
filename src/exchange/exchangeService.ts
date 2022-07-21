@@ -1,6 +1,5 @@
-import type { CollectionSelector, } from '../common/index';
 import type { PublicEventEmitter } from '../core/index';
-import type { Order, ExchangeSymbol, NewOrderRequest, Quote, OrderBook } from './models/index';
+import type { Order, ExchangeSymbol, NewOrderRequest, Quote, OrderBook, OrdersSelector } from './models/index';
 
 export interface ExchangeServiceEvents {
   readonly orderUpdated: PublicEventEmitter<readonly [updatedOrder: Order]>;
@@ -12,7 +11,7 @@ export interface ExchangeService {
   readonly events: ExchangeServiceEvents;
 
   getOrder(orderId: number): Promise<Order | undefined>;
-  getOrders(selector?: CollectionSelector): Promise<Order[]>;
+  getOrders(selector?: OrdersSelector): Promise<Order[]>;
   getSymbols(): Promise<ExchangeSymbol[]>;
   getTopOfBook(symbols?: string[]): Promise<Quote[]>;
   getOrderBook(symbol: string): Promise<OrderBook>;

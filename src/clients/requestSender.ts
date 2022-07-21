@@ -2,7 +2,7 @@ import { DeepRequired } from '../core/index';
 
 interface SendRequestOptions {
   urlPath: string;
-  params?: { [key: string]: string };
+  params?: { [key: string]: string | number | boolean | null | undefined };
 }
 
 export class RequestSender {
@@ -29,8 +29,8 @@ export class RequestSender {
   private setSearchParams(url: URL, params: DeepRequired<SendRequestOptions['params']>) {
     for (const key in params) {
       const value = params[key];
-      if (value)
-        url.searchParams.set(key, value);
+      if (value !== null && value !== undefined)
+        url.searchParams.set(key, String(value));
     }
   }
 }
