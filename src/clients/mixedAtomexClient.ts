@@ -59,7 +59,7 @@ export class MixedApiAtomexClient implements AtomexClient {
     return this.restAtomexClient.getSwapTransactions(swap);
   }
 
-  getSwap(swapId: string): Promise<Swap> {
+  getSwap(swapId: number): Promise<Swap> {
     return this.restAtomexClient.getSwap(swapId);
   }
 }

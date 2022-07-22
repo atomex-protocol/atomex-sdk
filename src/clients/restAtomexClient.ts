@@ -4,14 +4,14 @@ import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork, Currency, Side } from '../common/index';
 import { EventEmitter } from '../core';
-import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest } from '../exchange/index';
+import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, OrderCurrency } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
-import { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SymbolDto } from './dtos';
+import { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from './dtos';
 import { HttpClient } from './httpClient';
 
 export interface RestAtomexClientOptions {
-  atomexNetwork: AtomexNetwork; //Do we really need it?
+  atomexNetwork: AtomexNetwork; //TODO: Do we really need it?
   authorizationManager: AuthorizationManager;
   apiBaseUrl: string;
 }
@@ -150,12 +150,21 @@ export class RestAtomexClient implements AtomexClient {
     return canceledOrdersCount;
   }
 
+  //TODO: Do we need it? swap already has required props
   getSwapTransactions(swap: Swap): Promise<readonly Transaction[]> {
     throw new Error('Method not implemented.');
   }
 
-  getSwap(swapId: string): Promise<Swap> {
-    throw new Error('Not implemented');
+  async getSwap(swapId: number): Promise<Swap> {
+    const urlPath = `/v1/Swaps/${swapId}`;
+    const authToken = this.authorizationManager.getAuthToken('')?.value;
+
+    const swapDtos = await this.httpClient.request<SwapDto>({
+      urlPath,
+      authToken
+    });
+
+    return this.mapSwapDtoToSwap(swapDtos);
   }
 
   private findExchangeSymbolAndSide(symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [ExchangeSymbol, Side] | undefined {
@@ -214,27 +223,11 @@ export class RestAtomexClient implements AtomexClient {
   }
 
   private mapOrderDtoToOrder(orderDto: OrderDto): Order {
-    const [quoteCurrencyId, baseCurrencyId] = this.getQuoteBaseCurrenciesBySymbol(orderDto.symbol);
-
-    const quoteCurrencyAmount = new BigNumber(orderDto.qty);
-    const quoteCurrencyPrice = new BigNumber(orderDto.price);
-    const baseCurrencyAmount = quoteCurrencyPrice.multipliedBy(quoteCurrencyAmount);
-    const baseCurrencyPrice = quoteCurrencyAmount.div(baseCurrencyAmount);
-
-    const quoteCurrency: Order['from'] = {
-      currencyId: quoteCurrencyId,
-      amount: quoteCurrencyAmount,
-      price: quoteCurrencyPrice,
-    };
-
-    const baseCurrency: Order['from'] = {
-      currencyId: baseCurrencyId,
-      amount: baseCurrencyAmount,
-      price: baseCurrencyPrice,
-    };
-
+    const [from, to] = this.getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
     return {
       id: orderDto.id,
+      from,
+      to,
       clientOrderId: orderDto.clientOrderId,
       side: orderDto.side,
       symbol: orderDto.symbol,
@@ -243,8 +236,6 @@ export class RestAtomexClient implements AtomexClient {
       type: orderDto.type,
       status: orderDto.status,
       swapIds: orderDto.swaps?.map(s => s.id) || [],
-      from: orderDto.side === 'Buy' ? baseCurrency : quoteCurrency,
-      to: orderDto.side === 'Buy' ? quoteCurrency : baseCurrency
     };
   }
 
@@ -254,9 +245,83 @@ export class RestAtomexClient implements AtomexClient {
     return orders;
   }
 
+  private mapSwapDtoToSwap(swapDto: SwapDto): Swap {
+    const [from, to] = this.getFromToCurrencies(swapDto.symbol, swapDto.qty, swapDto.price, swapDto.side);
+
+    const swap: Swap = {
+      isInitiator: swapDto.isInitiator,
+      secret: swapDto.secret,
+      secretHash: swapDto.secretHash,
+      id: Number(swapDto.id),
+      from,
+      to,
+      trade: {
+        qty: new BigNumber(swapDto.qty),
+        price: new BigNumber(swapDto.price),
+        side: swapDto.side,
+        symbol: swapDto.symbol
+      },
+      timeStamp: new Date(swapDto.timeStamp),
+      counterParty: {
+        status: swapDto.counterParty.status,
+        transactions: swapDto.counterParty.transactions,
+        requisites: {
+          ...swapDto.counterParty.requisites,
+          rewardForRedeem: new BigNumber(swapDto.counterParty.requisites.rewardForRedeem),
+        },
+        trades: swapDto.counterParty.trades.map(t => ({
+          orderId: t.orderId,
+          price: new BigNumber(t.price),
+          qty: new BigNumber(t.qty),
+        })),
+      },
+      user: {
+        status: swapDto.user.status,
+        transactions: swapDto.user.transactions,
+        requisites: {
+          ...swapDto.user.requisites,
+          rewardForRedeem: new BigNumber(swapDto.user.requisites.rewardForRedeem),
+        },
+        trades: swapDto.user.trades.map(t => ({
+          orderId: t.orderId,
+          price: new BigNumber(t.price),
+          qty: new BigNumber(t.qty),
+        })),
+      },
+
+    };
+
+    return swap;
+  }
+
   private getQuoteBaseCurrenciesBySymbol(symbol: string): [quoteCurrency: string, baseCurrency: string] {
     const [quoteCurrency = '', baseCurrency = ''] = symbol.split('/');
 
     return [quoteCurrency, baseCurrency];
+  }
+
+  private getFromToCurrencies(symbol: string, qty: number, price: number, side: Side): [from: OrderCurrency, to: OrderCurrency] {
+    const [quoteCurrencyId, baseCurrencyId] = this.getQuoteBaseCurrenciesBySymbol(symbol);
+
+    const quoteCurrencyAmount = new BigNumber(qty);
+    const quoteCurrencyPrice = new BigNumber(price);
+    const baseCurrencyAmount = quoteCurrencyPrice.multipliedBy(quoteCurrencyAmount);
+    const baseCurrencyPrice = quoteCurrencyAmount.div(baseCurrencyAmount);
+
+    const quoteCurrency: OrderCurrency = {
+      currencyId: quoteCurrencyId,
+      amount: quoteCurrencyAmount,
+      price: quoteCurrencyPrice,
+    };
+
+    const baseCurrency: OrderCurrency = {
+      currencyId: baseCurrencyId,
+      amount: baseCurrencyAmount,
+      price: baseCurrencyPrice,
+    };
+
+    return side === 'Buy'
+      ? [baseCurrency, quoteCurrency]
+      : [quoteCurrency, baseCurrency];
   }
 }

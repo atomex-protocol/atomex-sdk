@@ -55,7 +55,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getSwap(swapId: string): Promise<Swap> {
+  getSwap(swapId: number): Promise<Swap> {
     throw new Error('Not implemented');
   }
 }

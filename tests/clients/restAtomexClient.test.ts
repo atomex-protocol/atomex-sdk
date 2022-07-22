@@ -1,10 +1,8 @@
-import BigNumber from 'bignumber.js';
 import { FetchMock } from 'jest-fetch-mock';
 
-import { NewOrderRequest } from '../../src/exchange/index';
 import { AtomexNetwork, AuthToken, RestAtomexClient } from '../../src/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
-import { validAddOrderTestCases, validOrderBookCases, validOrderCases, validSymbolsCases, validTopOfBookTestCases } from './testCases';
+import { validAddOrderTestCases, validOrderBookCases, validOrderCases, validSwapCases, validSymbolsCases, validTopOfBookTestCases } from './testCases';
 
 describe('Rest Atomex Client', () => {
   const fetchMock = fetch as FetchMock;
@@ -298,6 +296,26 @@ describe('Rest Atomex Client', () => {
           headers: expect.objectContaining({
             Authorization: `Bearer ${testAuthToken.value}`,
           })
+        })
+      );
+    });
+  });
+
+  describe('GetSwap', () => {
+    test.each(validSwapCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
+      fetchMock.mockResponseOnce(JSON.stringify(responseDto));
+
+      const swap = await client.getSwap(123);
+      expect(swap).not.toBeNull();
+      expect(swap).not.toBeUndefined();
+      expect(swap).toEqual(expectedSwap);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Swaps/123`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: { Authorization: `Bearer ${testAuthToken.value}` }
         })
       );
     });

@@ -1,4 +1,4 @@
-export type { Order } from './order';
+export type { Order, OrderCurrency } from './order';
 export type { OrderStatus } from './orderStatus';
 export type { OrderType } from './orderType';
 export type { ExchangeSymbol } from './exchangeSymbol';

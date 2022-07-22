@@ -4,7 +4,7 @@ import type { Side } from '../../common/index';
 import type { SwapParticipant } from './swapParticipant';
 
 export interface Swap {
-  readonly id: string;
+  readonly id: number;
   readonly isInitiator: boolean;
   readonly trade: SwapTrade;
   readonly from: SwapCurrency,

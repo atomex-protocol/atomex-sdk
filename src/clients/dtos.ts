@@ -70,8 +70,8 @@ export interface SwapDto {
   secret: string;
   secretHash: string;
   isInitiator: boolean;
-  user: UserSwapDataDto | null;
-  counterParty: UserSwapDataDto | null;
+  user: UserSwapDataDto;
+  counterParty: UserSwapDataDto;
 }
 
 export interface UserSwapDataDto {
@@ -83,12 +83,12 @@ export interface UserSwapDataDto {
 
 export interface SwapRequisitesDto {
   secretHash: string | null;
-  receivingAddress: string | null;
+  receivingAddress: string;
   refundAddress: string | null;
   rewardForRedeem: number;
   lockTime: number;
-  baseCurrencyContract: string | null;
-  quoteCurrencyContract: string | null;
+  baseCurrencyContract: string;
+  quoteCurrencyContract: string;
 }
 
 export interface TransactionDto {

@@ -18,7 +18,7 @@ export interface Order {
   readonly swapIds: number[]
 }
 
-interface OrderCurrency {
+export interface OrderCurrency {
   readonly currencyId: string;
   readonly amount: BigNumber;
   readonly price: BigNumber;
