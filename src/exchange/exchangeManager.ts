@@ -3,7 +3,7 @@ import type { BigNumber } from 'bignumber.js';
 import { ImportantDataReceivingMode } from '../common/index';
 import { EventEmitter, type ToEventEmitter, type Result } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
-import type { ExchangeSymbol, NewOrderRequest, Order, OrderBook, OrdersSelector, Quote } from './models/index';
+import type { CancelAllOrdersRequest, ExchangeSymbol, NewOrderRequest, Order, OrderBook, OrdersSelector, Quote } from './models/index';
 
 export class ExchangeManager {
   readonly events: ExchangeServiceEvents = {
@@ -50,7 +50,7 @@ export class ExchangeManager {
     throw new Error('Not implemented');
   }
 
-  cancelAllOrders(): Promise<number> {
+  cancelAllOrders(cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
     throw new Error('Not implemented');
   }
 

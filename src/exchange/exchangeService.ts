@@ -1,5 +1,5 @@
 import type { PublicEventEmitter } from '../core/index';
-import type { Order, ExchangeSymbol, NewOrderRequest, Quote, OrderBook, OrdersSelector, CancelOrderRequest } from './models/index';
+import type { Order, ExchangeSymbol, NewOrderRequest, Quote, OrderBook, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest } from './models/index';
 
 export interface ExchangeServiceEvents {
   readonly orderUpdated: PublicEventEmitter<readonly [updatedOrder: Order]>;
@@ -18,5 +18,5 @@ export interface ExchangeService {
 
   addOrder(newOrderRequest: NewOrderRequest): Promise<number>;
   cancelOrder(cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
-  cancelAllOrders(): Promise<number>;
+  cancelAllOrders(cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
 }

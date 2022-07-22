@@ -4,7 +4,7 @@ import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork, Currency, Side } from '../common/index';
 import { EventEmitter } from '../core';
-import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest } from '../exchange/index';
+import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 import { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SymbolDto } from './dtos';
@@ -136,8 +136,18 @@ export class RestAtomexClient implements AtomexClient {
     return isSuccess;
   }
 
-  cancelAllOrders(): Promise<number> {
-    throw new Error('Method not implemented.');
+  async cancelAllOrders(cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
+    const urlPath = '/v1/Orders';
+    const authToken = this.authorizationManager.getAuthToken('')?.value;
+
+    const canceledOrdersCount = await this.httpClient.request<number>({
+      urlPath,
+      authToken,
+      params: { ...cancelAllOrdersRequest },
+      method: 'DELETE'
+    });
+
+    return canceledOrdersCount;
   }
 
   getSwapTransactions(swap: Swap): Promise<readonly Transaction[]> {

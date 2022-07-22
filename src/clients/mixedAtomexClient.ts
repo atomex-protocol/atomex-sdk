@@ -1,6 +1,6 @@
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest } from '../exchange/index';
+import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import { atomexUtils } from '../utils';
 import type { AtomexClient } from './atomexClient';
@@ -51,8 +51,8 @@ export class MixedApiAtomexClient implements AtomexClient {
     return this.restAtomexClient.cancelOrder(cancelOrderRequest);
   }
 
-  cancelAllOrders(): Promise<number> {
-    return this.restAtomexClient.cancelAllOrders();
+  cancelAllOrders(cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
+    return this.restAtomexClient.cancelAllOrders(cancelAllOrdersRequest);
   }
 
   getSwapTransactions(swap: Swap): Promise<readonly Transaction[]> {

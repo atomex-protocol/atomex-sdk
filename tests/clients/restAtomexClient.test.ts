@@ -259,8 +259,8 @@ describe('Rest Atomex Client', () => {
 
       const isSuccess = await client.cancelOrder({
         orderId: 1,
-        side: 'Buy',
-        symbol: 'XTZ/ETH'
+        symbol: 'XTZ/ETH',
+        side: 'Buy'
       });
 
       expect(isSuccess).toBe(true);
@@ -268,6 +268,31 @@ describe('Rest Atomex Client', () => {
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
         `${testApiUrl}/v1/Orders/1?symbol=${encodeURIComponent('XTZ/ETH')}&side=Buy`,
+        expect.objectContaining({
+          method: 'DELETE',
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${testAuthToken.value}`,
+          })
+        })
+      );
+    });
+  });
+
+  describe('CancelAllOrders', () => {
+    test('passes and returns correct data', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(2));
+
+      const canceledOrdersCount = await client.cancelAllOrders({
+        symbol: 'XTZ/ETH',
+        side: 'Buy',
+        forAllConnections: true
+      });
+
+      expect(canceledOrdersCount).toBe(2);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Orders?symbol=${encodeURIComponent('XTZ/ETH')}&side=Buy&forAllConnections=true`,
         expect.objectContaining({
           method: 'DELETE',
           headers: expect.objectContaining({
