@@ -252,5 +252,30 @@ describe('Rest Atomex Client', () => {
       expect(JSON.parse(fetchMock.mock.calls[1]![1]!.body as string)).toEqual(expectedPayload);
     });
   });
+
+  describe('CancelOrder', () => {
+    test('passes and returns correct data', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(true));
+
+      const isSuccess = await client.cancelOrder({
+        orderId: 1,
+        side: 'Buy',
+        symbol: 'XTZ/ETH'
+      });
+
+      expect(isSuccess).toBe(true);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Orders/1?symbol=${encodeURIComponent('XTZ/ETH')}&side=Buy`,
+        expect.objectContaining({
+          method: 'DELETE',
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${testAuthToken.value}`,
+          })
+        })
+      );
+    });
+  });
 });
 
