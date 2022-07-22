@@ -8,7 +8,6 @@ export interface NewOrderRequest {
   clientOrderId: string;
   from: Currency['id'];
   to: Currency['id'];
-  side: Side;
   price: BigNumber;
   amount: BigNumber;
   type: OrderType;

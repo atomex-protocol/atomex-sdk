@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
-import type { AtomexNetwork } from '../common/index';
+import type { AtomexNetwork, Currency, Side } from '../common/index';
 import { EventEmitter } from '../core';
 import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector } from '../exchange/index';
 import type { Swap } from '../swaps/index';
@@ -90,15 +90,22 @@ export class RestAtomexClient implements AtomexClient {
     const urlPath = '/v1/Orders';
     const address = newOrderRequest.requisites?.receivingAddress || '';
     const authToken = this.authorizationManager.getAuthToken(address)?.value;
+
+    const symbols = await this.getSymbols();
+    const symbolInfo = this.findExchangeSymbolAndSide(symbols, newOrderRequest.from, newOrderRequest.to);
+
+    if (!symbolInfo)
+      throw new Error('Invalid symbols');
+
     const payload = {
+      symbol: symbolInfo[0].name,
+      side: symbolInfo[1],
       clientOrderId: newOrderRequest.clientOrderId,
-      side: newOrderRequest.side,
       type: newOrderRequest.type,
       proofsOfFunds: newOrderRequest.proofsOfFunds,
       requisites: newOrderRequest.requisites,
-      amount: newOrderRequest.amount.toString(),
-      price: newOrderRequest.price.toString(),
-      symbol: '' //todo
+      amount: newOrderRequest.amount.toNumber(),
+      price: newOrderRequest.price.toNumber(),
     };
 
     const newOrderDto = await this.httpClient.request<CreatedOrderDto>({
@@ -125,6 +132,18 @@ export class RestAtomexClient implements AtomexClient {
 
   getSwap(swapId: string): Promise<Swap> {
     throw new Error('Not implemented');
+  }
+
+  private findExchangeSymbolAndSide(symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [ExchangeSymbol, Side] | undefined {
+    let symbol = symbols.find(s => s.name === `${from}/${to}`);
+    let side: Side = 'Sell';
+
+    if (!symbol) {
+      symbol = symbols.find(s => s.name === `${to}/${from}`);
+      side = 'Buy';
+    }
+
+    return symbol ? [symbol, side] : undefined;
   }
 
   private mapQuoteDtosToQuotes(quoteDtos: QuoteDto[]): Quote[] {

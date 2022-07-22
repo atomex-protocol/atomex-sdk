@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 import { FetchMock } from 'jest-fetch-mock';
 
 import { NewOrderRequest } from '../../src/exchange/index';
-import { AtomexNetwork, AuthorizationManager, AuthToken, InMemoryAuthorizationManagerStore, InMemoryTezosSigner, RestAtomexClient, SignersManager } from '../../src/index';
+import { AtomexNetwork, AuthToken, RestAtomexClient } from '../../src/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
 import { validAddOrderTestCases, validOrderBookCases, validOrderCases, validSymbolsCases, validTopOfBookTestCases } from './testCases';
 
@@ -226,25 +226,18 @@ describe('Rest Atomex Client', () => {
   });
 
   describe('AddOrder', () => {
-    test.each(validAddOrderTestCases)('passes and returns correct data (%s)', async (_, [responseDto, expectedOrderId]) => {
-      fetchMock.mockResponseOnce(JSON.stringify(responseDto));
+    test.each(validAddOrderTestCases)('passes and returns correct data (%s)', async (_, [requestData, symbolsDto, createOrderDto, expectedPayload, expectedOrderId]) => {
+      fetchMock.mockResponses(
+        [JSON.stringify(symbolsDto), {}],
+        [JSON.stringify(createOrderDto), {}],
+      );
 
-      const newOrderRequest: NewOrderRequest = {
-        amount: new BigNumber(1),
-        price: new BigNumber(2),
-        from: 'ETH',
-        to: 'XTZ',
-        clientOrderId: 'client-order-id',
-        side: 'Buy',
-        type: 'FillOrKill'
-      };
-
-      const orderId = await client.addOrder(newOrderRequest);
+      const orderId = await client.addOrder(requestData);
 
       expect(orderId).toEqual(expectedOrderId);
 
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(fetch).toHaveBeenCalledWith(
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch).toHaveBeenLastCalledWith(
         `${testApiUrl}/v1/Orders`,
         expect.objectContaining({
           method: 'POST',
@@ -255,6 +248,8 @@ describe('Rest Atomex Client', () => {
           body: expect.anything()
         })
       );
+
+      expect(JSON.parse(fetchMock.mock.calls[1]![1]!.body as string)).toEqual(expectedPayload);
     });
   });
 });
