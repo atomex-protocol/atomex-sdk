@@ -8,3 +8,4 @@ export type { CancelAllOrdersRequest } from './cancelAllOrdersRequest';
 export type { Quote } from './quote';
 export type { OrderBook, OrderBookEntry } from './orderBook';
 export type { OrdersSelector } from './ordersSelector';
+export type { SwapsSelector } from './swapsSelector';

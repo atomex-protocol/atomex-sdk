@@ -320,5 +320,168 @@ describe('Rest Atomex Client', () => {
       );
     });
   });
+
+  describe('GetSwaps', () => {
+    test.each(validSwapCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
+      fetchMock.mockResponseOnce(JSON.stringify([responseDto]));
+
+      const swap = await client.getSwaps();
+      expect(swap).not.toBeNull();
+      expect(swap).not.toBeUndefined();
+      expect(swap).toEqual([expectedSwap]);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Swaps`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: { Authorization: `Bearer ${testAuthToken.value}` }
+        })
+      );
+    });
+  });
+
+  test.each([true, false])('passes the active filter (%s) to search params', async filterValue => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getSwaps({ active: filterValue });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      `${testApiUrl}/v1/Swaps?active=${filterValue}`,
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: `Bearer ${testAuthToken.value}` }
+      })
+    );
+  });
+
+  test.each([[true, 'Asc'], [false, 'Desc']])('passes the sortAsc filter (%s) to search params', async (filterValue, expectedQueryValue) => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getSwaps({ sortAsc: filterValue });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      `${testApiUrl}/v1/Swaps?sort=${expectedQueryValue}`,
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: `Bearer ${testAuthToken.value}` }
+      })
+    );
+  });
+
+  test.each([0, 100])('passes the limit filter (%s) to search params', async filterValue => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getSwaps({ limit: filterValue });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      `${testApiUrl}/v1/Swaps?limit=${filterValue}`,
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: `Bearer ${testAuthToken.value}` }
+      })
+    );
+  });
+
+  test.each([2, 150])('passes the offset filter (%s) to search params', async filterValue => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getSwaps({ offset: filterValue });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      `${testApiUrl}/v1/Swaps?offset=${filterValue}`,
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: `Bearer ${testAuthToken.value}` }
+      })
+    );
+  });
+
+  test('passes the symbols filter to search params', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getSwaps({ symbols: 'ETH/BTC' });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      `${testApiUrl}/v1/Swaps?symbols=${encodeURIComponent('ETH/BTC')}`,
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: `Bearer ${testAuthToken.value}` }
+      })
+    );
+  });
+
+  test('passes the symbols filter to search params', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getSwaps({ symbols: 'ETH/BTC' });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      `${testApiUrl}/v1/Swaps?symbols=${encodeURIComponent('ETH/BTC')}`,
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: `Bearer ${testAuthToken.value}` }
+      })
+    );
+  });
+
+  test.each([true, false])('passes the completed filter (%s) to search params', async filterValue => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getSwaps({ completed: filterValue });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      `${testApiUrl}/v1/Swaps?completed=${filterValue}`,
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: `Bearer ${testAuthToken.value}` }
+      })
+    );
+  });
+
+  test.each([3, 4322])('passes the offset filter (%s) to search params', async filterValue => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getSwaps({ afterId: filterValue });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      `${testApiUrl}/v1/Swaps?afterId=${filterValue}`,
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: `Bearer ${testAuthToken.value}` }
+      })
+    );
+  });
+
+  test('passes all filter values to search params', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify([]));
+
+    await client.getSwaps({
+      active: true,
+      afterId: 3,
+      completed: true,
+      limit: 10,
+      offset: 20,
+      symbols: 'ETH/BTC',
+      sortAsc: true,
+    });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      `${testApiUrl}/v1/Swaps?active=true&afterId=3&completed=true&limit=10&offset=20&symbols=${encodeURIComponent('ETH/BTC')}&sort=Asc`,
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: `Bearer ${testAuthToken.value}` }
+      })
+    );
+  });
 });
 

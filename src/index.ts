@@ -18,7 +18,7 @@ export type {
   AtomexSignature, Signer,
   BalancesProvider, SwapTransactionsProvider, TransactionsProvider
 } from './blockchain/index';
-export type { OrdersSelector } from './exchange/index';
+export type { OrdersSelector, SwapsSelector } from './exchange/index';
 export type { SerializedAuthTokenMapper, SerializedAuthToken } from './browser/index';
 export type { AtomexClient } from './clients/index';
 export type { AtomexNetwork, Currency, Side, CurrenciesProvider, CollectionSelector } from './common/index';

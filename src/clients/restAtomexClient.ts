@@ -4,7 +4,7 @@ import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork, Currency, Side } from '../common/index';
 import { EventEmitter } from '../core';
-import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, OrderCurrency } from '../exchange/index';
+import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, OrderCurrency, SwapsSelector } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 import { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from './dtos';
@@ -159,12 +159,32 @@ export class RestAtomexClient implements AtomexClient {
     const urlPath = `/v1/Swaps/${swapId}`;
     const authToken = this.authorizationManager.getAuthToken('')?.value;
 
-    const swapDtos = await this.httpClient.request<SwapDto>({
+    const swapDto = await this.httpClient.request<SwapDto>({
       urlPath,
       authToken
     });
 
-    return this.mapSwapDtoToSwap(swapDtos);
+    return this.mapSwapDtoToSwap(swapDto);
+  }
+
+  async getSwaps(selector?: SwapsSelector): Promise<Swap[]> {
+    const urlPath = '/v1/Swaps';
+    const authToken = this.authorizationManager.getAuthToken('')?.value;
+    const params = {
+      ...selector,
+      sortAsc: undefined,
+      sort: selector?.sortAsc !== undefined
+        ? selector.sortAsc ? 'Asc' : 'Desc'
+        : undefined,
+    };
+
+    const swapDtos = await this.httpClient.request<SwapDto[]>({
+      urlPath,
+      params,
+      authToken
+    });
+
+    return this.mapSwapDtosToSwaps(swapDtos);
   }
 
   private findExchangeSymbolAndSide(symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [ExchangeSymbol, Side] | undefined {
@@ -288,10 +308,15 @@ export class RestAtomexClient implements AtomexClient {
           qty: new BigNumber(t.qty),
         })),
       },
-
     };
 
     return swap;
+  }
+
+  private mapSwapDtosToSwaps(swapDtos: SwapDto[]): Swap[] {
+    const swaps = swapDtos.map(dto => this.mapSwapDtoToSwap(dto));
+
+    return swaps;
   }
 
   private getQuoteBaseCurrenciesBySymbol(symbol: string): [quoteCurrency: string, baseCurrency: string] {
