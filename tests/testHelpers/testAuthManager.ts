@@ -1,10 +1,10 @@
 import { AuthorizationManager, AuthorizationManagerOptions, AuthToken, InMemoryAuthorizationManagerStore, SignersManager } from '../../src/index';
 
 export class TestAuthorizationManager extends AuthorizationManager {
-  readonly authToken: AuthToken | ((address: string) => AuthToken);
+  readonly authToken: AuthToken | undefined | ((address: string) => AuthToken| undefined);
 
   constructor(
-    authToken: AuthToken | ((address: string) => AuthToken)
+    authToken: AuthToken | ((address: string) => AuthToken | undefined)
   ) {
     const defaultOptions: AuthorizationManagerOptions = {
       atomexNetwork: 'testnet',

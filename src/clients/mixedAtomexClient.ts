@@ -23,12 +23,12 @@ export class MixedApiAtomexClient implements AtomexClient {
     };
   }
 
-  getOrder(orderId: number): Promise<Order | undefined> {
-    return this.restAtomexClient.getOrder(orderId);
+  getOrder(accountAddress: string, orderId: number): Promise<Order | undefined> {
+    return this.restAtomexClient.getOrder(accountAddress, orderId);
   }
 
-  getOrders(selector?: OrdersSelector | undefined): Promise<Order[]> {
-    return this.restAtomexClient.getOrders(selector);
+  getOrders(accountAddress: string, selector?: OrdersSelector | undefined): Promise<Order[]> {
+    return this.restAtomexClient.getOrders(accountAddress, selector);
   }
 
   getSymbols(): Promise<ExchangeSymbol[]> {
@@ -43,27 +43,27 @@ export class MixedApiAtomexClient implements AtomexClient {
     return this.restAtomexClient.getOrderBook(symbol);
   }
 
-  addOrder(newOrderRequest: NewOrderRequest): Promise<number> {
-    return this.restAtomexClient.addOrder(newOrderRequest);
+  addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
+    return this.restAtomexClient.addOrder(accountAddress, newOrderRequest);
   }
 
-  cancelOrder(cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
-    return this.restAtomexClient.cancelOrder(cancelOrderRequest);
+  cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
+    return this.restAtomexClient.cancelOrder(accountAddress, cancelOrderRequest);
   }
 
-  cancelAllOrders(cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
-    return this.restAtomexClient.cancelAllOrders(cancelAllOrdersRequest);
+  cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
+    return this.restAtomexClient.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
   }
 
   getSwapTransactions(swap: Swap): Promise<readonly Transaction[]> {
     return this.restAtomexClient.getSwapTransactions(swap);
   }
 
-  getSwap(swapId: number): Promise<Swap> {
-    return this.restAtomexClient.getSwap(swapId);
+  getSwap(accountAddress: string, swapId: number): Promise<Swap> {
+    return this.restAtomexClient.getSwap(accountAddress, swapId);
   }
 
-  getSwaps(selector?: SwapsSelector): Promise<Swap[]> {
-    return this.restAtomexClient.getSwaps(selector);
+  getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]> {
+    return this.restAtomexClient.getSwaps(accountAddress, selector);
   }
 }

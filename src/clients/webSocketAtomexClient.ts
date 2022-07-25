@@ -19,11 +19,11 @@ export class WebSocketAtomexClient implements AtomexClient {
   ) {
   }
 
-  getOrder(orderId: number): Promise<Order | undefined> {
+  getOrder(accountAddress: string, orderId: number): Promise<Order | undefined> {
     throw new Error('Method not implemented.');
   }
 
-  getOrders(selector?: OrdersSelector | undefined): Promise<Order[]> {
+  getOrders(accountAddress: string, selector?: OrdersSelector | undefined): Promise<Order[]> {
     throw new Error('Method not implemented.');
   }
 
@@ -39,15 +39,15 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  addOrder(newOrderRequest: NewOrderRequest): Promise<number> {
+  addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
     throw new Error('Method not implemented.');
   }
 
-  cancelOrder(cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
+  cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
 
-  cancelAllOrders(cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
+  cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
     throw new Error('Method not implemented.');
   }
 
@@ -55,11 +55,11 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getSwap(swapId: number): Promise<Swap> {
+  getSwap(accountAddress: string, swapId: number): Promise<Swap> {
     throw new Error('Method not implemented.');
   }
 
-  getSwaps(selector?: SwapsSelector): Promise<Swap[]> {
+  getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]> {
     throw new Error('Method not implemented.');
   }
 }

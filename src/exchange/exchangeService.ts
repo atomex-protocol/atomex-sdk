@@ -10,13 +10,13 @@ export interface ExchangeServiceEvents {
 export interface ExchangeService {
   readonly events: ExchangeServiceEvents;
 
-  getOrder(orderId: number): Promise<Order | undefined>;
-  getOrders(selector?: OrdersSelector): Promise<Order[]>;
+  getOrder(accountAddress: string, orderId: number): Promise<Order | undefined>;
+  getOrders(accountAddress: string, selector?: OrdersSelector): Promise<Order[]>;
   getSymbols(): Promise<ExchangeSymbol[]>;
   getTopOfBook(symbols?: string[]): Promise<Quote[]>;
   getOrderBook(symbol: string): Promise<OrderBook>;
 
-  addOrder(newOrderRequest: NewOrderRequest): Promise<number>;
-  cancelOrder(cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
-  cancelAllOrders(cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
+  addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
+  cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
+  cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
 }

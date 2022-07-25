@@ -6,6 +6,6 @@ import type { Swap } from '../swaps/index';
 export interface AtomexClient extends ExchangeService, SwapTransactionsProvider {
   readonly atomexNetwork: AtomexNetwork;
 
-  getSwap(swapId: number): Promise<Swap>;
-  getSwaps(selector?: SwapsSelector): Promise<Swap[]>;
+  getSwap(accountAddress: string, swapId: number): Promise<Swap>;
+  getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
 }

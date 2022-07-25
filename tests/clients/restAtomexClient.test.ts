@@ -9,6 +9,7 @@ describe('Rest Atomex Client', () => {
 
   const testApiUrl = 'https://test-api.com';
   const atomexNetwork: AtomexNetwork = 'testnet';
+  const testAccountAddress = 'test-account-address';
   const testAuthToken: AuthToken = {
     address: 'address',
     expired: new Date(),
@@ -24,7 +25,9 @@ describe('Rest Atomex Client', () => {
     client = new RestAtomexClient({
       apiBaseUrl: testApiUrl,
       atomexNetwork,
-      authorizationManager: new TestAuthorizationManager(testAuthToken)
+      authorizationManager: new TestAuthorizationManager(address => {
+        return address === testAccountAddress ? testAuthToken : undefined;
+      })
     });
   });
 
@@ -91,7 +94,7 @@ describe('Rest Atomex Client', () => {
     test.each(validOrderCases)('returns correct data (%s)', async (_, [responseDto, expectedOrder]) => {
       fetchMock.mockResponseOnce(JSON.stringify(responseDto));
 
-      const order = await client.getOrder(123);
+      const order = await client.getOrder(testAccountAddress, 123);
       expect(order).not.toBeNull();
       expect(order).not.toBeUndefined();
       expect(order).toEqual(expectedOrder);
@@ -111,7 +114,7 @@ describe('Rest Atomex Client', () => {
     test.each(validOrderCases)('returns correct data (%s)', async (_, [responseDto, expectedOrder]) => {
       fetchMock.mockResponseOnce(JSON.stringify([responseDto]));
 
-      const order = await client.getOrders();
+      const order = await client.getOrders(testAccountAddress);
       expect(order).not.toBeNull();
       expect(order).not.toBeUndefined();
       expect(order).toEqual([expectedOrder]);
@@ -129,7 +132,7 @@ describe('Rest Atomex Client', () => {
     test.each([true, false])('passes the active filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getOrders({ active: filterValue });
+      await client.getOrders(testAccountAddress, { active: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -144,7 +147,7 @@ describe('Rest Atomex Client', () => {
     test.each([[true, 'Asc'], [false, 'Desc']])('passes the sortAsc filter (%s) to search params', async (filterValue, expectedQueryValue) => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getOrders({ sortAsc: filterValue });
+      await client.getOrders(testAccountAddress, { sortAsc: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -159,7 +162,7 @@ describe('Rest Atomex Client', () => {
     test.each([0, 100])('passes the limit filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getOrders({ limit: filterValue });
+      await client.getOrders(testAccountAddress, { limit: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -174,7 +177,7 @@ describe('Rest Atomex Client', () => {
     test.each([2, 150])('passes the offset filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getOrders({ offset: filterValue });
+      await client.getOrders(testAccountAddress, { offset: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -189,7 +192,7 @@ describe('Rest Atomex Client', () => {
     test('passes the symbols filter to search params', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getOrders({ symbols: 'ETH/BTC' });
+      await client.getOrders(testAccountAddress, { symbols: 'ETH/BTC' });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -204,7 +207,7 @@ describe('Rest Atomex Client', () => {
     test('passes all filter values to search params', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getOrders({
+      await client.getOrders(testAccountAddress, {
         active: true,
         limit: 10,
         offset: 20,
@@ -230,7 +233,7 @@ describe('Rest Atomex Client', () => {
         [JSON.stringify(createOrderDto), {}],
       );
 
-      const orderId = await client.addOrder(requestData);
+      const orderId = await client.addOrder(testAccountAddress, requestData);
 
       expect(orderId).toEqual(expectedOrderId);
 
@@ -255,7 +258,7 @@ describe('Rest Atomex Client', () => {
     test('passes and returns correct data', async () => {
       fetchMock.mockResponseOnce(JSON.stringify(true));
 
-      const isSuccess = await client.cancelOrder({
+      const isSuccess = await client.cancelOrder(testAccountAddress, {
         orderId: 1,
         symbol: 'XTZ/ETH',
         side: 'Buy'
@@ -278,7 +281,7 @@ describe('Rest Atomex Client', () => {
     test('passes and returns correct data', async () => {
       fetchMock.mockResponseOnce(JSON.stringify(2));
 
-      const canceledOrdersCount = await client.cancelAllOrders({
+      const canceledOrdersCount = await client.cancelAllOrders(testAccountAddress, {
         symbol: 'XTZ/ETH',
         side: 'Buy',
         forAllConnections: true
@@ -301,7 +304,7 @@ describe('Rest Atomex Client', () => {
     test.each(validSwapCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
       fetchMock.mockResponseOnce(JSON.stringify(responseDto));
 
-      const swap = await client.getSwap(123);
+      const swap = await client.getSwap(testAccountAddress, 123);
       expect(swap).not.toBeNull();
       expect(swap).not.toBeUndefined();
       expect(swap).toEqual(expectedSwap);
@@ -321,7 +324,7 @@ describe('Rest Atomex Client', () => {
     test.each(validSwapCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
       fetchMock.mockResponseOnce(JSON.stringify([responseDto]));
 
-      const swap = await client.getSwaps();
+      const swap = await client.getSwaps(testAccountAddress,);
       expect(swap).not.toBeNull();
       expect(swap).not.toBeUndefined();
       expect(swap).toEqual([expectedSwap]);
@@ -339,7 +342,7 @@ describe('Rest Atomex Client', () => {
     test.each([true, false])('passes the active filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps({ active: filterValue });
+      await client.getSwaps(testAccountAddress, { active: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -354,7 +357,7 @@ describe('Rest Atomex Client', () => {
     test.each([[true, 'Asc'], [false, 'Desc']])('passes the sortAsc filter (%s) to search params', async (filterValue, expectedQueryValue) => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps({ sortAsc: filterValue });
+      await client.getSwaps(testAccountAddress, { sortAsc: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -369,7 +372,7 @@ describe('Rest Atomex Client', () => {
     test.each([0, 100])('passes the limit filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps({ limit: filterValue });
+      await client.getSwaps(testAccountAddress, { limit: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -384,7 +387,7 @@ describe('Rest Atomex Client', () => {
     test.each([2, 150])('passes the offset filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps({ offset: filterValue });
+      await client.getSwaps(testAccountAddress, { offset: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -399,7 +402,7 @@ describe('Rest Atomex Client', () => {
     test('passes the symbols filter to search params', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps({ symbols: 'ETH/BTC' });
+      await client.getSwaps(testAccountAddress, { symbols: 'ETH/BTC' });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -414,7 +417,7 @@ describe('Rest Atomex Client', () => {
     test('passes the symbols filter to search params', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps({ symbols: 'ETH/BTC' });
+      await client.getSwaps(testAccountAddress, { symbols: 'ETH/BTC' });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -429,7 +432,7 @@ describe('Rest Atomex Client', () => {
     test.each([true, false])('passes the completed filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps({ completed: filterValue });
+      await client.getSwaps(testAccountAddress, { completed: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -444,7 +447,7 @@ describe('Rest Atomex Client', () => {
     test.each([3, 4322])('passes the offset filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps({ afterId: filterValue });
+      await client.getSwaps(testAccountAddress, { afterId: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
@@ -459,7 +462,7 @@ describe('Rest Atomex Client', () => {
     test('passes all filter values to search params', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps({
+      await client.getSwaps(testAccountAddress, {
         active: true,
         afterId: 3,
         completed: true,

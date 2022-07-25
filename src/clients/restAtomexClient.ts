@@ -4,7 +4,11 @@ import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork, Currency, Side } from '../common/index';
 import { EventEmitter } from '../core';
-import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, OrderCurrency, SwapsSelector } from '../exchange/index';
+import {
+  Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
+  ExchangeServiceEvents, OrdersSelector, CancelOrderRequest,
+  CancelAllOrdersRequest, OrderCurrency, SwapsSelector
+} from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 import { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from './dtos';
@@ -36,17 +40,17 @@ export class RestAtomexClient implements AtomexClient {
     this.httpClient = new HttpClient(this.apiBaseUrl);
   }
 
-  async getOrder(orderId: number): Promise<Order | undefined> {
+  async getOrder(accountAddress: string, orderId: number): Promise<Order | undefined> {
     const urlPath = `/v1/Orders/${orderId}`;
-    const authToken = this.authorizationManager.getAuthToken('')?.value;
+    const authToken = this.getRequiredAuthToken(accountAddress);
     const orderDto = await this.httpClient.request<OrderDto>({ urlPath, authToken });
 
     return this.mapOrderDtoToOrder(orderDto);
   }
 
-  async getOrders(selector?: OrdersSelector | undefined): Promise<Order[]> {
+  async getOrders(accountAddress: string, selector?: OrdersSelector | undefined): Promise<Order[]> {
     const urlPath = '/v1/Orders';
-    const authToken = this.authorizationManager.getAuthToken('')?.value;
+    const authToken = this.getRequiredAuthToken(accountAddress);
     const params = {
       ...selector,
       sortAsc: undefined,
@@ -86,10 +90,9 @@ export class RestAtomexClient implements AtomexClient {
     return this.mapOrderBookDtoToOrderBook(orderBookDto);
   }
 
-  async addOrder(newOrderRequest: NewOrderRequest): Promise<number> {
+  async addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
     const urlPath = '/v1/Orders';
-    const address = newOrderRequest.requisites?.receivingAddress || '';
-    const authToken = this.authorizationManager.getAuthToken(address)?.value;
+    const authToken = this.getRequiredAuthToken(accountAddress);
 
     const symbols = await this.getSymbols();
     const symbolInfo = this.findExchangeSymbolAndSide(symbols, newOrderRequest.from, newOrderRequest.to);
@@ -118,9 +121,9 @@ export class RestAtomexClient implements AtomexClient {
     return newOrderDto.orderId;
   }
 
-  async cancelOrder(cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
+  async cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
     const urlPath = `/v1/Orders/${cancelOrderRequest.orderId}`;
-    const authToken = this.authorizationManager.getAuthToken('')?.value;
+    const authToken = this.getRequiredAuthToken(accountAddress);
     const params = {
       symbol: cancelOrderRequest.symbol,
       side: cancelOrderRequest.side
@@ -136,10 +139,9 @@ export class RestAtomexClient implements AtomexClient {
     return isSuccess;
   }
 
-  async cancelAllOrders(cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
+  async cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
     const urlPath = '/v1/Orders';
-    const authToken = this.authorizationManager.getAuthToken('')?.value;
-
+    const authToken = this.getRequiredAuthToken(accountAddress);
     const canceledOrdersCount = await this.httpClient.request<number>({
       urlPath,
       authToken,
@@ -155,9 +157,9 @@ export class RestAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  async getSwap(swapId: number): Promise<Swap> {
+  async getSwap(accountAddress: string, swapId: number): Promise<Swap> {
     const urlPath = `/v1/Swaps/${swapId}`;
-    const authToken = this.authorizationManager.getAuthToken('')?.value;
+    const authToken = this.getRequiredAuthToken(accountAddress);
 
     const swapDto = await this.httpClient.request<SwapDto>({
       urlPath,
@@ -167,9 +169,9 @@ export class RestAtomexClient implements AtomexClient {
     return this.mapSwapDtoToSwap(swapDto);
   }
 
-  async getSwaps(selector?: SwapsSelector): Promise<Swap[]> {
+  async getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]> {
     const urlPath = '/v1/Swaps';
-    const authToken = this.authorizationManager.getAuthToken('')?.value;
+    const authToken = this.getRequiredAuthToken(accountAddress);
     const params = {
       ...selector,
       sortAsc: undefined,
@@ -185,6 +187,16 @@ export class RestAtomexClient implements AtomexClient {
     });
 
     return this.mapSwapDtosToSwaps(swapDtos);
+  }
+
+  private getRequiredAuthToken(accountAddress: string): string {
+    const authToken = this.authorizationManager.getAuthToken(accountAddress)?.value;
+
+    if (!authToken) {
+      throw new Error(`Cannot find auth token for address: ${accountAddress}`);
+    }
+
+    return authToken;
   }
 
   private findExchangeSymbolAndSide(symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [ExchangeSymbol, Side] | undefined {
