@@ -229,10 +229,16 @@ export class RestAtomexClient implements AtomexClient {
   }
 
   private mapSymbolDtosToSymbols(symbolDtos: SymbolDto[]): ExchangeSymbol[] {
-    const symbols: ExchangeSymbol[] = symbolDtos.map(dto => ({
-      name: dto.name,
-      minimumQty: new BigNumber(dto.minimumQty)
-    }));
+    const symbols: ExchangeSymbol[] = symbolDtos.map(dto => {
+      const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(dto.name);
+
+      return {
+        name: dto.name,
+        minimumQty: new BigNumber(dto.minimumQty),
+        quoteCurrency,
+        baseCurrency
+      };
+    });
 
     return symbols;
   }

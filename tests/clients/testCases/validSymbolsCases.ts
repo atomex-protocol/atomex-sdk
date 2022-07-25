@@ -30,11 +30,15 @@ const validSymbolsCases: ReadonlyArray<readonly [
         [
           {
             name: 'BTC/KUSD',
-            minimumQty: new BigNumber(0.0001)
+            minimumQty: new BigNumber(0.0001),
+            quoteCurrency: 'BTC',
+            baseCurrency: 'KUSD'
           },
           {
             name: 'BTC/USDT',
-            minimumQty: new BigNumber(0.002)
+            minimumQty: new BigNumber(0.002),
+            quoteCurrency: 'BTC',
+            baseCurrency: 'USDT'
           }
         ]
       ]
