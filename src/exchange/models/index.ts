@@ -9,3 +9,4 @@ export type { Quote } from './quote';
 export type { OrderBook, OrderBookEntry } from './orderBook';
 export type { OrdersSelector } from './ordersSelector';
 export type { SwapsSelector } from './swapsSelector';
+export type { CurrencyDirection } from './currencyDirection';

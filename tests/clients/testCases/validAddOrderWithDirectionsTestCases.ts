@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import { CreatedOrderDto, SymbolDto, } from '../../../src/clients/dtos';
 import { NewOrderRequest } from '../../../src/exchange/index';
 
-const validAddOrderTestCases: ReadonlyArray<readonly [
+const validAddOrderWithDirectionsTestCases: ReadonlyArray<readonly [
   message: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   testValue: readonly [request: NewOrderRequest, symbolsDto: SymbolDto[], createOrderDto: CreatedOrderDto, expectedPayload: any, expectedOrderId: number]
@@ -14,8 +14,8 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
         {
           amount: new BigNumber(1),
           price: new BigNumber(2),
-          side: 'Buy',
-          symbol: 'XTZ/ETH',
+          from: 'ETH',
+          to: 'XTZ',
           clientOrderId: 'client-order-id',
           type: 'FillOrKill'
         },
@@ -43,8 +43,8 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
         {
           amount: new BigNumber(1),
           price: new BigNumber(2),
-          side: 'Sell',
-          symbol: 'XTZ/ETH',
+          from: 'XTZ',
+          to: 'ETH',
           clientOrderId: 'client-order-id',
           type: 'FillOrKill'
         },
@@ -65,7 +65,7 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
         },
         123
       ]
-    ],
+    ]
   ];
 
-export default validAddOrderTestCases;
+export default validAddOrderWithDirectionsTestCases;

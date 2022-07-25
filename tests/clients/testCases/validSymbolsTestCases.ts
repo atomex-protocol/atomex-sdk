@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import { SymbolDto } from '../../../src/clients/dtos';
 import { ExchangeSymbol } from '../../../src/exchange/index';
 
-const validSymbolsCases: ReadonlyArray<readonly [
+const validSymbolsTestCases: ReadonlyArray<readonly [
   message: string,
   testValue: readonly [dtos: SymbolDto[], symbols: ExchangeSymbol[]]
 ]> = [
@@ -45,4 +45,4 @@ const validSymbolsCases: ReadonlyArray<readonly [
     ]
   ];
 
-export default validSymbolsCases;
+export default validSymbolsTestCases;

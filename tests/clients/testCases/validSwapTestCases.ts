@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import { SwapDto } from '../../../src/clients/dtos';
 import { Swap } from '../../../src/index';
 
-const validSwapCases: ReadonlyArray<readonly [
+const validSwapTestCases: ReadonlyArray<readonly [
   message: string,
   testValue: readonly [dto: SwapDto, orderBook: Swap]
 ]> = [
@@ -367,4 +367,4 @@ const validSwapCases: ReadonlyArray<readonly [
     ]
   ];
 
-export default validSwapCases;
+export default validSwapTestCases;

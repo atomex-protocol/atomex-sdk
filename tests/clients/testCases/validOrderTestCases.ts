@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import { OrderDto } from '../../../src/clients/dtos';
 import { Order } from '../../../src/exchange/index';
 
-const validOrderCases: ReadonlyArray<readonly [
+const validOrderTestCases: ReadonlyArray<readonly [
   message: string,
   testValue: readonly [dto: OrderDto, orderBook: Order]
 ]> = [
@@ -263,4 +263,4 @@ const validOrderCases: ReadonlyArray<readonly [
     ]
   ];
 
-export default validOrderCases;
+export default validOrderTestCases;

@@ -2,7 +2,13 @@ import { FetchMock } from 'jest-fetch-mock';
 
 import { AtomexNetwork, AuthToken, RestAtomexClient } from '../../src/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
-import { validAddOrderTestCases, validOrderBookCases, validOrderCases, validSwapCases, validSymbolsCases, validTopOfBookTestCases } from './testCases';
+import {
+  validAddOrderTestCases, validOrderBookTestCases, validOrderTestCases,
+  validSwapTestCases, validSymbolsTestCases, validTopOfBookTestCases,
+  validTopOfBookWithDirectionsTestCases
+} from './testCases';
+import validAddOrderWithDirectionsTestCases from './testCases/validAddOrderWithDirectionsTestCases';
+import validOrderBookWithDirectionsTestCases from './testCases/validOrderBookWithDirectionsTestCases';
 
 describe('Rest Atomex Client', () => {
   const fetchMock = fetch as FetchMock;
@@ -32,7 +38,7 @@ describe('Rest Atomex Client', () => {
   });
 
   describe('getSymbols', () => {
-    test.each(validSymbolsCases)('returns correct data (%s)', async (_, [responseDtos, expectedSymbols]) => {
+    test.each(validSymbolsTestCases)('returns correct data (%s)', async (_, [responseDtos, expectedSymbols]) => {
       fetchMock.mockResponseOnce(JSON.stringify(responseDtos));
 
       const symbols = await client.getSymbols();
@@ -60,6 +66,25 @@ describe('Rest Atomex Client', () => {
       expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/MarketData/quotes`, expect.objectContaining({ method: 'GET' }));
     });
 
+    test.each(validTopOfBookWithDirectionsTestCases)('returns correct data (%s) using directions', async (_, [symbolsDto, responseDtos, directions, expectedQuotes, expectedSymbolsInFilter]) => {
+      fetchMock.mockResponses(
+        [JSON.stringify(symbolsDto), {}],
+        [JSON.stringify(responseDtos), {}],
+      );
+
+      const quotes = await client.getTopOfBook(directions);
+      expect(quotes).not.toBeNull();
+      expect(quotes).not.toBeUndefined();
+      expect(quotes.length).toBe(expectedQuotes.length);
+      expect(quotes).toEqual(expectedQuotes);
+
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch).toHaveBeenLastCalledWith(
+        `${testApiUrl}/v1/MarketData/quotes?symbols=${encodeURIComponent(expectedSymbolsInFilter)}`,
+        expect.objectContaining({ method: 'GET' })
+      );
+    });
+
     test('passes the symbols filter to search params', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
@@ -74,7 +99,7 @@ describe('Rest Atomex Client', () => {
   });
 
   describe('getOrderBook', () => {
-    test.each(validOrderBookCases)('returns correct data (%s)', async (_, [responseDto, expectedOrderBook]) => {
+    test.each(validOrderBookTestCases)('returns correct data (%s)', async (_, [responseDto, expectedOrderBook]) => {
       fetchMock.mockResponseOnce(JSON.stringify(responseDto));
 
       const orderBook = await client.getOrderBook('ETH/BTC');
@@ -88,10 +113,28 @@ describe('Rest Atomex Client', () => {
         expect.objectContaining({ method: 'GET' })
       );
     });
+
+    test.each(validOrderBookWithDirectionsTestCases)('returns correct data (%s) using directions', async (_, [symbolsDto, responseDto, direction, expectedOrderBook, expectedFilter]) => {
+      fetchMock.mockResponses(
+        [JSON.stringify(symbolsDto), {}],
+        [JSON.stringify(responseDto), {}]
+      );
+
+      const orderBook = await client.getOrderBook(direction);
+      expect(orderBook).not.toBeNull();
+      expect(orderBook).not.toBeUndefined();
+      expect(orderBook).toEqual(expectedOrderBook);
+
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch).toHaveBeenLastCalledWith(
+        `${testApiUrl}/v1/MarketData/book?symbol=${encodeURIComponent(expectedFilter)}`,
+        expect.objectContaining({ method: 'GET' })
+      );
+    });
   });
 
   describe('getOrder', () => {
-    test.each(validOrderCases)('returns correct data (%s)', async (_, [responseDto, expectedOrder]) => {
+    test.each(validOrderTestCases)('returns correct data (%s)', async (_, [responseDto, expectedOrder]) => {
       fetchMock.mockResponseOnce(JSON.stringify(responseDto));
 
       const order = await client.getOrder(testAccountAddress, 123);
@@ -111,7 +154,7 @@ describe('Rest Atomex Client', () => {
   });
 
   describe('getOrders', () => {
-    test.each(validOrderCases)('returns correct data (%s)', async (_, [responseDto, expectedOrder]) => {
+    test.each(validOrderTestCases)('returns correct data (%s)', async (_, [responseDto, expectedOrder]) => {
       fetchMock.mockResponseOnce(JSON.stringify([responseDto]));
 
       const order = await client.getOrders(testAccountAddress);
@@ -228,6 +271,29 @@ describe('Rest Atomex Client', () => {
 
   describe('addOrder', () => {
     test.each(validAddOrderTestCases)('passes and returns correct data (%s)', async (_, [requestData, symbolsDto, createOrderDto, expectedPayload, expectedOrderId]) => {
+      fetchMock.mockResponse(JSON.stringify(createOrderDto));
+
+      const orderId = await client.addOrder(testAccountAddress, requestData);
+
+      expect(orderId).toEqual(expectedOrderId);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenLastCalledWith(
+        `${testApiUrl}/v1/Orders`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${testAuthToken.value}`,
+            'Content-Type': 'application/json'
+          },
+          body: expect.anything()
+        }
+      );
+
+      expect(JSON.parse(fetchMock.mock.calls[0]![1]!.body as string)).toEqual(expectedPayload);
+    });
+
+    test.each(validAddOrderWithDirectionsTestCases)('passes and returns correct data (%s) using directions', async (_, [requestData, symbolsDto, createOrderDto, expectedPayload, expectedOrderId]) => {
       fetchMock.mockResponses(
         [JSON.stringify(symbolsDto), {}],
         [JSON.stringify(createOrderDto), {}],
@@ -301,7 +367,7 @@ describe('Rest Atomex Client', () => {
   });
 
   describe('getSwap', () => {
-    test.each(validSwapCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
+    test.each(validSwapTestCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
       fetchMock.mockResponseOnce(JSON.stringify(responseDto));
 
       const swap = await client.getSwap(testAccountAddress, 123);
@@ -321,7 +387,7 @@ describe('Rest Atomex Client', () => {
   });
 
   describe('getSwaps', () => {
-    test.each(validSwapCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
+    test.each(validSwapTestCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
       fetchMock.mockResponseOnce(JSON.stringify([responseDto]));
 
       const swap = await client.getSwaps(testAccountAddress,);

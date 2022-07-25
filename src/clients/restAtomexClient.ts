@@ -7,7 +7,7 @@ import { EventEmitter } from '../core';
 import {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
   ExchangeServiceEvents, OrdersSelector, CancelOrderRequest,
-  CancelAllOrdersRequest, OrderCurrency, SwapsSelector
+  CancelAllOrdersRequest, OrderCurrency, SwapsSelector, CurrencyDirection
 } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
@@ -71,19 +71,44 @@ export class RestAtomexClient implements AtomexClient {
     return this.mapSymbolDtosToSymbols(symbolDtos);
   }
 
-  async getTopOfBook(symbols?: string[]): Promise<Quote[]> {
+  getTopOfBook(symbols?: string[]): Promise<Quote[]>;
+  getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
+  async getTopOfBook(symbolsOrDirections?: string[] | CurrencyDirection[]): Promise<Quote[]> {
     const urlPath = '/v1/MarketData/quotes';
-    const params = symbols && symbols.length
-      ? { symbols: symbols.join(',') }
-      : undefined;
+    let symbols: string[] | undefined = undefined;
+
+    if (symbolsOrDirections?.length) {
+      if (typeof symbolsOrDirections[0] === 'string')
+        symbols = symbolsOrDirections as string[];
+      else
+        symbols = await this.getSymbolsFromDirections(symbolsOrDirections as CurrencyDirection[]);
+    }
+
+    const params = { symbols: symbols?.join(',') };
 
     const quoteDtos = await this.httpClient.request<QuoteDto[]>({ urlPath, params });
 
     return this.mapQuoteDtosToQuotes(quoteDtos);
   }
 
-  async getOrderBook(symbol: string): Promise<OrderBook> {
+  getOrderBook(symbol: string): Promise<OrderBook>;
+  getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
+  async getOrderBook(symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
     const urlPath = '/v1/MarketData/book';
+    let symbol: string;
+
+    if (typeof symbolOrDirection === 'string')
+      symbol = symbolOrDirection;
+    else {
+      const symbols = await this.getSymbols();
+      const symbolInfo = this.findExchangeSymbolAndSide(symbols, symbolOrDirection.from, symbolOrDirection.to);
+
+      if (!symbolInfo)
+        throw new Error(`Invalid pair: ${symbolOrDirection.from}, ${symbolOrDirection.to}`);
+
+      symbol = symbolInfo[0].name;
+    }
+
     const params = { symbol };
     const orderBookDto = await this.httpClient.request<OrderBookDto>({ urlPath, params });
 
@@ -93,16 +118,28 @@ export class RestAtomexClient implements AtomexClient {
   async addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
     const urlPath = '/v1/Orders';
     const authToken = this.getRequiredAuthToken(accountAddress);
+    let symbol: string | undefined = undefined;
+    let side: Side | undefined = undefined;
 
-    const symbols = await this.getSymbols();
-    const symbolInfo = this.findExchangeSymbolAndSide(symbols, newOrderRequest.from, newOrderRequest.to);
+    if (newOrderRequest.symbol && newOrderRequest.side) {
+      symbol = newOrderRequest.symbol;
+      side = newOrderRequest.side;
+    } else if (newOrderRequest.from && newOrderRequest.to) {
+      const symbols = await this.getSymbols();
+      const symbolInfo = this.findExchangeSymbolAndSide(symbols, newOrderRequest.from, newOrderRequest.to);
 
-    if (!symbolInfo)
-      throw new Error('Invalid symbols');
+      if (!symbolInfo)
+        throw new Error(`Invalid pair: ${newOrderRequest.from}, ${newOrderRequest.to}`);
+
+      symbol = symbolInfo[0].name;
+      side = symbolInfo[1];
+    } else {
+      throw new Error('Invalid newOrderRequest passed');
+    }
 
     const payload = {
-      symbol: symbolInfo[0].name,
-      side: symbolInfo[1],
+      symbol,
+      side,
       clientOrderId: newOrderRequest.clientOrderId,
       type: newOrderRequest.type,
       proofsOfFunds: newOrderRequest.proofsOfFunds,
@@ -197,6 +234,24 @@ export class RestAtomexClient implements AtomexClient {
     }
 
     return authToken;
+  }
+
+  private async getSymbolsFromDirections(symbolsOrDirections: CurrencyDirection[]): Promise<string[] | undefined> {
+    let symbols: string[] | undefined = undefined;
+
+    if (symbolsOrDirections.length) {
+      const loadedSymbols = await this.getSymbols();
+      symbols = symbolsOrDirections.map(d => {
+        const symbol = this.findExchangeSymbolAndSide(loadedSymbols, d.from, d.to)?.[0];
+
+        if (!symbol)
+          throw new Error(`Invalid pair: ${d.from}, ${d.to}`);
+
+        return symbol.name;
+      }) as string[];
+    }
+
+    return symbols;
   }
 
   private findExchangeSymbolAndSide(symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [ExchangeSymbol, Side] | undefined {
