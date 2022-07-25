@@ -1,6 +1,9 @@
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector } from '../exchange/index';
+import type {
+  Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents,
+  OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection
+} from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import { atomexUtils } from '../utils';
 import type { AtomexClient } from './atomexClient';
@@ -35,12 +38,16 @@ export class MixedApiAtomexClient implements AtomexClient {
     return this.restAtomexClient.getSymbols();
   }
 
-  getTopOfBook(symbols?: string[]): Promise<Quote[]> {
-    return this.restAtomexClient.getTopOfBook(symbols);
+  getTopOfBook(symbols?: string[]): Promise<Quote[]>;
+  getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
+  getTopOfBook(symbolsOrDirections?: string[] | CurrencyDirection[]): Promise<Quote[]> {
+    return (this.restAtomexClient.getTopOfBook as (symbolsOrDirections?: string[] | CurrencyDirection[]) => Promise<Quote[]>)(symbolsOrDirections);
   }
 
-  getOrderBook(symbol: string): Promise<OrderBook> {
-    return this.restAtomexClient.getOrderBook(symbol);
+  getOrderBook(symbol: string): Promise<OrderBook>;
+  getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
+  async getOrderBook(symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
+    return (this.restAtomexClient.getOrderBook as (symbolOrDirection: string | CurrencyDirection) => Promise<OrderBook>)(symbolOrDirection);
   }
 
   addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {

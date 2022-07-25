@@ -3,6 +3,7 @@ import { AuthorizationManager } from '../authorization/index';
 import { SignersManager } from '../blockchain/signersManager';
 import type { DeepReadonly } from '../core/index';
 import { ExchangeManager } from '../exchange/exchangeManager';
+import { SwapManager } from '../swaps/swapManager';
 import type { AtomexBuilderOptions } from './atomexBuilderOptions';
 import { createDefaultExchangeService } from './atomexComponents/exchangeService';
 import { AuthorizationManagerDefaultComponentOptions, createDefaultAuthorizationManager } from './atomexComponents/index';
@@ -43,15 +44,19 @@ export class AtomexBuilder {
   build(): Atomex {
     this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
     this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
-    this.controlledAtomexContext.services.exchangeService = this.createDefaultExchangeService();
+    const atomexClient = this.createDefaultExchangeService();
+    this.controlledAtomexContext.services.exchangeService = atomexClient;
+    this.controlledAtomexContext.services.swapService = atomexClient;
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
+    this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
 
     return new Atomex({
       atomexContext: this.atomexContext,
       managers: {
         signersManager: this.atomexContext.managers.signersManager,
         authorizationManager: this.atomexContext.managers.authorizationManager,
-        exchangeManager: this.atomexContext.managers.exchangeManager
+        exchangeManager: this.atomexContext.managers.exchangeManager,
+        swapManager: this.atomexContext.managers.swapManager
       }
     });
   }
@@ -80,5 +85,9 @@ export class AtomexBuilder {
     return this.customExchangeManagerFactory
       ? this.customExchangeManagerFactory(this.atomexContext, this.options)
       : new ExchangeManager(this.atomexContext.services.exchangeService);
+  }
+
+  protected createSwapManager() {
+    return new SwapManager(this.atomexContext.services.swapService);
   }
 }

@@ -2,7 +2,11 @@ import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
 import { EventEmitter } from '../core';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector } from '../exchange/index';
+import type {
+  Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
+  ExchangeServiceEvents, OrdersSelector, CancelOrderRequest,
+  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection
+} from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 
@@ -31,11 +35,15 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getTopOfBook(): Promise<Quote[]> {
+  getTopOfBook(symbols?: string[]): Promise<Quote[]>;
+  getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
+  getTopOfBook(symbolsOrDirections?: string[] | CurrencyDirection[]): Promise<Quote[]> {
     throw new Error('Method not implemented.');
   }
 
-  getOrderBook(symbol: string): Promise<OrderBook> {
+  getOrderBook(symbol: string): Promise<OrderBook>;
+  getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
+  async getOrderBook(symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
     throw new Error('Method not implemented.');
   }
 

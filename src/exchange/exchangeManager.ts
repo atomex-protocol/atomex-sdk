@@ -3,7 +3,7 @@ import type { BigNumber } from 'bignumber.js';
 import { ImportantDataReceivingMode } from '../common/index';
 import { EventEmitter, type ToEventEmitter, type Result } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
-import type { CancelAllOrdersRequest, ExchangeSymbol, NewOrderRequest, Order, OrderBook, OrdersSelector, Quote } from './models/index';
+import type { CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol, NewOrderRequest, Order, OrderBook, OrdersSelector, Quote } from './models/index';
 
 export class ExchangeManager {
   readonly events: ExchangeServiceEvents = {
@@ -18,39 +18,43 @@ export class ExchangeManager {
     this.attachEvents();
   }
 
-  getOrder(orderId: number, mode = ImportantDataReceivingMode.SafeMerged): Promise<Result<Order | undefined>> {
-    throw new Error('Not implemented');
+  getOrder(accountAddress: string, orderId: number, _mode = ImportantDataReceivingMode.SafeMerged): Promise<Order | undefined> {
+    return this.exchangeService.getOrder(accountAddress, orderId);
   }
 
-  getOrders(selector?: OrdersSelector, mode = ImportantDataReceivingMode.SafeMerged): Promise<Result<Order[]>> {
-    throw new Error('Not implemented');
+  getOrders(accountAddress: string, selector?: OrdersSelector | undefined, _mode = ImportantDataReceivingMode.SafeMerged): Promise<Order[]> {
+    return this.exchangeService.getOrders(accountAddress, selector);
   }
 
   getSymbols(): Promise<ExchangeSymbol[]> {
-    throw new Error('Not implemented');
+    return this.exchangeService.getSymbols();
   }
 
-  getTopOfBook(): Promise<Quote[]> {
-    throw new Error('Not implemented');
+  getTopOfBook(symbols?: string[]): Promise<Quote[]>;
+  getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
+  getTopOfBook(symbolsOrDirections?: string[] | CurrencyDirection[]): Promise<Quote[]> {
+    return (this.exchangeService.getTopOfBook as (symbolsOrDirections?: string[] | CurrencyDirection[]) => Promise<Quote[]>)(symbolsOrDirections);
   }
 
-  getOrderBook(symbol: string): Promise<OrderBook> {
-    throw new Error('Not implemented');
+  getOrderBook(symbol: string): Promise<OrderBook>;
+  getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
+  async getOrderBook(symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
+    return (this.exchangeService.getOrderBook as (symbolOrDirection: string | CurrencyDirection) => Promise<OrderBook>)(symbolOrDirection);
+  }
+
+  addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
+    return this.exchangeService.addOrder(accountAddress, newOrderRequest);
+  }
+
+  cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
+    return this.exchangeService.cancelOrder(accountAddress, cancelOrderRequest);
+  }
+
+  cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
+    return this.exchangeService.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
   }
 
   getRewardForRedeem(nativeTokenUsdPrice: number, nativeTokenCurrencyPrice: number): Promise<Result<BigNumber>> {
-    throw new Error('Not implemented');
-  }
-
-  addOrder(newOrderRequest: NewOrderRequest): Promise<number> {
-    throw new Error('Not implemented');
-  }
-
-  cancelOrder(orderId: number): Promise<boolean> {
-    throw new Error('Not implemented');
-  }
-
-  cancelAllOrders(cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
     throw new Error('Not implemented');
   }
 

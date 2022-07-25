@@ -1,11 +1,8 @@
 import type { SwapTransactionsProvider } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
-import type { ExchangeService, SwapsSelector } from '../exchange/index';
-import type { Swap } from '../swaps/index';
+import type { ExchangeService } from '../exchange/index';
+import type { SwapService } from '../swaps/index';
 
-export interface AtomexClient extends ExchangeService, SwapTransactionsProvider {
+export interface AtomexClient extends ExchangeService, SwapService, SwapTransactionsProvider {
   readonly atomexNetwork: AtomexNetwork;
-
-  getSwap(accountAddress: string, swapId: number): Promise<Swap>;
-  getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
 }
