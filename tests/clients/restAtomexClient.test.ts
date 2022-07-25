@@ -1,9 +1,10 @@
 import { FetchMock } from 'jest-fetch-mock';
 
+import { SymbolDto } from '../../src/clients/dtos';
 import { AtomexNetwork, AuthToken, RestAtomexClient } from '../../src/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
 import {
-  validAddOrderTestCases, validOrderBookTestCases, validOrderTestCases,
+  validAddOrderTestCases, validCancelAllOrdersWithDirectionsTestCases, validCancelOrderWithDirectionsTestCases, validOrderBookTestCases, validOrderTestCases,
   validSwapTestCases, validSymbolsTestCases, validTopOfBookTestCases,
   validTopOfBookWithDirectionsTestCases
 } from './testCases';
@@ -341,6 +342,26 @@ describe('Rest Atomex Client', () => {
         }
       );
     });
+
+    test.each(validCancelOrderWithDirectionsTestCases)('passes and returns correct data with directions (%s)', async (_, [symbolDtos, request, expectedSymbol, expectedFilter]) => {
+      fetchMock.mockResponses(
+        [JSON.stringify(symbolDtos), {}],
+        [JSON.stringify(true), {}],
+      );
+
+      const isSuccess = await client.cancelOrder(testAccountAddress, request);
+
+      expect(isSuccess).toBe(true);
+
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch).toHaveBeenLastCalledWith(
+        `${testApiUrl}/v1/Orders/1?symbol=${encodeURIComponent(expectedSymbol)}&side=${expectedFilter}`,
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${testAuthToken.value}` }
+        }
+      );
+    });
   });
 
   describe('cancelAllOrders', () => {
@@ -358,6 +379,26 @@ describe('Rest Atomex Client', () => {
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
         `${testApiUrl}/v1/Orders?symbol=${encodeURIComponent('XTZ/ETH')}&side=Buy&forAllConnections=true`,
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${testAuthToken.value}` }
+        }
+      );
+    });
+
+    test.each(validCancelAllOrdersWithDirectionsTestCases)('passes and returns correct data with directions (%s)', async (_, [symbolDtos, request, expectedSymbol, expectedFilter]) => {
+      fetchMock.mockResponses(
+        [JSON.stringify(symbolDtos), {}],
+        [JSON.stringify(true), {}],
+      );
+
+      const isSuccess = await client.cancelAllOrders(testAccountAddress, request);
+
+      expect(isSuccess).toBe(true);
+
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch).toHaveBeenLastCalledWith(
+        `${testApiUrl}/v1/Orders?symbol=${encodeURIComponent(expectedSymbol)}&side=${expectedFilter}`,
         {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${testAuthToken.value}` }

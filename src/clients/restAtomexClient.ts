@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
-import type { AtomexNetwork, Currency, Side } from '../common/index';
+import type { AtomexNetwork, CancelAllSide, Currency, Side } from '../common/index';
 import { EventEmitter } from '../core';
 import {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
@@ -99,15 +99,8 @@ export class RestAtomexClient implements AtomexClient {
 
     if (typeof symbolOrDirection === 'string')
       symbol = symbolOrDirection;
-    else {
-      const symbols = await this.getSymbols();
-      const symbolInfo = this.findExchangeSymbolAndSide(symbols, symbolOrDirection.from, symbolOrDirection.to);
-
-      if (!symbolInfo)
-        throw new Error(`Invalid pair: ${symbolOrDirection.from}, ${symbolOrDirection.to}`);
-
-      symbol = symbolInfo[0].name;
-    }
+    else
+      symbol = (await this.getRequiredSymbolsAndSideFromDirection(symbolOrDirection.from, symbolOrDirection.to))[0];
 
     const params = { symbol };
     const orderBookDto = await this.httpClient.request<OrderBookDto>({ urlPath, params });
@@ -121,21 +114,12 @@ export class RestAtomexClient implements AtomexClient {
     let symbol: string | undefined = undefined;
     let side: Side | undefined = undefined;
 
-    if (newOrderRequest.symbol && newOrderRequest.side) {
-      symbol = newOrderRequest.symbol;
-      side = newOrderRequest.side;
-    } else if (newOrderRequest.from && newOrderRequest.to) {
-      const symbols = await this.getSymbols();
-      const symbolInfo = this.findExchangeSymbolAndSide(symbols, newOrderRequest.from, newOrderRequest.to);
-
-      if (!symbolInfo)
-        throw new Error(`Invalid pair: ${newOrderRequest.from}, ${newOrderRequest.to}`);
-
-      symbol = symbolInfo[0].name;
-      side = symbolInfo[1];
-    } else {
-      throw new Error('Invalid newOrderRequest passed');
-    }
+    if (newOrderRequest.symbol && newOrderRequest.side)
+      [symbol, side] = [newOrderRequest.symbol, newOrderRequest.side];
+    else if (newOrderRequest.from && newOrderRequest.to)
+      [symbol, side] = await this.getRequiredSymbolsAndSideFromDirection(newOrderRequest.from, newOrderRequest.to);
+    else
+      throw new Error('Invalid newOrderRequest argument passed');
 
     const payload = {
       symbol,
@@ -161,10 +145,17 @@ export class RestAtomexClient implements AtomexClient {
   async cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
     const urlPath = `/v1/Orders/${cancelOrderRequest.orderId}`;
     const authToken = this.getRequiredAuthToken(accountAddress);
-    const params = {
-      symbol: cancelOrderRequest.symbol,
-      side: cancelOrderRequest.side
-    };
+    let symbol: string | undefined = undefined;
+    let side: Side | undefined = undefined;
+
+    if (cancelOrderRequest.symbol && cancelOrderRequest.side)
+      [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
+    else if (cancelOrderRequest.from && cancelOrderRequest.to)
+      [symbol, side] = await this.getRequiredSymbolsAndSideFromDirection(cancelOrderRequest.from, cancelOrderRequest.to);
+    else
+      throw new Error('Invalid cancelOrderRequest argument passed');
+
+    const params = { symbol, side };
 
     const isSuccess = await this.httpClient.request<boolean>({
       urlPath,
@@ -179,10 +170,28 @@ export class RestAtomexClient implements AtomexClient {
   async cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
     const urlPath = '/v1/Orders';
     const authToken = this.getRequiredAuthToken(accountAddress);
+
+    let symbol: string | undefined = undefined;
+    let side: CancelAllSide | undefined = undefined;
+
+    if (cancelAllOrdersRequest.symbol && cancelAllOrdersRequest.side)
+      [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
+    else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
+      [symbol, side] = await this.getRequiredSymbolsAndSideFromDirection(cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      if (cancelAllOrdersRequest.cancelAllDirections)
+        side = 'All';
+    }
+    else
+      throw new Error('Invalid cancelAllOrdersRequest argument passed');
+
     const canceledOrdersCount = await this.httpClient.request<number>({
       urlPath,
       authToken,
-      params: { ...cancelAllOrdersRequest },
+      params: {
+        symbol,
+        side,
+        forAllConnections: cancelAllOrdersRequest.forAllConnections
+      },
       method: 'DELETE'
     });
 
@@ -252,6 +261,16 @@ export class RestAtomexClient implements AtomexClient {
     }
 
     return symbols;
+  }
+
+  private async getRequiredSymbolsAndSideFromDirection(from: Currency['id'], to: Currency['id']): Promise<[symbol: string, side: Side]> {
+    const symbols = await this.getSymbols();
+    const symbolInfo = this.findExchangeSymbolAndSide(symbols, from, to);
+
+    if (!symbolInfo)
+      throw new Error(`Invalid pair: ${from}, ${to}`);
+
+    return [symbolInfo[0].name, symbolInfo[1]];
   }
 
   private findExchangeSymbolAndSide(symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [ExchangeSymbol, Side] | undefined {

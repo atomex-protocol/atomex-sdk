@@ -6,3 +6,5 @@ export { default as validOrderBookTestCases } from './validOrderBookTestCases';
 export { default as validOrderTestCases } from './validOrderTestCases';
 export { default as validSwapTestCases } from './validSwapTestCases';
 export { default as validAddOrderTestCases } from './validAddOrderTestCases';
+export { default as validCancelOrderWithDirectionsTestCases } from './validCancelOrderWithDirectionsTestCases';
+export { default as validCancelAllOrdersWithDirectionsTestCases } from './validCancelAllOrdersWithDirectionsTestCases';
