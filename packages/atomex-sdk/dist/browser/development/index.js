@@ -31,11 +31,15 @@ var Atomex = class {
   constructor(options) {
     this.options = options;
     __publicField(this, "authorization");
+    __publicField(this, "exchangeManager");
+    __publicField(this, "swapManager");
     __publicField(this, "signers");
     __publicField(this, "atomexContext");
     this.atomexContext = options.atomexContext;
     this.signers = options.managers.signersManager;
     this.authorization = options.managers.authorizationManager;
+    this.exchangeManager = options.managers.exchangeManager;
+    this.swapManager = options.managers.swapManager;
     if (options.blockchains)
       for (const blockchainName of Object.keys(options.blockchains))
         this.addBlockchain((_context) => options.blockchains[blockchainName]);
@@ -76,6 +80,7 @@ var AtomexContextManagersSection = class {
     __publicField(this, "_signersManager");
     __publicField(this, "_authorizationManager");
     __publicField(this, "_exchangeManager");
+    __publicField(this, "_swapManager");
   }
   get signersManager() {
     if (!this._signersManager)
@@ -101,11 +106,20 @@ var AtomexContextManagersSection = class {
   set exchangeManager(exchangeManager) {
     this._exchangeManager = exchangeManager;
   }
+  get swapManager() {
+    if (!this._swapManager)
+      throw new AtomexComponentNotResolvedError("managers.swapManager");
+    return this._swapManager;
+  }
+  set swapManager(swapManager) {
+    this._swapManager = swapManager;
+  }
 };
 var AtomexContextServicesSection = class {
   constructor(context) {
     this.context = context;
     __publicField(this, "_exchangeService");
+    __publicField(this, "_swapService");
   }
   get exchangeService() {
     if (!this._exchangeService)
@@ -114,6 +128,14 @@ var AtomexContextServicesSection = class {
   }
   set exchangeService(exchangeService) {
     this._exchangeService = exchangeService;
+  }
+  get swapService() {
+    if (!this._swapService)
+      throw new AtomexComponentNotResolvedError("services.swapService");
+    return this._swapService;
+  }
+  set swapService(swapService) {
+    this._swapService = swapService;
   }
 };
 var AtomexComponentNotResolvedError = class extends Error {
@@ -145,7 +167,6 @@ import BigNumber from "bignumber.js";
 
 // src/native/index.browser.ts
 import { Buffer as Buffer2 } from "buffer";
-var fetchNative = fetch;
 
 // src/utils/converters.ts
 var hexStringToUint8Array = (hex) => {
@@ -258,6 +279,31 @@ var SignersManager = class {
   }
 };
 
+// src/common/models/importantDataReceivingMode.ts
+var ImportantDataReceivingMode = /* @__PURE__ */ ((ImportantDataReceivingMode2) => {
+  ImportantDataReceivingMode2[ImportantDataReceivingMode2["Local"] = 0] = "Local";
+  ImportantDataReceivingMode2[ImportantDataReceivingMode2["Remote"] = 1] = "Remote";
+  ImportantDataReceivingMode2[ImportantDataReceivingMode2["SafeMerged"] = 2] = "SafeMerged";
+  return ImportantDataReceivingMode2;
+})(ImportantDataReceivingMode || {});
+
+// src/common/inMemoryCurrenciesProvider.ts
+var InMemoryCurrenciesProvider = class {
+  constructor(currencies) {
+    __publicField(this, "currencies");
+    this.currencies = new Map(currencies instanceof Map ? currencies : Object.entries(currencies));
+  }
+  getCurrency(currencyId) {
+    return Promise.resolve(this.currencies.get(currencyId));
+  }
+  addCurrency(currency) {
+    this.currencies.set(currency.id, currency);
+  }
+  removeCurrency(currencyId) {
+    return this.currencies.delete(currencyId);
+  }
+};
+
 // src/core/eventEmitter.ts
 var EventEmitter = class {
   constructor() {
@@ -287,44 +333,444 @@ var EventEmitter = class {
   }
 };
 
-// src/clients/restAtomexClient.ts
-var RestAtomexClient = class {
-  constructor(atomexNetwork, authorizationManager) {
-    this.atomexNetwork = atomexNetwork;
-    this.authorizationManager = authorizationManager;
-    __publicField(this, "orderUpdated", new EventEmitter());
-    __publicField(this, "orderBookUpdated", new EventEmitter());
-    __publicField(this, "topOfBookUpdated", new EventEmitter());
+// src/exchange/exchangeManager.ts
+var ExchangeManager = class {
+  constructor(exchangeService) {
+    this.exchangeService = exchangeService;
+    __publicField(this, "events", {
+      orderUpdated: new EventEmitter(),
+      orderBookUpdated: new EventEmitter(),
+      topOfBookUpdated: new EventEmitter()
+    });
+    __publicField(this, "handleExchangeServiceOrderUpdated", (updatedOrder) => {
+      this.events.orderUpdated.emit(updatedOrder);
+    });
+    __publicField(this, "handleExchangeServiceOrderBookUpdated", (updatedOrderBook) => {
+      this.events.orderBookUpdated.emit(updatedOrderBook);
+    });
+    __publicField(this, "handleExchangeServiceTopOfBookUpdated", (updatedQuotes) => {
+      this.events.topOfBookUpdated.emit(updatedQuotes);
+    });
+    this.attachEvents();
   }
-  getOrder(orderId) {
-    throw new Error("Method not implemented.");
+  getOrder(accountAddress, orderId, _mode = 2 /* SafeMerged */) {
+    return this.exchangeService.getOrder(accountAddress, orderId);
   }
-  getOrders(selector) {
-    throw new Error("Method not implemented.");
+  getOrders(accountAddress, selector, _mode = 2 /* SafeMerged */) {
+    return this.exchangeService.getOrders(accountAddress, selector);
   }
   getSymbols() {
-    throw new Error("Method not implemented.");
+    return this.exchangeService.getSymbols();
   }
-  getTopOfBook() {
-    throw new Error("Method not implemented.");
+  getTopOfBook(symbolsOrDirections) {
+    return this.exchangeService.getTopOfBook(symbolsOrDirections);
   }
-  getOrderBook() {
-    throw new Error("Method not implemented.");
+  async getOrderBook(symbolOrDirection) {
+    return this.exchangeService.getOrderBook(symbolOrDirection);
   }
-  addOrder(newOrderRequest) {
-    throw new Error("Method not implemented.");
+  addOrder(accountAddress, newOrderRequest) {
+    return this.exchangeService.addOrder(accountAddress, newOrderRequest);
   }
-  cancelOrder(orderId) {
-    throw new Error("Method not implemented.");
+  cancelOrder(accountAddress, cancelOrderRequest) {
+    return this.exchangeService.cancelOrder(accountAddress, cancelOrderRequest);
   }
-  cancelAllOrders() {
-    throw new Error("Method not implemented.");
+  cancelAllOrders(accountAddress, cancelAllOrdersRequest) {
+    return this.exchangeService.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
+  }
+  getRewardForRedeem(nativeTokenUsdPrice, nativeTokenCurrencyPrice) {
+    throw new Error("Not implemented");
+  }
+  attachEvents() {
+    this.exchangeService.events.orderUpdated.addListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.events.orderBookUpdated.addListener(this.handleExchangeServiceOrderBookUpdated);
+    this.exchangeService.events.topOfBookUpdated.addListener(this.handleExchangeServiceTopOfBookUpdated);
+  }
+  detachEvents() {
+    this.exchangeService.events.orderUpdated.removeListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.events.orderBookUpdated.removeListener(this.handleExchangeServiceOrderBookUpdated);
+    this.exchangeService.events.topOfBookUpdated.removeListener(this.handleExchangeServiceTopOfBookUpdated);
+  }
+};
+
+// src/swaps/swapManager.ts
+var SwapManager = class {
+  constructor(swapService) {
+    this.swapService = swapService;
+  }
+  getSwap(accountAddress, swapId, _mode = 2 /* SafeMerged */) {
+    return this.swapService.getSwap(accountAddress, swapId);
+  }
+  getSwaps(accountAddress, selector, _mode = 2 /* SafeMerged */) {
+    return this.swapService.getSwaps(accountAddress, selector);
+  }
+};
+
+// src/clients/restAtomexClient.ts
+import BigNumber2 from "bignumber.js";
+
+// src/clients/httpClient.ts
+var HttpClient = class {
+  constructor(baseUrl) {
+    this.baseUrl = baseUrl;
+  }
+  async request(options) {
+    const url = new URL(options.urlPath, this.baseUrl);
+    if (options.params)
+      this.setSearchParams(url, options.params);
+    const response = await fetch(url.toString(), {
+      headers: this.createHeaders(options),
+      method: options.method || "GET",
+      body: options.payload ? JSON.stringify(options.payload) : void 0
+    });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw Error(errorBody);
+    }
+    return await response.json();
+  }
+  setSearchParams(url, params) {
+    for (const key in params) {
+      const value = params[key];
+      if (value !== null && value !== void 0)
+        url.searchParams.set(key, String(value));
+    }
+  }
+  createHeaders(options) {
+    const headers = {};
+    if (options.authToken)
+      headers["Authorization"] = `Bearer ${options.authToken}`;
+    if (options.method === "POST" && options.payload)
+      headers["Content-Type"] = "application/json";
+    return headers;
+  }
+};
+
+// src/clients/restAtomexClient.ts
+var RestAtomexClient = class {
+  constructor(options) {
+    __publicField(this, "atomexNetwork");
+    __publicField(this, "events", {
+      orderUpdated: new EventEmitter(),
+      orderBookUpdated: new EventEmitter(),
+      topOfBookUpdated: new EventEmitter()
+    });
+    __publicField(this, "authorizationManager");
+    __publicField(this, "apiBaseUrl");
+    __publicField(this, "httpClient");
+    __publicField(this, "_symbolsCache");
+    this.atomexNetwork = options.atomexNetwork;
+    this.authorizationManager = options.authorizationManager;
+    this.apiBaseUrl = options.apiBaseUrl;
+    this.httpClient = new HttpClient(this.apiBaseUrl);
+  }
+  async getOrder(accountAddress, orderId) {
+    const urlPath = `/v1/Orders/${orderId}`;
+    const authToken = this.getRequiredAuthToken(accountAddress);
+    const orderDto = await this.httpClient.request({ urlPath, authToken });
+    return this.mapOrderDtoToOrder(orderDto);
+  }
+  async getOrders(accountAddress, selector) {
+    const urlPath = "/v1/Orders";
+    const authToken = this.getRequiredAuthToken(accountAddress);
+    const params = __spreadProps(__spreadValues({}, selector), {
+      sortAsc: void 0,
+      sort: (selector == null ? void 0 : selector.sortAsc) !== void 0 ? selector.sortAsc ? "Asc" : "Desc" : void 0
+    });
+    const orderDtos = await this.httpClient.request({ urlPath, authToken, params });
+    return this.mapOrderDtosToOrders(orderDtos);
+  }
+  async getSymbols() {
+    const urlPath = "/v1/Symbols";
+    const symbolDtos = await this.httpClient.request({ urlPath });
+    const symbols = this.mapSymbolDtosToSymbols(symbolDtos);
+    this._symbolsCache = symbols;
+    return symbols;
+  }
+  async getTopOfBook(symbolsOrDirections) {
+    const urlPath = "/v1/MarketData/quotes";
+    let symbols = void 0;
+    if (symbolsOrDirections == null ? void 0 : symbolsOrDirections.length) {
+      if (typeof symbolsOrDirections[0] === "string")
+        symbols = symbolsOrDirections;
+      else {
+        const cachedSymbols = await this.getCachedSymbols();
+        symbols = symbolsOrDirections.map((d) => this.findSymbolAndSide(cachedSymbols, d.from, d.to)[0]);
+      }
+    }
+    const params = { symbols: symbols == null ? void 0 : symbols.join(",") };
+    const quoteDtos = await this.httpClient.request({ urlPath, params });
+    return this.mapQuoteDtosToQuotes(quoteDtos);
+  }
+  async getOrderBook(symbolOrDirection) {
+    const urlPath = "/v1/MarketData/book";
+    let symbol;
+    if (typeof symbolOrDirection === "string")
+      symbol = symbolOrDirection;
+    else {
+      const cachedSymbols = await this.getCachedSymbols();
+      [symbol] = this.findSymbolAndSide(cachedSymbols, symbolOrDirection.from, symbolOrDirection.to);
+    }
+    const params = { symbol };
+    const orderBookDto = await this.httpClient.request({ urlPath, params });
+    return this.mapOrderBookDtoToOrderBook(orderBookDto);
+  }
+  async addOrder(accountAddress, newOrderRequest) {
+    const urlPath = "/v1/Orders";
+    const authToken = this.getRequiredAuthToken(accountAddress);
+    let symbol = void 0;
+    let side = void 0;
+    if (newOrderRequest.symbol && newOrderRequest.side)
+      [symbol, side] = [newOrderRequest.symbol, newOrderRequest.side];
+    else if (newOrderRequest.from && newOrderRequest.to) {
+      const cachedSymbols = await this.getCachedSymbols();
+      [symbol, side] = this.findSymbolAndSide(cachedSymbols, newOrderRequest.from, newOrderRequest.to);
+    } else
+      throw new Error("Invalid newOrderRequest argument passed");
+    const payload = {
+      symbol,
+      side,
+      clientOrderId: newOrderRequest.clientOrderId,
+      type: newOrderRequest.type,
+      proofsOfFunds: newOrderRequest.proofsOfFunds,
+      requisites: newOrderRequest.requisites,
+      amount: newOrderRequest.amount.toNumber(),
+      price: newOrderRequest.price.toNumber()
+    };
+    const newOrderDto = await this.httpClient.request({
+      urlPath,
+      authToken,
+      method: "POST",
+      payload
+    });
+    return newOrderDto.orderId;
+  }
+  async cancelOrder(accountAddress, cancelOrderRequest) {
+    const urlPath = `/v1/Orders/${cancelOrderRequest.orderId}`;
+    const authToken = this.getRequiredAuthToken(accountAddress);
+    let symbol = void 0;
+    let side = void 0;
+    if (cancelOrderRequest.symbol && cancelOrderRequest.side)
+      [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
+    else if (cancelOrderRequest.from && cancelOrderRequest.to) {
+      const cachedSymbols = await this.getCachedSymbols();
+      [symbol, side] = this.findSymbolAndSide(cachedSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+    } else
+      throw new Error("Invalid cancelOrderRequest argument passed");
+    const params = { symbol, side };
+    const isSuccess = await this.httpClient.request({
+      urlPath,
+      authToken,
+      params,
+      method: "DELETE"
+    });
+    return isSuccess;
+  }
+  async cancelAllOrders(accountAddress, cancelAllOrdersRequest) {
+    const urlPath = "/v1/Orders";
+    const authToken = this.getRequiredAuthToken(accountAddress);
+    let symbol = void 0;
+    let side = void 0;
+    if (cancelAllOrdersRequest.symbol && cancelAllOrdersRequest.side)
+      [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
+    else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
+      const cachedSymbols = await this.getCachedSymbols();
+      [symbol, side] = this.findSymbolAndSide(cachedSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      if (cancelAllOrdersRequest.cancelAllDirections)
+        side = "All";
+    } else
+      throw new Error("Invalid cancelAllOrdersRequest argument passed");
+    const canceledOrdersCount = await this.httpClient.request({
+      urlPath,
+      authToken,
+      params: {
+        symbol,
+        side,
+        forAllConnections: cancelAllOrdersRequest.forAllConnections
+      },
+      method: "DELETE"
+    });
+    return canceledOrdersCount;
   }
   getSwapTransactions(swap) {
     throw new Error("Method not implemented.");
   }
-  getSwap(swapId) {
-    throw new Error("Not implemented");
+  async getSwap(accountAddress, swapId) {
+    const urlPath = `/v1/Swaps/${swapId}`;
+    const authToken = this.getRequiredAuthToken(accountAddress);
+    const swapDto = await this.httpClient.request({
+      urlPath,
+      authToken
+    });
+    return this.mapSwapDtoToSwap(swapDto);
+  }
+  async getSwaps(accountAddress, selector) {
+    const urlPath = "/v1/Swaps";
+    const authToken = this.getRequiredAuthToken(accountAddress);
+    const params = __spreadProps(__spreadValues({}, selector), {
+      sortAsc: void 0,
+      sort: (selector == null ? void 0 : selector.sortAsc) !== void 0 ? selector.sortAsc ? "Asc" : "Desc" : void 0
+    });
+    const swapDtos = await this.httpClient.request({
+      urlPath,
+      params,
+      authToken
+    });
+    return this.mapSwapDtosToSwaps(swapDtos);
+  }
+  getRequiredAuthToken(accountAddress) {
+    var _a;
+    const authToken = (_a = this.authorizationManager.getAuthToken(accountAddress)) == null ? void 0 : _a.value;
+    if (!authToken) {
+      throw new Error(`Cannot find auth token for address: ${accountAddress}`);
+    }
+    return authToken;
+  }
+  async getCachedSymbols() {
+    if (!this._symbolsCache)
+      this._symbolsCache = await this.getSymbols();
+    return this._symbolsCache;
+  }
+  findSymbolAndSide(symbols, from, to) {
+    let symbol = symbols.find((s) => s.name === `${from}/${to}`);
+    let side = "Sell";
+    if (!symbol) {
+      symbol = symbols.find((s) => s.name === `${to}/${from}`);
+      side = "Buy";
+    }
+    if (!symbol)
+      throw new Error(`Invalid pair: ${from}/${to}`);
+    return [symbol.name, side];
+  }
+  mapQuoteDtosToQuotes(quoteDtos) {
+    const quotes = quoteDtos.map((dto) => {
+      const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(dto.symbol);
+      return {
+        ask: new BigNumber2(dto.ask),
+        bid: new BigNumber2(dto.bid),
+        symbol: dto.symbol,
+        timeStamp: new Date(dto.timeStamp),
+        quoteCurrency,
+        baseCurrency
+      };
+    });
+    return quotes;
+  }
+  mapSymbolDtosToSymbols(symbolDtos) {
+    const symbols = symbolDtos.map((dto) => {
+      const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(dto.name);
+      return {
+        name: dto.name,
+        minimumQty: new BigNumber2(dto.minimumQty),
+        quoteCurrency,
+        baseCurrency
+      };
+    });
+    return symbols;
+  }
+  mapOrderBookDtoToOrderBook(orderBookDto) {
+    const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
+    const orderBook = {
+      updateId: orderBookDto.updateId,
+      symbol: orderBookDto.symbol,
+      quoteCurrency,
+      baseCurrency,
+      entries: orderBookDto.entries.map((e) => ({
+        side: e.side,
+        price: new BigNumber2(e.price),
+        qtyProfile: e.qtyProfile
+      }))
+    };
+    return orderBook;
+  }
+  mapOrderDtoToOrder(orderDto) {
+    var _a;
+    const [from, to] = this.getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
+    return {
+      id: orderDto.id,
+      from,
+      to,
+      clientOrderId: orderDto.clientOrderId,
+      side: orderDto.side,
+      symbol: orderDto.symbol,
+      leaveQty: new BigNumber2(orderDto.leaveQty),
+      timeStamp: new Date(orderDto.timeStamp),
+      type: orderDto.type,
+      status: orderDto.status,
+      swapIds: ((_a = orderDto.swaps) == null ? void 0 : _a.map((s) => s.id)) || []
+    };
+  }
+  mapOrderDtosToOrders(orderDtos) {
+    const orders = orderDtos.map((dto) => this.mapOrderDtoToOrder(dto));
+    return orders;
+  }
+  mapSwapDtoToSwap(swapDto) {
+    const [from, to] = this.getFromToCurrencies(swapDto.symbol, swapDto.qty, swapDto.price, swapDto.side);
+    const swap = {
+      isInitiator: swapDto.isInitiator,
+      secret: swapDto.secret,
+      secretHash: swapDto.secretHash,
+      id: Number(swapDto.id),
+      from,
+      to,
+      trade: {
+        qty: new BigNumber2(swapDto.qty),
+        price: new BigNumber2(swapDto.price),
+        side: swapDto.side,
+        symbol: swapDto.symbol
+      },
+      timeStamp: new Date(swapDto.timeStamp),
+      counterParty: {
+        status: swapDto.counterParty.status,
+        transactions: swapDto.counterParty.transactions,
+        requisites: __spreadProps(__spreadValues({}, swapDto.counterParty.requisites), {
+          rewardForRedeem: new BigNumber2(swapDto.counterParty.requisites.rewardForRedeem)
+        }),
+        trades: swapDto.counterParty.trades.map((t) => ({
+          orderId: t.orderId,
+          price: new BigNumber2(t.price),
+          qty: new BigNumber2(t.qty)
+        }))
+      },
+      user: {
+        status: swapDto.user.status,
+        transactions: swapDto.user.transactions,
+        requisites: __spreadProps(__spreadValues({}, swapDto.user.requisites), {
+          rewardForRedeem: new BigNumber2(swapDto.user.requisites.rewardForRedeem)
+        }),
+        trades: swapDto.user.trades.map((t) => ({
+          orderId: t.orderId,
+          price: new BigNumber2(t.price),
+          qty: new BigNumber2(t.qty)
+        }))
+      }
+    };
+    return swap;
+  }
+  mapSwapDtosToSwaps(swapDtos) {
+    const swaps = swapDtos.map((dto) => this.mapSwapDtoToSwap(dto));
+    return swaps;
+  }
+  getQuoteBaseCurrenciesBySymbol(symbol) {
+    const [quoteCurrency = "", baseCurrency = ""] = symbol.split("/");
+    return [quoteCurrency, baseCurrency];
+  }
+  getFromToCurrencies(symbol, qty, price, side) {
+    const [quoteCurrencyId, baseCurrencyId] = this.getQuoteBaseCurrenciesBySymbol(symbol);
+    const quoteCurrencyAmount = new BigNumber2(qty);
+    const quoteCurrencyPrice = new BigNumber2(price);
+    const baseCurrencyAmount = quoteCurrencyPrice.multipliedBy(quoteCurrencyAmount);
+    const baseCurrencyPrice = quoteCurrencyAmount.div(baseCurrencyAmount);
+    const quoteCurrency = {
+      currencyId: quoteCurrencyId,
+      amount: quoteCurrencyAmount,
+      price: quoteCurrencyPrice
+    };
+    const baseCurrency = {
+      currencyId: baseCurrencyId,
+      amount: baseCurrencyAmount,
+      price: baseCurrencyPrice
+    };
+    return side === "Buy" ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
   }
 };
 
@@ -333,39 +779,44 @@ var WebSocketAtomexClient = class {
   constructor(atomexNetwork, authorizationManager) {
     this.atomexNetwork = atomexNetwork;
     this.authorizationManager = authorizationManager;
-    __publicField(this, "orderUpdated", new EventEmitter());
-    __publicField(this, "orderBookUpdated", new EventEmitter());
-    __publicField(this, "topOfBookUpdated", new EventEmitter());
+    __publicField(this, "events", {
+      orderUpdated: new EventEmitter(),
+      orderBookUpdated: new EventEmitter(),
+      topOfBookUpdated: new EventEmitter()
+    });
   }
-  getOrder(orderId) {
+  getOrder(accountAddress, orderId) {
     throw new Error("Method not implemented.");
   }
-  getOrders(selector) {
+  getOrders(accountAddress, selector) {
     throw new Error("Method not implemented.");
   }
   getSymbols() {
     throw new Error("Method not implemented.");
   }
-  getTopOfBook() {
+  getTopOfBook(symbolsOrDirections) {
     throw new Error("Method not implemented.");
   }
-  getOrderBook() {
+  async getOrderBook(symbolOrDirection) {
     throw new Error("Method not implemented.");
   }
-  addOrder(newOrderRequest) {
+  addOrder(accountAddress, newOrderRequest) {
     throw new Error("Method not implemented.");
   }
-  cancelOrder(orderId) {
+  cancelOrder(accountAddress, cancelOrderRequest) {
     throw new Error("Method not implemented.");
   }
-  cancelAllOrders() {
+  cancelAllOrders(accountAddress, cancelAllOrdersRequest) {
     throw new Error("Method not implemented.");
   }
   getSwapTransactions(swap) {
     throw new Error("Method not implemented.");
   }
-  getSwap(swapId) {
-    throw new Error("Not implemented");
+  getSwap(accountAddress, swapId) {
+    throw new Error("Method not implemented.");
+  }
+  getSwaps(accountAddress, selector) {
+    throw new Error("Method not implemented.");
   }
 };
 
@@ -375,130 +826,57 @@ var MixedApiAtomexClient = class {
     this.atomexNetwork = atomexNetwork;
     this.restAtomexClient = restAtomexClient;
     this.webSocketAtomexClient = webSocketAtomexClient;
+    __publicField(this, "events");
     atomexUtils_exports.ensureNetworksAreSame(this, restAtomexClient);
     atomexUtils_exports.ensureNetworksAreSame(this, webSocketAtomexClient);
+    this.events = {
+      orderBookUpdated: this.webSocketAtomexClient.events.orderBookUpdated,
+      orderUpdated: this.webSocketAtomexClient.events.orderUpdated,
+      topOfBookUpdated: this.webSocketAtomexClient.events.topOfBookUpdated
+    };
   }
-  get orderUpdated() {
-    return this.webSocketAtomexClient.orderUpdated;
+  getOrder(accountAddress, orderId) {
+    return this.restAtomexClient.getOrder(accountAddress, orderId);
   }
-  get orderBookUpdated() {
-    return this.webSocketAtomexClient.orderBookUpdated;
-  }
-  get topOfBookUpdated() {
-    return this.webSocketAtomexClient.topOfBookUpdated;
-  }
-  getOrder(orderId) {
-    return this.restAtomexClient.getOrder(orderId);
-  }
-  getOrders(selector) {
-    return this.restAtomexClient.getOrders(selector);
+  getOrders(accountAddress, selector) {
+    return this.restAtomexClient.getOrders(accountAddress, selector);
   }
   getSymbols() {
     return this.restAtomexClient.getSymbols();
   }
-  getTopOfBook() {
-    return this.restAtomexClient.getTopOfBook();
+  getTopOfBook(symbolsOrDirections) {
+    return this.restAtomexClient.getTopOfBook(symbolsOrDirections);
   }
-  getOrderBook() {
-    return this.restAtomexClient.getOrderBook();
+  async getOrderBook(symbolOrDirection) {
+    return this.restAtomexClient.getOrderBook(symbolOrDirection);
   }
-  addOrder(newOrderRequest) {
-    return this.restAtomexClient.addOrder(newOrderRequest);
+  addOrder(accountAddress, newOrderRequest) {
+    return this.restAtomexClient.addOrder(accountAddress, newOrderRequest);
   }
-  cancelOrder(orderId) {
-    return this.restAtomexClient.cancelOrder(orderId);
+  cancelOrder(accountAddress, cancelOrderRequest) {
+    return this.restAtomexClient.cancelOrder(accountAddress, cancelOrderRequest);
   }
-  cancelAllOrders() {
-    return this.restAtomexClient.cancelAllOrders();
+  cancelAllOrders(accountAddress, cancelAllOrdersRequest) {
+    return this.restAtomexClient.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
   }
   getSwapTransactions(swap) {
     return this.restAtomexClient.getSwapTransactions(swap);
   }
-  getSwap(swapId) {
-    return this.restAtomexClient.getSwap(swapId);
+  getSwap(accountAddress, swapId) {
+    return this.restAtomexClient.getSwap(accountAddress, swapId);
+  }
+  getSwaps(accountAddress, selector) {
+    return this.restAtomexClient.getSwaps(accountAddress, selector);
   }
 };
 
-// src/common/models/importantDataReceivingMode.ts
-var ImportantDataReceivingMode = /* @__PURE__ */ ((ImportantDataReceivingMode2) => {
-  ImportantDataReceivingMode2[ImportantDataReceivingMode2["Local"] = 0] = "Local";
-  ImportantDataReceivingMode2[ImportantDataReceivingMode2["Remote"] = 1] = "Remote";
-  ImportantDataReceivingMode2[ImportantDataReceivingMode2["SafeMerged"] = 2] = "SafeMerged";
-  return ImportantDataReceivingMode2;
-})(ImportantDataReceivingMode || {});
-
-// src/common/inMemoryCurrenciesProvider.ts
-var InMemoryCurrenciesProvider = class {
-  constructor(currencies) {
-    __publicField(this, "currencies");
-    this.currencies = new Map(currencies instanceof Map ? currencies : Object.entries(currencies));
-  }
-  getCurrency(currencyId) {
-    return Promise.resolve(this.currencies.get(currencyId));
-  }
-  addCurrency(currency) {
-    this.currencies.set(currency.id, currency);
-  }
-  removeCurrency(currencyId) {
-    return this.currencies.delete(currencyId);
-  }
-};
-
-// src/exchange/exchangeManager.ts
-var ExchangeManager = class {
-  constructor(exchangeService) {
-    this.exchangeService = exchangeService;
-    __publicField(this, "orderUpdated", new EventEmitter());
-    __publicField(this, "orderBookUpdated", new EventEmitter());
-    __publicField(this, "topOfBookUpdated", new EventEmitter());
-    __publicField(this, "handleExchangeServiceOrderBookUpdated", (updatedOrderBook) => {
-      this.orderBookUpdated.emit(updatedOrderBook);
-    });
-    __publicField(this, "handleExchangeServiceTopOfBookUpdated", (updatedQuotes) => {
-      this.topOfBookUpdated.emit(updatedQuotes);
-    });
-    __publicField(this, "handleExchangeServiceOrderUpdated", (updatedOrder) => {
-      this.orderUpdated.emit(updatedOrder);
-    });
-    this.attachEvents();
-  }
-  getOrder(orderId, mode = 2 /* SafeMerged */) {
-    throw new Error("Not implemented");
-  }
-  getOrders(selector, mode = 2 /* SafeMerged */) {
-    throw new Error("Not implemented");
-  }
-  getSymbols() {
-    throw new Error("Not implemented");
-  }
-  getTopOfBook() {
-    throw new Error("Not implemented");
-  }
-  getOrderBook() {
-    throw new Error("Not implemented");
-  }
-  getRewardForRedeem(nativeTokenUsdPrice, nativeTokenCurrencyPrice) {
-    throw new Error("Not implemented");
-  }
-  addOrder(newOrderRequest) {
-    throw new Error("Not implemented");
-  }
-  cancelOrder(orderId) {
-    throw new Error("Not implemented");
-  }
-  cancelAllOrders() {
-    throw new Error("Not implemented");
-  }
-  attachEvents() {
-    this.exchangeService.orderUpdated.addListener(this.handleExchangeServiceOrderUpdated);
-    this.exchangeService.orderBookUpdated.addListener(this.handleExchangeServiceOrderBookUpdated);
-    this.exchangeService.topOfBookUpdated.addListener(this.handleExchangeServiceTopOfBookUpdated);
-  }
-  detachEvents() {
-    this.exchangeService.orderUpdated.removeListener(this.handleExchangeServiceOrderUpdated);
-    this.exchangeService.orderBookUpdated.removeListener(this.handleExchangeServiceOrderBookUpdated);
-    this.exchangeService.topOfBookUpdated.removeListener(this.handleExchangeServiceTopOfBookUpdated);
-  }
+// src/atomexBuilder/atomexComponents/exchangeService.ts
+var createDefaultExchangeService = (atomexContext, options) => {
+  return new MixedApiAtomexClient(atomexContext.atomexNetwork, new RestAtomexClient({
+    atomexNetwork: atomexContext.atomexNetwork,
+    apiBaseUrl: options.apiBaseUrl,
+    authorizationManager: atomexContext.managers.authorizationManager
+  }), new WebSocketAtomexClient(atomexContext.atomexNetwork, atomexContext.managers.authorizationManager));
 };
 
 // src/authorization/authorizationManager.ts
@@ -628,7 +1006,7 @@ var _AuthorizationManager = class {
     return Date.now();
   }
   async requestAuthToken(requestData) {
-    const response = await fetchNative(this.authorizationUrl.href, {
+    const response = await fetch(this.authorizationUrl.href, {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -818,26 +1196,34 @@ var createDefaultAuthorizationManager = (atomexContext, options, _builderOptions
 };
 
 // src/atomexBuilder/atomexConfig.ts
+var atomexApiBaseUrl = "https://api.atomex.me";
 var atomexMainnetConfig = {
   authorization: {
-    authorizationBaseUrl: "https://api.atomex.me",
+    authorizationBaseUrl: atomexApiBaseUrl,
     store: {
       node: {},
       browser: {
         storeStrategy: "single-key"
       }
     }
+  },
+  exchange: {
+    apiBaseUrl: atomexApiBaseUrl
   }
 };
+var atomexTestApiBaseUrl = "https://api.test.atomex.me";
 var atomexTestnetConfig = {
   authorization: {
-    authorizationBaseUrl: "https://api.test.atomex.me",
+    authorizationBaseUrl: atomexTestApiBaseUrl,
     store: {
       node: {},
       browser: {
         storeStrategy: "single-key"
       }
     }
+  },
+  exchange: {
+    apiBaseUrl: atomexTestApiBaseUrl
   }
 };
 var config = {
@@ -852,15 +1238,40 @@ var AtomexBuilder = class {
     this.atomexContext = atomexContext;
     __publicField(this, "customAuthorizationManagerFactory");
     __publicField(this, "customSignersManagerFactory");
+    __publicField(this, "customExchangeManagerFactory");
   }
   get controlledAtomexContext() {
     return this.atomexContext;
   }
   useAuthorizationManager(customAuthorizationManagerFactory) {
     this.customAuthorizationManagerFactory = customAuthorizationManagerFactory;
+    return this;
   }
   useSignersManager(customSignersManagerFactory) {
     this.customSignersManagerFactory = customSignersManagerFactory;
+    return this;
+  }
+  useExchangeManager(customExchangeManagerFactory) {
+    this.customExchangeManagerFactory = customExchangeManagerFactory;
+    return this;
+  }
+  build() {
+    this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
+    this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
+    const atomexClient = this.createDefaultExchangeService();
+    this.controlledAtomexContext.services.exchangeService = atomexClient;
+    this.controlledAtomexContext.services.swapService = atomexClient;
+    this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
+    this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
+    return new Atomex({
+      atomexContext: this.atomexContext,
+      managers: {
+        signersManager: this.atomexContext.managers.signersManager,
+        authorizationManager: this.atomexContext.managers.authorizationManager,
+        exchangeManager: this.atomexContext.managers.exchangeManager,
+        swapManager: this.atomexContext.managers.swapManager
+      }
+    });
   }
   createAuthorizationManager() {
     const defaultAuthorizationManagerOptions = config[this.atomexContext.atomexNetwork].authorization;
@@ -869,20 +1280,15 @@ var AtomexBuilder = class {
   createSignersManager() {
     return this.customSignersManagerFactory ? this.customSignersManagerFactory(this.atomexContext, this.options) : new SignersManager(this.atomexContext.atomexNetwork);
   }
-  build() {
-    this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
-    this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
-    const atomexClient = new MixedApiAtomexClient(this.atomexContext.atomexNetwork, new RestAtomexClient(this.atomexContext.atomexNetwork, this.controlledAtomexContext.managers.authorizationManager), new WebSocketAtomexClient(this.atomexContext.atomexNetwork, this.controlledAtomexContext.managers.authorizationManager));
-    this.controlledAtomexContext.services.exchangeService = atomexClient;
-    this.controlledAtomexContext.managers.exchangeManager = new ExchangeManager(this.atomexContext.services.exchangeService);
-    return new Atomex({
-      atomexContext: this.atomexContext,
-      managers: {
-        signersManager: this.atomexContext.managers.signersManager,
-        authorizationManager: this.atomexContext.managers.authorizationManager,
-        exchangeManager: this.atomexContext.managers.exchangeManager
-      }
-    });
+  createDefaultExchangeService() {
+    const defaultExchangeManagerOptions = config[this.atomexContext.atomexNetwork].exchange;
+    return createDefaultExchangeService(this.atomexContext, defaultExchangeManagerOptions);
+  }
+  createExchangeManager() {
+    return this.customExchangeManagerFactory ? this.customExchangeManagerFactory(this.atomexContext, this.options) : new ExchangeManager(this.atomexContext.services.exchangeService);
+  }
+  createSwapManager() {
+    return new SwapManager(this.atomexContext.services.swapService);
   }
 };
 

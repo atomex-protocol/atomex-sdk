@@ -1,7 +1,12 @@
-export type { Order } from './order';
+export type { Order, OrderCurrency } from './order';
 export type { OrderStatus } from './orderStatus';
 export type { OrderType } from './orderType';
 export type { ExchangeSymbol } from './exchangeSymbol';
-export type { NewOrderRequest } from './newOrderRequest';
+export type { NewOrderRequest, ProofOfFunds, Algorithm } from './newOrderRequest';
+export type { CancelOrderRequest } from './cancelOrderRequest';
+export type { CancelAllOrdersRequest } from './cancelAllOrdersRequest';
 export type { Quote } from './quote';
 export type { OrderBook, OrderBookEntry } from './orderBook';
+export type { OrdersSelector } from './ordersSelector';
+export type { SwapsSelector } from './swapsSelector';
+export type { CurrencyDirection } from './currencyDirection';

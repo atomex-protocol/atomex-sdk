@@ -1,11 +1,14 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { Signer, SignersManager } from '../blockchain/index';
-import type { Swap } from '../swaps/index';
+import { ExchangeManager } from '../exchange/exchangeManager';
+import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
 import { SwapOperationCompleteStage, type AtomexBlockchainOptions, type AtomexOptions, type NewSwapRequest } from './models/index';
 export declare class Atomex {
     readonly options: AtomexOptions;
     readonly authorization: AuthorizationManager;
+    readonly exchangeManager: ExchangeManager;
+    readonly swapManager: SwapManager;
     readonly signers: SignersManager;
     protected readonly atomexContext: AtomexContext;
     constructor(options: AtomexOptions);

@@ -1,8 +1,1 @@
-export declare enum OrderStatus {
-    Pending = "pending",
-    Placed = "placed",
-    PartiallyFilled = "partiallyFilled",
-    Filled = "filled",
-    Canceled = "canceled",
-    Rejected = "rejected"
-}
+export declare type OrderStatus = 'Pending' | 'Placed' | 'PartiallyFilled' | 'Filled' | 'Canceled' | 'Rejected';

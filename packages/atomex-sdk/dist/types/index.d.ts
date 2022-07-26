@@ -12,6 +12,7 @@ export * from './utils';
 export type { AtomexOptions, NewSwapRequest } from './atomex/index';
 export type { AuthToken, AuthorizationManagerOptions } from './authorization/index';
 export type { AtomexProtocol, Transaction, AtomexProtocolV1, InitiateParametersAtomexProtocolV1, RedeemParametersAtomexProtocolV1, RefundParametersAtomexProtocolV1, AtomexSignature, Signer, BalancesProvider, SwapTransactionsProvider, TransactionsProvider } from './blockchain/index';
+export type { OrdersSelector, SwapsSelector } from './exchange/index';
 export type { SerializedAuthTokenMapper, SerializedAuthToken } from './browser/index';
 export type { AtomexClient } from './clients/index';
 export type { AtomexNetwork, Currency, Side, CurrenciesProvider, CollectionSelector } from './common/index';

@@ -1,16 +1,20 @@
-import type { CollectionSelector } from '../common/index';
 import type { PublicEventEmitter } from '../core/index';
-import type { Order, ExchangeSymbol, NewOrderRequest, Quote, OrderBook } from './models/index';
-export interface ExchangeService {
+import type { Order, ExchangeSymbol, NewOrderRequest, Quote, OrderBook, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, CurrencyDirection } from './models/index';
+export interface ExchangeServiceEvents {
     readonly orderUpdated: PublicEventEmitter<readonly [updatedOrder: Order]>;
     readonly orderBookUpdated: PublicEventEmitter<readonly [updatedOrderBook: OrderBook]>;
     readonly topOfBookUpdated: PublicEventEmitter<readonly [updatedQuotes: readonly Quote[]]>;
-    getOrder(orderId: string): Promise<Order | undefined>;
-    getOrders(selector?: CollectionSelector): Promise<Order[]>;
-    getSymbols(): Promise<ExchangeSymbol>;
-    getTopOfBook(): Promise<Quote[]>;
-    getOrderBook(): Promise<OrderBook>;
-    addOrder(newOrderRequest: NewOrderRequest): Promise<number>;
-    cancelOrder(orderId: number): Promise<boolean>;
-    cancelAllOrders(): Promise<number>;
+}
+export interface ExchangeService {
+    readonly events: ExchangeServiceEvents;
+    getOrder(accountAddress: string, orderId: number): Promise<Order | undefined>;
+    getOrders(accountAddress: string, selector?: OrdersSelector): Promise<Order[]>;
+    getSymbols(): Promise<ExchangeSymbol[]>;
+    getTopOfBook(symbols?: string[]): Promise<Quote[]>;
+    getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
+    getOrderBook(symbol: string): Promise<OrderBook>;
+    getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
+    addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
+    cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
+    cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
 }

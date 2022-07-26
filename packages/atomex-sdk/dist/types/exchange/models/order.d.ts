@@ -3,8 +3,9 @@ import type { Side } from '../../common/index';
 import type { OrderStatus } from './orderStatus';
 import type { OrderType } from './orderType';
 export interface Order {
-    readonly id: string;
+    readonly id: number;
     readonly clientOrderId: string;
+    readonly symbol: string;
     readonly type: OrderType;
     readonly side: Side;
     readonly from: OrderCurrency;
@@ -12,10 +13,10 @@ export interface Order {
     readonly timeStamp: Date;
     readonly leaveQty: BigNumber;
     readonly status: OrderStatus;
+    readonly swapIds: number[];
 }
-interface OrderCurrency {
+export interface OrderCurrency {
     readonly currencyId: string;
     readonly amount: BigNumber;
     readonly price: BigNumber;
 }
-export {};
