@@ -2,6 +2,7 @@ import type { AuthorizationManager } from '../authorization/index';
 import type { SignersManager } from '../blockchain/index';
 import type { ExchangeManager, ExchangeService } from '../exchange';
 import type { AtomexNetwork } from '../index';
+import { SwapManager, SwapService } from '../swaps/index';
 
 export class AtomexContext {
   private static idCounter = 0;
@@ -23,6 +24,7 @@ class AtomexContextManagersSection {
   private _signersManager: SignersManager | undefined;
   private _authorizationManager: AuthorizationManager | undefined;
   private _exchangeManager: ExchangeManager | undefined;
+  private _swapManager: SwapManager | undefined;
 
   constructor(readonly context: AtomexContext) {
   }
@@ -59,10 +61,22 @@ class AtomexContextManagersSection {
   private set exchangeManager(exchangeManager: ExchangeManager) {
     this._exchangeManager = exchangeManager;
   }
+
+  get swapManager(): SwapManager {
+    if (!this._swapManager)
+      throw new AtomexComponentNotResolvedError('managers.swapManager');
+
+    return this._swapManager;
+  }
+
+  private set swapManager(swapManager: SwapManager) {
+    this._swapManager = swapManager;
+  }
 }
 
 class AtomexContextServicesSection {
   private _exchangeService: ExchangeService | undefined;
+  private _swapService: SwapService | undefined;
 
   constructor(readonly context: AtomexContext) {
   }
@@ -76,6 +90,17 @@ class AtomexContextServicesSection {
 
   private set exchangeService(exchangeService: ExchangeService) {
     this._exchangeService = exchangeService;
+  }
+
+  get swapService(): SwapService {
+    if (!this._swapService)
+      throw new AtomexComponentNotResolvedError('services.swapService');
+
+    return this._swapService;
+  }
+
+  private set swapService(swapService: SwapService) {
+    this._swapService = swapService;
   }
 }
 

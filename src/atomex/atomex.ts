@@ -1,6 +1,7 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { Signer, SignersManager } from '../blockchain/index';
-import type { Swap } from '../swaps/index';
+import { ExchangeManager } from '../exchange/exchangeManager';
+import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
 import {
   SwapOperationCompleteStage, type AtomexBlockchainOptions,
@@ -9,6 +10,8 @@ import {
 
 export class Atomex {
   readonly authorization: AuthorizationManager;
+  readonly exchangeManager: ExchangeManager;
+  readonly swapManager: SwapManager;
   readonly signers: SignersManager;
 
   protected readonly atomexContext: AtomexContext;
@@ -17,6 +20,8 @@ export class Atomex {
     this.atomexContext = options.atomexContext;
     this.signers = options.managers.signersManager;
     this.authorization = options.managers.authorizationManager;
+    this.exchangeManager = options.managers.exchangeManager;
+    this.swapManager = options.managers.swapManager;
 
     if (options.blockchains)
       for (const blockchainName of Object.keys(options.blockchains))

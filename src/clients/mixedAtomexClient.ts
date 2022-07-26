@@ -1,69 +1,76 @@
 import type { Transaction } from '../blockchain/index';
-import type { AtomexNetwork, CollectionSelector } from '../common/index';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest } from '../exchange/index';
+import type { AtomexNetwork } from '../common/index';
+import type {
+  Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents,
+  OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection
+} from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import { atomexUtils } from '../utils';
 import type { AtomexClient } from './atomexClient';
 
 export class MixedApiAtomexClient implements AtomexClient {
+  readonly events: ExchangeServiceEvents;
+
   constructor(
     readonly atomexNetwork: AtomexNetwork,
-    readonly restAtomexClient: AtomexClient,
-    readonly webSocketAtomexClient: AtomexClient
+    protected readonly restAtomexClient: AtomexClient,
+    protected readonly webSocketAtomexClient: AtomexClient
   ) {
     atomexUtils.ensureNetworksAreSame(this, restAtomexClient);
     atomexUtils.ensureNetworksAreSame(this, webSocketAtomexClient);
+
+    this.events = {
+      orderBookUpdated: this.webSocketAtomexClient.events.orderBookUpdated,
+      orderUpdated: this.webSocketAtomexClient.events.orderUpdated,
+      topOfBookUpdated: this.webSocketAtomexClient.events.topOfBookUpdated
+    };
   }
 
-  get orderUpdated() {
-    return this.webSocketAtomexClient.orderUpdated;
+  getOrder(accountAddress: string, orderId: number): Promise<Order | undefined> {
+    return this.restAtomexClient.getOrder(accountAddress, orderId);
   }
 
-  get orderBookUpdated() {
-    return this.webSocketAtomexClient.orderBookUpdated;
+  getOrders(accountAddress: string, selector?: OrdersSelector | undefined): Promise<Order[]> {
+    return this.restAtomexClient.getOrders(accountAddress, selector);
   }
 
-  get topOfBookUpdated() {
-    return this.webSocketAtomexClient.topOfBookUpdated;
-  }
-
-  getOrder(orderId: string): Promise<Order | undefined> {
-    return this.restAtomexClient.getOrder(orderId);
-  }
-
-  getOrders(selector?: CollectionSelector | undefined): Promise<Order[]> {
-    return this.restAtomexClient.getOrders(selector);
-  }
-
-  getSymbols(): Promise<ExchangeSymbol> {
+  getSymbols(): Promise<ExchangeSymbol[]> {
     return this.restAtomexClient.getSymbols();
   }
 
-  getTopOfBook(): Promise<Quote[]> {
-    return this.restAtomexClient.getTopOfBook();
+  getTopOfBook(symbols?: string[]): Promise<Quote[]>;
+  getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
+  getTopOfBook(symbolsOrDirections?: string[] | CurrencyDirection[]): Promise<Quote[]> {
+    return (this.restAtomexClient.getTopOfBook as (symbolsOrDirections?: string[] | CurrencyDirection[]) => Promise<Quote[]>)(symbolsOrDirections);
   }
 
-  getOrderBook(): Promise<OrderBook> {
-    return this.restAtomexClient.getOrderBook();
+  getOrderBook(symbol: string): Promise<OrderBook>;
+  getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
+  async getOrderBook(symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
+    return (this.restAtomexClient.getOrderBook as (symbolOrDirection: string | CurrencyDirection) => Promise<OrderBook>)(symbolOrDirection);
   }
 
-  addOrder(newOrderRequest: NewOrderRequest): Promise<number> {
-    return this.restAtomexClient.addOrder(newOrderRequest);
+  addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
+    return this.restAtomexClient.addOrder(accountAddress, newOrderRequest);
   }
 
-  cancelOrder(orderId: number): Promise<boolean> {
-    return this.restAtomexClient.cancelOrder(orderId);
+  cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
+    return this.restAtomexClient.cancelOrder(accountAddress, cancelOrderRequest);
   }
 
-  cancelAllOrders(): Promise<number> {
-    return this.restAtomexClient.cancelAllOrders();
+  cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
+    return this.restAtomexClient.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
   }
 
   getSwapTransactions(swap: Swap): Promise<readonly Transaction[]> {
     return this.restAtomexClient.getSwapTransactions(swap);
   }
 
-  getSwap(swapId: string): Promise<Swap> {
-    return this.restAtomexClient.getSwap(swapId);
+  getSwap(accountAddress: string, swapId: number): Promise<Swap> {
+    return this.restAtomexClient.getSwap(accountAddress, swapId);
+  }
+
+  getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]> {
+    return this.restAtomexClient.getSwaps(accountAddress, selector);
   }
 }
