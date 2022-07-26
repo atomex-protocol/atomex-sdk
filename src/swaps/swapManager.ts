@@ -1,5 +1,5 @@
 import { ImportantDataReceivingMode, Swap, SwapsSelector } from '../index';
-import { SwapService } from './SwapService';
+import { SwapService } from './swapService';
 
 export class SwapManager {
   constructor(
