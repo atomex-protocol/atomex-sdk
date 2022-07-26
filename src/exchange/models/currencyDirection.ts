@@ -1,4 +1,4 @@
-import { Currency } from '../../index';
+import type { Currency } from '../../index';
 
 export interface CurrencyDirection {
   from: Currency['id'];
