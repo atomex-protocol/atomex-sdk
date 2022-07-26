@@ -322,6 +322,7 @@ export class RestAtomexClient implements AtomexClient {
 
     const orderBook: OrderBook = {
       updateId: orderBookDto.updateId,
+      symbol: orderBookDto.symbol,
       quoteCurrency,
       baseCurrency,
       entries: orderBookDto.entries.map(e => ({

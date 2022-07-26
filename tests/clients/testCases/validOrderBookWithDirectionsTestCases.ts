@@ -45,6 +45,7 @@ const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
         { from: 'ETH', to: 'BTC' },
         {
           updateId: 57551,
+          symbol: 'ETH/BTC',
           quoteCurrency: 'ETH',
           baseCurrency: 'BTC',
           entries: [
@@ -99,6 +100,7 @@ const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
         { from: 'BTC', to: 'ETH' },
         {
           updateId: 57551,
+          symbol: 'ETH/BTC',
           quoteCurrency: 'ETH',
           baseCurrency: 'BTC',
           entries: [
