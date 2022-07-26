@@ -28,6 +28,10 @@ describe('Atomex authorization', () => {
     await signersManager.addSigner(signer);
   });
 
+  afterEach(() => {
+    authorizationManager.stopAuthTokenExpirationTracking();
+  });
+
   test('first authorization', async () => {
     const now = Date.now();
     const tokenResponse: AuthenticationResponseData = {

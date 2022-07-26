@@ -108,6 +108,20 @@ export class AuthorizationManager {
     return authToken ? this.unregisterAuthToken(authToken) : false;
   }
 
+  stopAuthTokenExpirationTracking(): void;
+  stopAuthTokenExpirationTracking(address: string): void;
+  stopAuthTokenExpirationTracking(authToken: AuthToken): void;
+  stopAuthTokenExpirationTracking(addressOrAuthToken?: string | AuthToken): void {
+    if (addressOrAuthToken) {
+      const address = typeof addressOrAuthToken === 'string' ? addressOrAuthToken : addressOrAuthToken.address;
+      this.untrackAuthToken(this.authTokenData.get(address)?.watcherId);
+    }
+    else {
+      for (const authTokenDataTuple of this.authTokenData)
+        this.untrackAuthToken(authTokenDataTuple[1].watcherId);
+    }
+  }
+
   protected async loadAuthTokenFromStore(address: string): Promise<AuthToken | undefined> {
     const authToken = await this.store.getAuthToken(address);
 
