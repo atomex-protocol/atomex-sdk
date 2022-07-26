@@ -32,6 +32,7 @@ export class RestAtomexClient implements AtomexClient {
   protected readonly authorizationManager: AuthorizationManager;
   protected readonly apiBaseUrl: string;
   protected readonly httpClient: HttpClient;
+  private _symbolsCache: ExchangeSymbol[] | undefined;
 
   constructor(options: RestAtomexClientOptions) {
     this.atomexNetwork = options.atomexNetwork;
@@ -68,7 +69,10 @@ export class RestAtomexClient implements AtomexClient {
     const urlPath = '/v1/Symbols';
     const symbolDtos = await this.httpClient.request<SymbolDto[]>({ urlPath });
 
-    return this.mapSymbolDtosToSymbols(symbolDtos);
+    const symbols = this.mapSymbolDtosToSymbols(symbolDtos);
+    this._symbolsCache = symbols;
+
+    return symbols;
   }
 
   getTopOfBook(symbols?: string[]): Promise<Quote[]>;
@@ -80,8 +84,10 @@ export class RestAtomexClient implements AtomexClient {
     if (symbolsOrDirections?.length) {
       if (typeof symbolsOrDirections[0] === 'string')
         symbols = symbolsOrDirections as string[];
-      else
-        symbols = await this.getSymbolsFromDirections(symbolsOrDirections as CurrencyDirection[]);
+      else {
+        const cachedSymbols = await this.getCachedSymbols();
+        symbols = (symbolsOrDirections as CurrencyDirection[]).map(d => this.findSymbolAndSide(cachedSymbols, d.from, d.to)[0]);
+      }
     }
 
     const params = { symbols: symbols?.join(',') };
@@ -99,8 +105,10 @@ export class RestAtomexClient implements AtomexClient {
 
     if (typeof symbolOrDirection === 'string')
       symbol = symbolOrDirection;
-    else
-      symbol = (await this.getRequiredSymbolsAndSideFromDirection(symbolOrDirection.from, symbolOrDirection.to))[0];
+    else {
+      const cachedSymbols = await this.getCachedSymbols();
+      [symbol] = this.findSymbolAndSide(cachedSymbols, symbolOrDirection.from, symbolOrDirection.to);
+    }
 
     const params = { symbol };
     const orderBookDto = await this.httpClient.request<OrderBookDto>({ urlPath, params });
@@ -116,8 +124,10 @@ export class RestAtomexClient implements AtomexClient {
 
     if (newOrderRequest.symbol && newOrderRequest.side)
       [symbol, side] = [newOrderRequest.symbol, newOrderRequest.side];
-    else if (newOrderRequest.from && newOrderRequest.to)
-      [symbol, side] = await this.getRequiredSymbolsAndSideFromDirection(newOrderRequest.from, newOrderRequest.to);
+    else if (newOrderRequest.from && newOrderRequest.to) {
+      const cachedSymbols = await this.getCachedSymbols();
+      [symbol, side] = this.findSymbolAndSide(cachedSymbols, newOrderRequest.from, newOrderRequest.to);
+    }
     else
       throw new Error('Invalid newOrderRequest argument passed');
 
@@ -150,8 +160,10 @@ export class RestAtomexClient implements AtomexClient {
 
     if (cancelOrderRequest.symbol && cancelOrderRequest.side)
       [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
-    else if (cancelOrderRequest.from && cancelOrderRequest.to)
-      [symbol, side] = await this.getRequiredSymbolsAndSideFromDirection(cancelOrderRequest.from, cancelOrderRequest.to);
+    else if (cancelOrderRequest.from && cancelOrderRequest.to) {
+      const cachedSymbols = await this.getCachedSymbols();
+      [symbol, side] = this.findSymbolAndSide(cachedSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+    }
     else
       throw new Error('Invalid cancelOrderRequest argument passed');
 
@@ -177,7 +189,9 @@ export class RestAtomexClient implements AtomexClient {
     if (cancelAllOrdersRequest.symbol && cancelAllOrdersRequest.side)
       [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
     else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
-      [symbol, side] = await this.getRequiredSymbolsAndSideFromDirection(cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      const cachedSymbols = await this.getCachedSymbols();
+      [symbol, side] = this.findSymbolAndSide(cachedSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+
       if (cancelAllOrdersRequest.cancelAllDirections)
         side = 'All';
     }
@@ -198,7 +212,6 @@ export class RestAtomexClient implements AtomexClient {
     return canceledOrdersCount;
   }
 
-  //TODO: Do we need it? swap already has required props
   getSwapTransactions(swap: Swap): Promise<readonly Transaction[]> {
     throw new Error('Method not implemented.');
   }
@@ -245,35 +258,14 @@ export class RestAtomexClient implements AtomexClient {
     return authToken;
   }
 
-  private async getSymbolsFromDirections(symbolsOrDirections: CurrencyDirection[]): Promise<string[] | undefined> {
-    let symbols: string[] | undefined = undefined;
+  private async getCachedSymbols() {
+    if (!this._symbolsCache)
+      this._symbolsCache = await this.getSymbols();
 
-    if (symbolsOrDirections.length) {
-      const loadedSymbols = await this.getSymbols();
-      symbols = symbolsOrDirections.map(d => {
-        const symbol = this.findExchangeSymbolAndSide(loadedSymbols, d.from, d.to)?.[0];
-
-        if (!symbol)
-          throw new Error(`Invalid pair: ${d.from}, ${d.to}`);
-
-        return symbol.name;
-      }) as string[];
-    }
-
-    return symbols;
+    return this._symbolsCache;
   }
 
-  private async getRequiredSymbolsAndSideFromDirection(from: Currency['id'], to: Currency['id']): Promise<[symbol: string, side: Side]> {
-    const symbols = await this.getSymbols();
-    const symbolInfo = this.findExchangeSymbolAndSide(symbols, from, to);
-
-    if (!symbolInfo)
-      throw new Error(`Invalid pair: ${from}, ${to}`);
-
-    return [symbolInfo[0].name, symbolInfo[1]];
-  }
-
-  private findExchangeSymbolAndSide(symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [ExchangeSymbol, Side] | undefined {
+  private findSymbolAndSide(symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [symbol: string, side: Side] {
     let symbol = symbols.find(s => s.name === `${from}/${to}`);
     let side: Side = 'Sell';
 
@@ -282,7 +274,10 @@ export class RestAtomexClient implements AtomexClient {
       side = 'Buy';
     }
 
-    return symbol ? [symbol, side] : undefined;
+    if (!symbol)
+      throw new Error(`Invalid pair: ${from}/${to}`);
+
+    return [symbol.name, side];
   }
 
   private mapQuoteDtosToQuotes(quoteDtos: QuoteDto[]): Quote[] {

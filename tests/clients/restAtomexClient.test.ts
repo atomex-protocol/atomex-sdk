@@ -1,10 +1,12 @@
 import { FetchMock } from 'jest-fetch-mock';
 
-import { SymbolDto } from '../../src/clients/dtos';
+import { QuoteDto, SymbolDto } from '../../src/clients/dtos';
 import { AtomexNetwork, AuthToken, RestAtomexClient } from '../../src/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
 import {
-  validAddOrderTestCases, validCancelAllOrdersWithDirectionsTestCases, validCancelOrderWithDirectionsTestCases, validOrderBookTestCases, validOrderTestCases,
+  validAddOrderTestCases, validCancelAllOrdersWithDirectionsTestCases,
+  validCancelOrderWithDirectionsTestCases,
+  validOrderBookTestCases, validOrderTestCases,
   validSwapTestCases, validSymbolsTestCases, validTopOfBookTestCases,
   validTopOfBookWithDirectionsTestCases
 } from './testCases';
@@ -84,6 +86,18 @@ describe('Rest Atomex Client', () => {
         `${testApiUrl}/v1/MarketData/quotes?symbols=${encodeURIComponent(expectedSymbolsInFilter)}`,
         expect.objectContaining({ method: 'GET' })
       );
+    });
+
+    test('fetches symbols just once', async () => {
+      const symbolsResponse: SymbolDto[] = [{ name: 'ETH/BTC', minimumQty: 1 }, { name: 'XTZ/BTC', minimumQty: 1 }];
+      const topOfBookResponse: QuoteDto[] = [];
+      fetchMock.mockResponse(request => {
+        return Promise.resolve(JSON.stringify(request.url.includes('/v1/Symbols') ? symbolsResponse : topOfBookResponse));
+      });
+
+      await client.getTopOfBook([{ from: 'ETH', to: 'BTC' }]);
+      await client.getTopOfBook([{ from: 'XTZ', to: 'BTC' }]);
+      expect(fetch).toHaveBeenCalledTimes(3);
     });
 
     test('passes the symbols filter to search params', async () => {
@@ -271,7 +285,7 @@ describe('Rest Atomex Client', () => {
   });
 
   describe('addOrder', () => {
-    test.each(validAddOrderTestCases)('passes and returns correct data (%s)', async (_, [requestData, symbolsDto, createOrderDto, expectedPayload, expectedOrderId]) => {
+    test.each(validAddOrderTestCases)('passes and returns correct data (%s)', async (_, [requestData, createOrderDto, expectedPayload, expectedOrderId]) => {
       fetchMock.mockResponse(JSON.stringify(createOrderDto));
 
       const orderId = await client.addOrder(testAccountAddress, requestData);

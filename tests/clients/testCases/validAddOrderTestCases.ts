@@ -6,7 +6,7 @@ import { NewOrderRequest } from '../../../src/exchange/index';
 const validAddOrderTestCases: ReadonlyArray<readonly [
   message: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  testValue: readonly [request: NewOrderRequest, symbolsDto: SymbolDto[], createOrderDto: CreatedOrderDto, expectedPayload: any, expectedOrderId: number]
+  testValue: readonly [request: NewOrderRequest, createOrderDto: CreatedOrderDto, expectedPayload: any, expectedOrderId: number]
 ]> = [
     [
       'Simple buy order',
@@ -19,10 +19,6 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
           clientOrderId: 'client-order-id',
           type: 'FillOrKill'
         },
-        [{
-          name: 'XTZ/ETH',
-          minimumQty: 0.0001
-        }],
         {
           orderId: 777
         },
@@ -48,10 +44,6 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
           clientOrderId: 'client-order-id',
           type: 'FillOrKill'
         },
-        [{
-          name: 'XTZ/ETH',
-          minimumQty: 0.0001
-        }],
         {
           orderId: 123
         },
