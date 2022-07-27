@@ -1,19 +1,21 @@
-import BigNumber from 'bignumber.js';
-
 import type { AuthorizationManager } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
-import type { AtomexNetwork, CancelAllSide, Currency, Side } from '../common/index';
+import type { AtomexNetwork, CancelAllSide, Side } from '../common/index';
 import { EventEmitter } from '../core';
 import {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
-  ExchangeServiceEvents, OrdersSelector, CancelOrderRequest,
+  OrdersSelector, CancelOrderRequest,
   CancelAllOrdersRequest, SwapsSelector, CurrencyDirection
 } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
-import { getFromToCurrencies, getQuoteBaseCurrenciesBySymbol } from './currencyUtils';
 import { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from './dtos';
 import { HttpClient } from './httpClient';
+import {
+  findSymbolAndSide,
+  mapOrderBookDtoToOrderBook, mapOrderDtosToOrders, mapOrderDtoToOrder,
+  mapQuoteDtosToQuotes, mapSwapDtosToSwaps, mapSwapDtoToSwap, mapSymbolDtosToSymbols
+} from './mapper';
 
 export interface RestAtomexClientOptions {
   atomexNetwork: AtomexNetwork; //TODO: Do we really need it?
@@ -48,7 +50,7 @@ export class RestAtomexClient implements AtomexClient {
     const authToken = this.getRequiredAuthToken(accountAddress);
     const orderDto = await this.httpClient.request<OrderDto>({ urlPath, authToken });
 
-    return this.mapOrderDtoToOrder(orderDto);
+    return mapOrderDtoToOrder(orderDto);
   }
 
   async getOrders(accountAddress: string, selector?: OrdersSelector | undefined): Promise<Order[]> {
@@ -64,14 +66,14 @@ export class RestAtomexClient implements AtomexClient {
 
     const orderDtos = await this.httpClient.request<OrderDto[]>({ urlPath, authToken, params });
 
-    return this.mapOrderDtosToOrders(orderDtos);
+    return mapOrderDtosToOrders(orderDtos);
   }
 
   async getSymbols(): Promise<ExchangeSymbol[]> {
     const urlPath = '/v1/Symbols';
     const symbolDtos = await this.httpClient.request<SymbolDto[]>({ urlPath });
 
-    const symbols = this.mapSymbolDtosToSymbols(symbolDtos);
+    const symbols = mapSymbolDtosToSymbols(symbolDtos);
     this._symbolsCache = symbols;
 
     return symbols;
@@ -88,7 +90,7 @@ export class RestAtomexClient implements AtomexClient {
         symbols = symbolsOrDirections as string[];
       else {
         const cachedSymbols = await this.getCachedSymbols();
-        symbols = (symbolsOrDirections as CurrencyDirection[]).map(d => this.findSymbolAndSide(cachedSymbols, d.from, d.to)[0]);
+        symbols = (symbolsOrDirections as CurrencyDirection[]).map(d => findSymbolAndSide(cachedSymbols, d.from, d.to)[0]);
       }
     }
 
@@ -96,7 +98,7 @@ export class RestAtomexClient implements AtomexClient {
 
     const quoteDtos = await this.httpClient.request<QuoteDto[]>({ urlPath, params });
 
-    return this.mapQuoteDtosToQuotes(quoteDtos);
+    return mapQuoteDtosToQuotes(quoteDtos);
   }
 
   getOrderBook(symbol: string): Promise<OrderBook>;
@@ -109,13 +111,13 @@ export class RestAtomexClient implements AtomexClient {
       symbol = symbolOrDirection;
     else {
       const cachedSymbols = await this.getCachedSymbols();
-      [symbol] = this.findSymbolAndSide(cachedSymbols, symbolOrDirection.from, symbolOrDirection.to);
+      [symbol] = findSymbolAndSide(cachedSymbols, symbolOrDirection.from, symbolOrDirection.to);
     }
 
     const params = { symbol };
     const orderBookDto = await this.httpClient.request<OrderBookDto>({ urlPath, params });
 
-    return this.mapOrderBookDtoToOrderBook(orderBookDto);
+    return mapOrderBookDtoToOrderBook(orderBookDto);
   }
 
   async addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
@@ -128,7 +130,7 @@ export class RestAtomexClient implements AtomexClient {
       [symbol, side] = [newOrderRequest.symbol, newOrderRequest.side];
     else if (newOrderRequest.from && newOrderRequest.to) {
       const cachedSymbols = await this.getCachedSymbols();
-      [symbol, side] = this.findSymbolAndSide(cachedSymbols, newOrderRequest.from, newOrderRequest.to);
+      [symbol, side] = findSymbolAndSide(cachedSymbols, newOrderRequest.from, newOrderRequest.to);
     }
     else
       throw new Error('Invalid newOrderRequest argument passed');
@@ -164,7 +166,7 @@ export class RestAtomexClient implements AtomexClient {
       [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
     else if (cancelOrderRequest.from && cancelOrderRequest.to) {
       const cachedSymbols = await this.getCachedSymbols();
-      [symbol, side] = this.findSymbolAndSide(cachedSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+      [symbol, side] = findSymbolAndSide(cachedSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
     }
     else
       throw new Error('Invalid cancelOrderRequest argument passed');
@@ -192,7 +194,7 @@ export class RestAtomexClient implements AtomexClient {
       [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
     else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
       const cachedSymbols = await this.getCachedSymbols();
-      [symbol, side] = this.findSymbolAndSide(cachedSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      [symbol, side] = findSymbolAndSide(cachedSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
 
       if (cancelAllOrdersRequest.cancelAllDirections)
         side = 'All';
@@ -227,7 +229,7 @@ export class RestAtomexClient implements AtomexClient {
       authToken
     });
 
-    return this.mapSwapDtoToSwap(swapDto);
+    return mapSwapDtoToSwap(swapDto);
   }
 
   async getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]> {
@@ -247,7 +249,7 @@ export class RestAtomexClient implements AtomexClient {
       authToken
     });
 
-    return this.mapSwapDtosToSwaps(swapDtos);
+    return mapSwapDtosToSwaps(swapDtos);
   }
 
   private getRequiredAuthToken(accountAddress: string): string {
@@ -265,148 +267,5 @@ export class RestAtomexClient implements AtomexClient {
       this._symbolsCache = await this.getSymbols();
 
     return this._symbolsCache;
-  }
-
-  private findSymbolAndSide(symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [symbol: string, side: Side] {
-    let symbol = symbols.find(s => s.name === `${from}/${to}`);
-    let side: Side = 'Sell';
-
-    if (!symbol) {
-      symbol = symbols.find(s => s.name === `${to}/${from}`);
-      side = 'Buy';
-    }
-
-    if (!symbol)
-      throw new Error(`Invalid pair: ${from}/${to}`);
-
-    return [symbol.name, side];
-  }
-
-  private mapQuoteDtosToQuotes(quoteDtos: QuoteDto[]): Quote[] {
-    const quotes: Quote[] = quoteDtos.map(dto => {
-      const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(dto.symbol);
-
-      return {
-        ask: new BigNumber(dto.ask),
-        bid: new BigNumber(dto.bid),
-        symbol: dto.symbol,
-        timeStamp: new Date(dto.timeStamp),
-        quoteCurrency,
-        baseCurrency
-      };
-    });
-
-    return quotes;
-  }
-
-  private mapSymbolDtosToSymbols(symbolDtos: SymbolDto[]): ExchangeSymbol[] {
-    const symbols: ExchangeSymbol[] = symbolDtos.map(dto => {
-      const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(dto.name);
-
-      return {
-        name: dto.name,
-        minimumQty: new BigNumber(dto.minimumQty),
-        quoteCurrency,
-        baseCurrency
-      };
-    });
-
-    return symbols;
-  }
-
-  private mapOrderBookDtoToOrderBook(orderBookDto: OrderBookDto): OrderBook {
-    const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
-
-    const orderBook: OrderBook = {
-      updateId: orderBookDto.updateId,
-      symbol: orderBookDto.symbol,
-      quoteCurrency,
-      baseCurrency,
-      entries: orderBookDto.entries.map(e => ({
-        side: e.side,
-        price: new BigNumber(e.price),
-        qtyProfile: e.qtyProfile
-      }))
-    };
-
-    return orderBook;
-  }
-
-  private mapOrderDtoToOrder(orderDto: OrderDto): Order {
-    const [from, to] = getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
-
-    return {
-      id: orderDto.id,
-      from,
-      to,
-      clientOrderId: orderDto.clientOrderId,
-      side: orderDto.side,
-      symbol: orderDto.symbol,
-      leaveQty: new BigNumber(orderDto.leaveQty),
-      timeStamp: new Date(orderDto.timeStamp),
-      type: orderDto.type,
-      status: orderDto.status,
-      swapIds: orderDto.swaps?.map(s => s.id) || [],
-    };
-  }
-
-  private mapOrderDtosToOrders(orderDtos: OrderDto[]): Order[] {
-    const orders = orderDtos.map(dto => this.mapOrderDtoToOrder(dto));
-
-    return orders;
-  }
-
-  private mapSwapDtoToSwap(swapDto: SwapDto): Swap {
-    const [from, to] = getFromToCurrencies(swapDto.symbol, swapDto.qty, swapDto.price, swapDto.side);
-
-    const swap: Swap = {
-      isInitiator: swapDto.isInitiator,
-      secret: swapDto.secret,
-      secretHash: swapDto.secretHash,
-      id: Number(swapDto.id),
-      from,
-      to,
-      trade: {
-        qty: new BigNumber(swapDto.qty),
-        price: new BigNumber(swapDto.price),
-        side: swapDto.side,
-        symbol: swapDto.symbol
-      },
-      timeStamp: new Date(swapDto.timeStamp),
-      counterParty: {
-        status: swapDto.counterParty.status,
-        transactions: swapDto.counterParty.transactions,
-        requisites: {
-          ...swapDto.counterParty.requisites,
-          rewardForRedeem: new BigNumber(swapDto.counterParty.requisites.rewardForRedeem),
-        },
-        trades: swapDto.counterParty.trades.map(t => ({
-          orderId: t.orderId,
-          price: new BigNumber(t.price),
-          qty: new BigNumber(t.qty),
-        })),
-      },
-      user: {
-        status: swapDto.user.status,
-        transactions: swapDto.user.transactions,
-        requisites: {
-          ...swapDto.user.requisites,
-          rewardForRedeem: new BigNumber(swapDto.user.requisites.rewardForRedeem),
-        },
-        trades: swapDto.user.trades.map(t => ({
-          orderId: t.orderId,
-          price: new BigNumber(t.price),
-          qty: new BigNumber(t.qty),
-        })),
-      },
-    };
-
-    return swap;
-  }
-
-  private mapSwapDtosToSwaps(swapDtos: SwapDto[]): Swap[] {
-    const swaps = swapDtos.map(dto => this.mapSwapDtoToSwap(dto));
-
-    return swaps;
   }
 }

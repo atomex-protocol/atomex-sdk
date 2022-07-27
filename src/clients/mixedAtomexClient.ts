@@ -1,8 +1,9 @@
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
 import type {
-  Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents,
-  OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection
+  Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
+  OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest,
+  SwapsSelector, CurrencyDirection
 } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import { atomexUtils } from '../utils';

@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js';
 
 import type { AuthorizationManager, AuthToken } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
@@ -11,8 +10,8 @@ import type {
 } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
-import { getFromToCurrencies } from './currencyUtils';
-import { SwapDto, WebSocketOrderDataDto, WebSocketResponseDto } from './dtos';
+import { WebSocketResponseDto } from './dtos';
+import { mapSwapDtoToSwap, mapWebSocketOrderDtoToOrder } from './mapper';
 import { WebSocketClient } from './webSocketClient';
 
 export class WebSocketAtomexClient implements AtomexClient {
@@ -110,40 +109,15 @@ export class WebSocketAtomexClient implements AtomexClient {
   private onSocketMessageReceived(message: WebSocketResponseDto) {
     switch (message.event) {
       case 'order':
-        (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(this.mapWebSocketOrderDtoToOrder(message.data));
+        (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(mapWebSocketOrderDtoToOrder(message.data));
         break;
 
       case 'swap':
-        (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(this.mapWebSwapDtoToSwap(message.data));
+        (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(mapSwapDtoToSwap(message.data));
         break;
 
       default:
         break;
     }
-  }
-
-  private mapWebSocketOrderDtoToOrder(orderDto: WebSocketOrderDataDto): Order {
-    const [from, to] = getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
-
-    const order: Order = {
-      id: orderDto.id,
-      clientOrderId: orderDto.clientOrderId,
-      side: orderDto.side,
-      status: orderDto.status,
-      leaveQty: new BigNumber(orderDto.leaveQty),
-      swapIds: orderDto.swaps,
-      symbol: orderDto.symbol,
-      type: orderDto.type,
-      timeStamp: new Date(orderDto.timeStamp),
-      from,
-      to
-    };
-
-    return order;
-  }
-
-
-  private mapWebSwapDtoToSwap(swapDto: SwapDto): Swap {
-
   }
 }
