@@ -8,7 +8,6 @@ export interface SwapParticipant {
   readonly status: SwapParticipantStatus;
   readonly requisites: SwapParticipantRequisites;
   readonly trades: readonly ParticipantTrade[];
-  //readonly transactions: ReadonlyArray<Transaction & SwapTransactionType>;
   readonly transactions: readonly Transaction[];
 }
 

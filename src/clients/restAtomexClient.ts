@@ -18,7 +18,7 @@ import {
 } from './mapper';
 
 export interface RestAtomexClientOptions {
-  atomexNetwork: AtomexNetwork; //TODO: Do we really need it?
+  atomexNetwork: AtomexNetwork;
   authorizationManager: AuthorizationManager;
   apiBaseUrl: string;
 }

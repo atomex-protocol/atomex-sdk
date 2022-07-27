@@ -1,8 +1,10 @@
 import BigNumber from 'bignumber.js';
 
+import { Transaction } from '../blockchain/models/index';
+import { Currency, Side } from '../common/index';
 import { ExchangeSymbol, Order, OrderBook, OrderCurrency, Quote } from '../exchange/index';
-import { Currency, Side, Swap } from '../index';
-import { OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto, WebSocketOrderDataDto } from './dtos';
+import { Swap } from '../swaps/index';
+import { OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto, TransactionDto, WebSocketOrderDataDto } from './dtos';
 
 export const getQuoteBaseCurrenciesBySymbol = (symbol: string): [quoteCurrency: string, baseCurrency: string] => {
   const [quoteCurrency = '', baseCurrency = ''] = symbol.split('/');
@@ -124,6 +126,19 @@ export const mapOrderDtosToOrders = (orderDtos: OrderDto[]): Order[] => {
   return orders;
 };
 
+export const mapTransactionDtosToTransactions = (transactionDtos: TransactionDto[]): Transaction[] => {
+  const transactions = transactionDtos.map(t => ({
+    id: t.txId,
+    blockId: t.blockHeight,
+    confirmations: t.confirmations,
+    currencyId: t.currency,
+    status: t.status,
+    type: t.type
+  }));
+
+  return transactions;
+};
+
 export const mapSwapDtoToSwap = (swapDto: SwapDto): Swap => {
   const [from, to] = getFromToCurrencies(swapDto.symbol, swapDto.qty, swapDto.price, swapDto.side);
 
@@ -143,7 +158,7 @@ export const mapSwapDtoToSwap = (swapDto: SwapDto): Swap => {
     timeStamp: new Date(swapDto.timeStamp),
     counterParty: {
       status: swapDto.counterParty.status,
-      transactions: swapDto.counterParty.transactions,
+      transactions: mapTransactionDtosToTransactions(swapDto.counterParty.transactions),
       requisites: {
         ...swapDto.counterParty.requisites,
         rewardForRedeem: new BigNumber(swapDto.counterParty.requisites.rewardForRedeem),
@@ -156,7 +171,7 @@ export const mapSwapDtoToSwap = (swapDto: SwapDto): Swap => {
     },
     user: {
       status: swapDto.user.status,
-      transactions: swapDto.user.transactions,
+      transactions: mapTransactionDtosToTransactions(swapDto.user.transactions),
       requisites: {
         ...swapDto.user.requisites,
         rewardForRedeem: new BigNumber(swapDto.user.requisites.rewardForRedeem),

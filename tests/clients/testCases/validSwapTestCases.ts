@@ -137,17 +137,17 @@ const validSwapTestCases: ReadonlyArray<readonly [
             ],
             transactions: [
               {
-                currency: 'ETH',
-                txId: '0xd73e77d92417dcf0968e8d99130fc09f591e77a62516030ef5f3f4731b6c72a3',
-                blockHeight: 7260925,
+                currencyId: 'ETH',
+                id: '0xd73e77d92417dcf0968e8d99130fc09f591e77a62516030ef5f3f4731b6c72a3',
+                blockId: 7260925,
                 confirmations: 1,
                 status: 'Confirmed',
                 type: 'Lock'
               },
               {
-                currency: 'XTZ',
-                txId: 'opBQ5TZaWuYvX7zCBw4Mao1i5YajFtqJJMPoPTqhdfQ1vr3jwrX',
-                blockHeight: 881923,
+                currencyId: 'XTZ',
+                id: 'opBQ5TZaWuYvX7zCBw4Mao1i5YajFtqJJMPoPTqhdfQ1vr3jwrX',
+                blockId: 881923,
                 confirmations: 0,
                 status: 'Confirmed',
                 type: 'Redeem'
@@ -174,17 +174,17 @@ const validSwapTestCases: ReadonlyArray<readonly [
             ],
             transactions: [
               {
-                currency: 'XTZ',
-                txId: 'ooVEybq2FxsgcHCznaTENTEEUS6mhqBdTD55MBoZ1BySS1zJUdc',
-                blockHeight: 881902,
+                currencyId: 'XTZ',
+                id: 'ooVEybq2FxsgcHCznaTENTEEUS6mhqBdTD55MBoZ1BySS1zJUdc',
+                blockId: 881902,
                 confirmations: 0,
                 status: 'Confirmed',
                 type: 'Lock'
               },
               {
-                currency: 'ETH',
-                txId: '0x0df766e5ae47d0a37bcc7b74a719c0305193eed3f7b40c7a5bab133b3e05438e',
-                blockHeight: 7260930,
+                currencyId: 'ETH',
+                id: '0x0df766e5ae47d0a37bcc7b74a719c0305193eed3f7b40c7a5bab133b3e05438e',
+                blockId: 7260930,
                 confirmations: 4,
                 status: 'Confirmed',
                 type: 'Redeem'
@@ -316,9 +316,9 @@ const validSwapTestCases: ReadonlyArray<readonly [
             ],
             transactions: [
               {
-                currency: 'XTZ',
-                txId: 'oo3jQxwepJrD7fmDA2v4ZVa1tHAPL44Ag5ZsQ1ZJpvbHeqaz95d',
-                blockHeight: 885298,
+                currencyId: 'XTZ',
+                id: 'oo3jQxwepJrD7fmDA2v4ZVa1tHAPL44Ag5ZsQ1ZJpvbHeqaz95d',
+                blockId: 885298,
                 confirmations: 0,
                 status: 'Confirmed',
                 type: 'Lock'
@@ -345,17 +345,17 @@ const validSwapTestCases: ReadonlyArray<readonly [
             ],
             transactions: [
               {
-                currency: 'ETH',
-                txId: '0xb05434794be53ee2dfa6066d99253cff2d9f1d9e51dac453f9fea4adfd3b9c73',
-                blockHeight: 7264862,
+                currencyId: 'ETH',
+                id: '0xb05434794be53ee2dfa6066d99253cff2d9f1d9e51dac453f9fea4adfd3b9c73',
+                blockId: 7264862,
                 confirmations: 0,
                 status: 'Confirmed',
                 type: 'Lock'
               },
               {
-                currency: 'XTZ',
-                txId: 'ooPrwt9FHuJ38ZQ8ZXNZdZyRYrbzQZtivLHEVKd8gbXbDM748Qb',
-                blockHeight: 885302,
+                currencyId: 'XTZ',
+                id: 'ooPrwt9FHuJ38ZQ8ZXNZdZyRYrbzQZtivLHEVKd8gbXbDM748Qb',
+                blockId: 885302,
                 confirmations: 0,
                 status: 'Confirmed',
                 type: 'Redeem'
