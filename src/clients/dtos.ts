@@ -103,3 +103,42 @@ export interface TransactionDto {
 export interface CreatedOrderDto {
   orderId: number;
 }
+
+export interface WebSocketOrderDataDto {
+  id: number;
+  clientOrderId: string;
+  symbol: string;
+  side: Side;
+  timeStamp: string;
+  price: number;
+  qty: number;
+  leaveQty: number;
+  type: OrderType;
+  status: OrderStatus;
+  trades: TradeDto[];
+  swaps: number[];
+}
+
+export interface WebSocketRequestDto {
+  method: string;
+  data: unknown;
+  requestId: number;
+}
+
+export interface WebSocketResponseBaseDto {
+  event: string;
+  data: unknown;
+  requestId?: number;
+}
+
+export interface WebSocketOrderResponseDto extends WebSocketResponseBaseDto {
+  event: 'order';
+  data: WebSocketOrderDataDto;
+}
+
+export interface WebSocketSwapResponseDto extends WebSocketResponseBaseDto {
+  event: 'swap';
+  data: SwapDto;
+}
+
+export type WebSocketResponseDto = WebSocketOrderResponseDto | WebSocketSwapResponseDto;

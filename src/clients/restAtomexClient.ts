@@ -7,10 +7,11 @@ import { EventEmitter } from '../core';
 import {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
   ExchangeServiceEvents, OrdersSelector, CancelOrderRequest,
-  CancelAllOrdersRequest, OrderCurrency, SwapsSelector, CurrencyDirection
+  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection
 } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
+import { getFromToCurrencies, getQuoteBaseCurrenciesBySymbol } from './currencyUtils';
 import { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from './dtos';
 import { HttpClient } from './httpClient';
 
@@ -23,7 +24,8 @@ export interface RestAtomexClientOptions {
 export class RestAtomexClient implements AtomexClient {
   readonly atomexNetwork: AtomexNetwork;
 
-  readonly events: ExchangeServiceEvents = {
+  readonly events: AtomexClient['events'] = {
+    swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
@@ -282,7 +284,7 @@ export class RestAtomexClient implements AtomexClient {
 
   private mapQuoteDtosToQuotes(quoteDtos: QuoteDto[]): Quote[] {
     const quotes: Quote[] = quoteDtos.map(dto => {
-      const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(dto.symbol);
+      const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(dto.symbol);
 
       return {
         ask: new BigNumber(dto.ask),
@@ -299,7 +301,7 @@ export class RestAtomexClient implements AtomexClient {
 
   private mapSymbolDtosToSymbols(symbolDtos: SymbolDto[]): ExchangeSymbol[] {
     const symbols: ExchangeSymbol[] = symbolDtos.map(dto => {
-      const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(dto.name);
+      const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(dto.name);
 
       return {
         name: dto.name,
@@ -313,7 +315,7 @@ export class RestAtomexClient implements AtomexClient {
   }
 
   private mapOrderBookDtoToOrderBook(orderBookDto: OrderBookDto): OrderBook {
-    const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
+    const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
 
     const orderBook: OrderBook = {
       updateId: orderBookDto.updateId,
@@ -331,7 +333,8 @@ export class RestAtomexClient implements AtomexClient {
   }
 
   private mapOrderDtoToOrder(orderDto: OrderDto): Order {
-    const [from, to] = this.getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
+    const [from, to] = getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
+
     return {
       id: orderDto.id,
       from,
@@ -354,7 +357,7 @@ export class RestAtomexClient implements AtomexClient {
   }
 
   private mapSwapDtoToSwap(swapDto: SwapDto): Swap {
-    const [from, to] = this.getFromToCurrencies(swapDto.symbol, swapDto.qty, swapDto.price, swapDto.side);
+    const [from, to] = getFromToCurrencies(swapDto.symbol, swapDto.qty, swapDto.price, swapDto.side);
 
     const swap: Swap = {
       isInitiator: swapDto.isInitiator,
@@ -405,36 +408,5 @@ export class RestAtomexClient implements AtomexClient {
     const swaps = swapDtos.map(dto => this.mapSwapDtoToSwap(dto));
 
     return swaps;
-  }
-
-  private getQuoteBaseCurrenciesBySymbol(symbol: string): [quoteCurrency: string, baseCurrency: string] {
-    const [quoteCurrency = '', baseCurrency = ''] = symbol.split('/');
-
-    return [quoteCurrency, baseCurrency];
-  }
-
-  private getFromToCurrencies(symbol: string, qty: number, price: number, side: Side): [from: OrderCurrency, to: OrderCurrency] {
-    const [quoteCurrencyId, baseCurrencyId] = this.getQuoteBaseCurrenciesBySymbol(symbol);
-
-    const quoteCurrencyAmount = new BigNumber(qty);
-    const quoteCurrencyPrice = new BigNumber(price);
-    const baseCurrencyAmount = quoteCurrencyPrice.multipliedBy(quoteCurrencyAmount);
-    const baseCurrencyPrice = quoteCurrencyAmount.div(baseCurrencyAmount);
-
-    const quoteCurrency: OrderCurrency = {
-      currencyId: quoteCurrencyId,
-      amount: quoteCurrencyAmount,
-      price: quoteCurrencyPrice,
-    };
-
-    const baseCurrency: OrderCurrency = {
-      currencyId: baseCurrencyId,
-      amount: baseCurrencyAmount,
-      price: baseCurrencyPrice,
-    };
-
-    return side === 'Buy'
-      ? [baseCurrency, quoteCurrency]
-      : [quoteCurrency, baseCurrency];
   }
 }

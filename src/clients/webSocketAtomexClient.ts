@@ -1,26 +1,40 @@
-import type { AuthorizationManager } from '../authorization/index';
+import BigNumber from 'bignumber.js';
+
+import type { AuthorizationManager, AuthToken } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
-import { EventEmitter } from '../core';
+import { EventEmitter, ToEventEmitter } from '../core';
 import type {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
-  ExchangeServiceEvents, OrdersSelector, CancelOrderRequest,
+  OrdersSelector, CancelOrderRequest,
   CancelAllOrdersRequest, SwapsSelector, CurrencyDirection
 } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
+import { getFromToCurrencies } from './currencyUtils';
+import { SwapDto, WebSocketOrderDataDto, WebSocketResponseDto } from './dtos';
+import { WebSocketClient } from './webSocketClient';
 
 export class WebSocketAtomexClient implements AtomexClient {
-  readonly events: ExchangeServiceEvents = {
+  readonly events: AtomexClient['events'] = {
+    swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
 
+  protected readonly sockets: Map<string, WebSocketClient> = new Map();
+
   constructor(
     readonly atomexNetwork: AtomexNetwork,
     protected readonly authorizationManager: AuthorizationManager
   ) {
+    this.onAuthorized = this.onAuthorized.bind(this);
+    this.onUnauthorized = this.onUnauthorized.bind(this);
+    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
+
+    this.authorizationManager.events.authorized.addListener(this.onAuthorized);
+    this.authorizationManager.events.unauthorized.addListener(this.onUnauthorized);
   }
 
   getOrder(accountAddress: string, orderId: number): Promise<Order | undefined> {
@@ -69,5 +83,67 @@ export class WebSocketAtomexClient implements AtomexClient {
 
   getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]> {
     throw new Error('Method not implemented.');
+  }
+
+  private onAuthorized(authToken: AuthToken) {
+    this.removeSocket(authToken);
+
+    const socket = new WebSocketClient('', authToken.value);
+    socket.events.messageReceived.addListener(this.onSocketMessageReceived);
+    socket.connect();
+    this.sockets.set(authToken.userId, socket);
+  }
+
+  private onUnauthorized(authToken: AuthToken) {
+    this.removeSocket(authToken);
+  }
+
+  private removeSocket(authToken: AuthToken) {
+    const oldSocket = this.sockets.get(authToken.userId);
+
+    if (oldSocket)
+      oldSocket.disconnect();
+
+    this.sockets.delete(authToken.userId);
+  }
+
+  private onSocketMessageReceived(message: WebSocketResponseDto) {
+    switch (message.event) {
+      case 'order':
+        (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(this.mapWebSocketOrderDtoToOrder(message.data));
+        break;
+
+      case 'swap':
+        (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(this.mapWebSwapDtoToSwap(message.data));
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  private mapWebSocketOrderDtoToOrder(orderDto: WebSocketOrderDataDto): Order {
+    const [from, to] = getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
+
+    const order: Order = {
+      id: orderDto.id,
+      clientOrderId: orderDto.clientOrderId,
+      side: orderDto.side,
+      status: orderDto.status,
+      leaveQty: new BigNumber(orderDto.leaveQty),
+      swapIds: orderDto.swaps,
+      symbol: orderDto.symbol,
+      type: orderDto.type,
+      timeStamp: new Date(orderDto.timeStamp),
+      from,
+      to
+    };
+
+    return order;
+  }
+
+
+  private mapWebSwapDtoToSwap(swapDto: SwapDto): Swap {
+
   }
 }

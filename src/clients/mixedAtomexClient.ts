@@ -9,7 +9,7 @@ import { atomexUtils } from '../utils';
 import type { AtomexClient } from './atomexClient';
 
 export class MixedApiAtomexClient implements AtomexClient {
-  readonly events: ExchangeServiceEvents;
+  readonly events: AtomexClient['events'];
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,
@@ -20,6 +20,7 @@ export class MixedApiAtomexClient implements AtomexClient {
     atomexUtils.ensureNetworksAreSame(this, webSocketAtomexClient);
 
     this.events = {
+      swapUpdated: this.webSocketAtomexClient.events.swapUpdated,
       orderBookUpdated: this.webSocketAtomexClient.events.orderBookUpdated,
       orderUpdated: this.webSocketAtomexClient.events.orderUpdated,
       topOfBookUpdated: this.webSocketAtomexClient.events.topOfBookUpdated
