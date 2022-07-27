@@ -4,6 +4,7 @@ import { DeepReadonly } from '../../core/index';
 
 export type ExchangeServiceDefaultComponentOptions = DeepReadonly<{
   apiBaseUrl: string;
+  webSocketApiBaseUrl: string;
 }>;
 
 export const createDefaultExchangeService = (
@@ -14,9 +15,13 @@ export const createDefaultExchangeService = (
     atomexContext.atomexNetwork,
     new RestAtomexClient({
       atomexNetwork: atomexContext.atomexNetwork,
-      apiBaseUrl: options.apiBaseUrl,
       authorizationManager: atomexContext.managers.authorizationManager,
+      apiBaseUrl: options.apiBaseUrl,
     }),
-    new WebSocketAtomexClient(atomexContext.atomexNetwork, atomexContext.managers.authorizationManager)
+    new WebSocketAtomexClient({
+      atomexNetwork: atomexContext.atomexNetwork,
+      authorizationManager: atomexContext.managers.authorizationManager,
+      webSocketApiBaseUrl: options.webSocketApiBaseUrl
+    })
   );
 };

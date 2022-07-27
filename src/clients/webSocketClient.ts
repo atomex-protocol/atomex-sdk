@@ -24,7 +24,7 @@ export class WebSocketClient {
   }
 
   constructor(
-    protected readonly url: string,
+    protected readonly url: string | URL,
     protected readonly authToken: string,
   ) {
     this.onMessageReceived = this.onMessageReceived.bind(this);

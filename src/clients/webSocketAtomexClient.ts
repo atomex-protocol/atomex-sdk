@@ -14,7 +14,17 @@ import { WebSocketResponseDto } from './dtos';
 import { mapSwapDtoToSwap, mapWebSocketOrderDtoToOrder } from './mapper';
 import { WebSocketClient } from './webSocketClient';
 
+export interface WebSocketAtomexClientOptions {
+  atomexNetwork: AtomexNetwork;
+  authorizationManager: AuthorizationManager;
+  webSocketApiBaseUrl: string;
+}
+
 export class WebSocketAtomexClient implements AtomexClient {
+  protected static readonly EXCHANGE_URL_PATH = '/ws/exchange';
+  protected static readonly MARKET_DATA_URL_PATH = '/ws/marketdata';
+
+  readonly atomexNetwork: AtomexNetwork;
   readonly events: AtomexClient['events'] = {
     swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
@@ -22,18 +32,20 @@ export class WebSocketAtomexClient implements AtomexClient {
     topOfBookUpdated: new EventEmitter()
   };
 
+  protected readonly authorizationManager: AuthorizationManager;
+  protected readonly webSocketApiBaseUrl: string;
   protected readonly sockets: Map<string, WebSocketClient> = new Map();
 
-  constructor(
-    readonly atomexNetwork: AtomexNetwork,
-    protected readonly authorizationManager: AuthorizationManager
-  ) {
+  constructor(options: WebSocketAtomexClientOptions) {
     this.onAuthorized = this.onAuthorized.bind(this);
     this.onUnauthorized = this.onUnauthorized.bind(this);
     this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
 
-    this.authorizationManager.events.authorized.addListener(this.onAuthorized);
-    this.authorizationManager.events.unauthorized.addListener(this.onUnauthorized);
+    this.atomexNetwork = options.atomexNetwork;
+    this.authorizationManager = options.authorizationManager;
+    this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
+
+    this.subscribeOnEvents();
   }
 
   getOrder(accountAddress: string, orderId: number): Promise<Order | undefined> {
@@ -84,20 +96,25 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  private onAuthorized(authToken: AuthToken) {
+  protected subscribeOnEvents() {
+    this.authorizationManager.events.authorized.addListener(this.onAuthorized);
+    this.authorizationManager.events.unauthorized.addListener(this.onUnauthorized);
+  }
+
+  protected onAuthorized(authToken: AuthToken) {
     this.removeSocket(authToken);
 
-    const socket = new WebSocketClient('', authToken.value);
+    const socket = new WebSocketClient(new URL(WebSocketAtomexClient.EXCHANGE_URL_PATH, this.webSocketApiBaseUrl), authToken.value);
     socket.events.messageReceived.addListener(this.onSocketMessageReceived);
     socket.connect();
     this.sockets.set(authToken.userId, socket);
   }
 
-  private onUnauthorized(authToken: AuthToken) {
+  protected onUnauthorized(authToken: AuthToken) {
     this.removeSocket(authToken);
   }
 
-  private removeSocket(authToken: AuthToken) {
+  protected removeSocket(authToken: AuthToken) {
     const oldSocket = this.sockets.get(authToken.userId);
 
     if (oldSocket)
@@ -106,7 +123,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     this.sockets.delete(authToken.userId);
   }
 
-  private onSocketMessageReceived(message: WebSocketResponseDto) {
+  protected onSocketMessageReceived(message: WebSocketResponseDto) {
     switch (message.event) {
       case 'order':
         (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(mapWebSocketOrderDtoToOrder(message.data));
