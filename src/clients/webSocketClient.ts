@@ -3,14 +3,16 @@ import type { WebSocketRequestDto, WebSocketResponseDto } from './dtos';
 
 export interface WebSocketClientEvents {
   messageReceived: EventEmitter<readonly [message: WebSocketResponseDto]>;
+  closed: EventEmitter<readonly [socket: WebSocketClient, event: CloseEvent]>;
 }
 
 export class WebSocketClient {
   readonly events: WebSocketClientEvents = {
     messageReceived: new EventEmitter(),
+    closed: new EventEmitter()
   };
 
-  private _socket: WebSocket | undefined;
+  protected _socket: WebSocket | undefined;
 
   protected get socket(): WebSocket {
     if (!this._socket)
@@ -28,19 +30,23 @@ export class WebSocketClient {
     protected readonly authToken: string,
   ) {
     this.onMessageReceived = this.onMessageReceived.bind(this);
+    this.onClosed = this.onClosed.bind(this);
   }
 
   connect() {
+    if (this._socket)
+      this.disconnect();
+
     this.socket = new WebSocket(this.url, ['access_token', this.authToken]);
     this.socket.addEventListener('message', this.onMessageReceived);
     this.socket.addEventListener('error', this.onError);
-    this.socket.addEventListener('close', this.onClose);
+    this.socket.addEventListener('close', this.onClosed);
   }
 
   disconnect() {
     this.socket.removeEventListener('message', this.onMessageReceived);
     this.socket.removeEventListener('error', this.onError);
-    this.socket.removeEventListener('close', this.onClose);
+    this.socket.removeEventListener('close', this.onClosed);
     this.socket.close();
   }
 
@@ -72,8 +78,7 @@ export class WebSocketClient {
     throw new Error(`Websocket received error: ${JSON.stringify(event)}`);
   }
 
-  protected onClose(event: CloseEvent) {
-    if (event.code !== 1000)
-      throw new Error(`Websocket closed unexpectedly, reason: ${event.reason}`);
+  protected onClosed(event: CloseEvent) {
+    this.events.closed.emit(this, event);
   }
 }

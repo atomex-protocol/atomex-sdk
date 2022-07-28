@@ -1,4 +1,3 @@
-
 import type { AuthorizationManager, AuthToken } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
@@ -40,6 +39,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     this.onAuthorized = this.onAuthorized.bind(this);
     this.onUnauthorized = this.onUnauthorized.bind(this);
     this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
+    this.onSocketClosed = this.onSocketClosed.bind(this);
 
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
@@ -96,30 +96,40 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
+  dispose() {
+    this.sockets.forEach((_, userId) => {
+      this.removeSocket(userId);
+    });
+  }
+
   protected subscribeOnEvents() {
     this.authorizationManager.events.authorized.addListener(this.onAuthorized);
     this.authorizationManager.events.unauthorized.addListener(this.onUnauthorized);
   }
 
   protected onAuthorized(authToken: AuthToken) {
-    this.removeSocket(authToken);
+    this.removeSocket(authToken.userId);
 
     const socket = new WebSocketClient(new URL(WebSocketAtomexClient.EXCHANGE_URL_PATH, this.webSocketApiBaseUrl), authToken.value);
     socket.events.messageReceived.addListener(this.onSocketMessageReceived);
-    socket.connect();
+    socket.events.closed.addListener(this.onSocketClosed);
+
     this.sockets.set(authToken.userId, socket);
+    socket.connect();
   }
 
   protected onUnauthorized(authToken: AuthToken) {
-    this.removeSocket(authToken);
+    this.removeSocket(authToken.userId);
   }
 
-  protected removeSocket(authToken: AuthToken) {
-    const oldSocket = this.sockets.get(authToken.userId);
+  protected removeSocket(userId: string) {
+    const socket = this.sockets.get(userId);
 
-    if (oldSocket) {
-      oldSocket.disconnect();
-      this.sockets.delete(authToken.userId);
+    if (socket) {
+      socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
+      socket.events.closed.removeListener(this.onSocketClosed);
+      this.sockets.delete(userId);
+      socket.disconnect();
     }
   }
 
@@ -136,5 +146,11 @@ export class WebSocketAtomexClient implements AtomexClient {
       default:
         break;
     }
+  }
+
+  protected onSocketClosed(closedSocket: WebSocketClient, _event: CloseEvent) {
+    setTimeout(() => {
+      closedSocket.connect();
+    }, 1000);
   }
 }

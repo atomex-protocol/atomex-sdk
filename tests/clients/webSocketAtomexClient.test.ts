@@ -21,26 +21,29 @@ describe('WebSocket Atomex Client', () => {
   let client: WebSocketAtomexClient;
   let authorizationManager: TestAuthorizationManager;
 
-  const getConnectionPromise = () => {
+  const exchangeWsServerSelectProtocol = (protocols: string[]) => {
+    const [tokenProtocolKey, tokenProtocolValue] = protocols;
+    if (tokenProtocolKey !== 'access_token' || !tokenProtocolValue)
+      throw new Error('Invalid protocols');
+
+    return tokenProtocolKey;
+  };
+
+  const createExchangeWebServer = () => {
+    exchangeWsServer = new WS(
+      new URL(WebSocketAtomexClient.EXCHANGE_URL_PATH, testApiUrl).toString(),
+      { selectProtocol: exchangeWsServerSelectProtocol }
+    );
+  };
+
+  const getOnConnectPromise = () => {
     return new Promise<void>(resolve => {
       exchangeWsServer.server.on('connection', () => resolve());
     });
   };
 
-
   beforeEach(() => {
-    const exchangeWsServerSelectProtocol = (protocols: string[]) => {
-      const [tokenProtocolKey, tokenProtocolValue] = protocols;
-      if (tokenProtocolKey !== 'access_token' || !tokenProtocolValue)
-        throw new Error('Invalid protocols');
-
-      return tokenProtocolKey;
-    };
-
-    exchangeWsServer = new WS(
-      new URL(WebSocketAtomexClient.EXCHANGE_URL_PATH, testApiUrl).toString(),
-      { selectProtocol: exchangeWsServerSelectProtocol }
-    );
+    createExchangeWebServer();
 
     authorizationManager = new TestAuthorizationManager(address => {
       return address === testAccountAddress ? testAuthToken : undefined;
@@ -54,6 +57,7 @@ describe('WebSocket Atomex Client', () => {
   });
 
   afterEach(() => {
+    client.dispose();
     WS.clean();
   });
 
@@ -95,21 +99,23 @@ describe('WebSocket Atomex Client', () => {
     exchangeWsServer.on('connection', () => connectionsCount++);
     exchangeWsServer.on('close', () => disconnectionsCount++);
 
+    let connectPromise = getOnConnectPromise();
     authorizationManager.emitAuthorizedEvent({
       address: 'address2',
       expired: new Date(),
       userId: 'user1',
       value: 'token1'
     });
-    await getConnectionPromise();
+    await connectPromise;
 
+    connectPromise = getOnConnectPromise();
     authorizationManager.emitAuthorizedEvent({
       address: 'address2',
       expired: new Date(),
       userId: 'user2',
       value: 'token2'
     });
-    await getConnectionPromise();
+    await connectPromise;
 
     expect(exchangeWsServer.server.clients().length).toBe(2);
     expect(connectionsCount).toBe(2);
@@ -123,24 +129,63 @@ describe('WebSocket Atomex Client', () => {
     exchangeWsServer.on('connection', () => connectionsCount++);
     exchangeWsServer.on('close', () => disconnectionsCount++);
 
+    let connectPromise = getOnConnectPromise();
     authorizationManager.emitAuthorizedEvent({
       address: 'address2',
       expired: new Date(),
       userId: 'user1',
       value: 'token1'
     });
-    await getConnectionPromise();
+    await connectPromise;
 
+    connectPromise = getOnConnectPromise();
     authorizationManager.emitAuthorizedEvent({
       address: 'address1',
       expired: new Date(),
       userId: 'user1',
       value: 'token1Changed'
     });
-    await getConnectionPromise();
+    await connectPromise;
 
     expect(exchangeWsServer.server.clients().length).toBe(1);
     expect(connectionsCount).toBe(2);
     expect(disconnectionsCount).toBe(1);
+  });
+
+  test('does reconnect when server closes connection', async () => {
+    const [_message, [responseDto, expectedOrder]] = validWsOrderTestCases[0]!;
+
+    let connectionsCount = 0;
+    exchangeWsServer.on('connection', () => connectionsCount++);
+
+    const onOrderUpdatedCallback = jest.fn();
+    client.events.orderUpdated.addListener(onOrderUpdatedCallback);
+
+    let connectPromise = getOnConnectPromise();
+    authorizationManager.emitAuthorizedEvent({
+      address: 'address2',
+      expired: new Date(),
+      userId: 'user1',
+      value: 'token1'
+    });
+    await connectPromise;
+    await exchangeWsServer.connected;
+
+    exchangeWsServer.send(JSON.stringify(responseDto));
+
+    //imitation of disconnect from ws server
+    exchangeWsServer.close();
+    createExchangeWebServer();
+    connectPromise = getOnConnectPromise();
+    exchangeWsServer.on('connection', () => connectionsCount++);
+    await connectPromise;
+
+    exchangeWsServer.send(JSON.stringify(responseDto));
+
+    expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(2);
+    expect(onOrderUpdatedCallback).toHaveBeenNthCalledWith(1, expectedOrder);
+    expect(onOrderUpdatedCallback).toHaveBeenNthCalledWith(2, expectedOrder);
+    expect(exchangeWsServer.server.clients().length).toBe(1);
+    expect(connectionsCount).toBe(2);
   });
 });
