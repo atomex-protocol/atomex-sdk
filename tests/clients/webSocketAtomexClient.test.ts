@@ -23,7 +23,18 @@ describe('WebSocket Atomex Client', () => {
 
   beforeEach(() => {
     WS.clean();
-    exchangeWsServer = new WS(new URL(WebSocketAtomexClient.EXCHANGE_URL_PATH, testApiUrl).toString(), {});
+    const exchangeWsServerSelectProtocol = (protocols: string[]) => {
+      const [tokenProtocolKey, tokenProtocolValue] = protocols;
+      if (tokenProtocolKey !== 'access_token' || tokenProtocolValue !== testAuthToken.value)
+        throw new Error('Incorrect protocols');
+
+      return tokenProtocolKey;
+    };
+
+    exchangeWsServer = new WS(
+      new URL(WebSocketAtomexClient.EXCHANGE_URL_PATH, testApiUrl).toString(),
+      { selectProtocol: exchangeWsServerSelectProtocol }
+    );
 
     authorizationManager = new TestAuthorizationManager(address => {
       return address === testAccountAddress ? testAuthToken : undefined;

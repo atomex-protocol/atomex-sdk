@@ -33,6 +33,8 @@ export class WebSocketClient {
   connect() {
     this.socket = new WebSocket(this.url, ['access_token', this.authToken]);
     this.socket.addEventListener('message', this.onMessageReceived);
+    this.socket.addEventListener('error', this.onError);
+    this.socket.addEventListener('close', this.onClose);
   }
 
   disconnect() {
@@ -62,5 +64,14 @@ export class WebSocketClient {
 
   protected onMessageReceived(event: MessageEvent<string>) {
     this.events.messageReceived.emit(JSON.parse(event.data));
+  }
+
+  protected onError(event: Event) {
+    throw new Error(`Websocket received error: ${JSON.stringify(event)}`);
+  }
+
+  protected onClose(event: CloseEvent) {
+    if (event.code !== 1000)
+      throw new Error(`Websocket closed unexpectedly, reason: ${event.reason}`);
   }
 }

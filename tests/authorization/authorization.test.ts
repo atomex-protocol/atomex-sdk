@@ -1,4 +1,4 @@
-import { FetchMock } from 'jest-fetch-mock';
+import type { FetchMock } from 'jest-fetch-mock';
 
 import type { AuthenticationResponseData } from '../../src/authorization/models/index';
 import {
