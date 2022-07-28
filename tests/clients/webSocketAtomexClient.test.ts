@@ -18,6 +18,7 @@ describe('WebSocket Atomex Client', () => {
   };
 
   let exchangeWsServer: WS;
+  let marketDataWsServer: WS;
   let client: WebSocketAtomexClient;
   let authorizationManager: TestAuthorizationManager;
 
@@ -36,6 +37,12 @@ describe('WebSocket Atomex Client', () => {
     );
   };
 
+  const createMarketDataWebServer = () => {
+    marketDataWsServer = new WS(
+      new URL(WebSocketAtomexClient.MARKET_DATA_URL_PATH, testApiUrl).toString(),
+    );
+  };
+
   const getOnConnectPromise = (server: WS) => {
     return new Promise<void>(resolve => {
       server.server.on('connection', () => resolve());
@@ -50,6 +57,7 @@ describe('WebSocket Atomex Client', () => {
 
   beforeEach(() => {
     createExchangeWebServer();
+    createMarketDataWebServer();
 
     authorizationManager = new TestAuthorizationManager(address => {
       return address === testAccountAddress ? testAuthToken : undefined;
@@ -158,7 +166,7 @@ describe('WebSocket Atomex Client', () => {
     expect(disconnectionsCount).toBe(1);
   });
 
-  test('does reconnect when server closes connection', async () => {
+  test('does reconnect when exchange server closes connection', async () => {
     const [_message, [responseDto, expectedOrder]] = validWsOrderTestCases[0]!;
 
     let connectionsCount = 0;
@@ -217,5 +225,23 @@ describe('WebSocket Atomex Client', () => {
     expect(exchangeWsServer.server.clients().length).toBe(0);
     expect(connectionsCount).toBe(1);
     expect(disconnectionsCount).toBe(1);
+  });
+
+  test('creates market data connection on initialization', async () => {
+    expect(marketDataWsServer.server.clients().length).toBe(1);
+  });
+
+  test('does reconnect when market data server closes connection', async () => {
+    let connectionsCount = 0;
+
+    //imitation of disconnect from ws server
+    marketDataWsServer.close();
+    createMarketDataWebServer();
+    const connectPromise = getOnConnectPromise(marketDataWsServer);
+    marketDataWsServer.on('connection', () => connectionsCount++);
+    await connectPromise;
+
+    expect(marketDataWsServer.server.clients().length).toBe(1);
+    expect(connectionsCount).toBe(1);
   });
 });

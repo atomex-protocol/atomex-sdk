@@ -27,7 +27,7 @@ export class WebSocketClient {
 
   constructor(
     protected readonly url: string | URL,
-    protected readonly authToken: string,
+    protected readonly authToken?: string,
   ) {
     this.onMessageReceived = this.onMessageReceived.bind(this);
     this.onClosed = this.onClosed.bind(this);
@@ -37,7 +37,8 @@ export class WebSocketClient {
     if (this._socket)
       this.disconnect();
 
-    this.socket = new WebSocket(this.url, ['access_token', this.authToken]);
+    const protocols = this.authToken ? ['access_token', this.authToken] : undefined;
+    this.socket = new WebSocket(this.url, protocols);
     this.socket.addEventListener('message', this.onMessageReceived);
     this.socket.addEventListener('error', this.onError);
     this.socket.addEventListener('close', this.onClosed);

@@ -33,7 +33,8 @@ export class WebSocketAtomexClient implements AtomexClient {
 
   protected readonly authorizationManager: AuthorizationManager;
   protected readonly webSocketApiBaseUrl: string;
-  protected readonly sockets: Map<string, WebSocketClient> = new Map();
+  protected readonly exchangeSockets: Map<string, WebSocketClient> = new Map();
+  protected markedDataSocket: WebSocketClient;
 
   constructor(options: WebSocketAtomexClientOptions) {
     this.onAuthorized = this.onAuthorized.bind(this);
@@ -44,6 +45,10 @@ export class WebSocketAtomexClient implements AtomexClient {
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
     this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
+
+    this.markedDataSocket = new WebSocketClient(new URL(WebSocketAtomexClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
+    this.markedDataSocket.events.closed.addListener(this.onSocketClosed);
+    this.markedDataSocket.connect();
 
     this.subscribeOnEvents();
   }
@@ -97,9 +102,12 @@ export class WebSocketAtomexClient implements AtomexClient {
   }
 
   dispose() {
-    this.sockets.forEach((_, userId) => {
+    this.exchangeSockets.forEach((_, userId) => {
       this.removeSocket(userId);
     });
+
+    this.markedDataSocket.events.closed.removeListener(this.onSocketClosed);
+    this.markedDataSocket.disconnect();
   }
 
   protected subscribeOnEvents() {
@@ -114,7 +122,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     socket.events.messageReceived.addListener(this.onSocketMessageReceived);
     socket.events.closed.addListener(this.onSocketClosed);
 
-    this.sockets.set(authToken.userId, socket);
+    this.exchangeSockets.set(authToken.userId, socket);
     socket.connect();
   }
 
@@ -123,12 +131,12 @@ export class WebSocketAtomexClient implements AtomexClient {
   }
 
   protected removeSocket(userId: string) {
-    const socket = this.sockets.get(userId);
+    const socket = this.exchangeSockets.get(userId);
 
     if (socket) {
       socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
       socket.events.closed.removeListener(this.onSocketClosed);
-      this.sockets.delete(userId);
+      this.exchangeSockets.delete(userId);
       socket.disconnect();
     }
   }
