@@ -216,7 +216,7 @@ export class RestAtomexClient implements AtomexClient {
     return canceledOrdersCount;
   }
 
-  getSwapTransactions(swap: Swap): Promise<readonly Transaction[]> {
+  getSwapTransactions(_swap: Swap): Promise<readonly Transaction[]> {
     throw new Error('Method not implemented.');
   }
 

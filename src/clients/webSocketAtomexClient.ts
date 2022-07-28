@@ -53,11 +53,11 @@ export class WebSocketAtomexClient implements AtomexClient {
     this.subscribeOnEvents();
   }
 
-  getOrder(accountAddress: string, orderId: number): Promise<Order | undefined> {
+  getOrder(_accountAddress: string, _orderId: number): Promise<Order | undefined> {
     throw new Error('Method not implemented.');
   }
 
-  getOrders(accountAddress: string, selector?: OrdersSelector | undefined): Promise<Order[]> {
+  getOrders(_accountAddress: string, _selector?: OrdersSelector | undefined): Promise<Order[]> {
     throw new Error('Method not implemented.');
   }
 
@@ -67,37 +67,37 @@ export class WebSocketAtomexClient implements AtomexClient {
 
   getTopOfBook(symbols?: string[]): Promise<Quote[]>;
   getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
-  getTopOfBook(symbolsOrDirections?: string[] | CurrencyDirection[]): Promise<Quote[]> {
+  getTopOfBook(_symbolsOrDirections?: string[] | CurrencyDirection[]): Promise<Quote[]> {
     throw new Error('Method not implemented.');
   }
 
   getOrderBook(symbol: string): Promise<OrderBook>;
   getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
-  async getOrderBook(symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
+  async getOrderBook(_symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
     throw new Error('Method not implemented.');
   }
 
-  addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
+  addOrder(_accountAddress: string, _newOrderRequest: NewOrderRequest): Promise<number> {
     throw new Error('Method not implemented.');
   }
 
-  cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
+  cancelOrder(_accountAddress: string, _cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
 
-  cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
+  cancelAllOrders(_accountAddress: string, _cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
     throw new Error('Method not implemented.');
   }
 
-  getSwapTransactions(swap: Swap): Promise<readonly Transaction[]> {
+  getSwapTransactions(_swap: Swap): Promise<readonly Transaction[]> {
     throw new Error('Method not implemented.');
   }
 
-  getSwap(accountAddress: string, swapId: number): Promise<Swap> {
+  getSwap(_accountAddress: string, _swapId: number): Promise<Swap> {
     throw new Error('Method not implemented.');
   }
 
-  getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]> {
+  getSwaps(_accountAddress: string, _selector?: SwapsSelector): Promise<Swap[]> {
     throw new Error('Method not implemented.');
   }
 

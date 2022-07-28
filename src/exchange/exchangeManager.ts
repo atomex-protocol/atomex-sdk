@@ -54,7 +54,7 @@ export class ExchangeManager {
     return this.exchangeService.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
   }
 
-  getRewardForRedeem(nativeTokenUsdPrice: number, nativeTokenCurrencyPrice: number): Promise<Result<BigNumber>> {
+  getRewardForRedeem(_nativeTokenUsdPrice: number, _nativeTokenCurrencyPrice: number): Promise<Result<BigNumber>> {
     throw new Error('Not implemented');
   }
 
