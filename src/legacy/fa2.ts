@@ -1,10 +1,10 @@
-import { OperationContentsAndResultTransaction } from '@taquito/rpc';
+import type { OperationContentsAndResultTransaction } from '@taquito/rpc';
 import { TezosToolkit } from '@taquito/taquito';
 
 import config from './config.json';
 import { dt2ts } from './helpers';
 import { TezosHelpers } from './tezos';
-import { InitiateParameters, Network, TezosBasedCurrency } from './types';
+import type { InitiateParameters, Network, TezosBasedCurrency } from './types';
 
 
 export class FA2Helpers extends TezosHelpers {

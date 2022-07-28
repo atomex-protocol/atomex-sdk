@@ -1,11 +1,11 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { Signer, SignersManager } from '../blockchain/index';
-import { ExchangeManager } from '../exchange/exchangeManager';
+import type { ExchangeManager } from '../exchange/exchangeManager';
 import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
-import {
-  SwapOperationCompleteStage, type AtomexBlockchainOptions,
-  type AtomexOptions, type NewSwapRequest
+import type {
+  SwapOperationCompleteStage, AtomexBlockchainOptions,
+  AtomexOptions, NewSwapRequest
 } from './models/index';
 
 export class Atomex {

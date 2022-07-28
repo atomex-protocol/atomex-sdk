@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import elliptic from 'elliptic';
 import Web3 from 'web3';
-import { Transaction } from 'web3-core';
-import { Contract } from 'web3-eth-contract';
-import { AbiInput, AbiItem } from 'web3-utils';
+import type { Transaction } from 'web3-core';
+import type { Contract } from 'web3-eth-contract';
+import type { AbiInput, AbiItem } from 'web3-utils';
 
 import config from './config.json';
 import { Helpers, now } from './helpers';
-import {
+import type {
   AuthMessage,
   InitiateParameters,
   PartialTransactionBody,

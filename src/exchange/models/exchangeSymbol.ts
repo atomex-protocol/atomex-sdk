@@ -1,6 +1,6 @@
-import BigNumber from 'bignumber.js';
+import type BigNumber from 'bignumber.js';
 
-import { Currency } from '../../index';
+import type { Currency } from '../../index';
 
 export interface ExchangeSymbol {
   readonly name: string;

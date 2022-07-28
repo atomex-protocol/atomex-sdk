@@ -1,4 +1,4 @@
-import { DeepRequired } from '../core/index';
+import type { DeepRequired } from '../core/index';
 
 type QueryParams = { [key: string]: string | number | boolean | null | undefined };
 type Payload = { [key: string]: unknown };

@@ -1,4 +1,4 @@
-import { FetchMock } from 'jest-fetch-mock';
+import type { FetchMock } from 'jest-fetch-mock';
 
 import type { AuthToken } from '../../src/authorization/index';
 import type { QuoteDto, SymbolDto } from '../../src/clients/dtos';

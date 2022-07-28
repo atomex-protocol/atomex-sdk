@@ -1,6 +1,6 @@
 import type { DeepReadonly } from '../core/index';
 import type { AuthorizationManagerDefaultComponentOptions } from './atomexComponents';
-import { ExchangeServiceDefaultComponentOptions } from './atomexComponents/exchangeService';
+import type { ExchangeServiceDefaultComponentOptions } from './atomexComponents/exchangeService';
 
 type AtomexConfigNetworkSection = DeepReadonly<{
   authorization: AuthorizationManagerDefaultComponentOptions,

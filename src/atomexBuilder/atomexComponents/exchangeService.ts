@@ -1,6 +1,6 @@
-import { AtomexContext } from '../../atomex/index';
+import type { AtomexContext } from '../../atomex/index';
 import { MixedApiAtomexClient, RestAtomexClient, WebSocketAtomexClient } from '../../clients/index';
-import { DeepReadonly } from '../../core/index';
+import type { DeepReadonly } from '../../core/index';
 
 export type ExchangeServiceDefaultComponentOptions = DeepReadonly<{
   apiBaseUrl: string;

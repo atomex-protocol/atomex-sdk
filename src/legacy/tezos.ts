@@ -14,7 +14,7 @@ import {
 
 import config from './config.json';
 import { dt2ts, Helpers, now } from './helpers';
-import {
+import type {
   Algorithm,
   AuthMessage,
   InitiateParameters,

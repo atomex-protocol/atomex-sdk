@@ -1,5 +1,6 @@
-import { PublicEventEmitter } from '../core/eventEmitter';
-import { Swap, SwapsSelector } from '../index';
+import type { PublicEventEmitter } from '../core/eventEmitter';
+import type { SwapsSelector } from '../exchange/index';
+import type { Swap } from './models/swap';
 
 export interface SwapServiceEvents {
   readonly swapUpdated: PublicEventEmitter<readonly [updatedOrder: Swap]>;

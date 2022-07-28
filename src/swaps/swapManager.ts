@@ -1,8 +1,8 @@
 import { ImportantDataReceivingMode } from '../common/index';
 import { EventEmitter, ToEventEmitter } from '../core/index';
-import { SwapsSelector } from '../exchange/index';
-import { Swap } from './models/index';
-import { SwapService, SwapServiceEvents } from './swapService';
+import type { SwapsSelector } from '../exchange/index';
+import type { Swap } from './models/index';
+import type { SwapService, SwapServiceEvents } from './swapService';
 
 export class SwapManager {
   readonly events: SwapServiceEvents = {

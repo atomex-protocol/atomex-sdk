@@ -2,7 +2,7 @@ import type { BigNumber } from 'bignumber.js';
 
 import type { Side } from '../../common/index';
 import type { SwapParticipantRequisites } from '../../swaps/index';
-import { CurrencyDirection } from './currencyDirection';
+import type { CurrencyDirection } from './currencyDirection';
 import type { OrderType } from './orderType';
 
 interface NewOrderRequestBase {

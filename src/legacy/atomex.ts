@@ -1,6 +1,6 @@
 import type { AuthorizationManager } from '../authorization';
 import config from './config.json';
-import {
+import type {
   AddOrderRequest,
   AddSwapRequisites,
   AuthTokenRequest,
