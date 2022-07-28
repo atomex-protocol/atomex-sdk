@@ -60,7 +60,7 @@ export class WebSocketClient {
     this.socket.send(JSON.stringify(message));
   }
 
-  protected onMessageReceived(event: MessageEvent<WebSocketResponseDto>) {
-    this.events.messageReceived.emit(event.data);
+  protected onMessageReceived(event: MessageEvent<string>) {
+    this.events.messageReceived.emit(JSON.parse(event.data));
   }
 }

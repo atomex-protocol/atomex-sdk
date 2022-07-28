@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 
-import { OrderBookDto, SymbolDto } from '../../../src/clients/dtos';
-import { CurrencyDirection, OrderBook } from '../../../src/exchange/index';
+import type { OrderBookDto, SymbolDto } from '../../../src/clients/dtos';
+import type { CurrencyDirection, OrderBook } from '../../../src/exchange/index';
 
 const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
   message: string,

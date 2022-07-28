@@ -1,9 +1,9 @@
-import { SymbolDto } from '../../../src/clients/dtos';
-import { CancelOrderRequest } from '../../../src/exchange/index';
+import type { SymbolDto } from '../../../src/clients/dtos';
+import type { CancelOrderRequest } from '../../../src/exchange/index';
 
 const validCancelOrderWithDirectionsTestCases: ReadonlyArray<readonly [
   message: string,
-  testValue: readonly [symbolDto: SymbolDto[], request: CancelOrderRequest, expectedSymbol: string, expectedFilterValue: string]
+  testValue: readonly [symbolDtos: SymbolDto[], request: CancelOrderRequest, expectedSymbol: string, expectedFilterValue: string]
 ]> = [
     [
       'Buy case',

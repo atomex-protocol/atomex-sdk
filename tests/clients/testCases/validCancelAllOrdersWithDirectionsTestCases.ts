@@ -1,6 +1,6 @@
-import { SymbolDto } from '../../../src/clients/dtos';
-import { CancelAllSide } from '../../../src/common/index';
-import { CancelAllOrdersRequest } from '../../../src/exchange/index';
+import type { SymbolDto } from '../../../src/clients/dtos';
+import type { CancelAllSide } from '../../../src/common/index';
+import type { CancelAllOrdersRequest } from '../../../src/exchange/index';
 
 const validCancelAllOrdersWithDirectionsTestCases: ReadonlyArray<readonly [
   message: string,

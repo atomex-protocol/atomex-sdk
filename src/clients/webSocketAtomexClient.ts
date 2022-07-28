@@ -2,7 +2,7 @@
 import type { AuthorizationManager, AuthToken } from '../authorization/index';
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
-import { EventEmitter, ToEventEmitter } from '../core';
+import { EventEmitter, type ToEventEmitter } from '../core';
 import type {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
   OrdersSelector, CancelOrderRequest,
@@ -10,7 +10,7 @@ import type {
 } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
-import { WebSocketResponseDto } from './dtos';
+import type { WebSocketResponseDto } from './dtos';
 import { mapSwapDtoToSwap, mapWebSocketOrderDtoToOrder } from './mapper';
 import { WebSocketClient } from './webSocketClient';
 
@@ -21,8 +21,8 @@ export interface WebSocketAtomexClientOptions {
 }
 
 export class WebSocketAtomexClient implements AtomexClient {
-  protected static readonly EXCHANGE_URL_PATH = '/ws/exchange';
-  protected static readonly MARKET_DATA_URL_PATH = '/ws/marketdata';
+  static readonly EXCHANGE_URL_PATH = '/ws/exchange';
+  static readonly MARKET_DATA_URL_PATH = '/ws/marketdata';
 
   readonly atomexNetwork: AtomexNetwork;
   readonly events: AtomexClient['events'] = {

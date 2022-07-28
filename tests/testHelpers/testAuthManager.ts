@@ -1,7 +1,8 @@
-import { AuthorizationManager, AuthorizationManagerOptions, AuthToken, InMemoryAuthorizationManagerStore, SignersManager } from '../../src/index';
+import type { ToEventEmitters } from '../../src/core/index';
+import { AuthorizationManager, type AuthorizationManagerOptions, type AuthToken, InMemoryAuthorizationManagerStore, SignersManager } from '../../src/index';
 
 export class TestAuthorizationManager extends AuthorizationManager {
-  readonly authToken: AuthToken | undefined | ((address: string) => AuthToken| undefined);
+  readonly authToken: AuthToken | undefined | ((address: string) => AuthToken | undefined);
 
   constructor(
     authToken: AuthToken | ((address: string) => AuthToken | undefined)
@@ -21,5 +22,9 @@ export class TestAuthorizationManager extends AuthorizationManager {
     return typeof this.authToken === 'function'
       ? this.authToken(address)
       : this.authToken;
+  }
+
+  emitAuthorizedEvent(authToken: AuthToken) {
+    (this.events as ToEventEmitters<this['events']>).authorized.emit(authToken);
   }
 }

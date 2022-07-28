@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 
-import { QuoteDto, SymbolDto } from '../../../src/clients/dtos';
-import { CurrencyDirection, Quote } from '../../../src/exchange/index';
+import type { QuoteDto, SymbolDto } from '../../../src/clients/dtos';
+import type { CurrencyDirection, Quote } from '../../../src/exchange/index';
 
 const validTopOfBookWithDirectionsTestCases: ReadonlyArray<readonly [
   message: string,

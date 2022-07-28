@@ -1,10 +1,10 @@
 import BigNumber from 'bignumber.js';
 
-import { Transaction } from '../blockchain/models/index';
-import { Currency, Side } from '../common/index';
-import { ExchangeSymbol, Order, OrderBook, OrderCurrency, Quote } from '../exchange/index';
-import { Swap } from '../swaps/index';
-import { OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto, TransactionDto, WebSocketOrderDataDto } from './dtos';
+import type { Transaction } from '../blockchain/models/index';
+import type { Currency, Side } from '../common/index';
+import type { ExchangeSymbol, Order, OrderBook, OrderCurrency, Quote } from '../exchange/index';
+import type { Swap } from '../swaps/index';
+import type { OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto, TransactionDto, WebSocketOrderDataDto } from './dtos';
 
 export const getQuoteBaseCurrenciesBySymbol = (symbol: string): [quoteCurrency: string, baseCurrency: string] => {
   const [quoteCurrency = '', baseCurrency = ''] = symbol.split('/');

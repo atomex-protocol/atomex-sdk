@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 
 import { CreatedOrderDto, SymbolDto, } from '../../../src/clients/dtos';
-import { NewOrderRequest } from '../../../src/exchange/index';
+import type { NewOrderRequest } from '../../../src/exchange/index';
 
 const validAddOrderTestCases: ReadonlyArray<readonly [
   message: string,
