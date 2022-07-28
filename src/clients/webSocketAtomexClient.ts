@@ -117,10 +117,10 @@ export class WebSocketAtomexClient implements AtomexClient {
   protected removeSocket(authToken: AuthToken) {
     const oldSocket = this.sockets.get(authToken.userId);
 
-    if (oldSocket)
+    if (oldSocket) {
       oldSocket.disconnect();
-
-    this.sockets.delete(authToken.userId);
+      this.sockets.delete(authToken.userId);
+    }
   }
 
   protected onSocketMessageReceived(message: WebSocketResponseDto) {

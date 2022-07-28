@@ -21,12 +21,18 @@ describe('WebSocket Atomex Client', () => {
   let client: WebSocketAtomexClient;
   let authorizationManager: TestAuthorizationManager;
 
+  const getConnectionPromise = () => {
+    return new Promise<void>(resolve => {
+      exchangeWsServer.server.on('connection', () => resolve());
+    });
+  };
+
+
   beforeEach(() => {
-    WS.clean();
     const exchangeWsServerSelectProtocol = (protocols: string[]) => {
       const [tokenProtocolKey, tokenProtocolValue] = protocols;
-      if (tokenProtocolKey !== 'access_token' || tokenProtocolValue !== testAuthToken.value)
-        throw new Error('Incorrect protocols');
+      if (tokenProtocolKey !== 'access_token' || !tokenProtocolValue)
+        throw new Error('Invalid protocols');
 
       return tokenProtocolKey;
     };
@@ -45,6 +51,10 @@ describe('WebSocket Atomex Client', () => {
       atomexNetwork,
       authorizationManager,
     });
+  });
+
+  afterEach(() => {
+    WS.clean();
   });
 
   test.each(validWsOrderTestCases)('emits orderUpdated event with correct data (%s)', async (_, [responseDto, expectedOrder]) => {
@@ -76,5 +86,61 @@ describe('WebSocket Atomex Client', () => {
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(1);
     expect(onSwapUpdatedCallback).toHaveBeenCalledWith(expectedSwap);
+  });
+
+  test('creates connection for every unique user', async () => {
+    let connectionsCount = 0;
+    let disconnectionsCount = 0;
+
+    exchangeWsServer.on('connection', () => connectionsCount++);
+    exchangeWsServer.on('close', () => disconnectionsCount++);
+
+    authorizationManager.emitAuthorizedEvent({
+      address: 'address2',
+      expired: new Date(),
+      userId: 'user1',
+      value: 'token1'
+    });
+    await getConnectionPromise();
+
+    authorizationManager.emitAuthorizedEvent({
+      address: 'address2',
+      expired: new Date(),
+      userId: 'user2',
+      value: 'token2'
+    });
+    await getConnectionPromise();
+
+    expect(exchangeWsServer.server.clients().length).toBe(2);
+    expect(connectionsCount).toBe(2);
+    expect(disconnectionsCount).toBe(0);
+  });
+
+  test('creates single connection for a certain user', async () => {
+    let connectionsCount = 0;
+    let disconnectionsCount = 0;
+
+    exchangeWsServer.on('connection', () => connectionsCount++);
+    exchangeWsServer.on('close', () => disconnectionsCount++);
+
+    authorizationManager.emitAuthorizedEvent({
+      address: 'address2',
+      expired: new Date(),
+      userId: 'user1',
+      value: 'token1'
+    });
+    await getConnectionPromise();
+
+    authorizationManager.emitAuthorizedEvent({
+      address: 'address1',
+      expired: new Date(),
+      userId: 'user1',
+      value: 'token1Changed'
+    });
+    await getConnectionPromise();
+
+    expect(exchangeWsServer.server.clients().length).toBe(1);
+    expect(connectionsCount).toBe(2);
+    expect(disconnectionsCount).toBe(1);
   });
 });

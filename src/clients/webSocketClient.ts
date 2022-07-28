@@ -39,6 +39,8 @@ export class WebSocketClient {
 
   disconnect() {
     this.socket.removeEventListener('message', this.onMessageReceived);
+    this.socket.removeEventListener('error', this.onError);
+    this.socket.removeEventListener('close', this.onClose);
     this.socket.close();
   }
 
