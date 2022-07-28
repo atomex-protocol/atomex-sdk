@@ -36,9 +36,15 @@ describe('WebSocket Atomex Client', () => {
     );
   };
 
-  const getOnConnectPromise = () => {
+  const getOnConnectPromise = (server: WS) => {
     return new Promise<void>(resolve => {
-      exchangeWsServer.server.on('connection', () => resolve());
+      server.server.on('connection', () => resolve());
+    });
+  };
+
+  const getOnClosePromise = (server: WS) => {
+    return new Promise<void>(resolve => {
+      server.server.on('close', () => resolve());
     });
   };
 
@@ -99,7 +105,7 @@ describe('WebSocket Atomex Client', () => {
     exchangeWsServer.on('connection', () => connectionsCount++);
     exchangeWsServer.on('close', () => disconnectionsCount++);
 
-    let connectPromise = getOnConnectPromise();
+    let connectPromise = getOnConnectPromise(exchangeWsServer);
     authorizationManager.emitAuthorizedEvent({
       address: 'address2',
       expired: new Date(),
@@ -108,7 +114,7 @@ describe('WebSocket Atomex Client', () => {
     });
     await connectPromise;
 
-    connectPromise = getOnConnectPromise();
+    connectPromise = getOnConnectPromise(exchangeWsServer);
     authorizationManager.emitAuthorizedEvent({
       address: 'address2',
       expired: new Date(),
@@ -129,7 +135,7 @@ describe('WebSocket Atomex Client', () => {
     exchangeWsServer.on('connection', () => connectionsCount++);
     exchangeWsServer.on('close', () => disconnectionsCount++);
 
-    let connectPromise = getOnConnectPromise();
+    let connectPromise = getOnConnectPromise(exchangeWsServer);
     authorizationManager.emitAuthorizedEvent({
       address: 'address2',
       expired: new Date(),
@@ -138,7 +144,7 @@ describe('WebSocket Atomex Client', () => {
     });
     await connectPromise;
 
-    connectPromise = getOnConnectPromise();
+    connectPromise = getOnConnectPromise(exchangeWsServer);
     authorizationManager.emitAuthorizedEvent({
       address: 'address1',
       expired: new Date(),
@@ -161,7 +167,7 @@ describe('WebSocket Atomex Client', () => {
     const onOrderUpdatedCallback = jest.fn();
     client.events.orderUpdated.addListener(onOrderUpdatedCallback);
 
-    let connectPromise = getOnConnectPromise();
+    let connectPromise = getOnConnectPromise(exchangeWsServer);
     authorizationManager.emitAuthorizedEvent({
       address: 'address2',
       expired: new Date(),
@@ -176,7 +182,7 @@ describe('WebSocket Atomex Client', () => {
     //imitation of disconnect from ws server
     exchangeWsServer.close();
     createExchangeWebServer();
-    connectPromise = getOnConnectPromise();
+    connectPromise = getOnConnectPromise(exchangeWsServer);
     exchangeWsServer.on('connection', () => connectionsCount++);
     await connectPromise;
 
@@ -187,5 +193,29 @@ describe('WebSocket Atomex Client', () => {
     expect(onOrderUpdatedCallback).toHaveBeenNthCalledWith(2, expectedOrder);
     expect(exchangeWsServer.server.clients().length).toBe(1);
     expect(connectionsCount).toBe(2);
+  });
+
+  test('creates connection on authorize and closes connection on unauthorize', async () => {
+    let connectionsCount = 0;
+    let disconnectionsCount = 0;
+
+    exchangeWsServer.on('connection', () => connectionsCount++);
+    exchangeWsServer.on('close', () => disconnectionsCount++);
+
+    const connectPromise = getOnConnectPromise(exchangeWsServer);
+    authorizationManager.emitAuthorizedEvent(testAuthToken);
+    await connectPromise;
+
+    expect(exchangeWsServer.server.clients().length).toBe(1);
+    expect(connectionsCount).toBe(1);
+    expect(disconnectionsCount).toBe(0);
+
+    const closePromise = getOnClosePromise(exchangeWsServer);
+    authorizationManager.emitUnauthorizedEvent(testAuthToken);
+    await closePromise;
+
+    expect(exchangeWsServer.server.clients().length).toBe(0);
+    expect(connectionsCount).toBe(1);
+    expect(disconnectionsCount).toBe(1);
   });
 });

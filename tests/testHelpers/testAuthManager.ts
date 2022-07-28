@@ -27,4 +27,8 @@ export class TestAuthorizationManager extends AuthorizationManager {
   emitAuthorizedEvent(authToken: AuthToken) {
     (this.events as ToEventEmitters<this['events']>).authorized.emit(authToken);
   }
+
+  emitUnauthorizedEvent(authToken: AuthToken) {
+    (this.events as ToEventEmitters<this['events']>).unauthorized.emit(authToken);
+  }
 }
