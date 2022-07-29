@@ -8,7 +8,7 @@ export interface ExchangeWebSocketManagerEvents {
 }
 
 export class ExchangeWebSocketManager {
-  static readonly EXCHANGE_URL_PATH = '/ws/exchange';
+  protected static readonly EXCHANGE_URL_PATH = '/ws/exchange';
 
   readonly events: ExchangeWebSocketManagerEvents = {
     messageReceived: new EventEmitter()

@@ -32,7 +32,7 @@ describe('WebSocket Atomex Client', () => {
 
   const createExchangeWebServer = () => {
     exchangeWsServer = new WS(
-      new URL(WebSocketAtomexClient.EXCHANGE_URL_PATH, testApiUrl).toString(),
+      new URL('/ws/exchange', testApiUrl).toString(),
       {
         selectProtocol: exchangeWsServerSelectProtocol,
         jsonProtocol: true
@@ -42,7 +42,7 @@ describe('WebSocket Atomex Client', () => {
 
   const createMarketDataWebServer = () => {
     marketDataWsServer = new WS(
-      new URL(WebSocketAtomexClient.MARKET_DATA_URL_PATH, testApiUrl).toString(),
+      new URL('/ws/marketdata', testApiUrl).toString(),
       { jsonProtocol: true }
     );
   };
@@ -322,13 +322,13 @@ describe('WebSocket Atomex Client', () => {
 
     expect(messages).toContainEqual({
       method: 'subscribe',
-      data: WebSocketAtomexClient.TOP_OF_BOOK_STREAM,
+      data: 'topOfBook',
       requestId: expect.anything()
     });
 
     expect(messages).toContainEqual({
       method: 'subscribe',
-      data: WebSocketAtomexClient.ORDER_BOOK_STREAM,
+      data: 'orderBook',
       requestId: expect.anything()
     });
   });
@@ -350,13 +350,13 @@ describe('WebSocket Atomex Client', () => {
 
     expect(messages).toContainEqual({
       method: 'subscribe',
-      data: WebSocketAtomexClient.TOP_OF_BOOK_STREAM,
+      data: 'topOfBook',
       requestId: expect.anything()
     });
 
     expect(messages).toContainEqual({
       method: 'subscribe',
-      data: WebSocketAtomexClient.ORDER_BOOK_STREAM,
+      data: 'orderBook',
       requestId: expect.anything()
     });
   });

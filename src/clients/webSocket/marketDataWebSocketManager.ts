@@ -7,9 +7,9 @@ export interface MarketDataWebSocketManagerEvents {
 }
 
 export class MarketDataWebSocketManager {
-  static readonly MARKET_DATA_URL_PATH = '/ws/marketdata';
-  static readonly TOP_OF_BOOK_STREAM = 'topOfBook';
-  static readonly ORDER_BOOK_STREAM = 'orderBook';
+  protected static readonly MARKET_DATA_URL_PATH = '/ws/marketdata';
+  protected static readonly TOP_OF_BOOK_STREAM = 'topOfBook';
+  protected static readonly ORDER_BOOK_STREAM = 'orderBook';
 
   readonly events: MarketDataWebSocketManagerEvents = {
     messageReceived: new EventEmitter()

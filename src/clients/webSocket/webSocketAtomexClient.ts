@@ -21,11 +21,6 @@ export interface WebSocketAtomexClientOptions {
 }
 
 export class WebSocketAtomexClient implements AtomexClient {
-  static readonly EXCHANGE_URL_PATH = '/ws/exchange';
-  static readonly MARKET_DATA_URL_PATH = '/ws/marketdata';
-  static readonly TOP_OF_BOOK_STREAM = 'topOfBook';
-  static readonly ORDER_BOOK_STREAM = 'orderBook';
-
   readonly atomexNetwork: AtomexNetwork;
   readonly events: AtomexClient['events'] = {
     swapUpdated: new EventEmitter(),
