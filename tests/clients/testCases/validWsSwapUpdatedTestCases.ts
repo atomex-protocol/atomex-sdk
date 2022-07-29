@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import type { WebSocketSwapResponseDto } from '../../../src/clients/dtos';
 import type { Swap } from '../../../src/index';
 
-const validWsSwapTestCases: ReadonlyArray<readonly [
+const validWsSwapUpdatedTestCases: ReadonlyArray<readonly [
   message: string,
   testValue: readonly [dto: WebSocketSwapResponseDto, swap: Swap]
 ]> = [
@@ -374,4 +374,4 @@ const validWsSwapTestCases: ReadonlyArray<readonly [
     ]
   ];
 
-export default validWsSwapTestCases;
+export default validWsSwapUpdatedTestCases;

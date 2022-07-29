@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import type { WebSocketTopOfBookResponseDto } from '../../../src/clients/dtos';
 import type { Quote } from '../../../src/exchange/index';
 
-const validWsTopOfBookTestCases: ReadonlyArray<readonly [
+const validWsTopOfBookUpdatedTestCases: ReadonlyArray<readonly [
   message: string,
   testValue: readonly [dto: WebSocketTopOfBookResponseDto, quote: Quote]
 ]> = [
@@ -32,4 +32,4 @@ const validWsTopOfBookTestCases: ReadonlyArray<readonly [
     ]
   ];
 
-export default validWsTopOfBookTestCases;
+export default validWsTopOfBookUpdatedTestCases;

@@ -4,7 +4,7 @@ import type { Transaction } from '../blockchain/models/index';
 import type { Currency, Side } from '../common/index';
 import type { ExchangeSymbol, Order, OrderBook, OrderCurrency, Quote } from '../exchange/index';
 import type { Swap } from '../swaps/index';
-import type { OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto, TransactionDto, WebSocketOrderDataDto } from './dtos';
+import type { OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto, TransactionDto, WebSocketOrderBookEntryDto, WebSocketOrderDataDto } from './dtos';
 
 export const getQuoteBaseCurrenciesBySymbol = (symbol: string): [quoteCurrency: string, baseCurrency: string] => {
   const [quoteCurrency = '', baseCurrency = ''] = symbol.split('/');
@@ -58,14 +58,14 @@ export const mapQuoteDtosToQuotes = (quoteDtos: QuoteDto[]): Quote[] => {
   return quotes;
 };
 
-export const mapQuoteDtoToQuote = (dto: QuoteDto): Quote => {
-  const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(dto.symbol);
+export const mapQuoteDtoToQuote = (quoteDto: QuoteDto): Quote => {
+  const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(quoteDto.symbol);
 
   const quote: Quote = {
-    ask: new BigNumber(dto.ask),
-    bid: new BigNumber(dto.bid),
-    symbol: dto.symbol,
-    timeStamp: new Date(dto.timeStamp),
+    ask: new BigNumber(quoteDto.ask),
+    bid: new BigNumber(quoteDto.bid),
+    symbol: quoteDto.symbol,
+    timeStamp: new Date(quoteDto.timeStamp),
     quoteCurrency,
     baseCurrency
   };
@@ -97,6 +97,29 @@ export const mapOrderBookDtoToOrderBook = (orderBookDto: OrderBookDto): OrderBoo
     quoteCurrency,
     baseCurrency,
     entries: orderBookDto.entries.map(e => ({
+      side: e.side,
+      price: new BigNumber(e.price),
+      qtyProfile: e.qtyProfile
+    }))
+  };
+
+  return orderBook;
+};
+
+
+export const mapWebSocketOrderBookEntryDtoToOrderBook = (orderBookEntryDtos: WebSocketOrderBookEntryDto[]): OrderBook => {
+  const firstOrderBookEntry = orderBookEntryDtos[0];
+  if (!firstOrderBookEntry)
+    throw new Error('Unexpected dto');
+
+  const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(firstOrderBookEntry.symbol);
+
+  const orderBook: OrderBook = {
+    updateId: firstOrderBookEntry.updateId,
+    symbol: firstOrderBookEntry.symbol,
+    quoteCurrency,
+    baseCurrency,
+    entries: orderBookEntryDtos.map(e => ({
       side: e.side,
       price: new BigNumber(e.price),
       qtyProfile: e.qtyProfile

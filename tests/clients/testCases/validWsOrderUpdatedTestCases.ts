@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import type { WebSocketOrderResponseDto } from '../../../src/clients/dtos';
 import type { Order } from '../../../src/exchange/index';
 
-const validWsOrderTestCases: ReadonlyArray<readonly [
+const validWsOrderUpdatedTestCases: ReadonlyArray<readonly [
   message: string,
   testValue: readonly [dto: WebSocketOrderResponseDto, order: Order]
 ]> = [
@@ -107,4 +107,4 @@ const validWsOrderTestCases: ReadonlyArray<readonly [
     ]
   ];
 
-export default validWsOrderTestCases;
+export default validWsOrderUpdatedTestCases;
