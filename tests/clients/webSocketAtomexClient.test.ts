@@ -227,6 +227,34 @@ describe('WebSocket Atomex Client', () => {
     expect(disconnectionsCount).toBe(1);
   });
 
+  test('closes active connections on dispose', async () => {
+    expect(marketDataWsServer.server.clients().length).toBe(1);
+    expect(exchangeWsServer.server.clients().length).toBe(0);
+
+    const connectPromise = getOnConnectPromise(exchangeWsServer);
+    authorizationManager.emitAuthorizedEvent({
+      address: 'address2',
+      expired: new Date(),
+      userId: 'user1',
+      value: 'token1'
+    });
+    await connectPromise;
+
+    expect(marketDataWsServer.server.clients().length).toBe(1);
+    expect(exchangeWsServer.server.clients().length).toBe(1);
+
+
+    const disconnectMarketDataPromise = getOnClosePromise(marketDataWsServer);
+    const disconnectExchangePromise = getOnClosePromise(exchangeWsServer);
+
+    client.dispose();
+
+    await Promise.all([disconnectMarketDataPromise, disconnectExchangePromise]);
+
+    expect(marketDataWsServer.server.clients().length).toBe(0);
+    expect(exchangeWsServer.server.clients().length).toBe(0);
+  });
+
   test('creates market data connection on initialization', async () => {
     expect(marketDataWsServer.server.clients().length).toBe(1);
   });
