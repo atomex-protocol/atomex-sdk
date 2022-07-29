@@ -2,7 +2,7 @@ import type { FetchMock } from 'jest-fetch-mock';
 
 import type { AuthToken } from '../../src/authorization/index';
 import type { QuoteDto, SymbolDto } from '../../src/clients/dtos';
-import { RestAtomexClient } from '../../src/clients/restAtomexClient';
+import { RestAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
 import {

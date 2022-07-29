@@ -1,5 +1,5 @@
-import { EventEmitter } from '../core/eventEmitter';
-import type { WebSocketRequestDto, WebSocketResponseDto } from './dtos';
+import { EventEmitter } from '../../core/eventEmitter';
+import type { WebSocketRequestDto, WebSocketResponseDto } from '../dtos';
 
 export interface WebSocketClientEvents {
   messageReceived: EventEmitter<readonly [message: WebSocketResponseDto]>;

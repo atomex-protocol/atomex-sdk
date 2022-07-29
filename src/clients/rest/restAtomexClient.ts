@@ -1,21 +1,21 @@
-import type { AuthorizationManager } from '../authorization/index';
-import type { Transaction } from '../blockchain/index';
-import type { AtomexNetwork, CancelAllSide, Side } from '../common/index';
-import { EventEmitter } from '../core';
+import type { AuthorizationManager } from '../../authorization/index';
+import type { Transaction } from '../../blockchain/index';
+import type { AtomexNetwork, CancelAllSide, Side } from '../../common/index';
+import { EventEmitter } from '../../core';
 import type {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
   OrdersSelector, CancelOrderRequest,
   CancelAllOrdersRequest, SwapsSelector, CurrencyDirection
-} from '../exchange/index';
-import type { Swap } from '../swaps/index';
-import type { AtomexClient } from './atomexClient';
-import type { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from './dtos';
-import { HttpClient } from './httpClient';
+} from '../../exchange/index';
+import type { Swap } from '../../swaps/index';
+import type { AtomexClient } from '../atomexClient';
+import type { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from '../dtos';
 import {
   findSymbolAndSide,
   mapOrderBookDtoToOrderBook, mapOrderDtosToOrders, mapOrderDtoToOrder,
   mapQuoteDtosToQuotes, mapSwapDtosToSwaps, mapSwapDtoToSwap, mapSymbolDtosToSymbols
-} from './mapper';
+} from '../mapper';
+import { HttpClient } from './httpClient';
 
 export interface RestAtomexClientOptions {
   atomexNetwork: AtomexNetwork;

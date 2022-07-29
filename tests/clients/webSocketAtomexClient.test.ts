@@ -1,7 +1,6 @@
 import WS from 'jest-websocket-mock';
 
 import type { AuthToken } from '../../src/authorization/index';
-import type { WebSocketRequestDto } from '../../src/clients/dtos';
 import { WebSocketAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
