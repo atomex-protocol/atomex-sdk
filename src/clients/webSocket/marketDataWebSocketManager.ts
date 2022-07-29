@@ -20,18 +20,21 @@ export class MarketDataWebSocketManager {
   constructor(
     protected readonly webSocketApiBaseUrl: string
   ) {
+    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
     this.onSocketClosed = this.onSocketClosed.bind(this);
 
     this.socket = this.createWebSocket();
   }
 
   dispose() {
+    this.socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
     this.socket.events.closed.removeListener(this.onSocketClosed);
     this.socket.disconnect();
   }
 
   protected createWebSocket(): WebSocketClient {
     const socket = new WebSocketClient(new URL(MarketDataWebSocketManager.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
+    socket.events.messageReceived.addListener(this.onSocketMessageReceived);
     socket.events.closed.addListener(this.onSocketClosed);
     socket.connect();
 
@@ -50,5 +53,9 @@ export class MarketDataWebSocketManager {
       socket.connect();
       this.subscribeOnStreams(socket);
     }, 1000);
+  }
+
+  protected onSocketMessageReceived(message: WebSocketResponseDto) {
+    this.events.messageReceived.emit(message);
   }
 }

@@ -10,7 +10,7 @@ import type {
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
 import type { WebSocketResponseDto } from '../dtos';
-import { mapSwapDtoToSwap, mapWebSocketOrderDtoToOrder } from '../mapper';
+import { mapQuoteDtoToQuote, mapSwapDtoToSwap, mapWebSocketOrderDtoToOrder } from '../mapper';
 import { ExchangeWebSocketManager } from './exchangeWebSocketManager';
 import { MarketDataWebSocketManager } from './marketDataWebSocketManager';
 
@@ -116,8 +116,12 @@ export class WebSocketAtomexClient implements AtomexClient {
         (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(mapSwapDtoToSwap(message.data));
         break;
 
-      default:
+      case 'topOfBook':
+        (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(mapQuoteDtoToQuote(message.data));
         break;
+
+      default:
+        throw new Error(`Unsupported event ${message.event}`);
     }
   }
 }

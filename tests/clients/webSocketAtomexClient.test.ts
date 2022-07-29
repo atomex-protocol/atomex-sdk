@@ -5,6 +5,7 @@ import { WebSocketAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
 import { validWsOrderTestCases, validWsSwapTestCases } from './testCases/index';
+import validWsTopOfBookTestCases from './testCases/validWsTopOfBookTestCases';
 
 describe('WebSocket Atomex Client', () => {
   const testApiUrl = 'ws://test-api.com';
@@ -82,13 +83,16 @@ describe('WebSocket Atomex Client', () => {
   test.each(validWsOrderTestCases)('emits orderUpdated event with correct data (%s)', async (_, [responseDto, expectedOrder]) => {
     const onOrderUpdatedCallback = jest.fn();
     const onSwapUpdatedCallback = jest.fn();
+    const onTopOfBookUpdatedCallback = jest.fn();
     client.events.orderUpdated.addListener(onOrderUpdatedCallback);
     client.events.swapUpdated.addListener(onSwapUpdatedCallback);
+    client.events.topOfBookUpdated.addListener(onTopOfBookUpdatedCallback);
     authorizationManager.emitAuthorizedEvent(testAuthToken);
     await exchangeWsServer.connected;
 
     exchangeWsServer.send(responseDto);
 
+    expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(1);
     expect(onOrderUpdatedCallback).toHaveBeenCalledWith(expectedOrder);
@@ -97,17 +101,39 @@ describe('WebSocket Atomex Client', () => {
   test.each(validWsSwapTestCases)('emits swapUpdated event with correct data (%s)', async (_, [responseDto, expectedSwap]) => {
     const onOrderUpdatedCallback = jest.fn();
     const onSwapUpdatedCallback = jest.fn();
+    const onTopOfBookUpdatedCallback = jest.fn();
     client.events.orderUpdated.addListener(onOrderUpdatedCallback);
     client.events.swapUpdated.addListener(onSwapUpdatedCallback);
+    client.events.topOfBookUpdated.addListener(onTopOfBookUpdatedCallback);
     authorizationManager.emitAuthorizedEvent(testAuthToken);
 
     await exchangeWsServer.connected;
 
     exchangeWsServer.send(responseDto);
 
+    expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(1);
     expect(onSwapUpdatedCallback).toHaveBeenCalledWith(expectedSwap);
+  });
+
+  test.each(validWsTopOfBookTestCases)('emits topOfBookUpdated event with correct data (%s)', async (_, [responseDto, expectedQuote]) => {
+    const onOrderUpdatedCallback = jest.fn();
+    const onSwapUpdatedCallback = jest.fn();
+    const onTopOfBookUpdatedCallback = jest.fn();
+    client.events.orderUpdated.addListener(onOrderUpdatedCallback);
+    client.events.swapUpdated.addListener(onSwapUpdatedCallback);
+    client.events.topOfBookUpdated.addListener(onTopOfBookUpdatedCallback);
+    authorizationManager.emitAuthorizedEvent(testAuthToken);
+
+    await exchangeWsServer.connected;
+
+    exchangeWsServer.send(responseDto);
+
+    expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
+    expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);
+    expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(1);
+    expect(onTopOfBookUpdatedCallback).toHaveBeenCalledWith(expectedQuote);
   });
 
   test('creates connection for every unique user', async () => {

@@ -3,9 +3,9 @@ import BigNumber from 'bignumber.js';
 import type { WebSocketSwapResponseDto } from '../../../src/clients/dtos';
 import type { Swap } from '../../../src/index';
 
-const validWsOrderTestCases: ReadonlyArray<readonly [
+const validWsSwapTestCases: ReadonlyArray<readonly [
   message: string,
-  testValue: readonly [dto: WebSocketSwapResponseDto, order: Swap]
+  testValue: readonly [dto: WebSocketSwapResponseDto, swap: Swap]
 ]> = [
     [
       'Simple buy swap',
@@ -374,4 +374,4 @@ const validWsOrderTestCases: ReadonlyArray<readonly [
     ]
   ];
 
-export default validWsOrderTestCases;
+export default validWsSwapTestCases;

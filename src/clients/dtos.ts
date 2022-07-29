@@ -39,6 +39,11 @@ export interface OrderBookEntryDto {
   qtyProfile: number[];
 }
 
+export interface WebSocketOrderBookEntryDto extends OrderBookEntryDto {
+  symbol: string;
+  updateId: number;
+}
+
 export interface OrderDto {
   id: number;
   clientOrderId: string;
@@ -141,4 +146,18 @@ export interface WebSocketSwapResponseDto extends WebSocketResponseBaseDto {
   data: SwapDto;
 }
 
-export type WebSocketResponseDto = WebSocketOrderResponseDto | WebSocketSwapResponseDto;
+export interface WebSocketTopOfBookResponseDto extends WebSocketResponseBaseDto {
+  event: 'topOfBook';
+  data: QuoteDto;
+}
+
+export interface WebSocketOrderBookResponseDto extends WebSocketResponseBaseDto {
+  event: 'entries';
+  data: WebSocketOrderBookEntryDto[];
+}
+
+export type WebSocketResponseDto =
+  | WebSocketOrderResponseDto
+  | WebSocketSwapResponseDto
+  | WebSocketTopOfBookResponseDto
+  | WebSocketOrderBookResponseDto;

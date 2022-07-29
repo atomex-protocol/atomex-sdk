@@ -53,20 +53,24 @@ export const findSymbolAndSide = (symbols: ExchangeSymbol[], from: Currency['id'
 };
 
 export const mapQuoteDtosToQuotes = (quoteDtos: QuoteDto[]): Quote[] => {
-  const quotes: Quote[] = quoteDtos.map(dto => {
-    const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(dto.symbol);
-
-    return {
-      ask: new BigNumber(dto.ask),
-      bid: new BigNumber(dto.bid),
-      symbol: dto.symbol,
-      timeStamp: new Date(dto.timeStamp),
-      quoteCurrency,
-      baseCurrency
-    };
-  });
+  const quotes: Quote[] = quoteDtos.map(dto => mapQuoteDtoToQuote(dto));
 
   return quotes;
+};
+
+export const mapQuoteDtoToQuote = (dto: QuoteDto): Quote => {
+  const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(dto.symbol);
+
+  const quote: Quote = {
+    ask: new BigNumber(dto.ask),
+    bid: new BigNumber(dto.bid),
+    symbol: dto.symbol,
+    timeStamp: new Date(dto.timeStamp),
+    quoteCurrency,
+    baseCurrency
+  };
+
+  return quote;
 };
 
 export const mapSymbolDtosToSymbols = (symbolDtos: SymbolDto[]): ExchangeSymbol[] => {
