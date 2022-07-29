@@ -1,6 +1,7 @@
 import WS from 'jest-websocket-mock';
 
 import type { AuthToken } from '../../src/authorization/index';
+import type { WebSocketRequestDto } from '../../src/clients/dtos';
 import { WebSocketAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
@@ -33,13 +34,17 @@ describe('WebSocket Atomex Client', () => {
   const createExchangeWebServer = () => {
     exchangeWsServer = new WS(
       new URL(WebSocketAtomexClient.EXCHANGE_URL_PATH, testApiUrl).toString(),
-      { selectProtocol: exchangeWsServerSelectProtocol }
+      {
+        selectProtocol: exchangeWsServerSelectProtocol,
+        jsonProtocol: true
+      }
     );
   };
 
   const createMarketDataWebServer = () => {
     marketDataWsServer = new WS(
       new URL(WebSocketAtomexClient.MARKET_DATA_URL_PATH, testApiUrl).toString(),
+      { jsonProtocol: true }
     );
   };
 
@@ -83,7 +88,7 @@ describe('WebSocket Atomex Client', () => {
     authorizationManager.emitAuthorizedEvent(testAuthToken);
     await exchangeWsServer.connected;
 
-    exchangeWsServer.send(JSON.stringify(responseDto));
+    exchangeWsServer.send(responseDto);
 
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(1);
@@ -99,7 +104,7 @@ describe('WebSocket Atomex Client', () => {
 
     await exchangeWsServer.connected;
 
-    exchangeWsServer.send(JSON.stringify(responseDto));
+    exchangeWsServer.send(responseDto);
 
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(1);
@@ -185,7 +190,7 @@ describe('WebSocket Atomex Client', () => {
     await connectPromise;
     await exchangeWsServer.connected;
 
-    exchangeWsServer.send(JSON.stringify(responseDto));
+    exchangeWsServer.send(responseDto);
 
     //imitation of disconnect from ws server
     exchangeWsServer.close();
@@ -194,7 +199,7 @@ describe('WebSocket Atomex Client', () => {
     exchangeWsServer.on('connection', () => connectionsCount++);
     await connectPromise;
 
-    exchangeWsServer.send(JSON.stringify(responseDto));
+    exchangeWsServer.send(responseDto);
 
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(2);
     expect(onOrderUpdatedCallback).toHaveBeenNthCalledWith(1, expectedOrder);
@@ -255,8 +260,22 @@ describe('WebSocket Atomex Client', () => {
     expect(exchangeWsServer.server.clients().length).toBe(0);
   });
 
-  test('creates market data connection on initialization', async () => {
+  test('creates market data connection with subscriptions on initialization', async () => {
     expect(marketDataWsServer.server.clients().length).toBe(1);
+
+    const messages = [await marketDataWsServer.nextMessage, await marketDataWsServer.nextMessage];
+
+    expect(messages).toContainEqual({
+      method: 'subscribe',
+      data: WebSocketAtomexClient.TOP_OF_BOOK_STREAM,
+      requestId: expect.anything()
+    });
+
+    expect(messages).toContainEqual({
+      method: 'subscribe',
+      data: WebSocketAtomexClient.ORDER_BOOK_STREAM,
+      requestId: expect.anything()
+    });
   });
 
   test('does reconnect when market data server closes connection', async () => {
@@ -271,5 +290,19 @@ describe('WebSocket Atomex Client', () => {
 
     expect(marketDataWsServer.server.clients().length).toBe(1);
     expect(connectionsCount).toBe(1);
+
+    const messages = [await marketDataWsServer.nextMessage, await marketDataWsServer.nextMessage];
+
+    expect(messages).toContainEqual({
+      method: 'subscribe',
+      data: WebSocketAtomexClient.TOP_OF_BOOK_STREAM,
+      requestId: expect.anything()
+    });
+
+    expect(messages).toContainEqual({
+      method: 'subscribe',
+      data: WebSocketAtomexClient.ORDER_BOOK_STREAM,
+      requestId: expect.anything()
+    });
   });
 });

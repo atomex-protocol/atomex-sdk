@@ -22,6 +22,8 @@ export interface WebSocketAtomexClientOptions {
 export class WebSocketAtomexClient implements AtomexClient {
   static readonly EXCHANGE_URL_PATH = '/ws/exchange';
   static readonly MARKET_DATA_URL_PATH = '/ws/marketdata';
+  static readonly TOP_OF_BOOK_STREAM = 'topOfBook';
+  static readonly ORDER_BOOK_STREAM = 'orderBook';
 
   readonly atomexNetwork: AtomexNetwork;
   readonly events: AtomexClient['events'] = {
@@ -33,22 +35,22 @@ export class WebSocketAtomexClient implements AtomexClient {
 
   protected readonly authorizationManager: AuthorizationManager;
   protected readonly webSocketApiBaseUrl: string;
-  protected readonly exchangeSockets: Map<string, WebSocketClient> = new Map();
-  protected markedDataSocket: WebSocketClient;
+  protected marketDataSocket: WebSocketClient;
+  protected readonly exchangeSockets: Map<string, WebSocketClient>;
 
   constructor(options: WebSocketAtomexClientOptions) {
     this.onAuthorized = this.onAuthorized.bind(this);
     this.onUnauthorized = this.onUnauthorized.bind(this);
     this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
-    this.onSocketClosed = this.onSocketClosed.bind(this);
+    this.onExchangeSocketClosed = this.onExchangeSocketClosed.bind(this);
+    this.onMarketDataSocketClosed = this.onMarketDataSocketClosed.bind(this);
 
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
     this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
 
-    this.markedDataSocket = new WebSocketClient(new URL(WebSocketAtomexClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
-    this.markedDataSocket.events.closed.addListener(this.onSocketClosed);
-    this.markedDataSocket.connect();
+    this.exchangeSockets = new Map();
+    this.marketDataSocket = this.createMarketDataWebsocket();
 
     this.subscribeOnEvents();
   }
@@ -103,11 +105,33 @@ export class WebSocketAtomexClient implements AtomexClient {
 
   dispose() {
     this.exchangeSockets.forEach((_, userId) => {
-      this.removeSocket(userId);
+      this.removeExchangeSocket(userId);
     });
 
-    this.markedDataSocket.events.closed.removeListener(this.onSocketClosed);
-    this.markedDataSocket.disconnect();
+    this.marketDataSocket.events.closed.removeListener(this.onMarketDataSocketClosed);
+    this.marketDataSocket.disconnect();
+  }
+
+  protected createMarketDataWebsocket(): WebSocketClient {
+    const socket = new WebSocketClient(new URL(WebSocketAtomexClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
+    socket.events.closed.addListener(this.onMarketDataSocketClosed);
+    socket.connect();
+
+    this.subscribeOnMarketDataStreams(socket);
+
+    return socket;
+  }
+
+  protected subscribeOnMarketDataStreams(socket: WebSocketClient) {
+    socket.subscribe(WebSocketAtomexClient.TOP_OF_BOOK_STREAM);
+    socket.subscribe(WebSocketAtomexClient.ORDER_BOOK_STREAM);
+  }
+
+  protected onMarketDataSocketClosed(socket: WebSocketClient, _event: CloseEvent) {
+    setTimeout(() => {
+      socket.connect();
+      this.subscribeOnMarketDataStreams(socket);
+    }, 1000);
   }
 
   protected subscribeOnEvents() {
@@ -116,29 +140,35 @@ export class WebSocketAtomexClient implements AtomexClient {
   }
 
   protected onAuthorized(authToken: AuthToken) {
-    this.removeSocket(authToken.userId);
+    this.removeExchangeSocket(authToken.userId);
 
     const socket = new WebSocketClient(new URL(WebSocketAtomexClient.EXCHANGE_URL_PATH, this.webSocketApiBaseUrl), authToken.value);
     socket.events.messageReceived.addListener(this.onSocketMessageReceived);
-    socket.events.closed.addListener(this.onSocketClosed);
+    socket.events.closed.addListener(this.onExchangeSocketClosed);
 
     this.exchangeSockets.set(authToken.userId, socket);
     socket.connect();
   }
 
   protected onUnauthorized(authToken: AuthToken) {
-    this.removeSocket(authToken.userId);
+    this.removeExchangeSocket(authToken.userId);
   }
 
-  protected removeSocket(userId: string) {
+  protected removeExchangeSocket(userId: string) {
     const socket = this.exchangeSockets.get(userId);
 
     if (socket) {
       socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
-      socket.events.closed.removeListener(this.onSocketClosed);
+      socket.events.closed.removeListener(this.onExchangeSocketClosed);
       this.exchangeSockets.delete(userId);
       socket.disconnect();
     }
+  }
+
+  protected onExchangeSocketClosed(socket: WebSocketClient, _event: CloseEvent) {
+    setTimeout(() => {
+      socket.connect();
+    }, 1000);
   }
 
   protected onSocketMessageReceived(message: WebSocketResponseDto) {
@@ -154,11 +184,5 @@ export class WebSocketAtomexClient implements AtomexClient {
       default:
         break;
     }
-  }
-
-  protected onSocketClosed(closedSocket: WebSocketClient, _event: CloseEvent) {
-    setTimeout(() => {
-      closedSocket.connect();
-    }, 1000);
   }
 }
