@@ -1,17 +1,17 @@
-import { FetchMock } from 'jest-fetch-mock';
+import type { FetchMock } from 'jest-fetch-mock';
 
-import { QuoteDto, SymbolDto } from '../../src/clients/dtos';
-import { AtomexNetwork, AuthToken, RestAtomexClient } from '../../src/index';
+import type { AuthToken } from '../../src/authorization/index';
+import type { QuoteDto, SymbolDto } from '../../src/clients/dtos';
+import { RestAtomexClient } from '../../src/clients/index';
+import type { AtomexNetwork } from '../../src/common/index';
 import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
 import {
-  validAddOrderTestCases, validCancelAllOrdersWithDirectionsTestCases,
+  validAddOrderTestCases, validAddOrderWithDirectionsTestCases, validCancelAllOrdersWithDirectionsTestCases,
   validCancelOrderWithDirectionsTestCases,
-  validOrderBookTestCases, validOrderTestCases,
+  validOrderBookTestCases, validOrderBookWithDirectionsTestCases, validOrderTestCases,
   validSwapTestCases, validSymbolsTestCases, validTopOfBookTestCases,
   validTopOfBookWithDirectionsTestCases
 } from './testCases';
-import validAddOrderWithDirectionsTestCases from './testCases/validAddOrderWithDirectionsTestCases';
-import validOrderBookWithDirectionsTestCases from './testCases/validOrderBookWithDirectionsTestCases';
 
 describe('Rest Atomex Client', () => {
   const fetchMock = fetch as FetchMock;
@@ -69,24 +69,26 @@ describe('Rest Atomex Client', () => {
       expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/MarketData/quotes`, expect.objectContaining({ method: 'GET' }));
     });
 
-    test.each(validTopOfBookWithDirectionsTestCases)('returns correct data (%s) using directions', async (_, [symbolsDto, responseDtos, directions, expectedQuotes, expectedSymbolsInFilter]) => {
-      fetchMock.mockResponses(
-        [JSON.stringify(symbolsDto), {}],
-        [JSON.stringify(responseDtos), {}],
-      );
+    test.each(validTopOfBookWithDirectionsTestCases)(
+      'returns correct data (%s) using directions',
+      async (_, [symbolsDto, responseDtos, directions, expectedQuotes, expectedSymbolsInFilter]) => {
+        fetchMock.mockResponses(
+          [JSON.stringify(symbolsDto), {}],
+          [JSON.stringify(responseDtos), {}],
+        );
 
-      const quotes = await client.getTopOfBook(directions);
-      expect(quotes).not.toBeNull();
-      expect(quotes).not.toBeUndefined();
-      expect(quotes.length).toBe(expectedQuotes.length);
-      expect(quotes).toEqual(expectedQuotes);
+        const quotes = await client.getTopOfBook(directions);
+        expect(quotes).not.toBeNull();
+        expect(quotes).not.toBeUndefined();
+        expect(quotes.length).toBe(expectedQuotes.length);
+        expect(quotes).toEqual(expectedQuotes);
 
-      expect(fetch).toHaveBeenCalledTimes(2);
-      expect(fetch).toHaveBeenLastCalledWith(
-        `${testApiUrl}/v1/MarketData/quotes?symbols=${encodeURIComponent(expectedSymbolsInFilter)}`,
-        expect.objectContaining({ method: 'GET' })
-      );
-    });
+        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(fetch).toHaveBeenLastCalledWith(
+          `${testApiUrl}/v1/MarketData/quotes?symbols=${encodeURIComponent(expectedSymbolsInFilter)}`,
+          expect.objectContaining({ method: 'GET' })
+        );
+      });
 
     test('fetches symbols just once', async () => {
       const symbolsResponse: SymbolDto[] = [{ name: 'ETH/BTC', minimumQty: 1 }, { name: 'XTZ/BTC', minimumQty: 1 }];
@@ -129,23 +131,25 @@ describe('Rest Atomex Client', () => {
       );
     });
 
-    test.each(validOrderBookWithDirectionsTestCases)('returns correct data (%s) using directions', async (_, [symbolsDto, responseDto, direction, expectedOrderBook, expectedFilter]) => {
-      fetchMock.mockResponses(
-        [JSON.stringify(symbolsDto), {}],
-        [JSON.stringify(responseDto), {}]
-      );
+    test.each(validOrderBookWithDirectionsTestCases)(
+      'returns correct data (%s) using directions',
+      async (_, [symbolsDto, responseDto, direction, expectedOrderBook, expectedFilter]) => {
+        fetchMock.mockResponses(
+          [JSON.stringify(symbolsDto), {}],
+          [JSON.stringify(responseDto), {}]
+        );
 
-      const orderBook = await client.getOrderBook(direction);
-      expect(orderBook).not.toBeNull();
-      expect(orderBook).not.toBeUndefined();
-      expect(orderBook).toEqual(expectedOrderBook);
+        const orderBook = await client.getOrderBook(direction);
+        expect(orderBook).not.toBeNull();
+        expect(orderBook).not.toBeUndefined();
+        expect(orderBook).toEqual(expectedOrderBook);
 
-      expect(fetch).toHaveBeenCalledTimes(2);
-      expect(fetch).toHaveBeenLastCalledWith(
-        `${testApiUrl}/v1/MarketData/book?symbol=${encodeURIComponent(expectedFilter)}`,
-        expect.objectContaining({ method: 'GET' })
-      );
-    });
+        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(fetch).toHaveBeenLastCalledWith(
+          `${testApiUrl}/v1/MarketData/book?symbol=${encodeURIComponent(expectedFilter)}`,
+          expect.objectContaining({ method: 'GET' })
+        );
+      });
   });
 
   describe('getOrder', () => {
@@ -202,20 +206,22 @@ describe('Rest Atomex Client', () => {
       );
     });
 
-    test.each([[true, 'Asc'], [false, 'Desc']])('passes the sortAsc filter (%s) to search params', async (filterValue, expectedQueryValue) => {
-      fetchMock.mockResponseOnce(JSON.stringify([]));
+    test.each([[true, 'Asc'], [false, 'Desc']])(
+      'passes the sortAsc filter (%s) to search params',
+      async (filterValue, expectedQueryValue) => {
+        fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getOrders(testAccountAddress, { sortAsc: filterValue });
+        await client.getOrders(testAccountAddress, { sortAsc: filterValue });
 
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Orders?sort=${expectedQueryValue}`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
-      );
-    });
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(fetch).toHaveBeenCalledWith(
+          `${testApiUrl}/v1/Orders?sort=${expectedQueryValue}`,
+          {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${testAuthToken.value}` }
+          }
+        );
+      });
 
     test.each([0, 100])('passes the limit filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
@@ -285,54 +291,58 @@ describe('Rest Atomex Client', () => {
   });
 
   describe('addOrder', () => {
-    test.each(validAddOrderTestCases)('passes and returns correct data (%s)', async (_, [requestData, createOrderDto, expectedPayload, expectedOrderId]) => {
-      fetchMock.mockResponse(JSON.stringify(createOrderDto));
+    test.each(validAddOrderTestCases)(
+      'passes and returns correct data (%s)',
+      async (_, [requestData, createOrderDto, expectedPayload, expectedOrderId]) => {
+        fetchMock.mockResponse(JSON.stringify(createOrderDto));
 
-      const orderId = await client.addOrder(testAccountAddress, requestData);
+        const orderId = await client.addOrder(testAccountAddress, requestData);
 
-      expect(orderId).toEqual(expectedOrderId);
+        expect(orderId).toEqual(expectedOrderId);
 
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(fetch).toHaveBeenLastCalledWith(
-        `${testApiUrl}/v1/Orders`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${testAuthToken.value}`,
-            'Content-Type': 'application/json'
-          },
-          body: expect.anything()
-        }
-      );
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(fetch).toHaveBeenLastCalledWith(
+          `${testApiUrl}/v1/Orders`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${testAuthToken.value}`,
+              'Content-Type': 'application/json'
+            },
+            body: expect.anything()
+          }
+        );
 
-      expect(JSON.parse(fetchMock.mock.calls[0]![1]!.body as string)).toEqual(expectedPayload);
-    });
+        expect(JSON.parse(fetchMock.mock.calls[0]![1]!.body as string)).toEqual(expectedPayload);
+      });
 
-    test.each(validAddOrderWithDirectionsTestCases)('passes and returns correct data (%s) using directions', async (_, [requestData, symbolsDto, createOrderDto, expectedPayload, expectedOrderId]) => {
-      fetchMock.mockResponses(
-        [JSON.stringify(symbolsDto), {}],
-        [JSON.stringify(createOrderDto), {}],
-      );
+    test.each(validAddOrderWithDirectionsTestCases)(
+      'passes and returns correct data (%s) using directions',
+      async (_, [requestData, symbolsDto, createOrderDto, expectedPayload, expectedOrderId]) => {
+        fetchMock.mockResponses(
+          [JSON.stringify(symbolsDto), {}],
+          [JSON.stringify(createOrderDto), {}],
+        );
 
-      const orderId = await client.addOrder(testAccountAddress, requestData);
+        const orderId = await client.addOrder(testAccountAddress, requestData);
 
-      expect(orderId).toEqual(expectedOrderId);
+        expect(orderId).toEqual(expectedOrderId);
 
-      expect(fetch).toHaveBeenCalledTimes(2);
-      expect(fetch).toHaveBeenLastCalledWith(
-        `${testApiUrl}/v1/Orders`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${testAuthToken.value}`,
-            'Content-Type': 'application/json'
-          },
-          body: expect.anything()
-        }
-      );
+        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(fetch).toHaveBeenLastCalledWith(
+          `${testApiUrl}/v1/Orders`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${testAuthToken.value}`,
+              'Content-Type': 'application/json'
+            },
+            body: expect.anything()
+          }
+        );
 
-      expect(JSON.parse(fetchMock.mock.calls[1]![1]!.body as string)).toEqual(expectedPayload);
-    });
+        expect(JSON.parse(fetchMock.mock.calls[1]![1]!.body as string)).toEqual(expectedPayload);
+      });
   });
 
   describe('cancelOrder', () => {
@@ -357,25 +367,27 @@ describe('Rest Atomex Client', () => {
       );
     });
 
-    test.each(validCancelOrderWithDirectionsTestCases)('passes and returns correct data with directions (%s)', async (_, [symbolDtos, request, expectedSymbol, expectedFilter]) => {
-      fetchMock.mockResponses(
-        [JSON.stringify(symbolDtos), {}],
-        [JSON.stringify(true), {}],
-      );
+    test.each(validCancelOrderWithDirectionsTestCases)(
+      'passes and returns correct data with directions (%s)',
+      async (_, [symbolDtos, request, expectedSymbol, expectedFilter]) => {
+        fetchMock.mockResponses(
+          [JSON.stringify(symbolDtos), {}],
+          [JSON.stringify(true), {}],
+        );
 
-      const isSuccess = await client.cancelOrder(testAccountAddress, request);
+        const isSuccess = await client.cancelOrder(testAccountAddress, request);
 
-      expect(isSuccess).toBe(true);
+        expect(isSuccess).toBe(true);
 
-      expect(fetch).toHaveBeenCalledTimes(2);
-      expect(fetch).toHaveBeenLastCalledWith(
-        `${testApiUrl}/v1/Orders/1?symbol=${encodeURIComponent(expectedSymbol)}&side=${expectedFilter}`,
-        {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
-      );
-    });
+        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(fetch).toHaveBeenLastCalledWith(
+          `${testApiUrl}/v1/Orders/1?symbol=${encodeURIComponent(expectedSymbol)}&side=${expectedFilter}`,
+          {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${testAuthToken.value}` }
+          }
+        );
+      });
   });
 
   describe('cancelAllOrders', () => {
@@ -400,25 +412,27 @@ describe('Rest Atomex Client', () => {
       );
     });
 
-    test.each(validCancelAllOrdersWithDirectionsTestCases)('passes and returns correct data with directions (%s)', async (_, [symbolDtos, request, expectedSymbol, expectedFilter]) => {
-      fetchMock.mockResponses(
-        [JSON.stringify(symbolDtos), {}],
-        [JSON.stringify(true), {}],
-      );
+    test.each(validCancelAllOrdersWithDirectionsTestCases)(
+      'passes and returns correct data with directions (%s)',
+      async (_, [symbolDtos, request, expectedSymbol, expectedFilter]) => {
+        fetchMock.mockResponses(
+          [JSON.stringify(symbolDtos), {}],
+          [JSON.stringify(true), {}],
+        );
 
-      const isSuccess = await client.cancelAllOrders(testAccountAddress, request);
+        const isSuccess = await client.cancelAllOrders(testAccountAddress, request);
 
-      expect(isSuccess).toBe(true);
+        expect(isSuccess).toBe(true);
 
-      expect(fetch).toHaveBeenCalledTimes(2);
-      expect(fetch).toHaveBeenLastCalledWith(
-        `${testApiUrl}/v1/Orders?symbol=${encodeURIComponent(expectedSymbol)}&side=${expectedFilter}`,
-        {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
-      );
-    });
+        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(fetch).toHaveBeenLastCalledWith(
+          `${testApiUrl}/v1/Orders?symbol=${encodeURIComponent(expectedSymbol)}&side=${expectedFilter}`,
+          {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${testAuthToken.value}` }
+          }
+        );
+      });
   });
 
   describe('getSwap', () => {

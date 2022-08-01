@@ -1,11 +1,11 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { Signer, SignersManager } from '../blockchain/index';
-import { ExchangeManager } from '../exchange/exchangeManager';
+import type { ExchangeManager } from '../exchange/exchangeManager';
 import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
-import {
-  SwapOperationCompleteStage, type AtomexBlockchainOptions,
-  type AtomexOptions, type NewSwapRequest
+import type {
+  SwapOperationCompleteStage, AtomexBlockchainOptions,
+  AtomexOptions, NewSwapRequest
 } from './models/index';
 
 export class Atomex {
@@ -39,14 +39,14 @@ export class Atomex {
     await this.options.blockchains?.[signer.blockchain]?.mainnet.blockchainToolkitProvider.addSigner(signer);
   }
 
-  addBlockchain(factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions) {
-    const blockchainOptions = factoryMethod(this.atomexContext);
+  addBlockchain(_factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions) {
+    //const blockchainOptions = factoryMethod(this.atomexContext);
     // TODO
   }
 
   async swap(newSwapRequest: NewSwapRequest, completeStage: SwapOperationCompleteStage): Promise<Swap>;
   async swap(swapId: Swap['id'], completeStage: SwapOperationCompleteStage): Promise<Swap>;
-  async swap(newSwapRequestOrSwapId: NewSwapRequest | Swap['id'], completeStage: SwapOperationCompleteStage): Promise<Swap> {
+  async swap(_newSwapRequestOrSwapId: NewSwapRequest | Swap['id'], _completeStage: SwapOperationCompleteStage): Promise<Swap> {
     throw new Error('Not implemented');
   }
 }

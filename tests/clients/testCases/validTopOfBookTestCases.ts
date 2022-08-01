@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 
-import { QuoteDto } from '../../../src/clients/dtos';
-import { Quote } from '../../../src/exchange/index';
+import type { QuoteDto } from '../../../src/clients/dtos';
+import type { Quote } from '../../../src/exchange/index';
 
 const validTopOfBookTestCases: ReadonlyArray<readonly [
   message: string,

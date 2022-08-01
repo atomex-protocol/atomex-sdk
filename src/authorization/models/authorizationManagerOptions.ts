@@ -1,4 +1,4 @@
-import { SignersManager } from '../../blockchain/signersManager';
+import type { SignersManager } from '../../blockchain/signersManager';
 import type { AtomexNetwork } from '../../common/index';
 import type { AuthorizationManagerStore } from '../../stores/index';
 

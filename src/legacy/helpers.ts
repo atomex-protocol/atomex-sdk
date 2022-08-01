@@ -1,4 +1,4 @@
-import {
+import type {
   AuthMessage,
   InitiateParameters,
   PartialTransactionBody,

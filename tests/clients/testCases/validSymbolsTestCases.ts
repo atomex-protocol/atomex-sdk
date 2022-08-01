@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 
-import { SymbolDto } from '../../../src/clients/dtos';
-import { ExchangeSymbol } from '../../../src/exchange/index';
+import type { SymbolDto } from '../../../src/clients/dtos';
+import type { ExchangeSymbol } from '../../../src/exchange/index';
 
 const validSymbolsTestCases: ReadonlyArray<readonly [
   message: string,

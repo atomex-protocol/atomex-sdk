@@ -1,6 +1,6 @@
-import { FetchMock } from 'jest-fetch-mock';
+import type { FetchMock } from 'jest-fetch-mock';
 
-import { AuthenticationResponseData } from '../../src/authorization/models/index';
+import type { AuthenticationResponseData } from '../../src/authorization/models/index';
 import {
   AuthorizationManager, SignersManager, InMemoryAuthorizationManagerStore, InMemoryTezosSigner,
   type AtomexNetwork

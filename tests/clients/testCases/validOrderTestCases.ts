@@ -1,11 +1,11 @@
 import BigNumber from 'bignumber.js';
 
-import { OrderDto } from '../../../src/clients/dtos';
-import { Order } from '../../../src/exchange/index';
+import type { OrderDto } from '../../../src/clients/dtos';
+import type { Order } from '../../../src/exchange/index';
 
 const validOrderTestCases: ReadonlyArray<readonly [
   message: string,
-  testValue: readonly [dto: OrderDto, orderBook: Order]
+  testValue: readonly [dto: OrderDto, order: Order]
 ]> = [
     [
       'Simple buy order',

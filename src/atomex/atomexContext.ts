@@ -2,7 +2,7 @@ import type { AuthorizationManager } from '../authorization/index';
 import type { SignersManager } from '../blockchain/index';
 import type { ExchangeManager, ExchangeService } from '../exchange';
 import type { AtomexNetwork } from '../index';
-import { SwapManager, SwapService } from '../swaps/index';
+import type { SwapManager, SwapService } from '../swaps/index';
 
 export class AtomexContext {
   private static idCounter = 0;

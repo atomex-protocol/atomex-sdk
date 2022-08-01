@@ -5,8 +5,8 @@ import type {
 } from '../../blockchain/index';
 import type { Currency } from '../../common/index';
 import type { ExchangeManager, ExchangeService } from '../../exchange/index';
-import { SwapManager } from '../../swaps/index';
-import { AtomexContext } from '../atomexContext';
+import type { SwapManager } from '../../swaps/index';
+import type { AtomexContext } from '../atomexContext';
 
 export interface AtomexOptions {
   atomexContext: AtomexContext;

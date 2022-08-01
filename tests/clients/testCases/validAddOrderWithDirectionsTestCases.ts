@@ -1,12 +1,12 @@
 import BigNumber from 'bignumber.js';
 
-import { CreatedOrderDto, SymbolDto, } from '../../../src/clients/dtos';
-import { NewOrderRequest } from '../../../src/exchange/index';
+import type { CreatedOrderDto, SymbolDto, } from '../../../src/clients/dtos';
+import type { NewOrderRequest } from '../../../src/exchange/index';
 
 const validAddOrderWithDirectionsTestCases: ReadonlyArray<readonly [
   message: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  testValue: readonly [request: NewOrderRequest, symbolsDto: SymbolDto[], createOrderDto: CreatedOrderDto, expectedPayload: any, expectedOrderId: number]
+  testValue: readonly [request: NewOrderRequest, symbolsDto: SymbolDto[], createdOrderDto: CreatedOrderDto, expectedPayload: any, expectedOrderId: number]
 ]> = [
     [
       'Simple buy order',
