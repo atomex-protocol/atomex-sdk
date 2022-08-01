@@ -220,33 +220,41 @@ export class RestAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  async getSwap(accountAddress: string, swapId: number): Promise<Swap> {
+  async getSwap(accountAddresses: string[], swapId: number): Promise<Swap> {
+    if (!accountAddresses.length)
+      throw new Error('Incorrect accountAddresses');
+
     const urlPath = `/v1/Swaps/${swapId}`;
-    const authToken = this.getRequiredAuthToken(accountAddress);
+    const params = {
+      userAddresses: accountAddresses.join(',')
+    };
 
     const swapDto = await this.httpClient.request<SwapDto>({
       urlPath,
-      authToken
+      params
     });
 
     return mapSwapDtoToSwap(swapDto);
   }
 
-  async getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]> {
+  async getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]> {
+    if (!accountAddresses.length)
+      throw new Error('Incorrect accountAddresses');
+
     const urlPath = '/v1/Swaps';
-    const authToken = this.getRequiredAuthToken(accountAddress);
+
     const params = {
       ...selector,
       sortAsc: undefined,
       sort: selector?.sortAsc !== undefined
         ? selector.sortAsc ? 'Asc' : 'Desc'
         : undefined,
+      userAddresses: accountAddresses.join(','),
     };
 
     const swapDtos = await this.httpClient.request<SwapDto[]>({
       urlPath,
-      params,
-      authToken
+      params
     });
 
     return mapSwapDtosToSwaps(swapDtos);

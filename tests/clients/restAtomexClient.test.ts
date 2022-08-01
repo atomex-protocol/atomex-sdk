@@ -439,18 +439,41 @@ describe('Rest Atomex Client', () => {
     test.each(validSwapTestCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
       fetchMock.mockResponseOnce(JSON.stringify(responseDto));
 
-      const swap = await client.getSwap(testAccountAddress, 123);
+      const swap = await client.getSwap([testAccountAddress], 123);
       expect(swap).not.toBeNull();
       expect(swap).not.toBeUndefined();
       expect(swap).toEqual(expectedSwap);
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps/123`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
+        `${testApiUrl}/v1/Swaps/123?userAddresses=${testAccountAddress}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
+      );
+    });
+
+    test('validates account addresses', async () => {
+      expect.assertions(1);
+      try {
+        await client.getSwap([], 123);
+      } catch (e) {
+        expect((e as Error).message).toMatch('accountAddresses');
+      }
+    });
+
+    test('sends all account addresses', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(validSwapTestCases[0]![1]![0]));
+
+      const addresses = ['address1', 'address2', 'address3'];
+      await client.getSwap(addresses, 123);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Swaps/123?userAddresses=${encodeURIComponent('address1,address2,address3')}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
       );
     });
   });
@@ -459,145 +482,146 @@ describe('Rest Atomex Client', () => {
     test.each(validSwapTestCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
       fetchMock.mockResponseOnce(JSON.stringify([responseDto]));
 
-      const swap = await client.getSwaps(testAccountAddress,);
+      const swap = await client.getSwaps([testAccountAddress]);
       expect(swap).not.toBeNull();
       expect(swap).not.toBeUndefined();
       expect(swap).toEqual([expectedSwap]);
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
+        `${testApiUrl}/v1/Swaps?userAddresses=${testAccountAddress}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
+      );
+    });
+
+    test('validates account addresses', async () => {
+      expect.assertions(1);
+      try {
+        await client.getSwaps([]);
+      } catch (e) {
+        expect((e as Error).message).toMatch('accountAddresses');
+      }
+    });
+
+    test('sends all account addresses', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([]));
+
+      const addresses = ['address1', 'address2', 'address3'];
+      await client.getSwaps(addresses);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Swaps?userAddresses=${encodeURIComponent('address1,address2,address3')}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
       );
     });
 
     test.each([true, false])('passes the active filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps(testAccountAddress, { active: filterValue });
+      await client.getSwaps([testAccountAddress], { active: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?active=${filterValue}`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
+        `${testApiUrl}/v1/Swaps?active=${filterValue}&userAddresses=${testAccountAddress}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
       );
     });
 
     test.each([[true, 'Asc'], [false, 'Desc']])('passes the sortAsc filter (%s) to search params', async (filterValue, expectedQueryValue) => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps(testAccountAddress, { sortAsc: filterValue });
+      await client.getSwaps([testAccountAddress], { sortAsc: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?sort=${expectedQueryValue}`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
+        `${testApiUrl}/v1/Swaps?sort=${expectedQueryValue}&userAddresses=${testAccountAddress}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
       );
     });
 
     test.each([0, 100])('passes the limit filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps(testAccountAddress, { limit: filterValue });
+      await client.getSwaps([testAccountAddress], { limit: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?limit=${filterValue}`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
+        `${testApiUrl}/v1/Swaps?limit=${filterValue}&userAddresses=${testAccountAddress}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
       );
     });
 
     test.each([2, 150])('passes the offset filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps(testAccountAddress, { offset: filterValue });
+      await client.getSwaps([testAccountAddress], { offset: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?offset=${filterValue}`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
+        `${testApiUrl}/v1/Swaps?offset=${filterValue}&userAddresses=${testAccountAddress}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
       );
     });
 
     test('passes the symbols filter to search params', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps(testAccountAddress, { symbols: 'ETH/BTC' });
+      await client.getSwaps([testAccountAddress], { symbols: 'ETH/BTC' });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?symbols=${encodeURIComponent('ETH/BTC')}`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
-      );
-    });
-
-    test('passes the symbols filter to search params', async () => {
-      fetchMock.mockResponseOnce(JSON.stringify([]));
-
-      await client.getSwaps(testAccountAddress, { symbols: 'ETH/BTC' });
-
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?symbols=${encodeURIComponent('ETH/BTC')}`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
+        `${testApiUrl}/v1/Swaps?symbols=${encodeURIComponent('ETH/BTC')}&userAddresses=${testAccountAddress}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
       );
     });
 
     test.each([true, false])('passes the completed filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps(testAccountAddress, { completed: filterValue });
+      await client.getSwaps([testAccountAddress], { completed: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?completed=${filterValue}`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
+        `${testApiUrl}/v1/Swaps?completed=${filterValue}&userAddresses=${testAccountAddress}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
       );
     });
 
     test.each([3, 4322])('passes the offset filter (%s) to search params', async filterValue => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps(testAccountAddress, { afterId: filterValue });
+      await client.getSwaps([testAccountAddress], { afterId: filterValue });
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?afterId=${filterValue}`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
+        `${testApiUrl}/v1/Swaps?afterId=${filterValue}&userAddresses=${testAccountAddress}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
       );
     });
 
     test('passes all filter values to search params', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      await client.getSwaps(testAccountAddress, {
+      await client.getSwaps([testAccountAddress], {
         active: true,
         afterId: 3,
         completed: true,
@@ -609,11 +633,10 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?active=true&afterId=3&completed=true&limit=10&offset=20&symbols=${encodeURIComponent('ETH/BTC')}&sort=Asc`,
-        {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${testAuthToken.value}` }
-        }
+        `${testApiUrl}/v1/Swaps?active=true&afterId=3&completed=true&limit=10&offset=20&symbols=${encodeURIComponent('ETH/BTC')}&sort=Asc&userAddresses=${testAccountAddress}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
       );
     });
   });

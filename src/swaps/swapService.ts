@@ -9,6 +9,6 @@ export interface SwapServiceEvents {
 export interface SwapService {
   readonly events: SwapServiceEvents;
 
-  getSwap(accountAddress: string, swapId: number): Promise<Swap>;
-  getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
+  getSwap(accountAddresses: string[], swapId: number): Promise<Swap>;
+  getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
 }

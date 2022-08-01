@@ -15,12 +15,12 @@ export class SwapManager {
     this.attachEvents();
   }
 
-  getSwap(accountAddress: string, swapId: number, _mode = ImportantDataReceivingMode.SafeMerged): Promise<Swap> {
-    return this.swapService.getSwap(accountAddress, swapId);
+  getSwap(accountAddresses: string[], swapId: number, _mode = ImportantDataReceivingMode.SafeMerged): Promise<Swap> {
+    return this.swapService.getSwap(accountAddresses, swapId);
   }
 
-  getSwaps(accountAddress: string, selector?: SwapsSelector, _mode = ImportantDataReceivingMode.SafeMerged): Promise<Swap[]> {
-    return this.swapService.getSwaps(accountAddress, selector);
+  getSwaps(accountAddresses: string[], selector?: SwapsSelector, _mode = ImportantDataReceivingMode.SafeMerged): Promise<Swap[]> {
+    return this.swapService.getSwaps(accountAddresses, selector);
   }
 
   protected attachEvents() {
