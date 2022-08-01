@@ -14,7 +14,7 @@ import {
   findSymbolAndSide,
   mapOrderBookDtoToOrderBook, mapOrderDtosToOrders, mapOrderDtoToOrder,
   mapQuoteDtosToQuotes, mapSwapDtosToSwaps, mapSwapDtoToSwap, mapSymbolDtosToSymbols
-} from '../mapper';
+} from '../helpers';
 import { HttpClient } from './httpClient';
 
 export interface RestAtomexClientOptions {

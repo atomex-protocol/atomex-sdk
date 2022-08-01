@@ -10,7 +10,7 @@ import type {
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
 import type { WebSocketResponseDto } from '../dtos';
-import { mapQuoteDtoToQuote, mapSwapDtoToSwap, mapWebSocketOrderBookEntryDtoToOrderBook, mapWebSocketOrderDtoToOrder } from '../mapper';
+import { mapQuoteDtoToQuote, mapSwapDtoToSwap, mapWebSocketOrderBookEntryDtoToOrderBook, mapWebSocketOrderDtoToOrder } from '../helpers';
 import { ExchangeWebSocketClient } from './exchangeWebSocketClient';
 import { MarketDataWebSocketClient } from './marketDataWebSocketClient';
 

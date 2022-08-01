@@ -3,8 +3,8 @@ import BigNumber from 'bignumber.js';
 import type { Transaction } from '../blockchain/models/index';
 import type { Currency, Side } from '../common/index';
 import type { ExchangeSymbol, Order, OrderBook, OrderCurrency, Quote } from '../exchange/index';
-import type { Swap } from '../swaps/index';
-import type { OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto, TransactionDto, WebSocketOrderBookEntryDto, WebSocketOrderDataDto } from './dtos';
+import type { Swap, SwapParticipantTrade } from '../swaps/index';
+import type { OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto, TradeDto, TransactionDto, WebSocketOrderBookEntryDto, WebSocketOrderDataDto } from './dtos';
 
 export const getQuoteBaseCurrenciesBySymbol = (symbol: string): [quoteCurrency: string, baseCurrency: string] => {
   const [quoteCurrency = '', baseCurrency = ''] = symbol.split('/');
@@ -38,11 +38,11 @@ export const getFromToCurrencies = (symbol: string, qty: number, price: number, 
 };
 
 export const findSymbolAndSide = (symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [symbol: string, side: Side] => {
-  let symbol = symbols.find(s => s.name === `${from}/${to}`);
+  let symbol = symbols.find(symbol => symbol.name === `${from}/${to}`);
   let side: Side = 'Sell';
 
   if (!symbol) {
-    symbol = symbols.find(s => s.name === `${to}/${from}`);
+    symbol = symbols.find(symbol => symbol.name === `${to}/${from}`);
     side = 'Buy';
   }
 
@@ -53,7 +53,7 @@ export const findSymbolAndSide = (symbols: ExchangeSymbol[], from: Currency['id'
 };
 
 export const mapQuoteDtosToQuotes = (quoteDtos: QuoteDto[]): Quote[] => {
-  const quotes: Quote[] = quoteDtos.map(dto => mapQuoteDtoToQuote(dto));
+  const quotes: Quote[] = quoteDtos.map(quoteDto => mapQuoteDtoToQuote(quoteDto));
 
   return quotes;
 };
@@ -74,12 +74,12 @@ export const mapQuoteDtoToQuote = (quoteDto: QuoteDto): Quote => {
 };
 
 export const mapSymbolDtosToSymbols = (symbolDtos: SymbolDto[]): ExchangeSymbol[] => {
-  const symbols: ExchangeSymbol[] = symbolDtos.map(dto => {
-    const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(dto.name);
+  const symbols: ExchangeSymbol[] = symbolDtos.map(symbolDto => {
+    const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(symbolDto.name);
 
     return {
-      name: dto.name,
-      minimumQty: new BigNumber(dto.minimumQty),
+      name: symbolDto.name,
+      minimumQty: new BigNumber(symbolDto.minimumQty),
       quoteCurrency,
       baseCurrency
     };
@@ -96,16 +96,15 @@ export const mapOrderBookDtoToOrderBook = (orderBookDto: OrderBookDto): OrderBoo
     symbol: orderBookDto.symbol,
     quoteCurrency,
     baseCurrency,
-    entries: orderBookDto.entries.map(e => ({
-      side: e.side,
-      price: new BigNumber(e.price),
-      qtyProfile: e.qtyProfile
+    entries: orderBookDto.entries.map(orderBookEntryDto => ({
+      side: orderBookEntryDto.side,
+      price: new BigNumber(orderBookEntryDto.price),
+      qtyProfile: orderBookEntryDto.qtyProfile
     }))
   };
 
   return orderBook;
 };
-
 
 export const mapWebSocketOrderBookEntryDtoToOrderBook = (orderBookEntryDtos: WebSocketOrderBookEntryDto[]): OrderBook => {
   const firstOrderBookEntry = orderBookEntryDtos[0];
@@ -119,10 +118,10 @@ export const mapWebSocketOrderBookEntryDtoToOrderBook = (orderBookEntryDtos: Web
     symbol: firstOrderBookEntry.symbol,
     quoteCurrency,
     baseCurrency,
-    entries: orderBookEntryDtos.map(e => ({
-      side: e.side,
-      price: new BigNumber(e.price),
-      qtyProfile: e.qtyProfile
+    entries: orderBookEntryDtos.map(orderBookEntryDto => ({
+      side: orderBookEntryDto.side,
+      price: new BigNumber(orderBookEntryDto.price),
+      qtyProfile: orderBookEntryDto.qtyProfile
     }))
   };
 
@@ -143,24 +142,24 @@ export const mapOrderDtoToOrder = (orderDto: OrderDto): Order => {
     timeStamp: new Date(orderDto.timeStamp),
     type: orderDto.type,
     status: orderDto.status,
-    swapIds: orderDto.swaps?.map(s => s.id) || [],
+    swapIds: orderDto.swaps?.map(swap => swap.id) || [],
   };
 };
 
 export const mapOrderDtosToOrders = (orderDtos: OrderDto[]): Order[] => {
-  const orders = orderDtos.map(dto => mapOrderDtoToOrder(dto));
+  const orders = orderDtos.map(orderDto => mapOrderDtoToOrder(orderDto));
 
   return orders;
 };
 
 export const mapTransactionDtosToTransactions = (transactionDtos: TransactionDto[]): Transaction[] => {
-  const transactions = transactionDtos.map(t => ({
-    id: t.txId,
-    blockId: t.blockHeight,
-    confirmations: t.confirmations,
-    currencyId: t.currency,
-    status: t.status,
-    type: t.type
+  const transactions = transactionDtos.map(transactionDto => ({
+    id: transactionDto.txId,
+    blockId: transactionDto.blockHeight,
+    confirmations: transactionDto.confirmations,
+    currencyId: transactionDto.currency,
+    status: transactionDto.status,
+    type: transactionDto.type
   }));
 
   return transactions;
@@ -190,11 +189,7 @@ export const mapSwapDtoToSwap = (swapDto: SwapDto): Swap => {
         ...swapDto.counterParty.requisites,
         rewardForRedeem: new BigNumber(swapDto.counterParty.requisites.rewardForRedeem),
       },
-      trades: swapDto.counterParty.trades.map(t => ({
-        orderId: t.orderId,
-        price: new BigNumber(t.price),
-        qty: new BigNumber(t.qty),
-      })),
+      trades: mapTradeDtosToTrades(swapDto.counterParty.trades)
     },
     user: {
       status: swapDto.user.status,
@@ -203,19 +198,25 @@ export const mapSwapDtoToSwap = (swapDto: SwapDto): Swap => {
         ...swapDto.user.requisites,
         rewardForRedeem: new BigNumber(swapDto.user.requisites.rewardForRedeem),
       },
-      trades: swapDto.user.trades.map(t => ({
-        orderId: t.orderId,
-        price: new BigNumber(t.price),
-        qty: new BigNumber(t.qty),
-      })),
+      trades: mapTradeDtosToTrades(swapDto.user.trades)
     },
   };
 
   return swap;
 };
 
+export const mapTradeDtosToTrades = (tradeDtos: TradeDto[]): SwapParticipantTrade[] => {
+  const trades = tradeDtos.map(tradeDto => ({
+    orderId: tradeDto.orderId,
+    price: new BigNumber(tradeDto.price),
+    qty: new BigNumber(tradeDto.qty),
+  }));
+
+  return trades;
+};
+
 export const mapSwapDtosToSwaps = (swapDtos: SwapDto[]): Swap[] => {
-  const swaps = swapDtos.map(dto => mapSwapDtoToSwap(dto));
+  const swaps = swapDtos.map(swapDto => mapSwapDtoToSwap(swapDto));
 
   return swaps;
 };
