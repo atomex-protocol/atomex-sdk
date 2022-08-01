@@ -29,7 +29,7 @@ describe('Atomex authorization', () => {
   });
 
   afterEach(() => {
-    authorizationManager.stopAuthTokenExpirationTracking();
+    authorizationManager.dispose();
   });
 
   test('first authorization', async () => {
