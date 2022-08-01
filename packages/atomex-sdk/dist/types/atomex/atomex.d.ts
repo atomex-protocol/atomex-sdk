@@ -17,4 +17,5 @@ export declare class Atomex {
     addBlockchain(_factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions): void;
     swap(newSwapRequest: NewSwapRequest, completeStage: SwapOperationCompleteStage): Promise<Swap>;
     swap(swapId: Swap['id'], completeStage: SwapOperationCompleteStage): Promise<Swap>;
+    dispose(): void;
 }

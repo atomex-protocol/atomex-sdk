@@ -2,7 +2,7 @@ import type { SignersManager } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
 import { type PublicEventEmitter } from '../core/index';
 import type { AuthorizationManagerStore } from '../stores/index';
-import type { AuthenticationRequestData, AuthenticationResponseData, AuthorizationManagerOptions, AuthToken, AuthTokenData } from './models/index';
+import { AuthenticationRequestData, AuthenticationResponseData, AuthorizationManagerOptions, AuthToken, AuthTokenData, AuthorizationParameters } from './models/index';
 interface AuthorizationManagerEvents {
     readonly authorized: PublicEventEmitter<readonly [authToken: AuthToken]>;
     readonly unauthorized: PublicEventEmitter<readonly [authToken: AuthToken]>;
@@ -23,9 +23,10 @@ export declare class AuthorizationManager {
     constructor(options: AuthorizationManagerOptions);
     protected get authTokenData(): ReadonlyMap<string, AuthTokenData>;
     getAuthToken(address: string): AuthToken | undefined;
-    authorize(address: string, forceRequestNewToken?: boolean, blockchain?: string, authMessage?: string): Promise<AuthToken>;
+    authorize({ address, authTokenSource, blockchain, authMessage }: AuthorizationParameters): Promise<AuthToken | undefined>;
     unauthorize(address: string): Promise<boolean>;
-    loadAuthTokenFromStore(address: string): Promise<AuthToken | undefined>;
+    dispose(): void;
+    protected loadAuthTokenFromStore(address: string): Promise<AuthToken | undefined>;
     protected registerAuthToken(authToken: AuthToken, isNeedSave: boolean): Promise<AuthToken | undefined>;
     protected unregisterAuthToken(authToken: AuthToken): Promise<boolean>;
     protected trackAuthToken(authToken: AuthToken): AuthTokenData['watcherId'];

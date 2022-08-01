@@ -40,6 +40,9 @@ var Atomex = class {
   async swap(_newSwapRequestOrSwapId, _completeStage) {
     throw new Error("Not implemented");
   }
+  dispose() {
+    this.authorization.dispose();
+  }
 };
 
 // src/atomex/atomexContext.ts
@@ -1125,6 +1128,14 @@ var createDefaultExchangeService = (atomexContext, options) => {
   }));
 };
 
+// src/authorization/models/authTokenSource.ts
+var AuthTokenSource = /* @__PURE__ */ ((AuthTokenSource2) => {
+  AuthTokenSource2[AuthTokenSource2["Local"] = 1] = "Local";
+  AuthTokenSource2[AuthTokenSource2["Remote"] = 2] = "Remote";
+  AuthTokenSource2[AuthTokenSource2["All"] = 3] = "All";
+  return AuthTokenSource2;
+})(AuthTokenSource || {});
+
 // src/authorization/authorizationManager.ts
 var _AuthorizationManager = class {
   events = {
@@ -1154,12 +1165,19 @@ var _AuthorizationManager = class {
     var _a;
     return (_a = this.authTokenData.get(address)) == null ? void 0 : _a.authToken;
   }
-  async authorize(address, forceRequestNewToken = false, blockchain, authMessage = _AuthorizationManager.DEFAULT_AUTH_MESSAGE) {
-    if (!forceRequestNewToken) {
+  async authorize({
+    address,
+    authTokenSource = 3 /* All */,
+    blockchain,
+    authMessage = _AuthorizationManager.DEFAULT_AUTH_MESSAGE
+  }) {
+    if ((authTokenSource & 1 /* Local */) === 1 /* Local */) {
       const authToken2 = this.getAuthToken(address) || await this.loadAuthTokenFromStore(address);
       if (authToken2 && !this.isTokenExpiring(authToken2))
         return authToken2;
     }
+    if ((authTokenSource & 2 /* Remote */) !== 2 /* Remote */)
+      return void 0;
     const signer = await this.signersManager.findSigner(address, blockchain);
     if (!signer)
       throw new Error(`Not found: the corresponding signer by the ${address} address`);
@@ -1187,6 +1205,10 @@ var _AuthorizationManager = class {
   async unauthorize(address) {
     const authToken = this.getAuthToken(address);
     return authToken ? this.unregisterAuthToken(authToken) : false;
+  }
+  dispose() {
+    for (const authTokenDataTuple of this.authTokenData)
+      this.untrackAuthToken(authTokenDataTuple[1].watcherId);
   }
   async loadAuthTokenFromStore(address) {
     const authToken = await this.store.getAuthToken(address);
@@ -3546,6 +3568,7 @@ var FA2Helpers = class extends TezosHelpers {
 export {
   Atomex,
   AtomexBuilder,
+  AuthTokenSource,
   AuthorizationManager,
   DefaultSerializedAuthTokenMapper,
   ImportantDataReceivingMode,
