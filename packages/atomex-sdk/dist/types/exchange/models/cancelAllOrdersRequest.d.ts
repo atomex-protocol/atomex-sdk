@@ -1,5 +1,5 @@
-import { CancelAllSide } from '../../common/index';
-import { CurrencyDirection } from './index';
+import type { CancelAllSide } from '../../common/index';
+import type { CurrencyDirection } from './currencyDirection';
 interface CancelAllOrdersRequestBase {
     forAllConnections?: boolean;
 }

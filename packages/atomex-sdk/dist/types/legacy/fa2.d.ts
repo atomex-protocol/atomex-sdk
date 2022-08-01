@@ -1,6 +1,6 @@
-import { OperationContentsAndResultTransaction } from '@taquito/rpc';
+import type { OperationContentsAndResultTransaction } from '@taquito/rpc';
 import { TezosHelpers } from './tezos';
-import { InitiateParameters, Network, TezosBasedCurrency } from './types';
+import type { InitiateParameters, Network, TezosBasedCurrency } from './types';
 export declare class FA2Helpers extends TezosHelpers {
     /**
      * Connects to the supported tezos chain

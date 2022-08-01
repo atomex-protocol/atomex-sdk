@@ -1,4 +1,4 @@
-import { AuthMessage, InitiateParameters, PartialTransactionBody, RedeemFees, SwapTransactionStatus } from './types';
+import type { AuthMessage, InitiateParameters, PartialTransactionBody, RedeemFees, SwapTransactionStatus } from './types';
 export declare abstract class Helpers {
     /**
      * Get the details needed for `getAuthToken` request

@@ -17,10 +17,10 @@ export declare class ExchangeManager {
     addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
     cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
     cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
-    getRewardForRedeem(nativeTokenUsdPrice: number, nativeTokenCurrencyPrice: number): Promise<Result<BigNumber>>;
+    getRewardForRedeem(_nativeTokenUsdPrice: number, _nativeTokenCurrencyPrice: number): Promise<Result<BigNumber>>;
     protected attachEvents(): void;
     protected detachEvents(): void;
     protected handleExchangeServiceOrderUpdated: (updatedOrder: Order) => void;
     protected handleExchangeServiceOrderBookUpdated: (updatedOrderBook: OrderBook) => void;
-    protected handleExchangeServiceTopOfBookUpdated: (updatedQuotes: readonly Quote[]) => void;
+    protected handleExchangeServiceTopOfBookUpdated: (updatedQuote: Quote) => void;
 }

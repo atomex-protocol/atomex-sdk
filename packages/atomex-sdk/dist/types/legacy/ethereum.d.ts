@@ -1,8 +1,8 @@
 import Web3 from 'web3';
-import { Transaction } from 'web3-core';
-import { AbiInput, AbiItem } from 'web3-utils';
+import type { Transaction } from 'web3-core';
+import type { AbiInput, AbiItem } from 'web3-utils';
 import { Helpers } from './helpers';
-import { AuthMessage, InitiateParameters, PartialTransactionBody, RedeemFees, SwapTransactionStatus } from './types';
+import type { AuthMessage, InitiateParameters, PartialTransactionBody, RedeemFees, SwapTransactionStatus } from './types';
 export interface Function {
     types: AbiInput[];
     signature: string;

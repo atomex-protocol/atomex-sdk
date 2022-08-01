@@ -1,5 +1,5 @@
 import { Atomex, AtomexContext } from '../atomex/index';
-import { AuthorizationManager } from '../authorization/index';
+import type { AuthorizationManager } from '../authorization/index';
 import { SignersManager } from '../blockchain/signersManager';
 import type { DeepReadonly } from '../core/index';
 import { ExchangeManager } from '../exchange/exchangeManager';

@@ -2,7 +2,7 @@ import { ParameterSchema } from '@taquito/michelson-encoder';
 import { BlockResponse, OperationContentsAndResultTransaction } from '@taquito/rpc';
 import { TezosToolkit } from '@taquito/taquito';
 import { Helpers } from './helpers';
-import { AuthMessage, InitiateParameters, PartialTransactionBody, RedeemFees, SwapTransactionStatus, TezosBasedCurrency, Network } from './types';
+import type { AuthMessage, InitiateParameters, PartialTransactionBody, RedeemFees, SwapTransactionStatus, TezosBasedCurrency, Network } from './types';
 /**
  * Tezos Util class for Tezos related Atomex helper functions
  */

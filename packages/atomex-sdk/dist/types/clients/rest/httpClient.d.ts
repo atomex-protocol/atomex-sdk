@@ -4,7 +4,7 @@ declare type QueryParams = {
 declare type Payload = {
     [key: string]: unknown;
 };
-interface RequestOptions {
+export interface RequestOptions {
     urlPath: string;
     method?: 'GET' | 'POST' | 'DELETE';
     authToken?: string;

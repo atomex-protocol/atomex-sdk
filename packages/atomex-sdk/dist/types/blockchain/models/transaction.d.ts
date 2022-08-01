@@ -1,10 +1,9 @@
+import type { Currency } from '../../common/index';
 export interface Transaction {
-    readonly currency: string;
-    readonly txId: string;
-    readonly blockHeight: number;
+    readonly id: string;
+    readonly blockId: number;
+    readonly currencyId: Currency['id'];
+    readonly status: string;
     readonly confirmations: number;
-    readonly status: TransactionStatus;
-    readonly type: TransactionType;
+    readonly type: string;
 }
-export declare type TransactionStatus = 'Pending' | 'Confirmed' | 'Canceled';
-export declare type TransactionType = 'Lock' | 'AdditionalLock' | 'Redeem' | 'Refund';

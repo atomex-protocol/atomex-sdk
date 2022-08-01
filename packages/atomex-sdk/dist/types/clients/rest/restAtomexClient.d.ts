@@ -1,9 +1,9 @@
-import type { AuthorizationManager } from '../authorization/index';
-import type { Transaction } from '../blockchain/index';
-import type { AtomexNetwork } from '../common/index';
-import { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, ExchangeServiceEvents, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection } from '../exchange/index';
-import type { Swap } from '../swaps/index';
-import type { AtomexClient } from './atomexClient';
+import type { AuthorizationManager } from '../../authorization/index';
+import type { Transaction } from '../../blockchain/index';
+import type { AtomexNetwork } from '../../common/index';
+import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection } from '../../exchange/index';
+import type { Swap } from '../../swaps/index';
+import type { AtomexClient } from '../atomexClient';
 import { HttpClient } from './httpClient';
 export interface RestAtomexClientOptions {
     atomexNetwork: AtomexNetwork;
@@ -12,7 +12,7 @@ export interface RestAtomexClientOptions {
 }
 export declare class RestAtomexClient implements AtomexClient {
     readonly atomexNetwork: AtomexNetwork;
-    readonly events: ExchangeServiceEvents;
+    readonly events: AtomexClient['events'];
     protected readonly authorizationManager: AuthorizationManager;
     protected readonly apiBaseUrl: string;
     protected readonly httpClient: HttpClient;
@@ -28,19 +28,9 @@ export declare class RestAtomexClient implements AtomexClient {
     addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
     cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
     cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
-    getSwapTransactions(swap: Swap): Promise<readonly Transaction[]>;
+    getSwapTransactions(_swap: Swap): Promise<readonly Transaction[]>;
     getSwap(accountAddress: string, swapId: number): Promise<Swap>;
     getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
     private getRequiredAuthToken;
     private getCachedSymbols;
-    private findSymbolAndSide;
-    private mapQuoteDtosToQuotes;
-    private mapSymbolDtosToSymbols;
-    private mapOrderBookDtoToOrderBook;
-    private mapOrderDtoToOrder;
-    private mapOrderDtosToOrders;
-    private mapSwapDtoToSwap;
-    private mapSwapDtosToSwaps;
-    private getQuoteBaseCurrenciesBySymbol;
-    private getFromToCurrencies;
 }

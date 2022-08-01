@@ -1,6 +1,6 @@
-import { OperationContentsAndResultTransaction } from '@taquito/rpc';
+import type { OperationContentsAndResultTransaction } from '@taquito/rpc';
 import { TezosHelpers } from './tezos';
-import { InitiateParameters, Network, TezosBasedCurrency } from './types';
+import type { InitiateParameters, Network, TezosBasedCurrency } from './types';
 /**
  * TZIP-7 Util class for Tezos FA1.2 tokens related Atomex helper functions
  */

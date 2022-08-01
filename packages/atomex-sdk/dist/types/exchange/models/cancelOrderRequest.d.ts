@@ -1,5 +1,5 @@
-import { Side } from '../../common/models/side';
-import { CurrencyDirection } from './currencyDirection';
+import type { Side } from '../../common/models/side';
+import type { CurrencyDirection } from './currencyDirection';
 interface CancelOrderRequestBase {
     orderId: number;
 }

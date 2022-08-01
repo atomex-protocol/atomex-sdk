@@ -1,5 +1,5 @@
 import type { AuthorizationManager } from '../authorization';
-import { AddOrderRequest, AddSwapRequisites, AuthTokenRequest, AuthTokenResponse, BookQuote, GetOrdersRequest, GetSwapsRequest, Order, OrderBook, OrderPreview, Side, Swap, SymbolData, CurrencyConfig } from './types';
+import type { AddOrderRequest, AddSwapRequisites, AuthTokenRequest, AuthTokenResponse, BookQuote, GetOrdersRequest, GetSwapsRequest, Order, OrderBook, OrderPreview, Side, Swap, SymbolData, CurrencyConfig } from './types';
 export declare class Atomex {
     private _network;
     private _baseUrl;

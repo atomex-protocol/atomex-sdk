@@ -78,10 +78,9 @@ var Atomex = class {
     await this.signers.addSigner(signer);
     await ((_b = (_a = this.options.blockchains) == null ? void 0 : _a[signer.blockchain]) == null ? void 0 : _b.mainnet.blockchainToolkitProvider.addSigner(signer));
   }
-  addBlockchain(factoryMethod) {
-    const blockchainOptions = factoryMethod(this.atomexContext);
+  addBlockchain(_factoryMethod) {
   }
-  async swap(newSwapRequestOrSwapId, completeStage) {
+  async swap(_newSwapRequestOrSwapId, _completeStage) {
     throw new Error("Not implemented");
   }
 };
@@ -392,7 +391,7 @@ var ExchangeManager = class {
   cancelAllOrders(accountAddress, cancelAllOrdersRequest) {
     return this.exchangeService.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
   }
-  getRewardForRedeem(nativeTokenUsdPrice, nativeTokenCurrencyPrice) {
+  getRewardForRedeem(_nativeTokenUsdPrice, _nativeTokenCurrencyPrice) {
     throw new Error("Not implemented");
   }
   attachEvents() {
@@ -411,8 +410,8 @@ var ExchangeManager = class {
   handleExchangeServiceOrderBookUpdated = (updatedOrderBook) => {
     this.events.orderBookUpdated.emit(updatedOrderBook);
   };
-  handleExchangeServiceTopOfBookUpdated = (updatedQuotes) => {
-    this.events.topOfBookUpdated.emit(updatedQuotes);
+  handleExchangeServiceTopOfBookUpdated = (updatedQuote) => {
+    this.events.topOfBookUpdated.emit(updatedQuote);
   };
 };
 
@@ -420,19 +419,29 @@ var ExchangeManager = class {
 var SwapManager = class {
   constructor(swapService) {
     this.swapService = swapService;
+    this.attachEvents();
   }
+  events = {
+    swapUpdated: new EventEmitter()
+  };
   getSwap(accountAddress, swapId, _mode = 2 /* SafeMerged */) {
     return this.swapService.getSwap(accountAddress, swapId);
   }
   getSwaps(accountAddress, selector, _mode = 2 /* SafeMerged */) {
     return this.swapService.getSwaps(accountAddress, selector);
   }
+  attachEvents() {
+    this.swapService.events.swapUpdated.addListener(this.handleSwapServiceSwapUpdated);
+  }
+  detachEvents() {
+    this.swapService.events.swapUpdated.removeListener(this.handleSwapServiceSwapUpdated);
+  }
+  handleSwapServiceSwapUpdated = (updatedOrder) => {
+    this.events.swapUpdated.emit(updatedOrder);
+  };
 };
 
-// src/clients/restAtomexClient.ts
-var import_bignumber2 = __toESM(require("bignumber.js"));
-
-// src/clients/httpClient.ts
+// src/clients/rest/httpClient.ts
 var HttpClient = class {
   constructor(baseUrl) {
     this.baseUrl = baseUrl;
@@ -469,10 +478,206 @@ var HttpClient = class {
   }
 };
 
-// src/clients/restAtomexClient.ts
+// src/clients/helpers.ts
+var import_bignumber2 = __toESM(require("bignumber.js"));
+var getQuoteBaseCurrenciesBySymbol = (symbol) => {
+  const [quoteCurrency = "", baseCurrency = ""] = symbol.split("/");
+  return [quoteCurrency, baseCurrency];
+};
+var getFromToCurrencies = (symbol, qty, price, side) => {
+  const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol);
+  const quoteCurrencyAmount = new import_bignumber2.default(qty);
+  const quoteCurrencyPrice = new import_bignumber2.default(price);
+  const baseCurrencyAmount = quoteCurrencyPrice.multipliedBy(quoteCurrencyAmount);
+  const baseCurrencyPrice = quoteCurrencyAmount.div(baseCurrencyAmount);
+  const quoteCurrency = {
+    currencyId: quoteCurrencyId,
+    amount: quoteCurrencyAmount,
+    price: quoteCurrencyPrice
+  };
+  const baseCurrency = {
+    currencyId: baseCurrencyId,
+    amount: baseCurrencyAmount,
+    price: baseCurrencyPrice
+  };
+  return side === "Buy" ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
+};
+var findSymbolAndSide = (symbols, from, to) => {
+  let symbol = symbols.find((symbol2) => symbol2.name === `${from}/${to}`);
+  let side = "Sell";
+  if (!symbol) {
+    symbol = symbols.find((symbol2) => symbol2.name === `${to}/${from}`);
+    side = "Buy";
+  }
+  if (!symbol)
+    throw new Error(`Invalid pair: ${from}/${to}`);
+  return [symbol.name, side];
+};
+var mapQuoteDtosToQuotes = (quoteDtos) => {
+  const quotes = quoteDtos.map((quoteDto) => mapQuoteDtoToQuote(quoteDto));
+  return quotes;
+};
+var mapQuoteDtoToQuote = (quoteDto) => {
+  const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(quoteDto.symbol);
+  const quote = {
+    ask: new import_bignumber2.default(quoteDto.ask),
+    bid: new import_bignumber2.default(quoteDto.bid),
+    symbol: quoteDto.symbol,
+    timeStamp: new Date(quoteDto.timeStamp),
+    quoteCurrency,
+    baseCurrency
+  };
+  return quote;
+};
+var mapSymbolDtosToSymbols = (symbolDtos) => {
+  const symbols = symbolDtos.map((symbolDto) => {
+    const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(symbolDto.name);
+    return {
+      name: symbolDto.name,
+      minimumQty: new import_bignumber2.default(symbolDto.minimumQty),
+      quoteCurrency,
+      baseCurrency
+    };
+  });
+  return symbols;
+};
+var mapOrderBookDtoToOrderBook = (orderBookDto) => {
+  const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
+  const orderBook = {
+    updateId: orderBookDto.updateId,
+    symbol: orderBookDto.symbol,
+    quoteCurrency,
+    baseCurrency,
+    entries: orderBookDto.entries.map((orderBookEntryDto) => ({
+      side: orderBookEntryDto.side,
+      price: new import_bignumber2.default(orderBookEntryDto.price),
+      qtyProfile: orderBookEntryDto.qtyProfile
+    }))
+  };
+  return orderBook;
+};
+var mapWebSocketOrderBookEntryDtoToOrderBook = (orderBookEntryDtos) => {
+  const firstOrderBookEntry = orderBookEntryDtos[0];
+  if (!firstOrderBookEntry)
+    throw new Error("Unexpected dto");
+  const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(firstOrderBookEntry.symbol);
+  const orderBook = {
+    updateId: firstOrderBookEntry.updateId,
+    symbol: firstOrderBookEntry.symbol,
+    quoteCurrency,
+    baseCurrency,
+    entries: orderBookEntryDtos.map((orderBookEntryDto) => ({
+      side: orderBookEntryDto.side,
+      price: new import_bignumber2.default(orderBookEntryDto.price),
+      qtyProfile: orderBookEntryDto.qtyProfile
+    }))
+  };
+  return orderBook;
+};
+var mapOrderDtoToOrder = (orderDto) => {
+  var _a;
+  const [from, to] = getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
+  return {
+    id: orderDto.id,
+    from,
+    to,
+    clientOrderId: orderDto.clientOrderId,
+    side: orderDto.side,
+    symbol: orderDto.symbol,
+    leaveQty: new import_bignumber2.default(orderDto.leaveQty),
+    timeStamp: new Date(orderDto.timeStamp),
+    type: orderDto.type,
+    status: orderDto.status,
+    swapIds: ((_a = orderDto.swaps) == null ? void 0 : _a.map((swap) => swap.id)) || []
+  };
+};
+var mapOrderDtosToOrders = (orderDtos) => {
+  const orders = orderDtos.map((orderDto) => mapOrderDtoToOrder(orderDto));
+  return orders;
+};
+var mapTransactionDtosToTransactions = (transactionDtos) => {
+  const transactions = transactionDtos.map((transactionDto) => ({
+    id: transactionDto.txId,
+    blockId: transactionDto.blockHeight,
+    confirmations: transactionDto.confirmations,
+    currencyId: transactionDto.currency,
+    status: transactionDto.status,
+    type: transactionDto.type
+  }));
+  return transactions;
+};
+var mapSwapDtoToSwap = (swapDto) => {
+  const [from, to] = getFromToCurrencies(swapDto.symbol, swapDto.qty, swapDto.price, swapDto.side);
+  const swap = {
+    isInitiator: swapDto.isInitiator,
+    secret: swapDto.secret,
+    secretHash: swapDto.secretHash,
+    id: Number(swapDto.id),
+    from,
+    to,
+    trade: {
+      qty: new import_bignumber2.default(swapDto.qty),
+      price: new import_bignumber2.default(swapDto.price),
+      side: swapDto.side,
+      symbol: swapDto.symbol
+    },
+    timeStamp: new Date(swapDto.timeStamp),
+    counterParty: {
+      status: swapDto.counterParty.status,
+      transactions: mapTransactionDtosToTransactions(swapDto.counterParty.transactions),
+      requisites: {
+        ...swapDto.counterParty.requisites,
+        rewardForRedeem: new import_bignumber2.default(swapDto.counterParty.requisites.rewardForRedeem)
+      },
+      trades: mapTradeDtosToTrades(swapDto.counterParty.trades)
+    },
+    user: {
+      status: swapDto.user.status,
+      transactions: mapTransactionDtosToTransactions(swapDto.user.transactions),
+      requisites: {
+        ...swapDto.user.requisites,
+        rewardForRedeem: new import_bignumber2.default(swapDto.user.requisites.rewardForRedeem)
+      },
+      trades: mapTradeDtosToTrades(swapDto.user.trades)
+    }
+  };
+  return swap;
+};
+var mapTradeDtosToTrades = (tradeDtos) => {
+  const trades = tradeDtos.map((tradeDto) => ({
+    orderId: tradeDto.orderId,
+    price: new import_bignumber2.default(tradeDto.price),
+    qty: new import_bignumber2.default(tradeDto.qty)
+  }));
+  return trades;
+};
+var mapSwapDtosToSwaps = (swapDtos) => {
+  const swaps = swapDtos.map((swapDto) => mapSwapDtoToSwap(swapDto));
+  return swaps;
+};
+var mapWebSocketOrderDtoToOrder = (orderDto) => {
+  const [from, to] = getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
+  const order = {
+    id: orderDto.id,
+    clientOrderId: orderDto.clientOrderId,
+    side: orderDto.side,
+    status: orderDto.status,
+    leaveQty: new import_bignumber2.default(orderDto.leaveQty),
+    swapIds: orderDto.swaps,
+    symbol: orderDto.symbol,
+    type: orderDto.type,
+    timeStamp: new Date(orderDto.timeStamp),
+    from,
+    to
+  };
+  return order;
+};
+
+// src/clients/rest/restAtomexClient.ts
 var RestAtomexClient = class {
   atomexNetwork;
   events = {
+    swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
@@ -491,7 +696,7 @@ var RestAtomexClient = class {
     const urlPath = `/v1/Orders/${orderId}`;
     const authToken = this.getRequiredAuthToken(accountAddress);
     const orderDto = await this.httpClient.request({ urlPath, authToken });
-    return this.mapOrderDtoToOrder(orderDto);
+    return mapOrderDtoToOrder(orderDto);
   }
   async getOrders(accountAddress, selector) {
     const urlPath = "/v1/Orders";
@@ -502,12 +707,12 @@ var RestAtomexClient = class {
       sort: (selector == null ? void 0 : selector.sortAsc) !== void 0 ? selector.sortAsc ? "Asc" : "Desc" : void 0
     };
     const orderDtos = await this.httpClient.request({ urlPath, authToken, params });
-    return this.mapOrderDtosToOrders(orderDtos);
+    return mapOrderDtosToOrders(orderDtos);
   }
   async getSymbols() {
     const urlPath = "/v1/Symbols";
     const symbolDtos = await this.httpClient.request({ urlPath });
-    const symbols = this.mapSymbolDtosToSymbols(symbolDtos);
+    const symbols = mapSymbolDtosToSymbols(symbolDtos);
     this._symbolsCache = symbols;
     return symbols;
   }
@@ -519,12 +724,12 @@ var RestAtomexClient = class {
         symbols = symbolsOrDirections;
       else {
         const cachedSymbols = await this.getCachedSymbols();
-        symbols = symbolsOrDirections.map((d) => this.findSymbolAndSide(cachedSymbols, d.from, d.to)[0]);
+        symbols = symbolsOrDirections.map((d) => findSymbolAndSide(cachedSymbols, d.from, d.to)[0]);
       }
     }
     const params = { symbols: symbols == null ? void 0 : symbols.join(",") };
     const quoteDtos = await this.httpClient.request({ urlPath, params });
-    return this.mapQuoteDtosToQuotes(quoteDtos);
+    return mapQuoteDtosToQuotes(quoteDtos);
   }
   async getOrderBook(symbolOrDirection) {
     const urlPath = "/v1/MarketData/book";
@@ -533,11 +738,11 @@ var RestAtomexClient = class {
       symbol = symbolOrDirection;
     else {
       const cachedSymbols = await this.getCachedSymbols();
-      [symbol] = this.findSymbolAndSide(cachedSymbols, symbolOrDirection.from, symbolOrDirection.to);
+      [symbol] = findSymbolAndSide(cachedSymbols, symbolOrDirection.from, symbolOrDirection.to);
     }
     const params = { symbol };
     const orderBookDto = await this.httpClient.request({ urlPath, params });
-    return this.mapOrderBookDtoToOrderBook(orderBookDto);
+    return mapOrderBookDtoToOrderBook(orderBookDto);
   }
   async addOrder(accountAddress, newOrderRequest) {
     const urlPath = "/v1/Orders";
@@ -548,7 +753,7 @@ var RestAtomexClient = class {
       [symbol, side] = [newOrderRequest.symbol, newOrderRequest.side];
     else if (newOrderRequest.from && newOrderRequest.to) {
       const cachedSymbols = await this.getCachedSymbols();
-      [symbol, side] = this.findSymbolAndSide(cachedSymbols, newOrderRequest.from, newOrderRequest.to);
+      [symbol, side] = findSymbolAndSide(cachedSymbols, newOrderRequest.from, newOrderRequest.to);
     } else
       throw new Error("Invalid newOrderRequest argument passed");
     const payload = {
@@ -578,7 +783,7 @@ var RestAtomexClient = class {
       [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
     else if (cancelOrderRequest.from && cancelOrderRequest.to) {
       const cachedSymbols = await this.getCachedSymbols();
-      [symbol, side] = this.findSymbolAndSide(cachedSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+      [symbol, side] = findSymbolAndSide(cachedSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
     } else
       throw new Error("Invalid cancelOrderRequest argument passed");
     const params = { symbol, side };
@@ -599,7 +804,7 @@ var RestAtomexClient = class {
       [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
     else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
       const cachedSymbols = await this.getCachedSymbols();
-      [symbol, side] = this.findSymbolAndSide(cachedSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      [symbol, side] = findSymbolAndSide(cachedSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
       if (cancelAllOrdersRequest.cancelAllDirections)
         side = "All";
     } else
@@ -616,7 +821,7 @@ var RestAtomexClient = class {
     });
     return canceledOrdersCount;
   }
-  getSwapTransactions(swap) {
+  getSwapTransactions(_swap) {
     throw new Error("Method not implemented.");
   }
   async getSwap(accountAddress, swapId) {
@@ -626,7 +831,7 @@ var RestAtomexClient = class {
       urlPath,
       authToken
     });
-    return this.mapSwapDtoToSwap(swapDto);
+    return mapSwapDtoToSwap(swapDto);
   }
   async getSwaps(accountAddress, selector) {
     const urlPath = "/v1/Swaps";
@@ -641,7 +846,7 @@ var RestAtomexClient = class {
       params,
       authToken
     });
-    return this.mapSwapDtosToSwaps(swapDtos);
+    return mapSwapDtosToSwaps(swapDtos);
   }
   getRequiredAuthToken(accountAddress) {
     var _a;
@@ -656,195 +861,246 @@ var RestAtomexClient = class {
       this._symbolsCache = await this.getSymbols();
     return this._symbolsCache;
   }
-  findSymbolAndSide(symbols, from, to) {
-    let symbol = symbols.find((s) => s.name === `${from}/${to}`);
-    let side = "Sell";
-    if (!symbol) {
-      symbol = symbols.find((s) => s.name === `${to}/${from}`);
-      side = "Buy";
-    }
-    if (!symbol)
-      throw new Error(`Invalid pair: ${from}/${to}`);
-    return [symbol.name, side];
+};
+
+// src/clients/webSocket/webSocketClient.ts
+var WebSocketClient = class {
+  constructor(url, authToken) {
+    this.url = url;
+    this.authToken = authToken;
+    this.onMessageReceived = this.onMessageReceived.bind(this);
+    this.onClosed = this.onClosed.bind(this);
   }
-  mapQuoteDtosToQuotes(quoteDtos) {
-    const quotes = quoteDtos.map((dto) => {
-      const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(dto.symbol);
-      return {
-        ask: new import_bignumber2.default(dto.ask),
-        bid: new import_bignumber2.default(dto.bid),
-        symbol: dto.symbol,
-        timeStamp: new Date(dto.timeStamp),
-        quoteCurrency,
-        baseCurrency
-      };
-    });
-    return quotes;
+  events = {
+    messageReceived: new EventEmitter(),
+    closed: new EventEmitter()
+  };
+  _socket;
+  get socket() {
+    if (!this._socket)
+      throw new Error("Internal websocket is not created. Use the connect method first");
+    return this._socket;
   }
-  mapSymbolDtosToSymbols(symbolDtos) {
-    const symbols = symbolDtos.map((dto) => {
-      const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(dto.name);
-      return {
-        name: dto.name,
-        minimumQty: new import_bignumber2.default(dto.minimumQty),
-        quoteCurrency,
-        baseCurrency
-      };
-    });
-    return symbols;
+  set socket(value) {
+    this._socket = value;
   }
-  mapOrderBookDtoToOrderBook(orderBookDto) {
-    const [quoteCurrency, baseCurrency] = this.getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
-    const orderBook = {
-      updateId: orderBookDto.updateId,
-      symbol: orderBookDto.symbol,
-      quoteCurrency,
-      baseCurrency,
-      entries: orderBookDto.entries.map((e) => ({
-        side: e.side,
-        price: new import_bignumber2.default(e.price),
-        qtyProfile: e.qtyProfile
-      }))
+  connect() {
+    if (this._socket)
+      this.disconnect();
+    const protocols = this.authToken ? ["access_token", this.authToken] : void 0;
+    this.socket = new WebSocket(this.url, protocols);
+    this.socket.addEventListener("message", this.onMessageReceived);
+    this.socket.addEventListener("error", this.onError);
+    this.socket.addEventListener("close", this.onClosed);
+  }
+  disconnect() {
+    this.socket.removeEventListener("message", this.onMessageReceived);
+    this.socket.removeEventListener("error", this.onError);
+    this.socket.removeEventListener("close", this.onClosed);
+    this.socket.close();
+  }
+  subscribe(stream) {
+    const message = {
+      method: "subscribe",
+      data: stream,
+      requestId: Date.now()
     };
-    return orderBook;
+    this.socket.send(JSON.stringify(message));
   }
-  mapOrderDtoToOrder(orderDto) {
-    var _a;
-    const [from, to] = this.getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
-    return {
-      id: orderDto.id,
-      from,
-      to,
-      clientOrderId: orderDto.clientOrderId,
-      side: orderDto.side,
-      symbol: orderDto.symbol,
-      leaveQty: new import_bignumber2.default(orderDto.leaveQty),
-      timeStamp: new Date(orderDto.timeStamp),
-      type: orderDto.type,
-      status: orderDto.status,
-      swapIds: ((_a = orderDto.swaps) == null ? void 0 : _a.map((s) => s.id)) || []
+  unsubscribe(stream) {
+    const message = {
+      method: "unsubscribe",
+      data: stream,
+      requestId: Date.now()
     };
+    this.socket.send(JSON.stringify(message));
   }
-  mapOrderDtosToOrders(orderDtos) {
-    const orders = orderDtos.map((dto) => this.mapOrderDtoToOrder(dto));
-    return orders;
+  onMessageReceived(event) {
+    this.events.messageReceived.emit(JSON.parse(event.data));
   }
-  mapSwapDtoToSwap(swapDto) {
-    const [from, to] = this.getFromToCurrencies(swapDto.symbol, swapDto.qty, swapDto.price, swapDto.side);
-    const swap = {
-      isInitiator: swapDto.isInitiator,
-      secret: swapDto.secret,
-      secretHash: swapDto.secretHash,
-      id: Number(swapDto.id),
-      from,
-      to,
-      trade: {
-        qty: new import_bignumber2.default(swapDto.qty),
-        price: new import_bignumber2.default(swapDto.price),
-        side: swapDto.side,
-        symbol: swapDto.symbol
-      },
-      timeStamp: new Date(swapDto.timeStamp),
-      counterParty: {
-        status: swapDto.counterParty.status,
-        transactions: swapDto.counterParty.transactions,
-        requisites: {
-          ...swapDto.counterParty.requisites,
-          rewardForRedeem: new import_bignumber2.default(swapDto.counterParty.requisites.rewardForRedeem)
-        },
-        trades: swapDto.counterParty.trades.map((t) => ({
-          orderId: t.orderId,
-          price: new import_bignumber2.default(t.price),
-          qty: new import_bignumber2.default(t.qty)
-        }))
-      },
-      user: {
-        status: swapDto.user.status,
-        transactions: swapDto.user.transactions,
-        requisites: {
-          ...swapDto.user.requisites,
-          rewardForRedeem: new import_bignumber2.default(swapDto.user.requisites.rewardForRedeem)
-        },
-        trades: swapDto.user.trades.map((t) => ({
-          orderId: t.orderId,
-          price: new import_bignumber2.default(t.price),
-          qty: new import_bignumber2.default(t.qty)
-        }))
-      }
-    };
-    return swap;
+  onError(event) {
+    throw new Error(`Websocket received error: ${JSON.stringify(event)}`);
   }
-  mapSwapDtosToSwaps(swapDtos) {
-    const swaps = swapDtos.map((dto) => this.mapSwapDtoToSwap(dto));
-    return swaps;
-  }
-  getQuoteBaseCurrenciesBySymbol(symbol) {
-    const [quoteCurrency = "", baseCurrency = ""] = symbol.split("/");
-    return [quoteCurrency, baseCurrency];
-  }
-  getFromToCurrencies(symbol, qty, price, side) {
-    const [quoteCurrencyId, baseCurrencyId] = this.getQuoteBaseCurrenciesBySymbol(symbol);
-    const quoteCurrencyAmount = new import_bignumber2.default(qty);
-    const quoteCurrencyPrice = new import_bignumber2.default(price);
-    const baseCurrencyAmount = quoteCurrencyPrice.multipliedBy(quoteCurrencyAmount);
-    const baseCurrencyPrice = quoteCurrencyAmount.div(baseCurrencyAmount);
-    const quoteCurrency = {
-      currencyId: quoteCurrencyId,
-      amount: quoteCurrencyAmount,
-      price: quoteCurrencyPrice
-    };
-    const baseCurrency = {
-      currencyId: baseCurrencyId,
-      amount: baseCurrencyAmount,
-      price: baseCurrencyPrice
-    };
-    return side === "Buy" ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
+  onClosed(event) {
+    this.events.closed.emit(this, event);
   }
 };
 
-// src/clients/webSocketAtomexClient.ts
-var WebSocketAtomexClient = class {
-  constructor(atomexNetwork, authorizationManager) {
-    this.atomexNetwork = atomexNetwork;
+// src/clients/webSocket/exchangeWebSocketClient.ts
+var _ExchangeWebSocketClient = class {
+  constructor(webSocketApiBaseUrl, authorizationManager) {
+    this.webSocketApiBaseUrl = webSocketApiBaseUrl;
     this.authorizationManager = authorizationManager;
+    this.onAuthorized = this.onAuthorized.bind(this);
+    this.onUnauthorized = this.onUnauthorized.bind(this);
+    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
+    this.onClosed = this.onClosed.bind(this);
+    this.subscribeOnAuthEvents();
   }
   events = {
+    messageReceived: new EventEmitter()
+  };
+  sockets = /* @__PURE__ */ new Map();
+  dispose() {
+    this.sockets.forEach((_, userId) => {
+      this.removeSocket(userId);
+    });
+  }
+  subscribeOnAuthEvents() {
+    this.authorizationManager.events.authorized.addListener(this.onAuthorized);
+    this.authorizationManager.events.unauthorized.addListener(this.onUnauthorized);
+  }
+  onAuthorized(authToken) {
+    this.removeSocket(authToken.userId);
+    const socket = new WebSocketClient(new URL(_ExchangeWebSocketClient.EXCHANGE_URL_PATH, this.webSocketApiBaseUrl), authToken.value);
+    socket.events.messageReceived.addListener(this.onSocketMessageReceived);
+    socket.events.closed.addListener(this.onClosed);
+    this.sockets.set(authToken.userId, socket);
+    socket.connect();
+  }
+  onUnauthorized(authToken) {
+    this.removeSocket(authToken.userId);
+  }
+  removeSocket(userId) {
+    const socket = this.sockets.get(userId);
+    if (socket) {
+      socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
+      socket.events.closed.removeListener(this.onClosed);
+      this.sockets.delete(userId);
+      socket.disconnect();
+    }
+  }
+  onSocketMessageReceived(message) {
+    this.events.messageReceived.emit(message);
+  }
+  onClosed(socket, _event) {
+    setTimeout(() => {
+      socket.connect();
+    }, 1e3);
+  }
+};
+var ExchangeWebSocketClient = _ExchangeWebSocketClient;
+__publicField(ExchangeWebSocketClient, "EXCHANGE_URL_PATH", "/ws/exchange");
+
+// src/clients/webSocket/marketDataWebSocketClient.ts
+var _MarketDataWebSocketClient = class {
+  constructor(webSocketApiBaseUrl) {
+    this.webSocketApiBaseUrl = webSocketApiBaseUrl;
+    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
+    this.onSocketClosed = this.onSocketClosed.bind(this);
+    this.socket = this.createWebSocket();
+  }
+  events = {
+    messageReceived: new EventEmitter()
+  };
+  socket;
+  dispose() {
+    this.socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
+    this.socket.events.closed.removeListener(this.onSocketClosed);
+    this.socket.disconnect();
+  }
+  createWebSocket() {
+    const socket = new WebSocketClient(new URL(_MarketDataWebSocketClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
+    socket.events.messageReceived.addListener(this.onSocketMessageReceived);
+    socket.events.closed.addListener(this.onSocketClosed);
+    socket.connect();
+    this.subscribeOnStreams(socket);
+    return socket;
+  }
+  subscribeOnStreams(socket) {
+    socket.subscribe(_MarketDataWebSocketClient.TOP_OF_BOOK_STREAM);
+    socket.subscribe(_MarketDataWebSocketClient.ORDER_BOOK_STREAM);
+  }
+  onSocketClosed(socket, _event) {
+    setTimeout(() => {
+      socket.connect();
+      this.subscribeOnStreams(socket);
+    }, 1e3);
+  }
+  onSocketMessageReceived(message) {
+    this.events.messageReceived.emit(message);
+  }
+};
+var MarketDataWebSocketClient = _MarketDataWebSocketClient;
+__publicField(MarketDataWebSocketClient, "MARKET_DATA_URL_PATH", "/ws/marketdata");
+__publicField(MarketDataWebSocketClient, "TOP_OF_BOOK_STREAM", "topOfBook");
+__publicField(MarketDataWebSocketClient, "ORDER_BOOK_STREAM", "orderBook");
+
+// src/clients/webSocket/webSocketAtomexClient.ts
+var WebSocketAtomexClient = class {
+  atomexNetwork;
+  events = {
+    swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
-  getOrder(accountAddress, orderId) {
+  authorizationManager;
+  webSocketApiBaseUrl;
+  marketDataWebSocketClient;
+  exchangeWebSocketClient;
+  constructor(options) {
+    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
+    this.atomexNetwork = options.atomexNetwork;
+    this.authorizationManager = options.authorizationManager;
+    this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
+    this.exchangeWebSocketClient = new ExchangeWebSocketClient(this.webSocketApiBaseUrl, this.authorizationManager);
+    this.exchangeWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
+    this.marketDataWebSocketClient = new MarketDataWebSocketClient(this.webSocketApiBaseUrl);
+    this.marketDataWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
+  }
+  getOrder(_accountAddress, _orderId) {
     throw new Error("Method not implemented.");
   }
-  getOrders(accountAddress, selector) {
+  getOrders(_accountAddress, _selector) {
     throw new Error("Method not implemented.");
   }
   getSymbols() {
     throw new Error("Method not implemented.");
   }
-  getTopOfBook(symbolsOrDirections) {
+  getTopOfBook(_symbolsOrDirections) {
     throw new Error("Method not implemented.");
   }
-  async getOrderBook(symbolOrDirection) {
+  async getOrderBook(_symbolOrDirection) {
     throw new Error("Method not implemented.");
   }
-  addOrder(accountAddress, newOrderRequest) {
+  addOrder(_accountAddress, _newOrderRequest) {
     throw new Error("Method not implemented.");
   }
-  cancelOrder(accountAddress, cancelOrderRequest) {
+  cancelOrder(_accountAddress, _cancelOrderRequest) {
     throw new Error("Method not implemented.");
   }
-  cancelAllOrders(accountAddress, cancelAllOrdersRequest) {
+  cancelAllOrders(_accountAddress, _cancelAllOrdersRequest) {
     throw new Error("Method not implemented.");
   }
-  getSwapTransactions(swap) {
+  getSwapTransactions(_swap) {
     throw new Error("Method not implemented.");
   }
-  getSwap(accountAddress, swapId) {
+  getSwap(_accountAddress, _swapId) {
     throw new Error("Method not implemented.");
   }
-  getSwaps(accountAddress, selector) {
+  getSwaps(_accountAddress, _selector) {
     throw new Error("Method not implemented.");
+  }
+  dispose() {
+    this.exchangeWebSocketClient.dispose();
+    this.marketDataWebSocketClient.dispose();
+  }
+  onSocketMessageReceived(message) {
+    switch (message.event) {
+      case "order":
+        this.events.orderUpdated.emit(mapWebSocketOrderDtoToOrder(message.data));
+        break;
+      case "swap":
+        this.events.swapUpdated.emit(mapSwapDtoToSwap(message.data));
+        break;
+      case "topOfBook":
+        this.events.topOfBookUpdated.emit(mapQuoteDtoToQuote(message.data));
+        break;
+      case "entries":
+        this.events.orderBookUpdated.emit(mapWebSocketOrderBookEntryDtoToOrderBook(message.data));
+        break;
+    }
   }
 };
 
@@ -857,6 +1113,7 @@ var MixedApiAtomexClient = class {
     atomexUtils_exports.ensureNetworksAreSame(this, restAtomexClient);
     atomexUtils_exports.ensureNetworksAreSame(this, webSocketAtomexClient);
     this.events = {
+      swapUpdated: this.webSocketAtomexClient.events.swapUpdated,
       orderBookUpdated: this.webSocketAtomexClient.events.orderBookUpdated,
       orderUpdated: this.webSocketAtomexClient.events.orderUpdated,
       topOfBookUpdated: this.webSocketAtomexClient.events.topOfBookUpdated
@@ -902,9 +1159,13 @@ var MixedApiAtomexClient = class {
 var createDefaultExchangeService = (atomexContext, options) => {
   return new MixedApiAtomexClient(atomexContext.atomexNetwork, new RestAtomexClient({
     atomexNetwork: atomexContext.atomexNetwork,
-    apiBaseUrl: options.apiBaseUrl,
-    authorizationManager: atomexContext.managers.authorizationManager
-  }), new WebSocketAtomexClient(atomexContext.atomexNetwork, atomexContext.managers.authorizationManager));
+    authorizationManager: atomexContext.managers.authorizationManager,
+    apiBaseUrl: options.apiBaseUrl
+  }), new WebSocketAtomexClient({
+    atomexNetwork: atomexContext.atomexNetwork,
+    authorizationManager: atomexContext.managers.authorizationManager,
+    webSocketApiBaseUrl: options.webSocketApiBaseUrl
+  }));
 };
 
 // src/authorization/authorizationManager.ts
@@ -1235,7 +1496,8 @@ var atomexMainnetConfig = {
     }
   },
   exchange: {
-    apiBaseUrl: atomexApiBaseUrl
+    apiBaseUrl: atomexApiBaseUrl,
+    webSocketApiBaseUrl: "wss://ws.api.atomex.me"
   }
 };
 var atomexTestApiBaseUrl = "https://api.test.atomex.me";
@@ -1250,7 +1512,8 @@ var atomexTestnetConfig = {
     }
   },
   exchange: {
-    apiBaseUrl: atomexTestApiBaseUrl
+    apiBaseUrl: atomexTestApiBaseUrl,
+    webSocketApiBaseUrl: "wss://ws.api.test.atomex.me"
   }
 };
 var config = {

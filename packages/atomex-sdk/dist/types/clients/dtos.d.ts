@@ -24,6 +24,10 @@ export interface OrderBookEntryDto {
     price: number;
     qtyProfile: number[];
 }
+export interface WebSocketOrderBookEntryDto extends OrderBookEntryDto {
+    symbol: string;
+    updateId: number;
+}
 export interface OrderDto {
     id: number;
     clientOrderId: string;
@@ -82,3 +86,44 @@ export interface TransactionDto {
 export interface CreatedOrderDto {
     orderId: number;
 }
+export interface WebSocketOrderDataDto {
+    id: number;
+    clientOrderId: string;
+    symbol: string;
+    side: Side;
+    timeStamp: string;
+    price: number;
+    qty: number;
+    leaveQty: number;
+    type: OrderType;
+    status: OrderStatus;
+    trades: TradeDto[];
+    swaps: number[];
+}
+export interface WebSocketRequestDto {
+    method: string;
+    data: unknown;
+    requestId: number;
+}
+export interface WebSocketResponseBaseDto {
+    event: string;
+    data: unknown;
+    requestId?: number;
+}
+export interface WebSocketOrderResponseDto extends WebSocketResponseBaseDto {
+    event: 'order';
+    data: WebSocketOrderDataDto;
+}
+export interface WebSocketSwapResponseDto extends WebSocketResponseBaseDto {
+    event: 'swap';
+    data: SwapDto;
+}
+export interface WebSocketTopOfBookResponseDto extends WebSocketResponseBaseDto {
+    event: 'topOfBook';
+    data: QuoteDto;
+}
+export interface WebSocketOrderBookResponseDto extends WebSocketResponseBaseDto {
+    event: 'entries';
+    data: WebSocketOrderBookEntryDto[];
+}
+export declare type WebSocketResponseDto = WebSocketOrderResponseDto | WebSocketSwapResponseDto | WebSocketTopOfBookResponseDto | WebSocketOrderBookResponseDto;

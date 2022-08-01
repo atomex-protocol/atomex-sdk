@@ -1,5 +1,5 @@
 import type { BigNumber } from 'bignumber.js';
-import type { Side } from '../../common/index';
+import type { Side, Currency } from '../../common/index';
 import type { SwapParticipant } from './swapParticipant';
 export interface Swap {
     readonly id: number;
@@ -14,7 +14,7 @@ export interface Swap {
     readonly timeStamp: Date;
 }
 interface SwapCurrency {
-    readonly currencyId: string;
+    readonly currencyId: Currency['id'];
     readonly amount: BigNumber;
     readonly price: BigNumber;
 }
