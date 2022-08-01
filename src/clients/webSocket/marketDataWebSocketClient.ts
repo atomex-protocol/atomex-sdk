@@ -2,16 +2,16 @@ import { EventEmitter } from '../../core/index';
 import type { WebSocketResponseDto } from '../dtos';
 import { WebSocketClient } from './webSocketClient';
 
-export interface MarketDataWebSocketManagerEvents {
+export interface MarketDataWebSocketClientEvents {
   messageReceived: EventEmitter<readonly [message: WebSocketResponseDto]>;
 }
 
-export class MarketDataWebSocketManager {
+export class MarketDataWebSocketClient {
   protected static readonly MARKET_DATA_URL_PATH = '/ws/marketdata';
   protected static readonly TOP_OF_BOOK_STREAM = 'topOfBook';
   protected static readonly ORDER_BOOK_STREAM = 'orderBook';
 
-  readonly events: MarketDataWebSocketManagerEvents = {
+  readonly events: MarketDataWebSocketClientEvents = {
     messageReceived: new EventEmitter()
   };
 
@@ -33,7 +33,7 @@ export class MarketDataWebSocketManager {
   }
 
   protected createWebSocket(): WebSocketClient {
-    const socket = new WebSocketClient(new URL(MarketDataWebSocketManager.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
+    const socket = new WebSocketClient(new URL(MarketDataWebSocketClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
     socket.events.messageReceived.addListener(this.onSocketMessageReceived);
     socket.events.closed.addListener(this.onSocketClosed);
     socket.connect();
@@ -44,8 +44,8 @@ export class MarketDataWebSocketManager {
   }
 
   protected subscribeOnStreams(socket: WebSocketClient) {
-    socket.subscribe(MarketDataWebSocketManager.TOP_OF_BOOK_STREAM);
-    socket.subscribe(MarketDataWebSocketManager.ORDER_BOOK_STREAM);
+    socket.subscribe(MarketDataWebSocketClient.TOP_OF_BOOK_STREAM);
+    socket.subscribe(MarketDataWebSocketClient.ORDER_BOOK_STREAM);
   }
 
   protected onSocketClosed(socket: WebSocketClient, _event: CloseEvent) {

@@ -3,14 +3,14 @@ import { EventEmitter } from '../../core/index';
 import type { WebSocketResponseDto } from '../dtos';
 import { WebSocketClient } from './webSocketClient';
 
-export interface ExchangeWebSocketManagerEvents {
+export interface ExchangeWebSocketClientEvents {
   messageReceived: EventEmitter<readonly [message: WebSocketResponseDto]>;
 }
 
-export class ExchangeWebSocketManager {
+export class ExchangeWebSocketClient {
   protected static readonly EXCHANGE_URL_PATH = '/ws/exchange';
 
-  readonly events: ExchangeWebSocketManagerEvents = {
+  readonly events: ExchangeWebSocketClientEvents = {
     messageReceived: new EventEmitter()
   };
 
@@ -42,7 +42,7 @@ export class ExchangeWebSocketManager {
   protected onAuthorized(authToken: AuthToken) {
     this.removeSocket(authToken.userId);
 
-    const socket = new WebSocketClient(new URL(ExchangeWebSocketManager.EXCHANGE_URL_PATH, this.webSocketApiBaseUrl), authToken.value);
+    const socket = new WebSocketClient(new URL(ExchangeWebSocketClient.EXCHANGE_URL_PATH, this.webSocketApiBaseUrl), authToken.value);
     socket.events.messageReceived.addListener(this.onSocketMessageReceived);
     socket.events.closed.addListener(this.onClosed);
 

@@ -11,8 +11,8 @@ import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
 import type { WebSocketResponseDto } from '../dtos';
 import { mapQuoteDtoToQuote, mapSwapDtoToSwap, mapWebSocketOrderBookEntryDtoToOrderBook, mapWebSocketOrderDtoToOrder } from '../mapper';
-import { ExchangeWebSocketManager } from './exchangeWebSocketManager';
-import { MarketDataWebSocketManager } from './marketDataWebSocketManager';
+import { ExchangeWebSocketClient } from './exchangeWebSocketClient';
+import { MarketDataWebSocketClient } from './marketDataWebSocketClient';
 
 export interface WebSocketAtomexClientOptions {
   atomexNetwork: AtomexNetwork;
@@ -31,8 +31,8 @@ export class WebSocketAtomexClient implements AtomexClient {
 
   protected readonly authorizationManager: AuthorizationManager;
   protected readonly webSocketApiBaseUrl: string;
-  protected readonly marketDataWebSocketManager: MarketDataWebSocketManager;
-  protected readonly exchangeWebSocketManager: ExchangeWebSocketManager;
+  protected readonly marketDataWebSocketClient: MarketDataWebSocketClient;
+  protected readonly exchangeWebSocketClient: ExchangeWebSocketClient;
 
   constructor(options: WebSocketAtomexClientOptions) {
     this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
@@ -41,11 +41,11 @@ export class WebSocketAtomexClient implements AtomexClient {
     this.authorizationManager = options.authorizationManager;
     this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
 
-    this.exchangeWebSocketManager = new ExchangeWebSocketManager(this.webSocketApiBaseUrl, this.authorizationManager);
-    this.exchangeWebSocketManager.events.messageReceived.addListener(this.onSocketMessageReceived);
+    this.exchangeWebSocketClient = new ExchangeWebSocketClient(this.webSocketApiBaseUrl, this.authorizationManager);
+    this.exchangeWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
 
-    this.marketDataWebSocketManager = new MarketDataWebSocketManager(this.webSocketApiBaseUrl);
-    this.marketDataWebSocketManager.events.messageReceived.addListener(this.onSocketMessageReceived);
+    this.marketDataWebSocketClient = new MarketDataWebSocketClient(this.webSocketApiBaseUrl);
+    this.marketDataWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
   }
 
   getOrder(_accountAddress: string, _orderId: number): Promise<Order | undefined> {
@@ -97,8 +97,8 @@ export class WebSocketAtomexClient implements AtomexClient {
   }
 
   dispose() {
-    this.exchangeWebSocketManager.dispose();
-    this.marketDataWebSocketManager.dispose();
+    this.exchangeWebSocketClient.dispose();
+    this.marketDataWebSocketClient.dispose();
   }
 
   protected onSocketMessageReceived(message: WebSocketResponseDto) {
