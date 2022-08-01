@@ -5,7 +5,7 @@ import type { AuthorizationManagerStore } from '../stores/index';
 import { atomexUtils, prepareTimeoutDuration } from '../utils/index';
 import {
   AuthenticationRequestData, AuthenticationResponseData, AuthorizationManagerOptions,
-  AuthToken, AuthTokenData, AuthTokenSource
+  AuthToken, AuthTokenData, AuthTokenSource, AuthorizationParameters
 } from './models/index';
 
 interface AuthorizationManagerEvents {
@@ -55,12 +55,12 @@ export class AuthorizationManager {
     return this.authTokenData.get(address)?.authToken;
   }
 
-  async authorize(
-    address: string,
+  async authorize({
+    address,
     authTokenSource = AuthTokenSource.All,
-    blockchain?: string,
-    authMessage: string = AuthorizationManager.DEFAULT_AUTH_MESSAGE
-  ): Promise<AuthToken | undefined> {
+    blockchain,
+    authMessage = AuthorizationManager.DEFAULT_AUTH_MESSAGE
+  }: AuthorizationParameters): Promise<AuthToken | undefined> {
     if ((authTokenSource & AuthTokenSource.Local) === AuthTokenSource.Local) {
       const authToken = this.getAuthToken(address) || (await this.loadAuthTokenFromStore(address));
 

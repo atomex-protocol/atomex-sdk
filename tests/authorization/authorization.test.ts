@@ -43,7 +43,7 @@ describe('Atomex authorization', () => {
     fetchMock.mockResponseOnce(JSON.stringify(tokenResponse));
 
     const address = await signer.getAddress();
-    const authToken = await authorizationManager.authorize(address);
+    const authToken = await authorizationManager.authorize({ address });
 
     expectAuthTokenToEqualAuthenticationResponseData(address, authToken, tokenResponse);
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -60,12 +60,12 @@ describe('Atomex authorization', () => {
     fetchMock.mockResponseOnce(JSON.stringify(tokenResponse));
 
     const address = await signer.getAddress();
-    let authToken = await authorizationManager.authorize(address, AuthTokenSource.Remote);
+    let authToken = await authorizationManager.authorize({ address, authTokenSource: AuthTokenSource.Remote });
     expectAuthTokenToEqualAuthenticationResponseData(address, authToken, tokenResponse);
 
     for (let i = 0; i < 3; i++) {
       // eslint-disable-next-line no-await-in-loop
-      authToken = await authorizationManager.authorize(address, AuthTokenSource.Local);
+      authToken = await authorizationManager.authorize({ address, authTokenSource: AuthTokenSource.Local });
       expectAuthTokenToEqualAuthenticationResponseData(address, authToken, tokenResponse);
     }
 
