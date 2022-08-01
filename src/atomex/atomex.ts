@@ -49,4 +49,9 @@ export class Atomex {
   async swap(_newSwapRequestOrSwapId: NewSwapRequest | Swap['id'], _completeStage: SwapOperationCompleteStage): Promise<Swap> {
     throw new Error('Not implemented');
   }
+
+  dispose() {
+    this.authorization.dispose();
+    // TODO: dispose other resources: clients, managers, etc.
+  }
 }

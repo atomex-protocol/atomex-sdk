@@ -3,9 +3,9 @@ import type { AtomexNetwork } from '../common/index';
 import { EventEmitter, type ToEventEmitters, type PublicEventEmitter } from '../core/index';
 import type { AuthorizationManagerStore } from '../stores/index';
 import { atomexUtils, prepareTimeoutDuration } from '../utils/index';
-import type {
+import {
   AuthenticationRequestData, AuthenticationResponseData, AuthorizationManagerOptions,
-  AuthToken, AuthTokenData
+  AuthToken, AuthTokenData, AuthTokenSource, AuthorizationParameters
 } from './models/index';
 
 interface AuthorizationManagerEvents {
@@ -55,18 +55,21 @@ export class AuthorizationManager {
     return this.authTokenData.get(address)?.authToken;
   }
 
-  async authorize(
-    address: string,
-    forceRequestNewToken = false,
-    blockchain?: string,
-    authMessage: string = AuthorizationManager.DEFAULT_AUTH_MESSAGE
-  ): Promise<AuthToken> {
-    if (!forceRequestNewToken) {
+  async authorize({
+    address,
+    authTokenSource = AuthTokenSource.All,
+    blockchain,
+    authMessage = AuthorizationManager.DEFAULT_AUTH_MESSAGE
+  }: AuthorizationParameters): Promise<AuthToken | undefined> {
+    if ((authTokenSource & AuthTokenSource.Local) === AuthTokenSource.Local) {
       const authToken = this.getAuthToken(address) || (await this.loadAuthTokenFromStore(address));
 
       if (authToken && !this.isTokenExpiring(authToken))
         return authToken;
     }
+
+    if ((authTokenSource & AuthTokenSource.Remote) !== AuthTokenSource.Remote)
+      return undefined;
 
     const signer = await this.signersManager.findSigner(address, blockchain);
     if (!signer)
@@ -105,7 +108,12 @@ export class AuthorizationManager {
     return authToken ? this.unregisterAuthToken(authToken) : false;
   }
 
-  async loadAuthTokenFromStore(address: string): Promise<AuthToken | undefined> {
+  dispose() {
+    for (const authTokenDataTuple of this.authTokenData)
+      this.untrackAuthToken(authTokenDataTuple[1].watcherId);
+  }
+
+  protected async loadAuthTokenFromStore(address: string): Promise<AuthToken | undefined> {
     const authToken = await this.store.getAuthToken(address);
 
     if (!authToken)
