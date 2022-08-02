@@ -46,6 +46,7 @@ export class WebSocketAtomexClient implements AtomexClient {
 
     this.marketDataWebSocketClient = new MarketDataWebSocketClient(this.webSocketApiBaseUrl);
     this.marketDataWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
+    this.marketDataWebSocketClient.connect();
   }
 
   getOrder(_accountAddress: string, _orderId: number): Promise<Order | undefined> {

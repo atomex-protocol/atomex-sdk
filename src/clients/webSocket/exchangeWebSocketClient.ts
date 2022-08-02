@@ -39,7 +39,7 @@ export class ExchangeWebSocketClient {
     this.authorizationManager.events.unauthorized.addListener(this.onUnauthorized);
   }
 
-  protected onAuthorized(authToken: AuthToken) {
+  protected async onAuthorized(authToken: AuthToken) {
     this.removeSocket(authToken.userId);
 
     const socket = new WebSocketClient(new URL(ExchangeWebSocketClient.EXCHANGE_URL_PATH, this.webSocketApiBaseUrl), authToken.value);
@@ -47,7 +47,7 @@ export class ExchangeWebSocketClient {
     socket.events.closed.addListener(this.onClosed);
 
     this.sockets.set(authToken.userId, socket);
-    socket.connect();
+    await socket.connect();
   }
 
   protected onUnauthorized(authToken: AuthToken) {

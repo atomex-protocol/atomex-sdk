@@ -33,22 +33,27 @@ export class WebSocketClient {
     this.onClosed = this.onClosed.bind(this);
   }
 
-  connect() {
-    if (this._socket)
-      this.disconnect();
+  async connect(): Promise<void> {
+    this.disconnect();
 
-    const protocols = this.authToken ? ['access_token', this.authToken] : undefined;
-    this.socket = new WebSocket(this.url, protocols);
-    this.socket.addEventListener('message', this.onMessageReceived);
-    this.socket.addEventListener('error', this.onError);
-    this.socket.addEventListener('close', this.onClosed);
+    return new Promise(resolve => {
+      const protocols = this.authToken ? ['access_token', this.authToken] : undefined;
+      this.socket = new WebSocket(this.url, protocols);
+      this.socket.addEventListener('message', this.onMessageReceived);
+      this.socket.addEventListener('error', this.onError);
+      this.socket.addEventListener('close', this.onClosed);
+
+      this.socket.addEventListener('open', () => resolve());
+    });
   }
 
   disconnect() {
-    this.socket.removeEventListener('message', this.onMessageReceived);
-    this.socket.removeEventListener('error', this.onError);
-    this.socket.removeEventListener('close', this.onClosed);
-    this.socket.close();
+    if (this._socket) {
+      this.socket.removeEventListener('message', this.onMessageReceived);
+      this.socket.removeEventListener('error', this.onError);
+      this.socket.removeEventListener('close', this.onClosed);
+      this.socket.close();
+    }
   }
 
   subscribe(stream: string) {
