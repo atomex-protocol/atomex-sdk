@@ -10,7 +10,7 @@ import type {
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
 import type { WebSocketResponseDto } from '../dtos';
-import { mapQuoteDtoToQuote, mapSwapDtoToSwap, mapWebSocketOrderBookEntryDtoToOrderBook, mapWebSocketOrderDtoToOrder } from '../helpers';
+import { mapQuoteDtosToQuotes, mapSwapDtoToSwap, mapWebSocketOrderBookEntryDtoToOrderBook, mapWebSocketOrderDtoToOrder } from '../helpers';
 import { ExchangeWebSocketClient } from './exchangeWebSocketClient';
 import { MarketDataWebSocketClient } from './marketDataWebSocketClient';
 
@@ -113,7 +113,7 @@ export class WebSocketAtomexClient implements AtomexClient {
         break;
 
       case 'topOfBook':
-        (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(mapQuoteDtoToQuote(message.data));
+        (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(mapQuoteDtosToQuotes(message.data));
         break;
 
       case 'entries':

@@ -148,7 +148,7 @@ export interface WebSocketSwapResponseDto extends WebSocketResponseBaseDto {
 
 export interface WebSocketTopOfBookResponseDto extends WebSocketResponseBaseDto {
   event: 'topOfBook';
-  data: QuoteDto;
+  data: QuoteDto[];
 }
 
 export interface WebSocketOrderBookResponseDto extends WebSocketResponseBaseDto {

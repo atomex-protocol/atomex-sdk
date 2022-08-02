@@ -4,7 +4,7 @@ import type { Order, ExchangeSymbol, NewOrderRequest, Quote, OrderBook, OrdersSe
 export interface ExchangeServiceEvents {
   readonly orderUpdated: PublicEventEmitter<readonly [updatedOrder: Order]>;
   readonly orderBookUpdated: PublicEventEmitter<readonly [updatedOrderBook: OrderBook]>;
-  readonly topOfBookUpdated: PublicEventEmitter<readonly [updatedQuote: Quote]>;
+  readonly topOfBookUpdated: PublicEventEmitter<readonly [updatedQuotes: Quote[]]>;
 }
 
 export interface ExchangeService {
