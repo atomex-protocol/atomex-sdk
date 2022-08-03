@@ -44,6 +44,8 @@ describe('Rest Atomex Client', () => {
 
   const [testAccountAddress, testAuthToken] = [...testAccounts.entries()][0]!;
 
+  const response404 = { code: 1, message: 'not found' };
+
   let client: RestAtomexClient;
 
   beforeEach(() => {
@@ -70,6 +72,12 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(`${testApiUrl}/v1/Symbols`, expect.objectContaining({ method: 'GET' }));
+    });
+
+    test('handles 404 result', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(response404), { status: 404 });
+      const symbols = await client.getSymbols();
+      expect(symbols).toEqual([]);
     });
   });
 
@@ -131,6 +139,12 @@ describe('Rest Atomex Client', () => {
         expect.objectContaining({ method: 'GET' })
       );
     });
+
+    test('handles 404 result', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(response404), { status: 404 });
+      const quotes = await client.getTopOfBook(['ETH/BTC', 'XTZ/BTC']);
+      expect(quotes).toEqual([]);
+    });
   });
 
   describe('getOrderBook', () => {
@@ -168,6 +182,12 @@ describe('Rest Atomex Client', () => {
           expect.objectContaining({ method: 'GET' })
         );
       });
+
+    test('handles 404 result', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(response404), { status: 404 });
+      const orderBook = await client.getOrderBook('ETH/BTC');
+      expect(orderBook).toBeUndefined();
+    });
   });
 
   describe('getOrder', () => {
@@ -187,6 +207,12 @@ describe('Rest Atomex Client', () => {
           headers: { Authorization: `Bearer ${testAuthToken.value}` }
         }
       );
+    });
+
+    test('handles 404 result', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(response404), { status: 404 });
+      const order = await client.getOrder(testAccountAddress, 123);
+      expect(order).toBeUndefined();
     });
   });
 
@@ -305,6 +331,12 @@ describe('Rest Atomex Client', () => {
           headers: { Authorization: `Bearer ${testAuthToken.value}` }
         }
       );
+    });
+
+    test('handles 404 result', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(response404), { status: 404 });
+      const orders = await client.getOrders(testAccountAddress);
+      expect(orders).toEqual([]);
     });
   });
 
@@ -520,6 +552,12 @@ describe('Rest Atomex Client', () => {
         })
       );
     });
+
+    test('handles 404 result', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(response404), { status: 404 });
+      const swap = await client.getSwap(123, testAccountAddress);
+      expect(swap).toBeUndefined();
+    });
   });
 
   describe('getSwaps', () => {
@@ -709,6 +747,12 @@ describe('Rest Atomex Client', () => {
           method: 'GET'
         })
       );
+    });
+
+    test('handles 404 result', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(response404), { status: 404 });
+      const swaps = await client.getSwaps(testAccountAddress);
+      expect(swaps).toEqual([]);
     });
   });
 });
