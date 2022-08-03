@@ -68,11 +68,15 @@ export class MixedApiAtomexClient implements AtomexClient {
     return this.restAtomexClient.getSwapTransactions(swap);
   }
 
-  getSwap(accountAddresses: string[], swapId: number): Promise<Swap> {
-    return this.restAtomexClient.getSwap(accountAddresses, swapId);
+  getSwap(swapId: number, accountAddress: string): Promise<Swap>;
+  getSwap(swapId: number, accountAddresses: string[]): Promise<Swap>;
+  getSwap(swapId: number, addressOrAddresses: string | string[]): Promise<Swap> {
+    return (this.restAtomexClient.getSwap as (swapId: number, addressOrAddresses: string | string[]) => Promise<Swap>)(swapId, addressOrAddresses);
   }
 
-  getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]> {
-    return this.restAtomexClient.getSwaps(accountAddresses, selector);
+  getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
+  getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
+  getSwaps(addressOrAddresses: string | string[], selector?: SwapsSelector): Promise<Swap[]> {
+    return (this.restAtomexClient.getSwaps as (addressOrAddresses: string | string[], selector?: SwapsSelector) => Promise<Swap[]>)(addressOrAddresses, selector);
   }
 }

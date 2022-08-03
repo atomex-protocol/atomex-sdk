@@ -87,11 +87,15 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getSwap(_accountAddresses: string[], _swapId: number): Promise<Swap> {
+  getSwap(swapId: number, accountAddress: string): Promise<Swap>;
+  getSwap(swapId: number, accountAddresses: string[]): Promise<Swap>;
+  getSwap(_swapId: number, _addressOrAddresses: string | string[]): Promise<Swap> {
     throw new Error('Method not implemented.');
   }
 
-  getSwaps(_accountAddresses: string[], _selector?: SwapsSelector): Promise<Swap[]> {
+  getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
+  getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
+  getSwaps(_addressOrAddresses: string | string[], _selector?: SwapsSelector): Promise<Swap[]> {
     throw new Error('Method not implemented.');
   }
 

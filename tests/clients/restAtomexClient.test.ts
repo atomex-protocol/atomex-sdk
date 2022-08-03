@@ -457,7 +457,7 @@ describe('Rest Atomex Client', () => {
     test.each(validSwapTestCases)('returns correct data (%s)', async (_, [responseDto, expectedSwap]) => {
       fetchMock.mockResponseOnce(JSON.stringify(responseDto));
 
-      const swap = await client.getSwap([testAccountAddress], 123);
+      const swap = await client.getSwap(123, [testAccountAddress]);
       expect(swap).not.toBeNull();
       expect(swap).not.toBeUndefined();
       expect(swap).toEqual(expectedSwap);
@@ -474,16 +474,29 @@ describe('Rest Atomex Client', () => {
     test('validates account addresses', async () => {
       expect.assertions(1);
       try {
-        await client.getSwap([], 123);
+        await client.getSwap(123, []);
       } catch (e) {
         expect((e as Error).message).toMatch('accountAddresses');
       }
     });
 
+    test('sends single account addresses', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(validSwapTestCases[0]![1]![0]));
+      await client.getSwap(123, testAccountAddress);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Swaps/123?userIds=${encodeURIComponent(testAuthToken.userId)}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
+      );
+    });
+
     test('sends all account addresses', async () => {
       fetchMock.mockResponseOnce(JSON.stringify(validSwapTestCases[0]![1]![0]));
       const addresses = [...testAccounts.keys()];
-      await client.getSwap(addresses, 123);
+      await client.getSwap(123, addresses);
 
       expect(fetch).toHaveBeenCalledTimes(1);
       const expectedIds = [...testAccounts.values()].map(token => token.userId).join(',');
@@ -521,6 +534,19 @@ describe('Rest Atomex Client', () => {
       } catch (e) {
         expect((e as Error).message).toMatch('accountAddresses');
       }
+    });
+
+    test('sends single account addresses', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([]));
+      await client.getSwaps(testAccountAddress);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Swaps?userIds=${encodeURIComponent(testAuthToken.userId)}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
+      );
     });
 
     test('sends all account addresses', async () => {

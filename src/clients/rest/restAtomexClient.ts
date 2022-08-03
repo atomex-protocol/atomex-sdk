@@ -220,10 +220,12 @@ export class RestAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  async getSwap(accountAddresses: string[], swapId: number): Promise<Swap> {
+  async getSwap(swapId: number, accountAddress: string): Promise<Swap>;
+  async getSwap(swapId: number, accountAddresses: string[]): Promise<Swap>;
+  async getSwap(swapId: number, addressOrAddresses: string | string[]): Promise<Swap> {
     const urlPath = `/v1/Swaps/${swapId}`;
 
-    const userIds = this.getUserIds(accountAddresses);
+    const userIds = this.getUserIds(addressOrAddresses);
     const params = {
       userIds: userIds.join(',')
     };
@@ -236,10 +238,12 @@ export class RestAtomexClient implements AtomexClient {
     return mapSwapDtoToSwap(swapDto);
   }
 
-  async getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]> {
+  async getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
+  async getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
+  async getSwaps(addressOrAddresses: string | string[], selector?: SwapsSelector): Promise<Swap[]> {
     const urlPath = '/v1/Swaps';
 
-    const userIds = this.getUserIds(accountAddresses);
+    const userIds = this.getUserIds(addressOrAddresses);
     const params = {
       ...selector,
       sortAsc: undefined,
@@ -257,7 +261,8 @@ export class RestAtomexClient implements AtomexClient {
     return mapSwapDtosToSwaps(swapDtos);
   }
 
-  private getUserIds(accountAddresses: string[]) {
+  private getUserIds(addressOrAddresses: string | string[]) {
+    const accountAddresses = Array.isArray(addressOrAddresses) ? addressOrAddresses : [addressOrAddresses];
     if (!accountAddresses.length)
       throw new Error('Incorrect accountAddresses');
 
