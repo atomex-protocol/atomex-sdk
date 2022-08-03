@@ -35,7 +35,7 @@ export class SwapManager {
     this.swapService.events.swapUpdated.removeListener(this.handleSwapServiceSwapUpdated);
   }
 
-  protected handleSwapServiceSwapUpdated = (updatedOrder: Swap) => {
-    (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(updatedOrder);
+  protected handleSwapServiceSwapUpdated = (updatedSwap: Swap) => {
+    (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(updatedSwap);
   };
 }

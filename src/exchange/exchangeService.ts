@@ -18,8 +18,8 @@ export interface ExchangeService {
   getTopOfBook(symbols?: string[]): Promise<Quote[]>;
   getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
 
-  getOrderBook(symbol: string): Promise<OrderBook>;
-  getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
+  getOrderBook(symbol: string): Promise<OrderBook | undefined>;
+  getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
 
   addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
   cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean>;

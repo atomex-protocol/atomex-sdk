@@ -46,10 +46,10 @@ export class MixedApiAtomexClient implements AtomexClient {
     return (this.restAtomexClient.getTopOfBook as (symbolsOrDirections?: string[] | CurrencyDirection[]) => Promise<Quote[]>)(symbolsOrDirections);
   }
 
-  getOrderBook(symbol: string): Promise<OrderBook>;
-  getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
-  async getOrderBook(symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
-    return (this.restAtomexClient.getOrderBook as (symbolOrDirection: string | CurrencyDirection) => Promise<OrderBook>)(symbolOrDirection);
+  getOrderBook(symbol: string): Promise<OrderBook | undefined>;
+  getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
+  async getOrderBook(symbolOrDirection: string | CurrencyDirection): Promise<OrderBook | undefined> {
+    return (this.restAtomexClient.getOrderBook as (symbolOrDirection: string | CurrencyDirection) => Promise<OrderBook | undefined>)(symbolOrDirection);
   }
 
   addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
@@ -68,10 +68,10 @@ export class MixedApiAtomexClient implements AtomexClient {
     return this.restAtomexClient.getSwapTransactions(swap);
   }
 
-  getSwap(swapId: number, accountAddress: string): Promise<Swap>;
-  getSwap(swapId: number, accountAddresses: string[]): Promise<Swap>;
-  getSwap(swapId: number, addressOrAddresses: string | string[]): Promise<Swap> {
-    return (this.restAtomexClient.getSwap as (swapId: number, addressOrAddresses: string | string[]) => Promise<Swap>)(swapId, addressOrAddresses);
+  getSwap(swapId: number, accountAddress: string): Promise<Swap | undefined>;
+  getSwap(swapId: number, accountAddresses: string[]): Promise<Swap | undefined>;
+  getSwap(swapId: number, addressOrAddresses: string | string[]): Promise<Swap | undefined> {
+    return (this.restAtomexClient.getSwap as (swapId: number, addressOrAddresses: string | string[]) => Promise<Swap | undefined>)(swapId, addressOrAddresses);
   }
 
   getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;

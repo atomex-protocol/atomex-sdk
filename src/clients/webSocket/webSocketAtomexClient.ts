@@ -65,9 +65,9 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getOrderBook(symbol: string): Promise<OrderBook>;
-  getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
-  async getOrderBook(_symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
+  getOrderBook(symbol: string): Promise<OrderBook | undefined>;
+  getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
+  async getOrderBook(_symbolOrDirection: string | CurrencyDirection): Promise<OrderBook | undefined> {
     throw new Error('Method not implemented.');
   }
 
@@ -87,9 +87,9 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getSwap(swapId: number, accountAddress: string): Promise<Swap>;
-  getSwap(swapId: number, accountAddresses: string[]): Promise<Swap>;
-  getSwap(_swapId: number, _addressOrAddresses: string | string[]): Promise<Swap> {
+  getSwap(swapId: number, accountAddress: string): Promise<Swap | undefined>;
+  getSwap(swapId: number, accountAddresses: string[]): Promise<Swap | undefined>;
+  getSwap(_swapId: number, _addressOrAddresses: string | string[]): Promise<Swap | undefined> {
     throw new Error('Method not implemented.');
   }
 
