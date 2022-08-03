@@ -771,8 +771,8 @@
     "USDT_XTZ": {
       "contracts": {
         "mainnet": {
-          "address": "<mainnet address>",
-          "tokenAddress": "",
+          "address": "KT1Ays1Chwx3ArnHGoQXchUgDsvKe9JboUjj",
+          "tokenAddress": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
           "redeemTxSize": 20000,
           "initiateTxSize": 20000,
           "gasLimit": 400000
