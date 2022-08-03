@@ -44,7 +44,7 @@ describe('Rest Atomex Client', () => {
 
   const [testAccountAddress, testAuthToken] = [...testAccounts.entries()][0]!;
 
-  const response404 = { code: 1, message: 'not found' };
+  const response404 = { code: 404, message: 'not found' };
 
   let client: RestAtomexClient;
 
