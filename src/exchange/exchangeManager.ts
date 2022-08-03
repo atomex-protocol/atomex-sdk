@@ -78,7 +78,7 @@ export class ExchangeManager {
     (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(updatedOrderBook);
   };
 
-  protected handleExchangeServiceTopOfBookUpdated = (updatedQuote: Quote) => {
-    (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(updatedQuote);
+  protected handleExchangeServiceTopOfBookUpdated = (updatedQuotes: Quote[]) => {
+    (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(updatedQuotes);
   };
 }

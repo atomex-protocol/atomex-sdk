@@ -50,7 +50,7 @@ export class RestAtomexClient implements AtomexClient {
     const authToken = this.getRequiredAuthToken(accountAddress);
     const orderDto = await this.httpClient.request<OrderDto>({ urlPath, authToken });
 
-    return mapOrderDtoToOrder(orderDto);
+    return orderDto ? mapOrderDtoToOrder(orderDto) : undefined;
   }
 
   async getOrders(accountAddress: string, selector?: OrdersSelector | undefined): Promise<Order[]> {
@@ -66,15 +66,16 @@ export class RestAtomexClient implements AtomexClient {
 
     const orderDtos = await this.httpClient.request<OrderDto[]>({ urlPath, authToken, params });
 
-    return mapOrderDtosToOrders(orderDtos);
+    return orderDtos ? mapOrderDtosToOrders(orderDtos) : [];
   }
 
   async getSymbols(): Promise<ExchangeSymbol[]> {
     const urlPath = '/v1/Symbols';
     const symbolDtos = await this.httpClient.request<SymbolDto[]>({ urlPath });
 
-    const symbols = mapSymbolDtosToSymbols(symbolDtos);
-    this._symbolsCache = symbols;
+    const symbols = symbolDtos ? mapSymbolDtosToSymbols(symbolDtos) : [];
+    if (symbolDtos)
+      this._symbolsCache = symbols;
 
     return symbols;
   }
@@ -98,12 +99,12 @@ export class RestAtomexClient implements AtomexClient {
 
     const quoteDtos = await this.httpClient.request<QuoteDto[]>({ urlPath, params });
 
-    return mapQuoteDtosToQuotes(quoteDtos);
+    return quoteDtos ? mapQuoteDtosToQuotes(quoteDtos) : [];
   }
 
-  getOrderBook(symbol: string): Promise<OrderBook>;
-  getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
-  async getOrderBook(symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
+  getOrderBook(symbol: string): Promise<OrderBook | undefined>;
+  getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
+  async getOrderBook(symbolOrDirection: string | CurrencyDirection): Promise<OrderBook | undefined> {
     const urlPath = '/v1/MarketData/book';
     let symbol: string;
 
@@ -117,7 +118,7 @@ export class RestAtomexClient implements AtomexClient {
     const params = { symbol };
     const orderBookDto = await this.httpClient.request<OrderBookDto>({ urlPath, params });
 
-    return mapOrderBookDtoToOrderBook(orderBookDto);
+    return orderBookDto ? mapOrderBookDtoToOrderBook(orderBookDto) : undefined;
   }
 
   async addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
@@ -153,6 +154,9 @@ export class RestAtomexClient implements AtomexClient {
       payload
     });
 
+    if (newOrderDto === undefined)
+      throw new Error('Unexpected response dto');
+
     return newOrderDto.orderId;
   }
 
@@ -179,6 +183,9 @@ export class RestAtomexClient implements AtomexClient {
       params,
       method: 'DELETE'
     });
+
+    if (isSuccess === undefined)
+      throw new Error('Unexpected response dto');
 
     return isSuccess;
   }
@@ -213,6 +220,9 @@ export class RestAtomexClient implements AtomexClient {
       method: 'DELETE'
     });
 
+    if (canceledOrdersCount === undefined)
+      throw new Error('Unexpected response dto');
+
     return canceledOrdersCount;
   }
 
@@ -220,36 +230,58 @@ export class RestAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  async getSwap(accountAddress: string, swapId: number): Promise<Swap> {
+  async getSwap(swapId: number, accountAddress: string): Promise<Swap | undefined>;
+  async getSwap(swapId: number, accountAddresses: string[]): Promise<Swap | undefined>;
+  async getSwap(swapId: number, addressOrAddresses: string | string[]): Promise<Swap | undefined> {
     const urlPath = `/v1/Swaps/${swapId}`;
-    const authToken = this.getRequiredAuthToken(accountAddress);
+
+    const userIds = this.getUserIds(addressOrAddresses);
+    const params = {
+      userIds: userIds.join(',')
+    };
 
     const swapDto = await this.httpClient.request<SwapDto>({
       urlPath,
-      authToken
+      params
     });
 
-    return mapSwapDtoToSwap(swapDto);
+    return swapDto ? mapSwapDtoToSwap(swapDto) : undefined;
   }
 
-  async getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]> {
+  async getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
+  async getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
+  async getSwaps(addressOrAddresses: string | string[], selector?: SwapsSelector): Promise<Swap[]> {
     const urlPath = '/v1/Swaps';
-    const authToken = this.getRequiredAuthToken(accountAddress);
+
+    const userIds = this.getUserIds(addressOrAddresses);
     const params = {
       ...selector,
       sortAsc: undefined,
       sort: selector?.sortAsc !== undefined
         ? selector.sortAsc ? 'Asc' : 'Desc'
         : undefined,
+      userIds: userIds.join(',')
     };
 
     const swapDtos = await this.httpClient.request<SwapDto[]>({
       urlPath,
-      params,
-      authToken
+      params
     });
 
-    return mapSwapDtosToSwaps(swapDtos);
+    return swapDtos ? mapSwapDtosToSwaps(swapDtos) : [];
+  }
+
+  private getUserIds(addressOrAddresses: string | string[]) {
+    const accountAddresses = Array.isArray(addressOrAddresses) ? addressOrAddresses : [addressOrAddresses];
+
+    const userIds = accountAddresses
+      .map(address => this.authorizationManager.getAuthToken(address)?.userId)
+      .filter(userId => userId);
+
+    if (!userIds.length)
+      throw new Error('Incorrect accountAddresses');
+
+    return userIds;
   }
 
   private getRequiredAuthToken(accountAddress: string): string {

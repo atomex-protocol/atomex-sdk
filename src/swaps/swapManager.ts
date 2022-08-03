@@ -15,12 +15,16 @@ export class SwapManager {
     this.attachEvents();
   }
 
-  getSwap(accountAddress: string, swapId: number, _mode = ImportantDataReceivingMode.SafeMerged): Promise<Swap> {
-    return this.swapService.getSwap(accountAddress, swapId);
+  getSwap(swapId: number, accountAddress: string, mode?: ImportantDataReceivingMode): Promise<Swap>;
+  getSwap(swapId: number, accountAddresses: string[], mode?: ImportantDataReceivingMode): Promise<Swap>;
+  getSwap(swapId: number, addressOrAddresses: string | string[], _mode = ImportantDataReceivingMode.SafeMerged): Promise<Swap> {
+    return (this.swapService.getSwap as (swapId: number, addressOrAddresses: string | string[]) => Promise<Swap>)(swapId, addressOrAddresses);
   }
 
-  getSwaps(accountAddress: string, selector?: SwapsSelector, _mode = ImportantDataReceivingMode.SafeMerged): Promise<Swap[]> {
-    return this.swapService.getSwaps(accountAddress, selector);
+  getSwaps(accountAddress: string, selector?: SwapsSelector, mode?: ImportantDataReceivingMode): Promise<Swap[]>;
+  getSwaps(accountAddresses: string[], selector?: SwapsSelector, mode?: ImportantDataReceivingMode): Promise<Swap[]>;
+  getSwaps(addressOrAddresses: string | string[], selector?: SwapsSelector, _mode = ImportantDataReceivingMode.SafeMerged): Promise<Swap[]> {
+    return (this.swapService.getSwaps as (addressOrAddresses: string | string[], selector?: SwapsSelector) => Promise<Swap[]>)(addressOrAddresses, selector);
   }
 
   protected attachEvents() {
@@ -31,7 +35,7 @@ export class SwapManager {
     this.swapService.events.swapUpdated.removeListener(this.handleSwapServiceSwapUpdated);
   }
 
-  protected handleSwapServiceSwapUpdated = (updatedOrder: Swap) => {
-    (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(updatedOrder);
+  protected handleSwapServiceSwapUpdated = (updatedSwap: Swap) => {
+    (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(updatedSwap);
   };
 }

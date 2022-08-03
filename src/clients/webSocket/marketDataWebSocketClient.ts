@@ -20,10 +20,15 @@ export class MarketDataWebSocketClient {
   constructor(
     protected readonly webSocketApiBaseUrl: string
   ) {
-    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
-    this.onSocketClosed = this.onSocketClosed.bind(this);
+    this.socket = new WebSocketClient(new URL(MarketDataWebSocketClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
+  }
 
-    this.socket = this.createWebSocket();
+  async connect(): Promise<void> {
+    this.socket.events.messageReceived.addListener(this.onSocketMessageReceived);
+    this.socket.events.closed.addListener(this.onSocketClosed);
+    await this.socket.connect();
+
+    this.subscribeOnStreams(this.socket);
   }
 
   dispose() {
@@ -32,30 +37,19 @@ export class MarketDataWebSocketClient {
     this.socket.disconnect();
   }
 
-  protected createWebSocket(): WebSocketClient {
-    const socket = new WebSocketClient(new URL(MarketDataWebSocketClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
-    socket.events.messageReceived.addListener(this.onSocketMessageReceived);
-    socket.events.closed.addListener(this.onSocketClosed);
-    socket.connect();
-
-    this.subscribeOnStreams(socket);
-
-    return socket;
-  }
-
   protected subscribeOnStreams(socket: WebSocketClient) {
     socket.subscribe(MarketDataWebSocketClient.TOP_OF_BOOK_STREAM);
     socket.subscribe(MarketDataWebSocketClient.ORDER_BOOK_STREAM);
   }
 
-  protected onSocketClosed(socket: WebSocketClient, _event: CloseEvent) {
-    setTimeout(() => {
-      socket.connect();
+  protected onSocketClosed = (socket: WebSocketClient, _event: CloseEvent) => {
+    setTimeout(async () => {
+      await socket.connect();
       this.subscribeOnStreams(socket);
     }, 1000);
-  }
+  };
 
-  protected onSocketMessageReceived(message: WebSocketResponseDto) {
+  protected onSocketMessageReceived = (message: WebSocketResponseDto) => {
     this.events.messageReceived.emit(message);
-  }
+  };
 }

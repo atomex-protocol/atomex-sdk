@@ -16,7 +16,7 @@ export class HttpClient {
     protected readonly baseUrl: string
   ) { }
 
-  async request<T>(options: RequestOptions): Promise<T> {
+  async request<T>(options: RequestOptions): Promise<T | undefined> {
     const url = new URL(options.urlPath, this.baseUrl);
 
     if (options.params)
@@ -27,6 +27,9 @@ export class HttpClient {
       method: options.method || 'GET',
       body: options.payload ? JSON.stringify(options.payload) : undefined
     });
+
+    if (response.status === 404)
+      return undefined;
 
     if (!response.ok) {
       const errorBody = await response.text();

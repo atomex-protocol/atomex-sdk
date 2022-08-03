@@ -10,7 +10,7 @@ import type {
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
 import type { WebSocketResponseDto } from '../dtos';
-import { mapQuoteDtoToQuote, mapSwapDtoToSwap, mapWebSocketOrderBookEntryDtoToOrderBook, mapWebSocketOrderDtoToOrder } from '../helpers';
+import { mapQuoteDtosToQuotes, mapSwapDtoToSwap, mapWebSocketOrderBookEntryDtoToOrderBook, mapWebSocketOrderDtoToOrder } from '../helpers';
 import { ExchangeWebSocketClient } from './exchangeWebSocketClient';
 import { MarketDataWebSocketClient } from './marketDataWebSocketClient';
 
@@ -35,8 +35,6 @@ export class WebSocketAtomexClient implements AtomexClient {
   protected readonly exchangeWebSocketClient: ExchangeWebSocketClient;
 
   constructor(options: WebSocketAtomexClientOptions) {
-    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
-
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
     this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
@@ -46,6 +44,7 @@ export class WebSocketAtomexClient implements AtomexClient {
 
     this.marketDataWebSocketClient = new MarketDataWebSocketClient(this.webSocketApiBaseUrl);
     this.marketDataWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
+    this.marketDataWebSocketClient.connect();
   }
 
   getOrder(_accountAddress: string, _orderId: number): Promise<Order | undefined> {
@@ -66,9 +65,9 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getOrderBook(symbol: string): Promise<OrderBook>;
-  getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
-  async getOrderBook(_symbolOrDirection: string | CurrencyDirection): Promise<OrderBook> {
+  getOrderBook(symbol: string): Promise<OrderBook | undefined>;
+  getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
+  async getOrderBook(_symbolOrDirection: string | CurrencyDirection): Promise<OrderBook | undefined> {
     throw new Error('Method not implemented.');
   }
 
@@ -88,11 +87,15 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  getSwap(_accountAddress: string, _swapId: number): Promise<Swap> {
+  getSwap(swapId: number, accountAddress: string): Promise<Swap | undefined>;
+  getSwap(swapId: number, accountAddresses: string[]): Promise<Swap | undefined>;
+  getSwap(_swapId: number, _addressOrAddresses: string | string[]): Promise<Swap | undefined> {
     throw new Error('Method not implemented.');
   }
 
-  getSwaps(_accountAddress: string, _selector?: SwapsSelector): Promise<Swap[]> {
+  getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
+  getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
+  getSwaps(_addressOrAddresses: string | string[], _selector?: SwapsSelector): Promise<Swap[]> {
     throw new Error('Method not implemented.');
   }
 
@@ -101,7 +104,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     this.marketDataWebSocketClient.dispose();
   }
 
-  protected onSocketMessageReceived(message: WebSocketResponseDto) {
+  protected onSocketMessageReceived = (message: WebSocketResponseDto) => {
     switch (message.event) {
       case 'order':
         (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(mapWebSocketOrderDtoToOrder(message.data));
@@ -112,12 +115,12 @@ export class WebSocketAtomexClient implements AtomexClient {
         break;
 
       case 'topOfBook':
-        (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(mapQuoteDtoToQuote(message.data));
+        (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(mapQuoteDtosToQuotes(message.data));
         break;
 
       case 'entries':
         (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(mapWebSocketOrderBookEntryDtoToOrderBook(message.data));
         break;
     }
-  }
+  };
 }

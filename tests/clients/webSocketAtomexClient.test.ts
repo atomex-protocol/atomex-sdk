@@ -122,7 +122,7 @@ describe('WebSocket Atomex Client', () => {
     expect(onSwapUpdatedCallback).toHaveBeenCalledWith(expectedSwap);
   });
 
-  test.each(validWsTopOfBookUpdatedTestCases)('emits topOfBookUpdated event with correct data (%s)', async (_, [responseDto, expectedQuote]) => {
+  test.each(validWsTopOfBookUpdatedTestCases)('emits topOfBookUpdated event with correct data (%s)', async (_, [responseDto, expectedQuotes]) => {
     const onOrderUpdatedCallback = jest.fn();
     const onSwapUpdatedCallback = jest.fn();
     const onTopOfBookUpdatedCallback = jest.fn();
@@ -141,7 +141,7 @@ describe('WebSocket Atomex Client', () => {
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onOrderBookUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(1);
-    expect(onTopOfBookUpdatedCallback).toHaveBeenCalledWith(expectedQuote);
+    expect(onTopOfBookUpdatedCallback).toHaveBeenCalledWith(expectedQuotes);
   });
 
   test.each(validWsOrderBookUpdatedTestCases)('emits orderBookUpdated event with correct data (%s)', async (_, [responseDto, expectedOrderBook]) => {
