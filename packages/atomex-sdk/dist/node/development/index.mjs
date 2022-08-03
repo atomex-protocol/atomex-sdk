@@ -2606,8 +2606,8 @@ var config_default = {
     USDT_XTZ: {
       contracts: {
         mainnet: {
-          address: "<mainnet address>",
-          tokenAddress: "",
+          address: "KT1Ays1Chwx3ArnHGoQXchUgDsvKe9JboUjj",
+          tokenAddress: "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
           redeemTxSize: 2e4,
           initiateTxSize: 2e4,
           gasLimit: 4e5
