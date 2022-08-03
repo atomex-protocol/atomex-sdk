@@ -20,9 +20,6 @@ export class MarketDataWebSocketClient {
   constructor(
     protected readonly webSocketApiBaseUrl: string
   ) {
-    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
-    this.onSocketClosed = this.onSocketClosed.bind(this);
-
     this.socket = new WebSocketClient(new URL(MarketDataWebSocketClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
   }
 
@@ -45,14 +42,14 @@ export class MarketDataWebSocketClient {
     socket.subscribe(MarketDataWebSocketClient.ORDER_BOOK_STREAM);
   }
 
-  protected onSocketClosed(socket: WebSocketClient, _event: CloseEvent) {
+  protected onSocketClosed = (socket: WebSocketClient, _event: CloseEvent) => {
     setTimeout(async () => {
       await socket.connect();
       this.subscribeOnStreams(socket);
     }, 1000);
-  }
+  };
 
-  protected onSocketMessageReceived(message: WebSocketResponseDto) {
+  protected onSocketMessageReceived = (message: WebSocketResponseDto) => {
     this.events.messageReceived.emit(message);
-  }
+  };
 }

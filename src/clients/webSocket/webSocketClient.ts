@@ -29,8 +29,6 @@ export class WebSocketClient {
     protected readonly url: string | URL,
     protected readonly authToken?: string,
   ) {
-    this.onMessageReceived = this.onMessageReceived.bind(this);
-    this.onClosed = this.onClosed.bind(this);
   }
 
   async connect(): Promise<void> {
@@ -76,15 +74,15 @@ export class WebSocketClient {
     this.socket.send(JSON.stringify(message));
   }
 
-  protected onMessageReceived(event: MessageEvent<string>) {
+  protected onMessageReceived = (event: MessageEvent<string>) => {
     this.events.messageReceived.emit(JSON.parse(event.data));
-  }
+  };
 
   protected onError(event: Event) {
     throw new Error(`Websocket received error: ${JSON.stringify(event)}`);
   }
 
-  protected onClosed(event: CloseEvent) {
+  protected onClosed = (event: CloseEvent) => {
     this.events.closed.emit(this, event);
-  }
+  };
 }

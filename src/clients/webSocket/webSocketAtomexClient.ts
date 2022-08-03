@@ -35,8 +35,6 @@ export class WebSocketAtomexClient implements AtomexClient {
   protected readonly exchangeWebSocketClient: ExchangeWebSocketClient;
 
   constructor(options: WebSocketAtomexClientOptions) {
-    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
-
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
     this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
@@ -102,7 +100,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     this.marketDataWebSocketClient.dispose();
   }
 
-  protected onSocketMessageReceived(message: WebSocketResponseDto) {
+  protected onSocketMessageReceived = (message: WebSocketResponseDto) => {
     switch (message.event) {
       case 'order':
         (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(mapWebSocketOrderDtoToOrder(message.data));
@@ -120,5 +118,5 @@ export class WebSocketAtomexClient implements AtomexClient {
         (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(mapWebSocketOrderBookEntryDtoToOrderBook(message.data));
         break;
     }
-  }
+  };
 }

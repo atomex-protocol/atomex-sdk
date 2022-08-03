@@ -20,11 +20,6 @@ export class ExchangeWebSocketClient {
     protected readonly webSocketApiBaseUrl: string,
     protected readonly authorizationManager: AuthorizationManager
   ) {
-    this.onAuthorized = this.onAuthorized.bind(this);
-    this.onUnauthorized = this.onUnauthorized.bind(this);
-    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
-    this.onClosed = this.onClosed.bind(this);
-
     this.subscribeOnAuthEvents();
   }
 
@@ -39,7 +34,7 @@ export class ExchangeWebSocketClient {
     this.authorizationManager.events.unauthorized.addListener(this.onUnauthorized);
   }
 
-  protected async onAuthorized(authToken: AuthToken) {
+  protected onAuthorized = async (authToken: AuthToken) => {
     this.removeSocket(authToken.userId);
 
     const socket = new WebSocketClient(new URL(ExchangeWebSocketClient.EXCHANGE_URL_PATH, this.webSocketApiBaseUrl), authToken.value);
@@ -48,11 +43,11 @@ export class ExchangeWebSocketClient {
 
     this.sockets.set(authToken.userId, socket);
     await socket.connect();
-  }
+  };
 
-  protected onUnauthorized(authToken: AuthToken) {
+  protected onUnauthorized = (authToken: AuthToken) => {
     this.removeSocket(authToken.userId);
-  }
+  };
 
   protected removeSocket(userId: string) {
     const socket = this.sockets.get(userId);
@@ -65,13 +60,13 @@ export class ExchangeWebSocketClient {
     }
   }
 
-  protected onSocketMessageReceived(message: WebSocketResponseDto) {
+  protected onSocketMessageReceived = (message: WebSocketResponseDto) => {
     this.events.messageReceived.emit(message);
-  }
+  };
 
-  protected onClosed(socket: WebSocketClient, _event: CloseEvent) {
+  protected onClosed = (socket: WebSocketClient, _event: CloseEvent) => {
     setTimeout(() => {
       socket.connect();
     }, 1000);
-  }
+  };
 }
