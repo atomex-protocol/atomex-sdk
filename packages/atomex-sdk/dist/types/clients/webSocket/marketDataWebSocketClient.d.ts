@@ -12,9 +12,9 @@ export declare class MarketDataWebSocketClient {
     readonly events: MarketDataWebSocketClientEvents;
     protected socket: WebSocketClient;
     constructor(webSocketApiBaseUrl: string);
+    connect(): Promise<void>;
     dispose(): void;
-    protected createWebSocket(): WebSocketClient;
     protected subscribeOnStreams(socket: WebSocketClient): void;
-    protected onSocketClosed(socket: WebSocketClient, _event: CloseEvent): void;
-    protected onSocketMessageReceived(message: WebSocketResponseDto): void;
+    protected onSocketClosed: (socket: WebSocketClient, _event: CloseEvent) => void;
+    protected onSocketMessageReceived: (message: WebSocketResponseDto) => void;
 }

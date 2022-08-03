@@ -14,12 +14,14 @@ export declare class MixedApiAtomexClient implements AtomexClient {
     getSymbols(): Promise<ExchangeSymbol[]>;
     getTopOfBook(symbols?: string[]): Promise<Quote[]>;
     getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
-    getOrderBook(symbol: string): Promise<OrderBook>;
-    getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
+    getOrderBook(symbol: string): Promise<OrderBook | undefined>;
+    getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
     addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
     cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
     cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
     getSwapTransactions(swap: Swap): Promise<readonly Transaction[]>;
-    getSwap(accountAddress: string, swapId: number): Promise<Swap>;
+    getSwap(swapId: number, accountAddress: string): Promise<Swap | undefined>;
+    getSwap(swapId: number, accountAddresses: string[]): Promise<Swap | undefined>;
     getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
+    getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
 }

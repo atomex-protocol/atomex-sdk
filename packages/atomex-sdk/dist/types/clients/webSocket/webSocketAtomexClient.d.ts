@@ -25,14 +25,16 @@ export declare class WebSocketAtomexClient implements AtomexClient {
     getSymbols(): Promise<ExchangeSymbol[]>;
     getTopOfBook(symbols?: string[]): Promise<Quote[]>;
     getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
-    getOrderBook(symbol: string): Promise<OrderBook>;
-    getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
+    getOrderBook(symbol: string): Promise<OrderBook | undefined>;
+    getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
     addOrder(_accountAddress: string, _newOrderRequest: NewOrderRequest): Promise<number>;
     cancelOrder(_accountAddress: string, _cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
     cancelAllOrders(_accountAddress: string, _cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
     getSwapTransactions(_swap: Swap): Promise<readonly Transaction[]>;
-    getSwap(_accountAddress: string, _swapId: number): Promise<Swap>;
-    getSwaps(_accountAddress: string, _selector?: SwapsSelector): Promise<Swap[]>;
+    getSwap(swapId: number, accountAddress: string): Promise<Swap | undefined>;
+    getSwap(swapId: number, accountAddresses: string[]): Promise<Swap | undefined>;
+    getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
+    getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
     dispose(): void;
-    protected onSocketMessageReceived(message: WebSocketResponseDto): void;
+    protected onSocketMessageReceived: (message: WebSocketResponseDto) => void;
 }

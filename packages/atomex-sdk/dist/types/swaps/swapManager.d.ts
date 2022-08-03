@@ -6,9 +6,11 @@ export declare class SwapManager {
     protected readonly swapService: SwapService;
     readonly events: SwapServiceEvents;
     constructor(swapService: SwapService);
-    getSwap(accountAddress: string, swapId: number, _mode?: ImportantDataReceivingMode): Promise<Swap>;
-    getSwaps(accountAddress: string, selector?: SwapsSelector, _mode?: ImportantDataReceivingMode): Promise<Swap[]>;
+    getSwap(swapId: number, accountAddress: string, mode?: ImportantDataReceivingMode): Promise<Swap>;
+    getSwap(swapId: number, accountAddresses: string[], mode?: ImportantDataReceivingMode): Promise<Swap>;
+    getSwaps(accountAddress: string, selector?: SwapsSelector, mode?: ImportantDataReceivingMode): Promise<Swap[]>;
+    getSwaps(accountAddresses: string[], selector?: SwapsSelector, mode?: ImportantDataReceivingMode): Promise<Swap[]>;
     protected attachEvents(): void;
     protected detachEvents(): void;
-    protected handleSwapServiceSwapUpdated: (updatedOrder: Swap) => void;
+    protected handleSwapServiceSwapUpdated: (updatedSwap: Swap) => void;
 }

@@ -14,9 +14,9 @@ export declare class ExchangeWebSocketClient {
     constructor(webSocketApiBaseUrl: string, authorizationManager: AuthorizationManager);
     dispose(): void;
     protected subscribeOnAuthEvents(): void;
-    protected onAuthorized(authToken: AuthToken): void;
-    protected onUnauthorized(authToken: AuthToken): void;
+    protected onAuthorized: (authToken: AuthToken) => Promise<void>;
+    protected onUnauthorized: (authToken: AuthToken) => void;
     protected removeSocket(userId: string): void;
-    protected onSocketMessageReceived(message: WebSocketResponseDto): void;
-    protected onClosed(socket: WebSocketClient, _event: CloseEvent): void;
+    protected onSocketMessageReceived: (message: WebSocketResponseDto) => void;
+    protected onClosed: (socket: WebSocketClient, _event: CloseEvent) => void;
 }

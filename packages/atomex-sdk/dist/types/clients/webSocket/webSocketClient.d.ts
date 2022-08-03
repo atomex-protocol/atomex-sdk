@@ -12,11 +12,11 @@ export declare class WebSocketClient {
     protected get socket(): WebSocket;
     protected set socket(value: WebSocket);
     constructor(url: string | URL, authToken?: string | undefined);
-    connect(): void;
+    connect(): Promise<void>;
     disconnect(): void;
     subscribe(stream: string): void;
     unsubscribe(stream: string): void;
-    protected onMessageReceived(event: MessageEvent<string>): void;
+    protected onMessageReceived: (event: MessageEvent<string>) => void;
     protected onError(event: Event): void;
-    protected onClosed(event: CloseEvent): void;
+    protected onClosed: (event: CloseEvent) => void;
 }

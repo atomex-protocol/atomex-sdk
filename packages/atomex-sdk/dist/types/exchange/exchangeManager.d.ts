@@ -22,5 +22,5 @@ export declare class ExchangeManager {
     protected detachEvents(): void;
     protected handleExchangeServiceOrderUpdated: (updatedOrder: Order) => void;
     protected handleExchangeServiceOrderBookUpdated: (updatedOrderBook: OrderBook) => void;
-    protected handleExchangeServiceTopOfBookUpdated: (updatedQuote: Quote) => void;
+    protected handleExchangeServiceTopOfBookUpdated: (updatedQuotes: Quote[]) => void;
 }

@@ -414,8 +414,8 @@ var ExchangeManager = class {
   handleExchangeServiceOrderBookUpdated = (updatedOrderBook) => {
     this.events.orderBookUpdated.emit(updatedOrderBook);
   };
-  handleExchangeServiceTopOfBookUpdated = (updatedQuote) => {
-    this.events.topOfBookUpdated.emit(updatedQuote);
+  handleExchangeServiceTopOfBookUpdated = (updatedQuotes) => {
+    this.events.topOfBookUpdated.emit(updatedQuotes);
   };
 };
 
@@ -428,11 +428,11 @@ var SwapManager = class {
   events = {
     swapUpdated: new EventEmitter()
   };
-  getSwap(accountAddress, swapId, _mode = 2 /* SafeMerged */) {
-    return this.swapService.getSwap(accountAddress, swapId);
+  getSwap(swapId, addressOrAddresses, _mode = 2 /* SafeMerged */) {
+    return this.swapService.getSwap(swapId, addressOrAddresses);
   }
-  getSwaps(accountAddress, selector, _mode = 2 /* SafeMerged */) {
-    return this.swapService.getSwaps(accountAddress, selector);
+  getSwaps(addressOrAddresses, selector, _mode = 2 /* SafeMerged */) {
+    return this.swapService.getSwaps(addressOrAddresses, selector);
   }
   attachEvents() {
     this.swapService.events.swapUpdated.addListener(this.handleSwapServiceSwapUpdated);
@@ -440,8 +440,8 @@ var SwapManager = class {
   detachEvents() {
     this.swapService.events.swapUpdated.removeListener(this.handleSwapServiceSwapUpdated);
   }
-  handleSwapServiceSwapUpdated = (updatedOrder) => {
-    this.events.swapUpdated.emit(updatedOrder);
+  handleSwapServiceSwapUpdated = (updatedSwap) => {
+    this.events.swapUpdated.emit(updatedSwap);
   };
 };
 
@@ -459,6 +459,8 @@ var HttpClient = class {
       method: options.method || "GET",
       body: options.payload ? JSON.stringify(options.payload) : void 0
     });
+    if (response.status === 404)
+      return void 0;
     if (!response.ok) {
       const errorBody = await response.text();
       throw Error(errorBody);
@@ -700,7 +702,7 @@ var RestAtomexClient = class {
     const urlPath = `/v1/Orders/${orderId}`;
     const authToken = this.getRequiredAuthToken(accountAddress);
     const orderDto = await this.httpClient.request({ urlPath, authToken });
-    return mapOrderDtoToOrder(orderDto);
+    return orderDto ? mapOrderDtoToOrder(orderDto) : void 0;
   }
   async getOrders(accountAddress, selector) {
     const urlPath = "/v1/Orders";
@@ -711,13 +713,14 @@ var RestAtomexClient = class {
       sort: (selector == null ? void 0 : selector.sortAsc) !== void 0 ? selector.sortAsc ? "Asc" : "Desc" : void 0
     };
     const orderDtos = await this.httpClient.request({ urlPath, authToken, params });
-    return mapOrderDtosToOrders(orderDtos);
+    return orderDtos ? mapOrderDtosToOrders(orderDtos) : [];
   }
   async getSymbols() {
     const urlPath = "/v1/Symbols";
     const symbolDtos = await this.httpClient.request({ urlPath });
-    const symbols = mapSymbolDtosToSymbols(symbolDtos);
-    this._symbolsCache = symbols;
+    const symbols = symbolDtos ? mapSymbolDtosToSymbols(symbolDtos) : [];
+    if (symbolDtos)
+      this._symbolsCache = symbols;
     return symbols;
   }
   async getTopOfBook(symbolsOrDirections) {
@@ -733,7 +736,7 @@ var RestAtomexClient = class {
     }
     const params = { symbols: symbols == null ? void 0 : symbols.join(",") };
     const quoteDtos = await this.httpClient.request({ urlPath, params });
-    return mapQuoteDtosToQuotes(quoteDtos);
+    return quoteDtos ? mapQuoteDtosToQuotes(quoteDtos) : [];
   }
   async getOrderBook(symbolOrDirection) {
     const urlPath = "/v1/MarketData/book";
@@ -746,7 +749,7 @@ var RestAtomexClient = class {
     }
     const params = { symbol };
     const orderBookDto = await this.httpClient.request({ urlPath, params });
-    return mapOrderBookDtoToOrderBook(orderBookDto);
+    return orderBookDto ? mapOrderBookDtoToOrderBook(orderBookDto) : void 0;
   }
   async addOrder(accountAddress, newOrderRequest) {
     const urlPath = "/v1/Orders";
@@ -776,6 +779,8 @@ var RestAtomexClient = class {
       method: "POST",
       payload
     });
+    if (newOrderDto === void 0)
+      throw new Error("Unexpected response dto");
     return newOrderDto.orderId;
   }
   async cancelOrder(accountAddress, cancelOrderRequest) {
@@ -797,6 +802,8 @@ var RestAtomexClient = class {
       params,
       method: "DELETE"
     });
+    if (isSuccess === void 0)
+      throw new Error("Unexpected response dto");
     return isSuccess;
   }
   async cancelAllOrders(accountAddress, cancelAllOrdersRequest) {
@@ -823,34 +830,49 @@ var RestAtomexClient = class {
       },
       method: "DELETE"
     });
+    if (canceledOrdersCount === void 0)
+      throw new Error("Unexpected response dto");
     return canceledOrdersCount;
   }
   getSwapTransactions(_swap) {
     throw new Error("Method not implemented.");
   }
-  async getSwap(accountAddress, swapId) {
+  async getSwap(swapId, addressOrAddresses) {
     const urlPath = `/v1/Swaps/${swapId}`;
-    const authToken = this.getRequiredAuthToken(accountAddress);
+    const userIds = this.getUserIds(addressOrAddresses);
+    const params = {
+      userIds: userIds.join(",")
+    };
     const swapDto = await this.httpClient.request({
       urlPath,
-      authToken
+      params
     });
-    return mapSwapDtoToSwap(swapDto);
+    return swapDto ? mapSwapDtoToSwap(swapDto) : void 0;
   }
-  async getSwaps(accountAddress, selector) {
+  async getSwaps(addressOrAddresses, selector) {
     const urlPath = "/v1/Swaps";
-    const authToken = this.getRequiredAuthToken(accountAddress);
+    const userIds = this.getUserIds(addressOrAddresses);
     const params = {
       ...selector,
       sortAsc: void 0,
-      sort: (selector == null ? void 0 : selector.sortAsc) !== void 0 ? selector.sortAsc ? "Asc" : "Desc" : void 0
+      sort: (selector == null ? void 0 : selector.sortAsc) !== void 0 ? selector.sortAsc ? "Asc" : "Desc" : void 0,
+      userIds: userIds.join(",")
     };
     const swapDtos = await this.httpClient.request({
       urlPath,
-      params,
-      authToken
+      params
     });
-    return mapSwapDtosToSwaps(swapDtos);
+    return swapDtos ? mapSwapDtosToSwaps(swapDtos) : [];
+  }
+  getUserIds(addressOrAddresses) {
+    const accountAddresses = Array.isArray(addressOrAddresses) ? addressOrAddresses : [addressOrAddresses];
+    const userIds = accountAddresses.map((address) => {
+      var _a;
+      return (_a = this.authorizationManager.getAuthToken(address)) == null ? void 0 : _a.userId;
+    }).filter((userId) => userId);
+    if (!userIds.length)
+      throw new Error("Incorrect accountAddresses");
+    return userIds;
   }
   getRequiredAuthToken(accountAddress) {
     var _a;
@@ -872,8 +894,6 @@ var WebSocketClient = class {
   constructor(url, authToken) {
     this.url = url;
     this.authToken = authToken;
-    this.onMessageReceived = this.onMessageReceived.bind(this);
-    this.onClosed = this.onClosed.bind(this);
   }
   events = {
     messageReceived: new EventEmitter(),
@@ -888,20 +908,24 @@ var WebSocketClient = class {
   set socket(value) {
     this._socket = value;
   }
-  connect() {
-    if (this._socket)
-      this.disconnect();
-    const protocols = this.authToken ? ["access_token", this.authToken] : void 0;
-    this.socket = new WebSocket(this.url, protocols);
-    this.socket.addEventListener("message", this.onMessageReceived);
-    this.socket.addEventListener("error", this.onError);
-    this.socket.addEventListener("close", this.onClosed);
+  async connect() {
+    this.disconnect();
+    return new Promise((resolve) => {
+      const protocols = this.authToken ? ["access_token", this.authToken] : void 0;
+      this.socket = new WebSocket(this.url, protocols);
+      this.socket.addEventListener("message", this.onMessageReceived);
+      this.socket.addEventListener("error", this.onError);
+      this.socket.addEventListener("close", this.onClosed);
+      this.socket.addEventListener("open", () => resolve());
+    });
   }
   disconnect() {
-    this.socket.removeEventListener("message", this.onMessageReceived);
-    this.socket.removeEventListener("error", this.onError);
-    this.socket.removeEventListener("close", this.onClosed);
-    this.socket.close();
+    if (this._socket) {
+      this.socket.removeEventListener("message", this.onMessageReceived);
+      this.socket.removeEventListener("error", this.onError);
+      this.socket.removeEventListener("close", this.onClosed);
+      this.socket.close();
+    }
   }
   subscribe(stream) {
     const message = {
@@ -919,15 +943,15 @@ var WebSocketClient = class {
     };
     this.socket.send(JSON.stringify(message));
   }
-  onMessageReceived(event) {
+  onMessageReceived = (event) => {
     this.events.messageReceived.emit(JSON.parse(event.data));
-  }
+  };
   onError(event) {
     throw new Error(`Websocket received error: ${JSON.stringify(event)}`);
   }
-  onClosed(event) {
+  onClosed = (event) => {
     this.events.closed.emit(this, event);
-  }
+  };
 };
 
 // src/clients/webSocket/exchangeWebSocketClient.ts
@@ -935,10 +959,6 @@ var _ExchangeWebSocketClient = class {
   constructor(webSocketApiBaseUrl, authorizationManager) {
     this.webSocketApiBaseUrl = webSocketApiBaseUrl;
     this.authorizationManager = authorizationManager;
-    this.onAuthorized = this.onAuthorized.bind(this);
-    this.onUnauthorized = this.onUnauthorized.bind(this);
-    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
-    this.onClosed = this.onClosed.bind(this);
     this.subscribeOnAuthEvents();
   }
   events = {
@@ -954,17 +974,17 @@ var _ExchangeWebSocketClient = class {
     this.authorizationManager.events.authorized.addListener(this.onAuthorized);
     this.authorizationManager.events.unauthorized.addListener(this.onUnauthorized);
   }
-  onAuthorized(authToken) {
+  onAuthorized = async (authToken) => {
     this.removeSocket(authToken.userId);
     const socket = new WebSocketClient(new URL(_ExchangeWebSocketClient.EXCHANGE_URL_PATH, this.webSocketApiBaseUrl), authToken.value);
     socket.events.messageReceived.addListener(this.onSocketMessageReceived);
     socket.events.closed.addListener(this.onClosed);
     this.sockets.set(authToken.userId, socket);
-    socket.connect();
-  }
-  onUnauthorized(authToken) {
+    await socket.connect();
+  };
+  onUnauthorized = (authToken) => {
     this.removeSocket(authToken.userId);
-  }
+  };
   removeSocket(userId) {
     const socket = this.sockets.get(userId);
     if (socket) {
@@ -974,14 +994,14 @@ var _ExchangeWebSocketClient = class {
       socket.disconnect();
     }
   }
-  onSocketMessageReceived(message) {
+  onSocketMessageReceived = (message) => {
     this.events.messageReceived.emit(message);
-  }
-  onClosed(socket, _event) {
+  };
+  onClosed = (socket, _event) => {
     setTimeout(() => {
       socket.connect();
     }, 1e3);
-  }
+  };
 };
 var ExchangeWebSocketClient = _ExchangeWebSocketClient;
 __publicField(ExchangeWebSocketClient, "EXCHANGE_URL_PATH", "/ws/exchange");
@@ -990,40 +1010,36 @@ __publicField(ExchangeWebSocketClient, "EXCHANGE_URL_PATH", "/ws/exchange");
 var _MarketDataWebSocketClient = class {
   constructor(webSocketApiBaseUrl) {
     this.webSocketApiBaseUrl = webSocketApiBaseUrl;
-    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
-    this.onSocketClosed = this.onSocketClosed.bind(this);
-    this.socket = this.createWebSocket();
+    this.socket = new WebSocketClient(new URL(_MarketDataWebSocketClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
   }
   events = {
     messageReceived: new EventEmitter()
   };
   socket;
+  async connect() {
+    this.socket.events.messageReceived.addListener(this.onSocketMessageReceived);
+    this.socket.events.closed.addListener(this.onSocketClosed);
+    await this.socket.connect();
+    this.subscribeOnStreams(this.socket);
+  }
   dispose() {
     this.socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
     this.socket.events.closed.removeListener(this.onSocketClosed);
     this.socket.disconnect();
   }
-  createWebSocket() {
-    const socket = new WebSocketClient(new URL(_MarketDataWebSocketClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
-    socket.events.messageReceived.addListener(this.onSocketMessageReceived);
-    socket.events.closed.addListener(this.onSocketClosed);
-    socket.connect();
-    this.subscribeOnStreams(socket);
-    return socket;
-  }
   subscribeOnStreams(socket) {
     socket.subscribe(_MarketDataWebSocketClient.TOP_OF_BOOK_STREAM);
     socket.subscribe(_MarketDataWebSocketClient.ORDER_BOOK_STREAM);
   }
-  onSocketClosed(socket, _event) {
-    setTimeout(() => {
-      socket.connect();
+  onSocketClosed = (socket, _event) => {
+    setTimeout(async () => {
+      await socket.connect();
       this.subscribeOnStreams(socket);
     }, 1e3);
-  }
-  onSocketMessageReceived(message) {
+  };
+  onSocketMessageReceived = (message) => {
     this.events.messageReceived.emit(message);
-  }
+  };
 };
 var MarketDataWebSocketClient = _MarketDataWebSocketClient;
 __publicField(MarketDataWebSocketClient, "MARKET_DATA_URL_PATH", "/ws/marketdata");
@@ -1044,7 +1060,6 @@ var WebSocketAtomexClient = class {
   marketDataWebSocketClient;
   exchangeWebSocketClient;
   constructor(options) {
-    this.onSocketMessageReceived = this.onSocketMessageReceived.bind(this);
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
     this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
@@ -1052,6 +1067,7 @@ var WebSocketAtomexClient = class {
     this.exchangeWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
     this.marketDataWebSocketClient = new MarketDataWebSocketClient(this.webSocketApiBaseUrl);
     this.marketDataWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
+    this.marketDataWebSocketClient.connect();
   }
   getOrder(_accountAddress, _orderId) {
     throw new Error("Method not implemented.");
@@ -1080,17 +1096,17 @@ var WebSocketAtomexClient = class {
   getSwapTransactions(_swap) {
     throw new Error("Method not implemented.");
   }
-  getSwap(_accountAddress, _swapId) {
+  getSwap(_swapId, _addressOrAddresses) {
     throw new Error("Method not implemented.");
   }
-  getSwaps(_accountAddress, _selector) {
+  getSwaps(_addressOrAddresses, _selector) {
     throw new Error("Method not implemented.");
   }
   dispose() {
     this.exchangeWebSocketClient.dispose();
     this.marketDataWebSocketClient.dispose();
   }
-  onSocketMessageReceived(message) {
+  onSocketMessageReceived = (message) => {
     switch (message.event) {
       case "order":
         this.events.orderUpdated.emit(mapWebSocketOrderDtoToOrder(message.data));
@@ -1099,13 +1115,13 @@ var WebSocketAtomexClient = class {
         this.events.swapUpdated.emit(mapSwapDtoToSwap(message.data));
         break;
       case "topOfBook":
-        this.events.topOfBookUpdated.emit(mapQuoteDtoToQuote(message.data));
+        this.events.topOfBookUpdated.emit(mapQuoteDtosToQuotes(message.data));
         break;
       case "entries":
         this.events.orderBookUpdated.emit(mapWebSocketOrderBookEntryDtoToOrderBook(message.data));
         break;
     }
-  }
+  };
 };
 
 // src/clients/mixedAtomexClient.ts
@@ -1151,11 +1167,11 @@ var MixedApiAtomexClient = class {
   getSwapTransactions(swap) {
     return this.restAtomexClient.getSwapTransactions(swap);
   }
-  getSwap(accountAddress, swapId) {
-    return this.restAtomexClient.getSwap(accountAddress, swapId);
+  getSwap(swapId, addressOrAddresses) {
+    return this.restAtomexClient.getSwap(swapId, addressOrAddresses);
   }
-  getSwaps(accountAddress, selector) {
-    return this.restAtomexClient.getSwaps(accountAddress, selector);
+  getSwaps(addressOrAddresses, selector) {
+    return this.restAtomexClient.getSwaps(addressOrAddresses, selector);
   }
 };
 

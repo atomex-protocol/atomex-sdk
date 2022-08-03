@@ -14,7 +14,7 @@ export interface RequestOptions {
 export declare class HttpClient {
     protected readonly baseUrl: string;
     constructor(baseUrl: string);
-    request<T>(options: RequestOptions): Promise<T>;
+    request<T>(options: RequestOptions): Promise<T | undefined>;
     private setSearchParams;
     private createHeaders;
 }
