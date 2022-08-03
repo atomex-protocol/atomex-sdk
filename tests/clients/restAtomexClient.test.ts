@@ -507,6 +507,19 @@ describe('Rest Atomex Client', () => {
         })
       );
     });
+
+    test('filters authorized account addresses', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify(validSwapTestCases[0]![1]![0]));
+      await client.getSwap(123, [testAccountAddress, 'some-unauthorized-address']);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Swaps/123?userIds=${encodeURIComponent(testAuthToken.userId)}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
+      );
+    });
   });
 
   describe('getSwaps', () => {
@@ -559,6 +572,19 @@ describe('Rest Atomex Client', () => {
       const expectedIds = [...testAccounts.values()].map(token => token.userId).join(',');
       expect(fetch).toHaveBeenCalledWith(
         `${testApiUrl}/v1/Swaps?userIds=${encodeURIComponent(expectedIds)}`,
+        expect.objectContaining({
+          method: 'GET'
+        })
+      );
+    });
+
+    test('filters authorized account addresses', async () => {
+      fetchMock.mockResponseOnce(JSON.stringify([]));
+      await client.getSwaps([testAccountAddress, 'some-unauthorized-address']);
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        `${testApiUrl}/v1/Swaps?userIds=${encodeURIComponent(testAuthToken.userId)}`,
         expect.objectContaining({
           method: 'GET'
         })

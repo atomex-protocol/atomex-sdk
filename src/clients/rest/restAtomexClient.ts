@@ -273,17 +273,13 @@ export class RestAtomexClient implements AtomexClient {
 
   private getUserIds(addressOrAddresses: string | string[]) {
     const accountAddresses = Array.isArray(addressOrAddresses) ? addressOrAddresses : [addressOrAddresses];
-    if (!accountAddresses.length)
+
+    const userIds = accountAddresses
+      .map(address => this.authorizationManager.getAuthToken(address)?.userId)
+      .filter(userId => userId);
+
+    if (!userIds.length)
       throw new Error('Incorrect accountAddresses');
-
-    const userIds = accountAddresses.map(address => {
-      const tokenData = this.authorizationManager.getAuthToken(address);
-      if (!tokenData) {
-        throw new Error(`Cannot find token data for address: ${address}`);
-      }
-
-      return tokenData.userId;
-    });
 
     return userIds;
   }
