@@ -221,12 +221,11 @@ export class RestAtomexClient implements AtomexClient {
   }
 
   async getSwap(accountAddresses: string[], swapId: number): Promise<Swap> {
-    if (!accountAddresses.length)
-      throw new Error('Incorrect accountAddresses');
-
     const urlPath = `/v1/Swaps/${swapId}`;
+
+    const userIds = this.getUserIds(accountAddresses);
     const params = {
-      userAddresses: accountAddresses.join(',')
+      userIds: userIds.join(',')
     };
 
     const swapDto = await this.httpClient.request<SwapDto>({
@@ -238,18 +237,16 @@ export class RestAtomexClient implements AtomexClient {
   }
 
   async getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]> {
-    if (!accountAddresses.length)
-      throw new Error('Incorrect accountAddresses');
-
     const urlPath = '/v1/Swaps';
 
+    const userIds = this.getUserIds(accountAddresses);
     const params = {
       ...selector,
       sortAsc: undefined,
       sort: selector?.sortAsc !== undefined
         ? selector.sortAsc ? 'Asc' : 'Desc'
         : undefined,
-      userAddresses: accountAddresses.join(','),
+      userIds: userIds.join(',')
     };
 
     const swapDtos = await this.httpClient.request<SwapDto[]>({
@@ -258,6 +255,22 @@ export class RestAtomexClient implements AtomexClient {
     });
 
     return mapSwapDtosToSwaps(swapDtos);
+  }
+
+  private getUserIds(accountAddresses: string[]) {
+    if (!accountAddresses.length)
+      throw new Error('Incorrect accountAddresses');
+
+    const userIds = accountAddresses.map(address => {
+      const tokenData = this.authorizationManager.getAuthToken(address);
+      if (!tokenData) {
+        throw new Error(`Cannot find token data for address: ${address}`);
+      }
+
+      return tokenData.userId;
+    });
+
+    return userIds;
   }
 
   private getRequiredAuthToken(accountAddress: string): string {

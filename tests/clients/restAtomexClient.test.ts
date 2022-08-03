@@ -18,13 +18,31 @@ describe('Rest Atomex Client', () => {
 
   const testApiUrl = 'https://test-api.com';
   const atomexNetwork: AtomexNetwork = 'testnet';
-  const testAccountAddress = 'test-account-address';
-  const testAuthToken: AuthToken = {
-    address: 'address',
-    expired: new Date(),
-    userId: 'user-id',
-    value: 'test-auth-token'
-  };
+
+  const testAccounts: Map<string, AuthToken> = new Map(
+    [
+      [
+        'test-account-address',
+        {
+          address: 'test-account-address',
+          expired: new Date(),
+          userId: 'user-id',
+          value: 'test-auth-token'
+        }
+      ],
+      [
+        'test-account-address2',
+        {
+          address: 'test-account-address2',
+          expired: new Date(),
+          userId: 'user-id2',
+          value: 'test-auth-token2'
+        }
+      ]
+    ]
+  );
+
+  const [testAccountAddress, testAuthToken] = [...testAccounts.entries()][0]!;
 
   let client: RestAtomexClient;
 
@@ -35,7 +53,7 @@ describe('Rest Atomex Client', () => {
       apiBaseUrl: testApiUrl,
       atomexNetwork,
       authorizationManager: new TestAuthorizationManager(address => {
-        return address === testAccountAddress ? testAuthToken : undefined;
+        return testAccounts.get(address);
       })
     });
   });
@@ -446,7 +464,7 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps/123?userAddresses=${testAccountAddress}`,
+        `${testApiUrl}/v1/Swaps/123?userIds=${testAuthToken.userId}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -464,13 +482,13 @@ describe('Rest Atomex Client', () => {
 
     test('sends all account addresses', async () => {
       fetchMock.mockResponseOnce(JSON.stringify(validSwapTestCases[0]![1]![0]));
-
-      const addresses = ['address1', 'address2', 'address3'];
+      const addresses = [...testAccounts.keys()];
       await client.getSwap(addresses, 123);
 
       expect(fetch).toHaveBeenCalledTimes(1);
+      const expectedIds = [...testAccounts.values()].map(token => token.userId).join(',');
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps/123?userAddresses=${encodeURIComponent('address1,address2,address3')}`,
+        `${testApiUrl}/v1/Swaps/123?userIds=${encodeURIComponent(expectedIds)}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -489,7 +507,7 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?userAddresses=${testAccountAddress}`,
+        `${testApiUrl}/v1/Swaps?userIds=${testAuthToken.userId}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -508,12 +526,13 @@ describe('Rest Atomex Client', () => {
     test('sends all account addresses', async () => {
       fetchMock.mockResponseOnce(JSON.stringify([]));
 
-      const addresses = ['address1', 'address2', 'address3'];
+      const addresses = [...testAccounts.keys()];
       await client.getSwaps(addresses);
 
       expect(fetch).toHaveBeenCalledTimes(1);
+      const expectedIds = [...testAccounts.values()].map(token => token.userId).join(',');
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?userAddresses=${encodeURIComponent('address1,address2,address3')}`,
+        `${testApiUrl}/v1/Swaps?userIds=${encodeURIComponent(expectedIds)}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -527,7 +546,7 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?active=${filterValue}&userAddresses=${testAccountAddress}`,
+        `${testApiUrl}/v1/Swaps?active=${filterValue}&userIds=${testAuthToken.userId}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -541,7 +560,7 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?sort=${expectedQueryValue}&userAddresses=${testAccountAddress}`,
+        `${testApiUrl}/v1/Swaps?sort=${expectedQueryValue}&userIds=${testAuthToken.userId}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -555,7 +574,7 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?limit=${filterValue}&userAddresses=${testAccountAddress}`,
+        `${testApiUrl}/v1/Swaps?limit=${filterValue}&userIds=${testAuthToken.userId}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -569,7 +588,7 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?offset=${filterValue}&userAddresses=${testAccountAddress}`,
+        `${testApiUrl}/v1/Swaps?offset=${filterValue}&userIds=${testAuthToken.userId}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -583,7 +602,7 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?symbols=${encodeURIComponent('ETH/BTC')}&userAddresses=${testAccountAddress}`,
+        `${testApiUrl}/v1/Swaps?symbols=${encodeURIComponent('ETH/BTC')}&userIds=${testAuthToken.userId}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -597,7 +616,7 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?completed=${filterValue}&userAddresses=${testAccountAddress}`,
+        `${testApiUrl}/v1/Swaps?completed=${filterValue}&userIds=${testAuthToken.userId}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -611,7 +630,7 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?afterId=${filterValue}&userAddresses=${testAccountAddress}`,
+        `${testApiUrl}/v1/Swaps?afterId=${filterValue}&userIds=${testAuthToken.userId}`,
         expect.objectContaining({
           method: 'GET'
         })
@@ -633,7 +652,7 @@ describe('Rest Atomex Client', () => {
 
       expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        `${testApiUrl}/v1/Swaps?active=true&afterId=3&completed=true&limit=10&offset=20&symbols=${encodeURIComponent('ETH/BTC')}&sort=Asc&userAddresses=${testAccountAddress}`,
+        `${testApiUrl}/v1/Swaps?active=true&afterId=3&completed=true&limit=10&offset=20&symbols=${encodeURIComponent('ETH/BTC')}&sort=Asc&userIds=${testAuthToken.userId}`,
         expect.objectContaining({
           method: 'GET'
         })
