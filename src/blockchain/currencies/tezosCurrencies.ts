@@ -1,4 +1,4 @@
-import type { AtomexBlockchainOptions } from '../../atomex/models/index';
+import type { AtomexBlockchainNetworkOptions } from '../../atomex/models/atomexOptions';
 import type { TezosCurrency, TezosFA12Currency, TezosFA2Currency } from '../../tezos/index';
 
 const tezosNativeCurrency: TezosCurrency = {
@@ -29,23 +29,14 @@ const usdtCurrency: TezosFA2Currency = {
   type: 'fa2'
 };
 
-export const tezosBlockchainOptions: AtomexBlockchainOptions = {
-  mainnet: {
-    currencies: [
-      tezosNativeCurrency,
-      tzBtcCurrency,
-      usdtCurrency
-    ],
-    currencyOptions: {
-    }
-  },
-  testnet: {
-    currencies: [
-      tezosNativeCurrency,
-      tzBtcCurrency,
-      usdtCurrency
-    ],
-    currencyOptions: {
-    }
-  },
-};
+export const tezosMainnetCurrencies: AtomexBlockchainNetworkOptions['currencies'] = [
+  tezosNativeCurrency,
+  tzBtcCurrency,
+  usdtCurrency
+];
+
+export const tezosTestnetCurrencies: AtomexBlockchainNetworkOptions['currencies'] = [
+  tezosNativeCurrency,
+  tzBtcCurrency,
+  usdtCurrency
+];

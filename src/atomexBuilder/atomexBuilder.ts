@@ -1,6 +1,10 @@
 import { Atomex, AtomexContext } from '../atomex/index';
 import type { AtomexBlockchainOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
+import {
+  ethereumMainnetCurrencies, ethereumTestnetCurrencies,
+  tezosMainnetCurrencies, tezosTestnetCurrencies
+} from '../blockchain/currencies/index';
 import { SignersManager } from '../blockchain/signersManager';
 import type { DeepReadonly } from '../core/index';
 import { ExchangeManager } from '../exchange/exchangeManager';
@@ -9,7 +13,6 @@ import type { AtomexBuilderOptions } from './atomexBuilderOptions';
 import { createDefaultExchangeService } from './atomexComponents/exchangeService';
 import { AuthorizationManagerDefaultComponentOptions, createDefaultAuthorizationManager } from './atomexComponents/index';
 import { config } from './atomexConfig';
-import { tezosBlockchainOptions, ethereumBlockchainOptions } from './blockchainOptions/index';
 import type { ControlledAtomexContext } from './controlledAtomexContext';
 import type { CustomAtomexComponentFactory } from './customAtomexComponentFactory';
 
@@ -97,8 +100,38 @@ export class AtomexBuilder {
 
   protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainOptions> {
     return {
-      tezos: tezosBlockchainOptions,
-      ethereum: ethereumBlockchainOptions
+      tezos: this.createDefaultTezosBlockchainOptions(),
+      ethereum: this.createDefaultEthereumBlockchainOptions()
     };
+  }
+
+  protected createDefaultTezosBlockchainOptions(): AtomexBlockchainOptions {
+    const tezosOptions: AtomexBlockchainOptions = {
+      mainnet: {
+        currencies: tezosMainnetCurrencies,
+        currencyOptions: {}
+      },
+      testnet: {
+        currencies: tezosTestnetCurrencies,
+        currencyOptions: {}
+      }
+    };
+
+    return tezosOptions;
+  }
+
+  protected createDefaultEthereumBlockchainOptions(): AtomexBlockchainOptions {
+    const ethereumOptions: AtomexBlockchainOptions = {
+      mainnet: {
+        currencies: ethereumMainnetCurrencies,
+        currencyOptions: {}
+      },
+      testnet: {
+        currencies: ethereumTestnetCurrencies,
+        currencyOptions: {}
+      }
+    };
+
+    return ethereumOptions;
   }
 }
