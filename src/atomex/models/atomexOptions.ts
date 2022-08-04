@@ -31,9 +31,9 @@ export interface AtomexBlockchainOptions {
 }
 
 export interface AtomexBlockchainNetworkOptions {
-  blockchainToolkitProvider: BlockchainToolkitProvider;
-  balancesProvider: BalancesProvider;
-  swapTransactionsProvider: SwapTransactionsProvider;
+  blockchainToolkitProvider?: BlockchainToolkitProvider;
+  balancesProvider?: BalancesProvider;
+  swapTransactionsProvider?: SwapTransactionsProvider;
   currencies: Currency[];
   currencyOptions: Record<Currency['id'], AtomexCurrencyOptions>;
   [name: string | number]: unknown;

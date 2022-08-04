@@ -1,4 +1,5 @@
 import { Atomex, AtomexContext } from '../atomex/index';
+import type { AtomexBlockchainOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
 import { SignersManager } from '../blockchain/signersManager';
 import type { DeepReadonly } from '../core/index';
@@ -8,6 +9,7 @@ import type { AtomexBuilderOptions } from './atomexBuilderOptions';
 import { createDefaultExchangeService } from './atomexComponents/exchangeService';
 import { AuthorizationManagerDefaultComponentOptions, createDefaultAuthorizationManager } from './atomexComponents/index';
 import { config } from './atomexConfig';
+import { tezosBlockchainOptions, ethereumBlockchainOptions } from './blockchainOptions/index';
 import type { ControlledAtomexContext } from './controlledAtomexContext';
 import type { CustomAtomexComponentFactory } from './customAtomexComponentFactory';
 
@@ -49,6 +51,7 @@ export class AtomexBuilder {
     this.controlledAtomexContext.services.swapService = atomexClient;
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
     this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
+    const blockchains = this.createDefaultBlockchainOptions();
 
     return new Atomex({
       atomexContext: this.atomexContext,
@@ -57,7 +60,8 @@ export class AtomexBuilder {
         authorizationManager: this.atomexContext.managers.authorizationManager,
         exchangeManager: this.atomexContext.managers.exchangeManager,
         swapManager: this.atomexContext.managers.swapManager
-      }
+      },
+      blockchains
     });
   }
 
@@ -89,5 +93,12 @@ export class AtomexBuilder {
 
   protected createSwapManager() {
     return new SwapManager(this.atomexContext.services.swapService);
+  }
+
+  protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainOptions> {
+    return {
+      tezos: tezosBlockchainOptions,
+      ethereum: ethereumBlockchainOptions
+    };
   }
 }

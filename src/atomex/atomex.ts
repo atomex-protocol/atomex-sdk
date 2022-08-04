@@ -36,7 +36,7 @@ export class Atomex {
   async addSigner(signer: Signer) {
     await this.signers.addSigner(signer);
 
-    await this.options.blockchains?.[signer.blockchain]?.mainnet.blockchainToolkitProvider.addSigner(signer);
+    await this.options.blockchains?.[signer.blockchain]?.mainnet.blockchainToolkitProvider?.addSigner(signer);
   }
 
   addBlockchain(_factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions) {
