@@ -38,4 +38,8 @@ export class SwapManager {
   protected handleSwapServiceSwapUpdated = (updatedSwap: Swap) => {
     (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(updatedSwap);
   };
+
+  dispose() {
+    this.swapService.dispose();
+  }
 }

@@ -271,6 +271,10 @@ export class RestAtomexClient implements AtomexClient {
     return swapDtos ? mapSwapDtosToSwaps(swapDtos) : [];
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  dispose() {
+  }
+
   private getUserIds(addressOrAddresses: string | string[]) {
     const accountAddresses = Array.isArray(addressOrAddresses) ? addressOrAddresses : [addressOrAddresses];
 

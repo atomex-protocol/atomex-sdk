@@ -39,9 +39,12 @@ export class Atomex {
     await this.options.blockchains?.[signer.blockchain]?.mainnet.blockchainToolkitProvider?.addSigner(signer);
   }
 
-  addBlockchain(_factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions) {
-    //const blockchainOptions = factoryMethod(this.atomexContext);
-    // TODO
+  addBlockchain(factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions) {
+    const blockchainOptions = factoryMethod(this.atomexContext);
+    const networkOptions = this.atomexNetwork == 'mainnet' ? blockchainOptions.mainnet : blockchainOptions.testnet;
+
+    if (networkOptions)
+      this.atomexContext.providers.blockchainProvider.addBlockchain(networkOptions);
   }
 
   async swap(newSwapRequest: NewSwapRequest, completeStage: SwapOperationCompleteStage): Promise<Swap>;
@@ -52,6 +55,10 @@ export class Atomex {
 
   dispose() {
     this.authorization.dispose();
+    this.atomexContext.managers.exchangeManager.dispose();
+    this.atomexContext.managers.swapManager.dispose();
+    this.atomexContext.services.exchangeService.dispose();
+    this.atomexContext.services.swapService.dispose();
     // TODO: dispose other resources: clients, managers, etc.
   }
 }

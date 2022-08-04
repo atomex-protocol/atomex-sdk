@@ -79,4 +79,9 @@ export class MixedApiAtomexClient implements AtomexClient {
   getSwaps(addressOrAddresses: string | string[], selector?: SwapsSelector): Promise<Swap[]> {
     return (this.restAtomexClient.getSwaps as (addressOrAddresses: string | string[], selector?: SwapsSelector) => Promise<Swap[]>)(addressOrAddresses, selector);
   }
+
+  dispose() {
+    this.webSocketAtomexClient.dispose();
+    this.restAtomexClient.dispose();
+  }
 }

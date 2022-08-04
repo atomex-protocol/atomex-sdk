@@ -1,6 +1,7 @@
 import { Atomex, AtomexContext } from '../atomex/index';
 import type { AtomexBlockchainOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
+import { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
 import {
   ethereumMainnetCurrencies, ethereumTestnetCurrencies,
   tezosMainnetCurrencies, tezosTestnetCurrencies
@@ -47,6 +48,7 @@ export class AtomexBuilder {
   }
 
   build(): Atomex {
+    this.controlledAtomexContext.providers.blockchainProvider = new AtomexBlockchainProvider();
     this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
     this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
     const atomexClient = this.createDefaultExchangeService();
