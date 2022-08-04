@@ -59,6 +59,5 @@ export class Atomex {
     this.atomexContext.managers.swapManager.dispose();
     this.atomexContext.services.exchangeService.dispose();
     this.atomexContext.services.swapService.dispose();
-    // TODO: dispose other resources: clients, managers, etc.
   }
 }
