@@ -14,7 +14,7 @@ export declare class Atomex {
     constructor(options: AtomexOptions);
     get atomexNetwork(): import("../index").AtomexNetwork;
     addSigner(signer: Signer): Promise<void>;
-    addBlockchain(_factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions): void;
+    addBlockchain(factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions): void;
     swap(newSwapRequest: NewSwapRequest, completeStage: SwapOperationCompleteStage): Promise<Swap>;
     swap(swapId: Swap['id'], completeStage: SwapOperationCompleteStage): Promise<Swap>;
     dispose(): void;

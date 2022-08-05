@@ -13,4 +13,5 @@ export declare class SwapManager {
     protected attachEvents(): void;
     protected detachEvents(): void;
     protected handleSwapServiceSwapUpdated: (updatedSwap: Swap) => void;
+    dispose(): void;
 }

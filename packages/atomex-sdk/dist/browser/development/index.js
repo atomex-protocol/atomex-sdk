@@ -48,17 +48,25 @@ var Atomex = class {
     return this.atomexContext.atomexNetwork;
   }
   async addSigner(signer) {
-    var _a, _b;
+    var _a, _b, _c;
     await this.signers.addSigner(signer);
-    await ((_b = (_a = this.options.blockchains) == null ? void 0 : _a[signer.blockchain]) == null ? void 0 : _b.mainnet.blockchainToolkitProvider.addSigner(signer));
+    await ((_c = (_b = (_a = this.options.blockchains) == null ? void 0 : _a[signer.blockchain]) == null ? void 0 : _b.mainnet.blockchainToolkitProvider) == null ? void 0 : _c.addSigner(signer));
   }
-  addBlockchain(_factoryMethod) {
+  addBlockchain(factoryMethod) {
+    const blockchainOptions = factoryMethod(this.atomexContext);
+    const networkOptions = this.atomexNetwork == "mainnet" ? blockchainOptions.mainnet : blockchainOptions.testnet;
+    if (networkOptions)
+      this.atomexContext.providers.blockchainProvider.addBlockchain(networkOptions);
   }
   async swap(_newSwapRequestOrSwapId, _completeStage) {
     throw new Error("Not implemented");
   }
   dispose() {
     this.authorization.dispose();
+    this.atomexContext.managers.exchangeManager.dispose();
+    this.atomexContext.managers.swapManager.dispose();
+    this.atomexContext.services.exchangeService.dispose();
+    this.atomexContext.services.swapService.dispose();
   }
 };
 
@@ -69,9 +77,11 @@ var _AtomexContext = class {
     __publicField(this, "id");
     __publicField(this, "managers");
     __publicField(this, "services");
+    __publicField(this, "providers");
     this.id = _AtomexContext.idCounter++;
     this.managers = new AtomexContextManagersSection(this);
     this.services = new AtomexContextServicesSection(this);
+    this.providers = new AtomexContextProvidersSection(this);
   }
 };
 var AtomexContext = _AtomexContext;
@@ -140,6 +150,20 @@ var AtomexContextServicesSection = class {
     this._swapService = swapService;
   }
 };
+var AtomexContextProvidersSection = class {
+  constructor(context) {
+    this.context = context;
+    __publicField(this, "_blockchainProvider");
+  }
+  get blockchainProvider() {
+    if (!this._blockchainProvider)
+      throw new AtomexComponentNotResolvedError("providers.blockchainProvider");
+    return this._blockchainProvider;
+  }
+  set blockchainProvider(blockchainProvider) {
+    this._blockchainProvider = blockchainProvider;
+  }
+};
 var AtomexComponentNotResolvedError = class extends Error {
   constructor(componentName) {
     super(AtomexComponentNotResolvedError.getMessage(componentName));
@@ -150,6 +174,47 @@ var AtomexComponentNotResolvedError = class extends Error {
   }
   static getMessage(componentName) {
     return `Atomex "${componentName}" component has not resolved yet`;
+  }
+};
+
+// src/blockchain/controlledCurrencyBalancesProvider.ts
+var ControlledCurrencyBalancesProvider = class {
+  constructor(currency, getBalanceImplementation) {
+    this.currency = currency;
+    this.getBalanceImplementation = getBalanceImplementation;
+  }
+  getBalance(address) {
+    return this.getBalanceImplementation(address);
+  }
+};
+
+// src/blockchain/atomexBlockchainProvider.ts
+var AtomexBlockchainProvider = class {
+  constructor() {
+    __publicField(this, "currencyInfoMap", /* @__PURE__ */ new Map());
+  }
+  addBlockchain(networkOptions) {
+    var _a, _b;
+    for (const currency of networkOptions.currencies) {
+      if (this.currencyInfoMap.has(currency.id))
+        throw new Error("There is already currency added with the same key");
+      const currencyOptions = networkOptions.currencyOptions[currency.id];
+      const options = {
+        currency,
+        atomexProtocol: currencyOptions == null ? void 0 : currencyOptions.atomexProtocol,
+        blockchainToolkitProvider: networkOptions.blockchainToolkitProvider,
+        balanceProvider: (_a = currencyOptions == null ? void 0 : currencyOptions.currencyBalanceProvider) != null ? _a : this.createControlledBalancesProvider(currency, networkOptions.balancesProvider),
+        swapTransactionsProvider: (_b = currencyOptions == null ? void 0 : currencyOptions.swapTransactionsProvider) != null ? _b : networkOptions.swapTransactionsProvider
+      };
+      this.currencyInfoMap.set(currency.id, options);
+    }
+  }
+  getCurrencyInfo(currencyId) {
+    const options = this.currencyInfoMap.get(currencyId);
+    return options;
+  }
+  createControlledBalancesProvider(currency, balancesProvider) {
+    return new ControlledCurrencyBalancesProvider(currency, (address) => balancesProvider.getBalance(address, currency));
   }
 };
 
@@ -281,6 +346,119 @@ var SignersManager = class {
   }
 };
 
+// src/ethereum/utils/index.ts
+import { ec as EC } from "elliptic";
+var secp256k1Curve = null;
+var getSecp256k1Curve = () => {
+  if (!secp256k1Curve)
+    secp256k1Curve = new EC("secp256k1");
+  return secp256k1Curve;
+};
+var splitSignature = (hexSignature) => {
+  const signatureBytes = converters_exports.hexStringToUint8Array(hexSignature);
+  if (signatureBytes.length !== 64 && signatureBytes.length !== 65)
+    throw new Error(`Invalid signature: ${hexSignature}`);
+  let v = signatureBytes.length === 64 ? 27 + (signatureBytes[32] >> 7) : signatureBytes[64];
+  if (v === 0 || v === 1)
+    v += 27;
+  const result = {
+    r: uint8ArrayToHexString(signatureBytes.slice(0, 32)),
+    s: uint8ArrayToHexString(signatureBytes.slice(32, 64)),
+    v,
+    recoveryParameter: 1 - v % 2
+  };
+  return result;
+};
+var recoverPublicKey = (hexSignature, web3MessageHash) => {
+  const splittedSignature = splitSignature(hexSignature);
+  const messageBuffer = Buffer2.from(web3MessageHash.startsWith("0x") ? web3MessageHash.substring(2) : web3MessageHash, "hex");
+  const ecPublicKey = getSecp256k1Curve().recoverPubKey(messageBuffer, { r: splittedSignature.r, s: splittedSignature.s }, splittedSignature.recoveryParameter);
+  return "0x" + ecPublicKey.encode("hex", false);
+};
+
+// src/ethereum/signers/web3EthereumSigner.ts
+var _Web3EthereumSigner = class {
+  constructor(atomexNetwork, web3) {
+    this.atomexNetwork = atomexNetwork;
+    this.web3 = web3;
+    __publicField(this, "blockchain", "ethereum");
+  }
+  async getAddress() {
+    const accounts = await this.web3.eth.getAccounts();
+    const address = accounts[0];
+    if (!address)
+      throw new Error("Address is unavailable");
+    return address;
+  }
+  getPublicKey() {
+    return void 0;
+  }
+  async sign(message) {
+    const address = await this.getAddress();
+    const signatureBytes = await this.signInternal(message, address);
+    const publicKeyBytes = recoverPublicKey(signatureBytes, this.web3.eth.accounts.hashMessage(message));
+    return {
+      address,
+      publicKeyBytes: publicKeyBytes.startsWith("0x") ? publicKeyBytes.substring(2) : publicKeyBytes,
+      signatureBytes: signatureBytes.substring(signatureBytes.startsWith("0x") ? 2 : 0, signatureBytes.length - 2),
+      algorithm: _Web3EthereumSigner.signingAlgorithm
+    };
+  }
+  signInternal(message, address) {
+    return new Promise((resolve, reject) => this.web3.eth.personal.sign(message, address, "", (error, signature) => {
+      return signature ? resolve(signature) : reject(error);
+    }));
+  }
+};
+var Web3EthereumSigner = _Web3EthereumSigner;
+__publicField(Web3EthereumSigner, "signingAlgorithm", "Keccak256WithEcdsa:Geth2940");
+
+// src/ethereum/currencies.ts
+var ethereumNativeCurrency = {
+  id: "ETH",
+  name: "Ethereum",
+  symbol: "ETH",
+  blockchain: "ethereum",
+  decimals: 18,
+  type: "native"
+};
+var ethereumMainnetCurrencies = [
+  ethereumNativeCurrency
+];
+var ethereumTestnetCurrencies = [
+  ethereumNativeCurrency
+];
+
+// src/ethereum/balancesProviders/ethereumBalancesProvider.ts
+var EthereumBalancesProvider = class {
+  getBalance(_address, _currency) {
+    throw new Error("Method not implemented.");
+  }
+};
+
+// src/ethereum/swapTransactionsProviders/ethereumSwapTransactionsProvider.ts
+var EthereumSwapTransactionsProvider = class {
+  getSwapTransactions(_swap) {
+    throw new Error("Method not implemented.");
+  }
+};
+
+// src/ethereum/blockchainToolkitProviders/ethereumBlockchainToolkitProvider.ts
+var EthereumBlockchainToolkitProvider = class {
+  getReadonlyToolkit(_blockchain, _toolkitId) {
+    throw new Error("Method not implemented.");
+  }
+  getToolkit(_blockchain, _address, _toolkitId) {
+    throw new Error("Method not implemented.");
+  }
+  addSigner(_signer) {
+    throw new Error("Method not implemented.");
+  }
+  removeSigner(_signer) {
+    throw new Error("Method not implemented.");
+  }
+};
+
 // src/common/models/importantDataReceivingMode.ts
 var ImportantDataReceivingMode = /* @__PURE__ */ ((ImportantDataReceivingMode2) => {
   ImportantDataReceivingMode2[ImportantDataReceivingMode2["Local"] = 0] = "Local";
@@ -392,6 +570,9 @@ var ExchangeManager = class {
     this.exchangeService.events.orderBookUpdated.removeListener(this.handleExchangeServiceOrderBookUpdated);
     this.exchangeService.events.topOfBookUpdated.removeListener(this.handleExchangeServiceTopOfBookUpdated);
   }
+  dispose() {
+    this.exchangeService.dispose();
+  }
 };
 
 // src/swaps/swapManager.ts
@@ -417,6 +598,267 @@ var SwapManager = class {
   }
   detachEvents() {
     this.swapService.events.swapUpdated.removeListener(this.handleSwapServiceSwapUpdated);
+  }
+  dispose() {
+    this.swapService.dispose();
+  }
+};
+
+// src/tezos/walletTezosSigner/beaconWalletTezosSigner.ts
+import { SigningType } from "@airgap/beacon-sdk";
+
+// src/tezos/utils/index.ts
+import { b58cdecode as b58cdecode2, prefix as prefix2, validatePkAndExtractPrefix } from "@taquito/utils";
+
+// src/tezos/utils/signing.ts
+var signing_exports = {};
+__export(signing_exports, {
+  decodeSignature: () => decodeSignature,
+  getRawMichelineSigningData: () => getRawMichelineSigningData,
+  getRawSigningData: () => getRawSigningData,
+  getTezosSigningAlgorithm: () => getTezosSigningAlgorithm,
+  getWalletMichelineSigningData: () => getWalletMichelineSigningData
+});
+import { b58cdecode, prefix, Prefix } from "@taquito/utils";
+var tezosSignedMessagePrefixBytes = "54657a6f73205369676e6564204d6573736167653a20";
+var getMichelineSigningData = (message, prefixBytes) => {
+  const messageBytes = converters_exports.stringToHexString(message);
+  const signedMessageBytes = prefixBytes ? prefixBytes + messageBytes : messageBytes;
+  const messageLength = text_exports.padStart((signedMessageBytes.length / 2).toString(16), 8, "0");
+  return "0501" + messageLength + signedMessageBytes;
+};
+var getRawSigningData = (message) => converters_exports.stringToHexString(message);
+var getRawMichelineSigningData = (message) => getMichelineSigningData(message);
+var getWalletMichelineSigningData = (message) => getMichelineSigningData(message, tezosSignedMessagePrefixBytes);
+var getTezosSigningAlgorithm = (addressOrPublicKey) => {
+  const prefix4 = addressOrPublicKey.substring(0, addressOrPublicKey.startsWith("tz") ? 3 : 4);
+  switch (prefix4) {
+    case Prefix.TZ1:
+    case Prefix.EDPK:
+      return "Ed25519:Blake2b";
+    case Prefix.TZ2:
+    case Prefix.SPPK:
+      return "Blake2bWithEcdsa:Secp256k1";
+    case Prefix.TZ3:
+    case Prefix.P2PK:
+      return "Blake2bWithEcdsa:Secp256r1";
+    default:
+      throw new Error(`Unexpected address/public key prefix: ${prefix4} (${addressOrPublicKey})`);
+  }
+};
+var decodeSignature = (signature) => {
+  const signaturePrefix = signature.startsWith("sig") ? signature.substring(0, 3) : signature.substring(0, 5);
+  const decodedKeyBytes = b58cdecode(signature, prefix[signaturePrefix]);
+  return Buffer.from(decodedKeyBytes).toString("hex");
+};
+
+// src/tezos/utils/index.ts
+var decodePublicKey = (publicKey) => {
+  const keyPrefix = validatePkAndExtractPrefix(publicKey);
+  const decodedKeyBytes = b58cdecode2(publicKey, prefix2[keyPrefix]);
+  return Buffer2.from(decodedKeyBytes).toString("hex");
+};
+
+// src/tezos/walletTezosSigner/beaconWalletTezosSigner.ts
+var BeaconWalletTezosSigner = class {
+  constructor(atomexNetwork, beaconWallet) {
+    this.atomexNetwork = atomexNetwork;
+    this.beaconWallet = beaconWallet;
+    __publicField(this, "blockchain", "tezos");
+  }
+  getAddress() {
+    return this.beaconWallet.getPKH();
+  }
+  async getPublicKey() {
+    var _a;
+    return (_a = await this.beaconWallet.client.getActiveAccount()) == null ? void 0 : _a.publicKey;
+  }
+  async sign(message) {
+    const [address, publicKey, signature] = await Promise.all([
+      this.getAddress(),
+      this.getPublicKey(),
+      this.beaconWallet.client.requestSignPayload({
+        payload: signing_exports.getWalletMichelineSigningData(message),
+        signingType: SigningType.MICHELINE
+      })
+    ]);
+    if (!publicKey)
+      throw new Error("BeaconWallet: public key is unavailable");
+    const algorithm = signing_exports.getTezosSigningAlgorithm(publicKey);
+    const publicKeyBytes = decodePublicKey(publicKey);
+    const signatureBytes = decodeSignature(signature.signature);
+    return {
+      address,
+      algorithm,
+      publicKeyBytes,
+      signatureBytes,
+      signingDataType: "tezos/wallet-micheline" /* WalletMicheline */
+    };
+  }
+};
+
+// src/tezos/walletTezosSigner/templeWalletTezosSigner.ts
+var TempleWalletTezosSigner = class {
+  constructor(atomexNetwork, templeWallet) {
+    this.atomexNetwork = atomexNetwork;
+    this.templeWallet = templeWallet;
+    __publicField(this, "blockchain", "tezos");
+  }
+  getAddress() {
+    return this.templeWallet.getPKH();
+  }
+  getPublicKey() {
+    var _a;
+    return (_a = this.templeWallet.permission) == null ? void 0 : _a.publicKey;
+  }
+  async sign(message) {
+    const [address, publicKey, signature] = await Promise.all([
+      this.getAddress(),
+      this.getPublicKey(),
+      this.templeWallet.sign(signing_exports.getWalletMichelineSigningData(message))
+    ]);
+    if (!publicKey)
+      throw new Error("TempleWallet: public key is unavailable");
+    const algorithm = signing_exports.getTezosSigningAlgorithm(publicKey);
+    const publicKeyBytes = decodePublicKey(publicKey);
+    const signatureBytes = decodeSignature(signature);
+    return {
+      address,
+      algorithm,
+      publicKeyBytes,
+      signatureBytes,
+      signingDataType: "tezos/wallet-micheline" /* WalletMicheline */
+    };
+  }
+};
+
+// src/tezos/walletTezosSigner/walletTezosSigner.ts
+var WalletTezosSigner = class {
+  constructor(atomexNetwork, wallet) {
+    this.atomexNetwork = atomexNetwork;
+    this.wallet = wallet;
+    __publicField(this, "blockchain", "tezos");
+    __publicField(this, "internalSigner");
+    this.internalSigner = this.createInternalSigner();
+  }
+  getAddress() {
+    return this.internalSigner.getAddress();
+  }
+  getPublicKey() {
+    return this.internalSigner.getPublicKey();
+  }
+  sign(message) {
+    return this.internalSigner.sign(message);
+  }
+  createInternalSigner() {
+    var _a;
+    if (((_a = this.wallet.client) == null ? void 0 : _a.name) !== void 0)
+      return new BeaconWalletTezosSigner(this.atomexNetwork, this.wallet);
+    else if (this.wallet.permission !== void 0 && this.wallet.connected !== void 0)
+      return new TempleWalletTezosSigner(this.atomexNetwork, this.wallet);
+    else
+      throw new Error("Unknown Tezos wallet");
+  }
+};
+
+// src/tezos/inMemoryTezosSigner.ts
+import { InMemorySigner } from "@taquito/signer";
+var InMemoryTezosSigner = class {
+  constructor(atomexNetwork, secretKey) {
+    this.atomexNetwork = atomexNetwork;
+    __publicField(this, "blockchain", "tezos");
+    __publicField(this, "internalInMemorySigner");
+    this.internalInMemorySigner = new InMemorySigner(secretKey);
+  }
+  getAddress() {
+    return this.internalInMemorySigner.publicKeyHash();
+  }
+  getPublicKey() {
+    return this.internalInMemorySigner.publicKey();
+  }
+  async sign(message) {
+    const messageBytes = signing_exports.getRawSigningData(message);
+    const [address, publicKey, rawSignature] = await Promise.all([
+      this.getAddress(),
+      this.getPublicKey(),
+      this.internalInMemorySigner.sign(messageBytes)
+    ]);
+    const publicKeyBytes = decodePublicKey(publicKey);
+    const signatureBytes = rawSignature.sbytes.substring(rawSignature.bytes.length);
+    const algorithm = signing_exports.getTezosSigningAlgorithm(publicKey);
+    return {
+      address,
+      algorithm,
+      publicKeyBytes,
+      signatureBytes
+    };
+  }
+};
+
+// src/tezos/currencies.ts
+var tezosNativeCurrency = {
+  id: "XTZ",
+  name: "Tezos",
+  symbol: "XTZ",
+  blockchain: "tezos",
+  decimals: 6,
+  type: "native"
+};
+var tzBtcCurrency = {
+  id: "TZBTC",
+  name: "tzBTC",
+  symbol: "tzBTC",
+  blockchain: "tezos",
+  decimals: 8,
+  type: "fa1.2"
+};
+var usdtCurrency = {
+  id: "USDT_XTZ",
+  name: "Tether USD",
+  symbol: "USDt",
+  blockchain: "tezos",
+  decimals: 6,
+  tokenId: 0,
+  type: "fa2"
+};
+var tezosMainnetCurrencies = [
+  tezosNativeCurrency,
+  tzBtcCurrency,
+  usdtCurrency
+];
+var tezosTestnetCurrencies = [
+  tezosNativeCurrency,
+  tzBtcCurrency,
+  usdtCurrency
+];
+
+// src/tezos/balancesProviders/tezosBalancesProvider.ts
+var TezosBalancesProvider = class {
+  getBalance(_address, _currency) {
+    throw new Error("Method not implemented.");
+  }
+};
+
+// src/tezos/swapTransactionsProviders/tezosSwapTransactionsProvider.ts
+var TezosSwapTransactionsProvider = class {
+  getSwapTransactions(_swap) {
+    throw new Error("Method not implemented.");
+  }
+};
+
+// src/tezos/blockchainToolkitProviders/tezosBlockchainToolkitProvider.ts
+var TezosBlockchainToolkitProvider = class {
+  getReadonlyToolkit(_blockchain, _toolkitId) {
+    throw new Error("Method not implemented.");
+  }
+  getToolkit(_blockchain, _address, _toolkitId) {
+    throw new Error("Method not implemented.");
+  }
+  addSigner(_signer) {
+    throw new Error("Method not implemented.");
+  }
+  removeSigner(_signer) {
+    throw new Error("Method not implemented.");
   }
 };
 
@@ -835,6 +1277,8 @@ var RestAtomexClient = class {
     });
     return swapDtos ? mapSwapDtosToSwaps(swapDtos) : [];
   }
+  dispose() {
+  }
   getUserIds(addressOrAddresses) {
     const accountAddresses = Array.isArray(addressOrAddresses) ? addressOrAddresses : [addressOrAddresses];
     const userIds = accountAddresses.map((address) => {
@@ -1143,6 +1587,10 @@ var MixedApiAtomexClient = class {
   }
   getSwaps(addressOrAddresses, selector) {
     return this.restAtomexClient.getSwaps(addressOrAddresses, selector);
+  }
+  dispose() {
+    this.webSocketAtomexClient.dispose();
+    this.restAtomexClient.dispose();
   }
 };
 
@@ -1557,6 +2005,7 @@ var AtomexBuilder = class {
     return this;
   }
   build() {
+    this.controlledAtomexContext.providers.blockchainProvider = new AtomexBlockchainProvider();
     this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
     this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
     const atomexClient = this.createDefaultExchangeService();
@@ -1564,6 +2013,7 @@ var AtomexBuilder = class {
     this.controlledAtomexContext.services.swapService = atomexClient;
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
     this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
+    const blockchains = this.createDefaultBlockchainOptions();
     return new Atomex({
       atomexContext: this.atomexContext,
       managers: {
@@ -1571,7 +2021,8 @@ var AtomexBuilder = class {
         authorizationManager: this.atomexContext.managers.authorizationManager,
         exchangeManager: this.atomexContext.managers.exchangeManager,
         swapManager: this.atomexContext.managers.swapManager
-      }
+      },
+      blockchains
     });
   }
   createAuthorizationManager() {
@@ -1591,263 +2042,55 @@ var AtomexBuilder = class {
   createSwapManager() {
     return new SwapManager(this.atomexContext.services.swapService);
   }
-};
-
-// src/ethereum/utils/index.ts
-import { ec as EC } from "elliptic";
-var secp256k1Curve = null;
-var getSecp256k1Curve = () => {
-  if (!secp256k1Curve)
-    secp256k1Curve = new EC("secp256k1");
-  return secp256k1Curve;
-};
-var splitSignature = (hexSignature) => {
-  const signatureBytes = converters_exports.hexStringToUint8Array(hexSignature);
-  if (signatureBytes.length !== 64 && signatureBytes.length !== 65)
-    throw new Error(`Invalid signature: ${hexSignature}`);
-  let v = signatureBytes.length === 64 ? 27 + (signatureBytes[32] >> 7) : signatureBytes[64];
-  if (v === 0 || v === 1)
-    v += 27;
-  const result = {
-    r: uint8ArrayToHexString(signatureBytes.slice(0, 32)),
-    s: uint8ArrayToHexString(signatureBytes.slice(32, 64)),
-    v,
-    recoveryParameter: 1 - v % 2
-  };
-  return result;
-};
-var recoverPublicKey = (hexSignature, web3MessageHash) => {
-  const splittedSignature = splitSignature(hexSignature);
-  const messageBuffer = Buffer2.from(web3MessageHash.startsWith("0x") ? web3MessageHash.substring(2) : web3MessageHash, "hex");
-  const ecPublicKey = getSecp256k1Curve().recoverPubKey(messageBuffer, { r: splittedSignature.r, s: splittedSignature.s }, splittedSignature.recoveryParameter);
-  return "0x" + ecPublicKey.encode("hex", false);
-};
-
-// src/ethereum/signers/web3EthereumSigner.ts
-var _Web3EthereumSigner = class {
-  constructor(atomexNetwork, web3) {
-    this.atomexNetwork = atomexNetwork;
-    this.web3 = web3;
-    __publicField(this, "blockchain", "ethereum");
-  }
-  async getAddress() {
-    const accounts = await this.web3.eth.getAccounts();
-    const address = accounts[0];
-    if (!address)
-      throw new Error("Address is unavailable");
-    return address;
-  }
-  getPublicKey() {
-    return void 0;
-  }
-  async sign(message) {
-    const address = await this.getAddress();
-    const signatureBytes = await this.signInternal(message, address);
-    const publicKeyBytes = recoverPublicKey(signatureBytes, this.web3.eth.accounts.hashMessage(message));
+  createDefaultBlockchainOptions() {
     return {
-      address,
-      publicKeyBytes: publicKeyBytes.startsWith("0x") ? publicKeyBytes.substring(2) : publicKeyBytes,
-      signatureBytes: signatureBytes.substring(signatureBytes.startsWith("0x") ? 2 : 0, signatureBytes.length - 2),
-      algorithm: _Web3EthereumSigner.signingAlgorithm
+      tezos: this.createDefaultTezosBlockchainOptions(),
+      ethereum: this.createDefaultEthereumBlockchainOptions()
     };
   }
-  signInternal(message, address) {
-    return new Promise((resolve, reject) => this.web3.eth.personal.sign(message, address, "", (error, signature) => {
-      return signature ? resolve(signature) : reject(error);
-    }));
-  }
-};
-var Web3EthereumSigner = _Web3EthereumSigner;
-__publicField(Web3EthereumSigner, "signingAlgorithm", "Keccak256WithEcdsa:Geth2940");
-
-// src/tezos/walletTezosSigner/beaconWalletTezosSigner.ts
-import { SigningType } from "@airgap/beacon-sdk";
-
-// src/tezos/utils/index.ts
-import { b58cdecode as b58cdecode2, prefix as prefix2, validatePkAndExtractPrefix } from "@taquito/utils";
-
-// src/tezos/utils/signing.ts
-var signing_exports = {};
-__export(signing_exports, {
-  decodeSignature: () => decodeSignature,
-  getRawMichelineSigningData: () => getRawMichelineSigningData,
-  getRawSigningData: () => getRawSigningData,
-  getTezosSigningAlgorithm: () => getTezosSigningAlgorithm,
-  getWalletMichelineSigningData: () => getWalletMichelineSigningData
-});
-import { b58cdecode, prefix, Prefix } from "@taquito/utils";
-var tezosSignedMessagePrefixBytes = "54657a6f73205369676e6564204d6573736167653a20";
-var getMichelineSigningData = (message, prefixBytes) => {
-  const messageBytes = converters_exports.stringToHexString(message);
-  const signedMessageBytes = prefixBytes ? prefixBytes + messageBytes : messageBytes;
-  const messageLength = text_exports.padStart((signedMessageBytes.length / 2).toString(16), 8, "0");
-  return "0501" + messageLength + signedMessageBytes;
-};
-var getRawSigningData = (message) => converters_exports.stringToHexString(message);
-var getRawMichelineSigningData = (message) => getMichelineSigningData(message);
-var getWalletMichelineSigningData = (message) => getMichelineSigningData(message, tezosSignedMessagePrefixBytes);
-var getTezosSigningAlgorithm = (addressOrPublicKey) => {
-  const prefix4 = addressOrPublicKey.substring(0, addressOrPublicKey.startsWith("tz") ? 3 : 4);
-  switch (prefix4) {
-    case Prefix.TZ1:
-    case Prefix.EDPK:
-      return "Ed25519:Blake2b";
-    case Prefix.TZ2:
-    case Prefix.SPPK:
-      return "Blake2bWithEcdsa:Secp256k1";
-    case Prefix.TZ3:
-    case Prefix.P2PK:
-      return "Blake2bWithEcdsa:Secp256r1";
-    default:
-      throw new Error(`Unexpected address/public key prefix: ${prefix4} (${addressOrPublicKey})`);
-  }
-};
-var decodeSignature = (signature) => {
-  const signaturePrefix = signature.startsWith("sig") ? signature.substring(0, 3) : signature.substring(0, 5);
-  const decodedKeyBytes = b58cdecode(signature, prefix[signaturePrefix]);
-  return Buffer.from(decodedKeyBytes).toString("hex");
-};
-
-// src/tezos/utils/index.ts
-var decodePublicKey = (publicKey) => {
-  const keyPrefix = validatePkAndExtractPrefix(publicKey);
-  const decodedKeyBytes = b58cdecode2(publicKey, prefix2[keyPrefix]);
-  return Buffer2.from(decodedKeyBytes).toString("hex");
-};
-
-// src/tezos/walletTezosSigner/beaconWalletTezosSigner.ts
-var BeaconWalletTezosSigner = class {
-  constructor(atomexNetwork, beaconWallet) {
-    this.atomexNetwork = atomexNetwork;
-    this.beaconWallet = beaconWallet;
-    __publicField(this, "blockchain", "tezos");
-  }
-  getAddress() {
-    return this.beaconWallet.getPKH();
-  }
-  async getPublicKey() {
-    var _a;
-    return (_a = await this.beaconWallet.client.getActiveAccount()) == null ? void 0 : _a.publicKey;
-  }
-  async sign(message) {
-    const [address, publicKey, signature] = await Promise.all([
-      this.getAddress(),
-      this.getPublicKey(),
-      this.beaconWallet.client.requestSignPayload({
-        payload: signing_exports.getWalletMichelineSigningData(message),
-        signingType: SigningType.MICHELINE
-      })
-    ]);
-    if (!publicKey)
-      throw new Error("BeaconWallet: public key is unavailable");
-    const algorithm = signing_exports.getTezosSigningAlgorithm(publicKey);
-    const publicKeyBytes = decodePublicKey(publicKey);
-    const signatureBytes = decodeSignature(signature.signature);
-    return {
-      address,
-      algorithm,
-      publicKeyBytes,
-      signatureBytes,
-      signingDataType: "tezos/wallet-micheline" /* WalletMicheline */
+  createDefaultTezosBlockchainOptions() {
+    const balancesProvider = new TezosBalancesProvider();
+    const swapTransactionsProvider = new TezosSwapTransactionsProvider();
+    const blockchainToolkitProvider = new TezosBlockchainToolkitProvider();
+    const tezosOptions = {
+      mainnet: {
+        currencies: tezosMainnetCurrencies,
+        balancesProvider,
+        swapTransactionsProvider,
+        blockchainToolkitProvider,
+        currencyOptions: {}
+      },
+      testnet: {
+        currencies: tezosTestnetCurrencies,
+        balancesProvider,
+        swapTransactionsProvider,
+        blockchainToolkitProvider,
+        currencyOptions: {}
+      }
     };
+    return tezosOptions;
   }
-};
-
-// src/tezos/walletTezosSigner/templeWalletTezosSigner.ts
-var TempleWalletTezosSigner = class {
-  constructor(atomexNetwork, templeWallet) {
-    this.atomexNetwork = atomexNetwork;
-    this.templeWallet = templeWallet;
-    __publicField(this, "blockchain", "tezos");
-  }
-  getAddress() {
-    return this.templeWallet.getPKH();
-  }
-  getPublicKey() {
-    var _a;
-    return (_a = this.templeWallet.permission) == null ? void 0 : _a.publicKey;
-  }
-  async sign(message) {
-    const [address, publicKey, signature] = await Promise.all([
-      this.getAddress(),
-      this.getPublicKey(),
-      this.templeWallet.sign(signing_exports.getWalletMichelineSigningData(message))
-    ]);
-    if (!publicKey)
-      throw new Error("TempleWallet: public key is unavailable");
-    const algorithm = signing_exports.getTezosSigningAlgorithm(publicKey);
-    const publicKeyBytes = decodePublicKey(publicKey);
-    const signatureBytes = decodeSignature(signature);
-    return {
-      address,
-      algorithm,
-      publicKeyBytes,
-      signatureBytes,
-      signingDataType: "tezos/wallet-micheline" /* WalletMicheline */
+  createDefaultEthereumBlockchainOptions() {
+    const balancesProvider = new EthereumBalancesProvider();
+    const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
+    const blockchainToolkitProvider = new EthereumBlockchainToolkitProvider();
+    const ethereumOptions = {
+      mainnet: {
+        currencies: ethereumMainnetCurrencies,
+        balancesProvider,
+        swapTransactionsProvider,
+        blockchainToolkitProvider,
+        currencyOptions: {}
+      },
+      testnet: {
+        currencies: ethereumTestnetCurrencies,
+        balancesProvider,
+        swapTransactionsProvider,
+        blockchainToolkitProvider,
+        currencyOptions: {}
+      }
     };
-  }
-};
-
-// src/tezos/walletTezosSigner/walletTezosSigner.ts
-var WalletTezosSigner = class {
-  constructor(atomexNetwork, wallet) {
-    this.atomexNetwork = atomexNetwork;
-    this.wallet = wallet;
-    __publicField(this, "blockchain", "tezos");
-    __publicField(this, "internalSigner");
-    this.internalSigner = this.createInternalSigner();
-  }
-  getAddress() {
-    return this.internalSigner.getAddress();
-  }
-  getPublicKey() {
-    return this.internalSigner.getPublicKey();
-  }
-  sign(message) {
-    return this.internalSigner.sign(message);
-  }
-  createInternalSigner() {
-    var _a;
-    if (((_a = this.wallet.client) == null ? void 0 : _a.name) !== void 0)
-      return new BeaconWalletTezosSigner(this.atomexNetwork, this.wallet);
-    else if (this.wallet.permission !== void 0 && this.wallet.connected !== void 0)
-      return new TempleWalletTezosSigner(this.atomexNetwork, this.wallet);
-    else
-      throw new Error("Unknown Tezos wallet");
-  }
-};
-
-// src/tezos/inMemoryTezosSigner.ts
-import { InMemorySigner } from "@taquito/signer";
-var InMemoryTezosSigner = class {
-  constructor(atomexNetwork, secretKey) {
-    this.atomexNetwork = atomexNetwork;
-    __publicField(this, "blockchain", "tezos");
-    __publicField(this, "internalInMemorySigner");
-    this.internalInMemorySigner = new InMemorySigner(secretKey);
-  }
-  getAddress() {
-    return this.internalInMemorySigner.publicKeyHash();
-  }
-  getPublicKey() {
-    return this.internalInMemorySigner.publicKey();
-  }
-  async sign(message) {
-    const messageBytes = signing_exports.getRawSigningData(message);
-    const [address, publicKey, rawSignature] = await Promise.all([
-      this.getAddress(),
-      this.getPublicKey(),
-      this.internalInMemorySigner.sign(messageBytes)
-    ]);
-    const publicKeyBytes = decodePublicKey(publicKey);
-    const signatureBytes = rawSignature.sbytes.substring(rawSignature.bytes.length);
-    const algorithm = signing_exports.getTezosSigningAlgorithm(publicKey);
-    return {
-      address,
-      algorithm,
-      publicKeyBytes,
-      signatureBytes
-    };
+    return ethereumOptions;
   }
 };
 

@@ -23,4 +23,5 @@ export declare class ExchangeManager {
     protected handleExchangeServiceOrderUpdated: (updatedOrder: Order) => void;
     protected handleExchangeServiceOrderBookUpdated: (updatedOrderBook: OrderBook) => void;
     protected handleExchangeServiceTopOfBookUpdated: (updatedQuotes: Quote[]) => void;
+    dispose(): void;
 }

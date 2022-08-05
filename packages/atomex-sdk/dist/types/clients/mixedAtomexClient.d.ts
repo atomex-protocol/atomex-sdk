@@ -24,4 +24,5 @@ export declare class MixedApiAtomexClient implements AtomexClient {
     getSwap(swapId: number, accountAddresses: string[]): Promise<Swap | undefined>;
     getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
     getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
+    dispose(): void;
 }

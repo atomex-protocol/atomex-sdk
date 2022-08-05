@@ -1,4 +1,5 @@
 import type { AuthorizationManager } from '../authorization/index';
+import type { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
 import type { SignersManager } from '../blockchain/index';
 import type { ExchangeManager, ExchangeService } from '../exchange';
 import type { AtomexNetwork } from '../index';
@@ -9,6 +10,7 @@ export declare class AtomexContext {
     readonly id: number;
     readonly managers: AtomexContextManagersSection;
     readonly services: AtomexContextServicesSection;
+    readonly providers: AtomexContextProvidersSection;
     constructor(atomexNetwork: AtomexNetwork);
 }
 declare class AtomexContextManagersSection {
@@ -36,6 +38,13 @@ declare class AtomexContextServicesSection {
     private set exchangeService(value);
     get swapService(): SwapService;
     private set swapService(value);
+}
+declare class AtomexContextProvidersSection {
+    readonly context: AtomexContext;
+    private _blockchainProvider;
+    constructor(context: AtomexContext);
+    get blockchainProvider(): AtomexBlockchainProvider;
+    private set blockchainProvider(value);
 }
 export declare class AtomexComponentNotResolvedError extends Error {
     readonly name: string;

@@ -5,4 +5,5 @@ import type { SwapService, SwapServiceEvents } from '../swaps/index';
 export interface AtomexClient extends ExchangeService, SwapService, SwapTransactionsProvider {
     readonly events: ExchangeServiceEvents & SwapServiceEvents;
     readonly atomexNetwork: AtomexNetwork;
+    dispose(): void;
 }

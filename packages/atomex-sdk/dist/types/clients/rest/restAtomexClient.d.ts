@@ -33,6 +33,7 @@ export declare class RestAtomexClient implements AtomexClient {
     getSwap(swapId: number, accountAddresses: string[]): Promise<Swap | undefined>;
     getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
     getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
+    dispose(): void;
     private getUserIds;
     private getRequiredAuthToken;
     private getCachedSymbols;

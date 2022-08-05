@@ -17,4 +17,5 @@ export interface ExchangeService {
     addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
     cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
     cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
+    dispose(): void;
 }
