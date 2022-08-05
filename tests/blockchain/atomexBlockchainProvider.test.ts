@@ -39,7 +39,7 @@ describe('Atomex Blockchain Provider', () => {
         [tezosNativeCurrency.id]: tezosNativeCurrencyOptions
       }
     };
-    
+
     const ethereumNetworkOptions: AtomexBlockchainNetworkOptions = {
       currencies: [ethereumNativeCurrency],
       currencyOptions: {}
@@ -60,7 +60,7 @@ describe('Atomex Blockchain Provider', () => {
     expect(btcCurrencyInfo).toBeUndefined();
   });
 
-  test('Validates currencies with same key', async () => {
+  test('validates currencies with same key', async () => {
     expect.assertions(1);
     try {
       const networkOptions = {
