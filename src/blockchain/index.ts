@@ -12,3 +12,4 @@ export type { TransactionsProvider } from './transactionsProvider';
 export type { BlockchainToolkitProvider } from './blockchainToolkitProvider';
 export type { SwapTransactionsProvider } from './swapTransactionProvider';
 export type { Signer } from './signer';
+export { AtomexBlockchainProvider, type CurrencyInfo } from './atomexBlockchainProvider';

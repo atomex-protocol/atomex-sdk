@@ -7,4 +7,6 @@ export interface AtomexClient extends ExchangeService, SwapService, SwapTransact
   readonly events: ExchangeServiceEvents & SwapServiceEvents;
 
   readonly atomexNetwork: AtomexNetwork;
+
+  dispose(): void;
 }

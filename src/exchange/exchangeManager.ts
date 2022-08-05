@@ -81,4 +81,8 @@ export class ExchangeManager {
   protected handleExchangeServiceTopOfBookUpdated = (updatedQuotes: Quote[]) => {
     (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(updatedQuotes);
   };
+
+  dispose() {
+    this.exchangeService.dispose();
+  }
 }

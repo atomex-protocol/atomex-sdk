@@ -1,0 +1,1 @@
+export { TezosBalancesProvider } from './tezosBalancesProvider';

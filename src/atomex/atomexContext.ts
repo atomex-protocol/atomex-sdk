@@ -1,4 +1,5 @@
 import type { AuthorizationManager } from '../authorization/index';
+import type { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
 import type { SignersManager } from '../blockchain/index';
 import type { ExchangeManager, ExchangeService } from '../exchange';
 import type { AtomexNetwork } from '../index';
@@ -11,12 +12,14 @@ export class AtomexContext {
 
   readonly managers: AtomexContextManagersSection;
   readonly services: AtomexContextServicesSection;
+  readonly providers: AtomexContextProvidersSection;
 
   constructor(readonly atomexNetwork: AtomexNetwork) {
     this.id = AtomexContext.idCounter++;
 
     this.managers = new AtomexContextManagersSection(this);
     this.services = new AtomexContextServicesSection(this);
+    this.providers = new AtomexContextProvidersSection(this);
   }
 }
 
@@ -101,6 +104,24 @@ class AtomexContextServicesSection {
 
   private set swapService(swapService: SwapService) {
     this._swapService = swapService;
+  }
+}
+
+class AtomexContextProvidersSection {
+  private _blockchainProvider: AtomexBlockchainProvider | undefined;
+
+  constructor(readonly context: AtomexContext) {
+  }
+
+  get blockchainProvider(): AtomexBlockchainProvider {
+    if (!this._blockchainProvider)
+      throw new AtomexComponentNotResolvedError('providers.blockchainProvider');
+
+    return this._blockchainProvider;
+  }
+
+  private set blockchainProvider(blockchainProvider: AtomexBlockchainProvider) {
+    this._blockchainProvider = blockchainProvider;
   }
 }
 

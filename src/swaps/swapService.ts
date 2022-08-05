@@ -14,4 +14,6 @@ export interface SwapService {
 
   getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
   getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
+
+  dispose(): void;
 }

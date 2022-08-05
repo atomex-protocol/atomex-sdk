@@ -1,9 +1,13 @@
 import { Atomex, AtomexContext } from '../atomex/index';
+import type { AtomexBlockchainOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
+import { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
 import { SignersManager } from '../blockchain/signersManager';
 import type { DeepReadonly } from '../core/index';
+import { EthereumBalancesProvider, EthereumBlockchainToolkitProvider, ethereumMainnetCurrencies, EthereumSwapTransactionsProvider, ethereumTestnetCurrencies } from '../ethereum/index';
 import { ExchangeManager } from '../exchange/exchangeManager';
 import { SwapManager } from '../swaps/swapManager';
+import { TezosBalancesProvider, TezosBlockchainToolkitProvider, tezosMainnetCurrencies, TezosSwapTransactionsProvider, tezosTestnetCurrencies } from '../tezos/index';
 import type { AtomexBuilderOptions } from './atomexBuilderOptions';
 import { createDefaultExchangeService } from './atomexComponents/exchangeService';
 import { AuthorizationManagerDefaultComponentOptions, createDefaultAuthorizationManager } from './atomexComponents/index';
@@ -42,6 +46,7 @@ export class AtomexBuilder {
   }
 
   build(): Atomex {
+    this.controlledAtomexContext.providers.blockchainProvider = new AtomexBlockchainProvider();
     this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
     this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
     const atomexClient = this.createDefaultExchangeService();
@@ -49,6 +54,7 @@ export class AtomexBuilder {
     this.controlledAtomexContext.services.swapService = atomexClient;
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
     this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
+    const blockchains = this.createDefaultBlockchainOptions();
 
     return new Atomex({
       atomexContext: this.atomexContext,
@@ -57,7 +63,8 @@ export class AtomexBuilder {
         authorizationManager: this.atomexContext.managers.authorizationManager,
         exchangeManager: this.atomexContext.managers.exchangeManager,
         swapManager: this.atomexContext.managers.swapManager
-      }
+      },
+      blockchains
     });
   }
 
@@ -89,5 +96,62 @@ export class AtomexBuilder {
 
   protected createSwapManager() {
     return new SwapManager(this.atomexContext.services.swapService);
+  }
+
+  protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainOptions> {
+    return {
+      tezos: this.createDefaultTezosBlockchainOptions(),
+      ethereum: this.createDefaultEthereumBlockchainOptions()
+    };
+  }
+
+  protected createDefaultTezosBlockchainOptions(): AtomexBlockchainOptions {
+    const balancesProvider = new TezosBalancesProvider();
+    const swapTransactionsProvider = new TezosSwapTransactionsProvider();
+    const blockchainToolkitProvider = new TezosBlockchainToolkitProvider();
+
+    const tezosOptions: AtomexBlockchainOptions = {
+      mainnet: {
+        currencies: tezosMainnetCurrencies,
+        balancesProvider,
+        swapTransactionsProvider,
+        blockchainToolkitProvider,
+        currencyOptions: {}
+      },
+      testnet: {
+        currencies: tezosTestnetCurrencies,
+        balancesProvider,
+        swapTransactionsProvider,
+        blockchainToolkitProvider,
+        currencyOptions: {}
+      }
+    };
+
+    return tezosOptions;
+  }
+
+  protected createDefaultEthereumBlockchainOptions(): AtomexBlockchainOptions {
+    const balancesProvider = new EthereumBalancesProvider();
+    const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
+    const blockchainToolkitProvider = new EthereumBlockchainToolkitProvider();
+
+    const ethereumOptions: AtomexBlockchainOptions = {
+      mainnet: {
+        currencies: ethereumMainnetCurrencies,
+        balancesProvider,
+        swapTransactionsProvider,
+        blockchainToolkitProvider,
+        currencyOptions: {}
+      },
+      testnet: {
+        currencies: ethereumTestnetCurrencies,
+        balancesProvider,
+        swapTransactionsProvider,
+        blockchainToolkitProvider,
+        currencyOptions: {}
+      }
+    };
+
+    return ethereumOptions;
   }
 }
