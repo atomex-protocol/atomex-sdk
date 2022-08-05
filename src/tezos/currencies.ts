@@ -1,4 +1,5 @@
 import type { AtomexBlockchainNetworkOptions } from '../atomex/models/atomexOptions';
+
 import type { TezosCurrency, TezosFA12Currency, TezosFA2Currency } from './index';
 
 const tezosNativeCurrency: TezosCurrency = {
