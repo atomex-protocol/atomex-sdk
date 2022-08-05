@@ -28,7 +28,7 @@ export class AtomexBlockchainProvider {
         currency,
         atomexProtocol: currencyOptions?.atomexProtocol,
         blockchainToolkitProvider: networkOptions.blockchainToolkitProvider,
-        balanceProvider: currencyOptions?.currencyBalanceProvider ?? this.getControlledBalancesProvider(currency, networkOptions.balancesProvider),
+        balanceProvider: currencyOptions?.currencyBalanceProvider ?? this.createControlledBalancesProvider(currency, networkOptions.balancesProvider),
         swapTransactionsProvider: currencyOptions?.swapTransactionsProvider ?? networkOptions.swapTransactionsProvider,
       };
       this.currencyInfoMap.set(currency.id, options);
@@ -41,7 +41,7 @@ export class AtomexBlockchainProvider {
     return options;
   }
 
-  protected getControlledBalancesProvider(currency: Currency, balancesProvider: BalancesProvider): ControlledCurrencyBalancesProvider {
+  protected createControlledBalancesProvider(currency: Currency, balancesProvider: BalancesProvider): ControlledCurrencyBalancesProvider {
     return new ControlledCurrencyBalancesProvider(
       currency,
       (address: string) => balancesProvider.getBalance(address, currency)
