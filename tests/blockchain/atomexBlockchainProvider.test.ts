@@ -1,7 +1,12 @@
 import type { AtomexBlockchainNetworkOptions, AtomexCurrencyOptions } from '../../src/atomex/models/atomexOptions';
 import { AtomexBlockchainProvider } from '../../src/blockchain/atomexBlockchainProvider';
 import type { Currency } from '../../src/common/index';
-import type { TezosCurrency } from '../../src/tezos/index';
+import {
+  EthereumBalancesProvider, EthereumBlockchainToolkitProvider, EthereumSwapTransactionsProvider
+} from '../../src/ethereum/index';
+import {
+  TezosBalancesProvider, TezosBlockchainToolkitProvider, TezosCurrency, TezosSwapTransactionsProvider
+} from '../../src/tezos/index';
 
 describe('Atomex Blockchain Provider', () => {
   const tezosNativeCurrency: TezosCurrency = {
@@ -34,6 +39,9 @@ describe('Atomex Blockchain Provider', () => {
 
   test('applies blockchain options and returns them', () => {
     const tezosNetworkOptions: AtomexBlockchainNetworkOptions = {
+      balancesProvider: new TezosBalancesProvider(),
+      blockchainToolkitProvider: new TezosBlockchainToolkitProvider(),
+      swapTransactionsProvider: new TezosSwapTransactionsProvider(),
       currencies: [tezosNativeCurrency],
       currencyOptions: {
         [tezosNativeCurrency.id]: tezosNativeCurrencyOptions
@@ -41,6 +49,9 @@ describe('Atomex Blockchain Provider', () => {
     };
 
     const ethereumNetworkOptions: AtomexBlockchainNetworkOptions = {
+      balancesProvider: new EthereumBalancesProvider(),
+      blockchainToolkitProvider: new EthereumBlockchainToolkitProvider(),
+      swapTransactionsProvider: new EthereumSwapTransactionsProvider(),
       currencies: [ethereumNativeCurrency],
       currencyOptions: {}
     };
@@ -63,7 +74,10 @@ describe('Atomex Blockchain Provider', () => {
   test('validates currencies with same key', async () => {
     expect.assertions(1);
     try {
-      const networkOptions = {
+      const networkOptions: AtomexBlockchainNetworkOptions = {
+        balancesProvider: new TezosBalancesProvider(),
+        blockchainToolkitProvider: new TezosBlockchainToolkitProvider(),
+        swapTransactionsProvider: new TezosSwapTransactionsProvider(),
         currencies: [tezosNativeCurrency],
         currencyOptions: {
           [tezosNativeCurrency.id]: tezosNativeCurrencyOptions
