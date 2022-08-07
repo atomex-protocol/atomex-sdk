@@ -34,7 +34,7 @@ const validSymbolsTestCases: ReadonlyArray<readonly [
             quoteCurrency: 'BTC',
             quoteCurrencyDecimals: 8,
             baseCurrency: 'KUSD',
-            baseCurrencyDecimals: 18,
+            baseCurrencyDecimals: 9,
           },
           {
             name: 'BTC/USDT',

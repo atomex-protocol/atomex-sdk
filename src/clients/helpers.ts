@@ -38,13 +38,18 @@ export const mapQuoteDtoToQuote = (quoteDto: QuoteDto): Quote => {
 
 export const mapSymbolDtoToSymbol = (symbolDto: SymbolDto, currenciesProvider: CurrenciesProvider, defaultDecimals = 9): ExchangeSymbol => {
   const [quoteCurrency, baseCurrency] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(symbolDto.name);
+  const baseCurrencyDecimals = currenciesProvider.getCurrency(baseCurrency)?.decimals;
+  const quoteCurrencyDecimals = currenciesProvider.getCurrency(quoteCurrency)?.decimals;
+
+  const preparedBaseCurrencyDecimals = baseCurrencyDecimals ? Math.min(baseCurrencyDecimals, defaultDecimals) : defaultDecimals;
+  const preparedQuoteCurrencyDecimals = quoteCurrencyDecimals ? Math.min(quoteCurrencyDecimals, defaultDecimals) : defaultDecimals;
 
   return {
     name: symbolDto.name,
     baseCurrency,
-    baseCurrencyDecimals: currenciesProvider.getCurrency(baseCurrency)?.decimals || defaultDecimals,
+    baseCurrencyDecimals: preparedBaseCurrencyDecimals,
     quoteCurrency,
-    quoteCurrencyDecimals: currenciesProvider.getCurrency(quoteCurrency)?.decimals || defaultDecimals,
+    quoteCurrencyDecimals: preparedQuoteCurrencyDecimals,
     minimumQty: new BigNumber(symbolDto.minimumQty),
   };
 };
