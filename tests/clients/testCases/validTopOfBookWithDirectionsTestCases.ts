@@ -21,7 +21,7 @@ const validTopOfBookWithDirectionsTestCases: ReadonlyArray<readonly [
             baseCurrency: 'BTC',
             baseCurrencyDecimals: 8,
             quoteCurrency: 'ETH',
-            quoteCurrencyDecimals: 18,
+            quoteCurrencyDecimals: 9,
             minimumQty: new BigNumber(0.0001)
           },
           {
@@ -29,7 +29,7 @@ const validTopOfBookWithDirectionsTestCases: ReadonlyArray<readonly [
             baseCurrency: 'BTC',
             baseCurrencyDecimals: 8,
             quoteCurrency: 'LTC',
-            quoteCurrencyDecimals: 18,
+            quoteCurrencyDecimals: 9,
             minimumQty: new BigNumber(0.0001)
           }
         ],

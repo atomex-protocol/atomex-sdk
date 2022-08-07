@@ -22,7 +22,7 @@ const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
             baseCurrency: 'BTC',
             baseCurrencyDecimals: 8,
             quoteCurrency: 'ETH',
-            quoteCurrencyDecimals: 18,
+            quoteCurrencyDecimals: 9,
             minimumQty: new BigNumber(0.0001)
           }
         ],
@@ -81,7 +81,7 @@ const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
             baseCurrency: 'BTC',
             baseCurrencyDecimals: 8,
             quoteCurrency: 'ETH',
-            quoteCurrencyDecimals: 18,
+            quoteCurrencyDecimals: 9,
             minimumQty: new BigNumber(0.0001)
           }
         ],

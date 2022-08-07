@@ -12,7 +12,7 @@ const validCancelOrderWithDirectionsTestCases: ReadonlyArray<readonly [
         [{
           name: 'XTZ/ETH',
           baseCurrency: 'ETH',
-          baseCurrencyDecimals: 18,
+          baseCurrencyDecimals: 9,
           quoteCurrency: 'XTZ',
           quoteCurrencyDecimals: 6,
           minimumQty: new BigNumber(1)
@@ -32,7 +32,7 @@ const validCancelOrderWithDirectionsTestCases: ReadonlyArray<readonly [
         [{
           name: 'XTZ/ETH',
           baseCurrency: 'ETH',
-          baseCurrencyDecimals: 18,
+          baseCurrencyDecimals: 9,
           quoteCurrency: 'XTZ',
           quoteCurrencyDecimals: 6,
           minimumQty: new BigNumber(1)

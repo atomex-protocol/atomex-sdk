@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import WS from 'jest-websocket-mock';
 
 import type { AuthToken } from '../../src/authorization/index';
@@ -24,6 +25,7 @@ describe('WebSocket Atomex Client', () => {
   let marketDataWsServer: WS;
   let client: WebSocketAtomexClient;
   let authorizationManager: TestAuthorizationManager;
+  let exchangeSymbolsProvider: TestExchangeSymbolsProvider;
 
   const exchangeWsServerSelectProtocol = (protocols: string[]) => {
     const [tokenProtocolKey, tokenProtocolValue] = protocols;
@@ -70,12 +72,32 @@ describe('WebSocket Atomex Client', () => {
       return address === testAccountAddress ? testAuthToken : undefined;
     });
 
+    exchangeSymbolsProvider = new TestExchangeSymbolsProvider();
+    exchangeSymbolsProvider.setSymbols([
+      {
+        name: 'ETH/BTC',
+        baseCurrency: 'BTC',
+        baseCurrencyDecimals: 8,
+        quoteCurrency: 'ETH',
+        quoteCurrencyDecimals: 9,
+        minimumQty: new BigNumber(0.001)
+      },
+      {
+        name: 'XTZ/ETH',
+        baseCurrency: 'ETH',
+        baseCurrencyDecimals: 9,
+        quoteCurrency: 'XTZ',
+        quoteCurrencyDecimals: 6,
+        minimumQty: new BigNumber(1)
+      }
+    ]);
+
     client = new WebSocketAtomexClient({
       webSocketApiBaseUrl: testApiUrl,
       atomexNetwork,
       authorizationManager,
       currenciesProvider: new TestCurrenciesProvider(),
-      exchangeSymbolsProvider: new TestExchangeSymbolsProvider(),
+      exchangeSymbolsProvider
     });
 
     await client.start();

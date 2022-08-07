@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import type { FetchMock } from 'jest-fetch-mock';
 
 import type { AuthToken } from '../../src/authorization/index';
@@ -52,6 +53,24 @@ describe('Rest Atomex Client', () => {
     fetchMock.resetMocks();
 
     exchangeSymbolsProvider = new TestExchangeSymbolsProvider();
+    exchangeSymbolsProvider.setSymbols([
+      {
+        name: 'ETH/BTC',
+        baseCurrency: 'BTC',
+        baseCurrencyDecimals: 8,
+        quoteCurrency: 'ETH',
+        quoteCurrencyDecimals: 9,
+        minimumQty: new BigNumber(0.001)
+      },
+      {
+        name: 'XTZ/ETH',
+        baseCurrency: 'ETH',
+        baseCurrencyDecimals: 9,
+        quoteCurrency: 'XTZ',
+        quoteCurrencyDecimals: 6,
+        minimumQty: new BigNumber(1)
+      }
+    ]);
     client = new RestAtomexClient({
       atomexNetwork,
       apiBaseUrl: testApiUrl,
