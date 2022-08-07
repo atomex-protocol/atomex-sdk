@@ -112,7 +112,7 @@ export class ExchangeManager implements AtomexComponent {
       [symbol] = symbolsHelper.findSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to);
     }
 
-    if (!symbol.trim())
+    if (symbol)
       throw new Error('Invalid Symbol');
 
     const orderBook = this.exchangeService.getOrderBook(symbol);
@@ -136,7 +136,6 @@ export class ExchangeManager implements AtomexComponent {
 
   async getOrderPreview(orderPreviewParameters: OrderPreviewParameters): Promise<OrderPreview | undefined> {
     const isFromAmount = orderPreviewParameters.isFromAmount || true;
-    // TODO: validate amount
     const amount = orderPreviewParameters.amount;
 
     if (orderPreviewParameters.type !== 'SolidFillOrKill')

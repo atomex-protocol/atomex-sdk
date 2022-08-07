@@ -5,9 +5,9 @@ import type { CurrencyDirection } from './currencyDirection';
 import type { OrderType } from './orderType';
 
 interface OrderPreviewParametersBase {
-  readonly type: OrderType;
-  readonly amount: BigNumber;
-  readonly isFromAmount?: boolean;
+  type: OrderType;
+  amount: BigNumber;
+  isFromAmount?: boolean;
 }
 
 export type OrderPreviewParameters = OrderPreviewParametersBase & (
