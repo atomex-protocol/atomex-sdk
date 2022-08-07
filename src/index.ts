@@ -1,7 +1,7 @@
 export { Atomex } from './atomex/index';
 export { AtomexBuilder } from './atomexBuilder/index';
 export { AuthorizationManager, AuthTokenSource } from './authorization/index';
-export { SignersManager, BlockchainCurrenciesProvider } from './blockchain/index';
+export { SignersManager } from './blockchain/index';
 export { LocalStorageAuthorizationManagerStore, DefaultSerializedAuthTokenMapper } from './browser/index';
 export { RestAtomexClient, WebSocketAtomexClient, MixedApiAtomexClient } from './clients/index';
 export { ImportantDataReceivingMode } from './common/index';

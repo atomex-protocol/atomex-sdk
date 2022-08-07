@@ -1,7 +1,7 @@
 import { Atomex, AtomexContext } from '../atomex/index';
 import type { AtomexBlockchainOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
-import { AtomexBlockchainProvider, SignersManager, BlockchainCurrenciesProvider } from '../blockchain/index';
+import { AtomexBlockchainProvider, SignersManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
 import { EthereumBalancesProvider, EthereumBlockchainToolkitProvider, ethereumMainnetCurrencies, EthereumSwapTransactionsProvider, ethereumTestnetCurrencies } from '../ethereum/index';
 import { ExchangeManager, InMemoryExchangeSymbolsProvider } from '../exchange/index';
@@ -45,8 +45,9 @@ export class AtomexBuilder {
   }
 
   build(): Atomex {
-    this.controlledAtomexContext.providers.blockchainProvider = new AtomexBlockchainProvider();
-    this.controlledAtomexContext.providers.currenciesProvider = this.createCurrenciesProvider();
+    const blockchainProvider = new AtomexBlockchainProvider();
+    this.controlledAtomexContext.providers.blockchainProvider = blockchainProvider;
+    this.controlledAtomexContext.providers.currenciesProvider = blockchainProvider;
     this.controlledAtomexContext.providers.exchangeSymbolsProvider = this.createExchangeSymbolsProvider();
     this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
     this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
@@ -67,10 +68,6 @@ export class AtomexBuilder {
       },
       blockchains
     });
-  }
-
-  protected createCurrenciesProvider() {
-    return new BlockchainCurrenciesProvider(this.atomexContext.providers.blockchainProvider);
   }
 
   protected createExchangeSymbolsProvider() {

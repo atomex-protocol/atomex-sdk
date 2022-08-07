@@ -1,5 +1,4 @@
 export { SignersManager } from './signersManager';
-export { BlockchainCurrenciesProvider } from './blockchainCurrenciesProvider';
 
 export type { AtomexSignature, Transaction } from './models/index';
 export type { AtomexProtocol } from './atomexProtocol';
