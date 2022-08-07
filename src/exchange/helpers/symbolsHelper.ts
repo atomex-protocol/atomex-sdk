@@ -1,6 +1,7 @@
 import BigNumber from 'bignumber.js';
 
 import type { Currency, Side } from '../../common/index';
+import { guards } from '../../utils/index';
 import type { ExchangeSymbol, SymbolCurrency } from '../models/index';
 
 export const getQuoteBaseCurrenciesBySymbol = (symbol: string): readonly [quoteCurrency: string, baseCurrency: string] => {
@@ -40,16 +41,35 @@ export const convertSymbolToFromToCurrenciesPair = (
 };
 
 export const findSymbolAndSide = (
-  symbols: readonly ExchangeSymbol[],
+  symbols: ReadonlyMap<ExchangeSymbol['name'], ExchangeSymbol> | readonly ExchangeSymbol[],
   from: Currency['id'],
   to: Currency['id']
 ): readonly [symbol: string, side: Side] => {
-  let symbol = symbols.find(symbol => symbol.name === `${from}/${to}`);
+  const sellSideSymbolName = `${from}/${to}`;
+  const buySideSymbolName = `${to}/${from}`;
+  let symbol: ExchangeSymbol | undefined;
   let side: Side = 'Sell';
 
-  if (!symbol) {
-    symbol = symbols.find(symbol => symbol.name === `${to}/${from}`);
-    side = 'Buy';
+  if (guards.isReadonlyArray(symbols)) {
+    for (const s of symbols) {
+      if (s.name === sellSideSymbolName) {
+        symbol = s;
+        break;
+      }
+
+      if (s.name === buySideSymbolName) {
+        symbol = s;
+        side = 'Buy';
+        break;
+      }
+    }
+  }
+  else {
+    symbol = symbols.get(sellSideSymbolName);
+    if (!symbol) {
+      side = 'Buy';
+      symbol = symbols.get(buySideSymbolName);
+    }
   }
 
   if (!symbol)

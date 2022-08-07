@@ -113,7 +113,7 @@ export class RestAtomexClient implements AtomexClient {
       if (typeof symbolsOrDirections[0] === 'string')
         symbols = symbolsOrDirections as string[];
       else {
-        const exchangeSymbols = this.exchangeSymbolsProvider.getSymbols();
+        const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
         symbols = (symbolsOrDirections as CurrencyDirection[]).map(d => symbolsHelper.findSymbolAndSide(exchangeSymbols, d.from, d.to)[0]);
       }
     }
@@ -134,7 +134,7 @@ export class RestAtomexClient implements AtomexClient {
     if (typeof symbolOrDirection === 'string')
       symbol = symbolOrDirection;
     else {
-      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbols();
+      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
       [symbol] = symbolsHelper.findSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to);
     }
 
@@ -153,7 +153,7 @@ export class RestAtomexClient implements AtomexClient {
     if (newOrderRequest.orderBody.symbol && newOrderRequest.orderBody.side)
       [symbol, side] = [newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side];
     else if (typeof newOrderRequest.orderBody.from === 'string' && typeof newOrderRequest.orderBody.to === 'string') {
-      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbols();
+      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
       [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, newOrderRequest.orderBody.from, newOrderRequest.orderBody.to);
     }
     else
@@ -203,7 +203,7 @@ export class RestAtomexClient implements AtomexClient {
     if (cancelOrderRequest.symbol && cancelOrderRequest.side)
       [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
     else if (cancelOrderRequest.from && cancelOrderRequest.to) {
-      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbols();
+      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
       [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
     }
     else
@@ -234,7 +234,7 @@ export class RestAtomexClient implements AtomexClient {
     if (cancelAllOrdersRequest.symbol && cancelAllOrdersRequest.side)
       [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
     else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
-      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbols();
+      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
       [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
 
       if (cancelAllOrdersRequest.cancelAllDirections)

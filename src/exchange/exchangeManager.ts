@@ -1,9 +1,9 @@
 import type { BigNumber } from 'bignumber.js';
 
-import { AtomexComponent, ImportantDataReceivingMode, Side } from '../common/index';
+import { AtomexComponent, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
 import { EventEmitter, type ToEventEmitter, type Result } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
-import type { ExchangeSymbolsProvider } from './exchangeSymbolsProvider';
+import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider';
 import { symbolsHelper } from './helpers/index';
 import type {
   CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol,
@@ -23,7 +23,7 @@ export class ExchangeManager implements AtomexComponent {
 
   constructor(
     protected readonly exchangeService: ExchangeService,
-    protected readonly symbolsProvider: ExchangeSymbolsProvider
+    protected readonly symbolsProvider: ManagedExchangeSymbolsProvider
   ) {
   }
 
@@ -37,6 +37,7 @@ export class ExchangeManager implements AtomexComponent {
 
     this.attachEvents();
     await this.exchangeService.start();
+    await this.getSymbols();
 
     this._isStarted = true;
   }
@@ -59,8 +60,38 @@ export class ExchangeManager implements AtomexComponent {
     return this.exchangeService.getOrders(accountAddress, selector);
   }
 
-  getSymbols(): Promise<ExchangeSymbol[]> {
-    return this.exchangeService.getSymbols();
+  async getSymbol(name: string, dataSource = DataSource.All): Promise<ExchangeSymbol | undefined> {
+    if ((dataSource & DataSource.Local) === DataSource.Local) {
+      const symbol = this.symbolsProvider.getSymbol(name);
+      if (symbol)
+        return symbol;
+    }
+
+    if ((dataSource & DataSource.Remote) === DataSource.Remote) {
+      const symbols = await this.exchangeService.getSymbols();
+      this.symbolsProvider.setSymbols(symbols);
+
+      return this.symbolsProvider.getSymbol(name);
+    }
+
+    return undefined;
+  }
+
+  async getSymbols(dataSource = DataSource.All): Promise<readonly ExchangeSymbol[]> {
+    if ((dataSource & DataSource.Local) === DataSource.Local) {
+      const symbols = this.symbolsProvider.getSymbols();
+      if (symbols.length > 0)
+        return symbols;
+    }
+
+    if ((dataSource & DataSource.Remote) === DataSource.Remote) {
+      const symbols = await this.exchangeService.getSymbols();
+      this.symbolsProvider.setSymbols(symbols);
+
+      return symbols;
+    }
+
+    return [];
   }
 
   getTopOfBook(symbols?: string[]): Promise<Quote[]>;
@@ -77,7 +108,7 @@ export class ExchangeManager implements AtomexComponent {
     if (typeof symbolOrDirection === 'string')
       symbol = symbolOrDirection;
     else {
-      const exchangeSymbols = this.symbolsProvider.getSymbols();
+      const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
       [symbol] = symbolsHelper.findSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to);
     }
 
@@ -118,7 +149,7 @@ export class ExchangeManager implements AtomexComponent {
       side = orderPreviewParameters.side;
     }
     else if (orderPreviewParameters.from && orderPreviewParameters.to) {
-      const exchangeSymbols = this.symbolsProvider.getSymbols();
+      const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
       [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
     }
     else

@@ -1,7 +1,7 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { SignersManager, AtomexBlockchainProvider } from '../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
-import type { ExchangeManager, ExchangeService, ExchangeSymbolsProvider } from '../exchange/index';
+import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
 
 export class AtomexContext {
@@ -109,7 +109,7 @@ class AtomexContextServicesSection {
 class AtomexContextProvidersSection {
   private _blockchainProvider: AtomexBlockchainProvider | undefined;
   private _currenciesProvider: CurrenciesProvider | undefined;
-  private _exchangeSymbolsProvider: ExchangeSymbolsProvider | undefined;
+  private _exchangeSymbolsProvider: ManagedExchangeSymbolsProvider | undefined;
 
   constructor(readonly context: AtomexContext) {
   }
@@ -136,14 +136,14 @@ class AtomexContextProvidersSection {
     this._currenciesProvider = currenciesProvider;
   }
 
-  get exchangeSymbolsProvider(): ExchangeSymbolsProvider {
+  get exchangeSymbolsProvider(): ManagedExchangeSymbolsProvider {
     if (!this._exchangeSymbolsProvider)
       throw new AtomexComponentNotResolvedError('providers.exchangeSymbolsProvider');
 
     return this._exchangeSymbolsProvider;
   }
 
-  private set exchangeSymbolsProvider(exchangeSymbolsProvider: ExchangeSymbolsProvider) {
+  private set exchangeSymbolsProvider(exchangeSymbolsProvider: ManagedExchangeSymbolsProvider) {
     this._exchangeSymbolsProvider = exchangeSymbolsProvider;
   }
 }
