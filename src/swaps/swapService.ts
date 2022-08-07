@@ -1,3 +1,4 @@
+import type { AtomexComponent } from '../common/atomexComponent';
 import type { PublicEventEmitter } from '../core/eventEmitter';
 import type { SwapsSelector } from '../exchange/index';
 import type { Swap } from './models/swap';
@@ -6,7 +7,7 @@ export interface SwapServiceEvents {
   readonly swapUpdated: PublicEventEmitter<readonly [updatedSwap: Swap]>;
 }
 
-export interface SwapService {
+export interface SwapService extends AtomexComponent {
   readonly events: SwapServiceEvents;
 
   getSwap(swapId: number, accountAddress: string): Promise<Swap | undefined>;
@@ -14,6 +15,4 @@ export interface SwapService {
 
   getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
   getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
-
-  dispose(): void;
 }

@@ -1,11 +1,11 @@
 import type { AuthorizationManager } from '../../authorization/index';
 import type { Transaction } from '../../blockchain/index';
-import type { AtomexNetwork } from '../../common/index';
+import type { AtomexNetwork, CurrenciesProvider } from '../../common/index';
 import { EventEmitter, type ToEventEmitter } from '../../core';
 import type {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
   OrdersSelector, CancelOrderRequest,
-  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection
+  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider
 } from '../../exchange/index';
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
@@ -17,6 +17,8 @@ import { MarketDataWebSocketClient } from './marketDataWebSocketClient';
 export interface WebSocketAtomexClientOptions {
   atomexNetwork: AtomexNetwork;
   authorizationManager: AuthorizationManager;
+  currenciesProvider: CurrenciesProvider;
+  exchangeSymbolsProvider: ExchangeSymbolsProvider;
   webSocketApiBaseUrl: string;
 }
 
@@ -30,21 +32,55 @@ export class WebSocketAtomexClient implements AtomexClient {
   };
 
   protected readonly authorizationManager: AuthorizationManager;
+  protected readonly exchangeSymbolsProvider: ExchangeSymbolsProvider;
+  protected readonly currenciesProvider: CurrenciesProvider;
   protected readonly webSocketApiBaseUrl: string;
   protected readonly marketDataWebSocketClient: MarketDataWebSocketClient;
   protected readonly exchangeWebSocketClient: ExchangeWebSocketClient;
 
+  private _isStarted = false;
+
   constructor(options: WebSocketAtomexClientOptions) {
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
+    this.currenciesProvider = options.currenciesProvider;
+    this.exchangeSymbolsProvider = options.exchangeSymbolsProvider;
     this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
 
     this.exchangeWebSocketClient = new ExchangeWebSocketClient(this.webSocketApiBaseUrl, this.authorizationManager);
-    this.exchangeWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
-
     this.marketDataWebSocketClient = new MarketDataWebSocketClient(this.webSocketApiBaseUrl);
+  }
+
+  get isStarted() {
+    return this._isStarted;
+  }
+
+  async start() {
+    if (this.isStarted)
+      return;
+
+    this.exchangeWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
     this.marketDataWebSocketClient.events.messageReceived.addListener(this.onSocketMessageReceived);
-    this.marketDataWebSocketClient.connect();
+
+    await Promise.all([
+      this.exchangeWebSocketClient.start(),
+      this.marketDataWebSocketClient.start()
+    ]);
+
+    this._isStarted = true;
+  }
+
+  stop(): void {
+    if (!this.isStarted)
+      return;
+
+    this.exchangeWebSocketClient.events.messageReceived.removeListener(this.onSocketMessageReceived);
+    this.marketDataWebSocketClient.events.messageReceived.removeListener(this.onSocketMessageReceived);
+
+    this.exchangeWebSocketClient.stop();
+    this.marketDataWebSocketClient.stop();
+
+    this._isStarted = false;
   }
 
   getOrder(_accountAddress: string, _orderId: number): Promise<Order | undefined> {
@@ -99,19 +135,14 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  dispose() {
-    this.exchangeWebSocketClient.dispose();
-    this.marketDataWebSocketClient.dispose();
-  }
-
-  protected onSocketMessageReceived = (message: WebSocketResponseDto) => {
+  protected readonly onSocketMessageReceived = (message: WebSocketResponseDto) => {
     switch (message.event) {
       case 'order':
-        (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(mapWebSocketOrderDtoToOrder(message.data));
+        (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(mapWebSocketOrderDtoToOrder(message.data, this.exchangeSymbolsProvider));
         break;
 
       case 'swap':
-        (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(mapSwapDtoToSwap(message.data));
+        (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(mapSwapDtoToSwap(message.data, this.exchangeSymbolsProvider));
         break;
 
       case 'topOfBook':

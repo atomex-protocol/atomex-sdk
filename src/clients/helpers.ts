@@ -1,55 +1,18 @@
 import BigNumber from 'bignumber.js';
 
 import type { Transaction } from '../blockchain/models/index';
-import type { Currency, Side } from '../common/index';
-import type { ExchangeSymbol, Order, OrderBook, OrderCurrency, Quote } from '../exchange/index';
+import type { CurrenciesProvider } from '../common/index';
+import { ExchangeSymbol, ExchangeSymbolsProvider, NewOrderRequest, Order, OrderBook, OrderPreview, Quote, symbolsHelper } from '../exchange/index';
 import type { Swap, SwapParticipantTrade } from '../swaps/index';
-import type { OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto, TradeDto, TransactionDto, WebSocketOrderBookEntryDto, WebSocketOrderDataDto } from './dtos';
+import type {
+  OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto,
+  TradeDto, TransactionDto, WebSocketOrderBookEntryDto, WebSocketOrderDataDto
+} from './dtos';
 
-export const getQuoteBaseCurrenciesBySymbol = (symbol: string): [quoteCurrency: string, baseCurrency: string] => {
-  const [quoteCurrency = '', baseCurrency = ''] = symbol.split('/');
-
-  return [quoteCurrency, baseCurrency];
-};
-
-export const getFromToCurrencies = (symbol: string, qty: number, price: number, side: Side): [from: OrderCurrency, to: OrderCurrency] => {
-  const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol);
-
-  const quoteCurrencyAmount = new BigNumber(qty);
-  const quoteCurrencyPrice = new BigNumber(price);
-  const baseCurrencyAmount = quoteCurrencyPrice.multipliedBy(quoteCurrencyAmount);
-  const baseCurrencyPrice = quoteCurrencyAmount.div(baseCurrencyAmount);
-
-  const quoteCurrency: OrderCurrency = {
-    currencyId: quoteCurrencyId,
-    amount: quoteCurrencyAmount,
-    price: quoteCurrencyPrice,
-  };
-
-  const baseCurrency: OrderCurrency = {
-    currencyId: baseCurrencyId,
-    amount: baseCurrencyAmount,
-    price: baseCurrencyPrice,
-  };
-
-  return side === 'Buy'
-    ? [baseCurrency, quoteCurrency]
-    : [quoteCurrency, baseCurrency];
-};
-
-export const findSymbolAndSide = (symbols: ExchangeSymbol[], from: Currency['id'], to: Currency['id']): [symbol: string, side: Side] => {
-  let symbol = symbols.find(symbol => symbol.name === `${from}/${to}`);
-  let side: Side = 'Sell';
-
-  if (!symbol) {
-    symbol = symbols.find(symbol => symbol.name === `${to}/${from}`);
-    side = 'Buy';
-  }
-
-  if (!symbol)
-    throw new Error(`Invalid pair: ${from}/${to}`);
-
-  return [symbol.name, side];
+export const isOrderPreview = (orderBody: NewOrderRequest['orderBody']): orderBody is OrderPreview => {
+  return typeof orderBody.symbol === 'string' && typeof orderBody.side === 'string'
+    && orderBody.from !== undefined && typeof orderBody.from !== 'string'
+    && orderBody.to !== undefined && typeof orderBody.to !== 'string';
 };
 
 export const mapQuoteDtosToQuotes = (quoteDtos: QuoteDto[]): Quote[] => {
@@ -59,7 +22,7 @@ export const mapQuoteDtosToQuotes = (quoteDtos: QuoteDto[]): Quote[] => {
 };
 
 export const mapQuoteDtoToQuote = (quoteDto: QuoteDto): Quote => {
-  const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(quoteDto.symbol);
+  const [quoteCurrency, baseCurrency] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(quoteDto.symbol);
 
   const quote: Quote = {
     ask: new BigNumber(quoteDto.ask),
@@ -73,23 +36,29 @@ export const mapQuoteDtoToQuote = (quoteDto: QuoteDto): Quote => {
   return quote;
 };
 
-export const mapSymbolDtosToSymbols = (symbolDtos: SymbolDto[]): ExchangeSymbol[] => {
-  const symbols: ExchangeSymbol[] = symbolDtos.map(symbolDto => {
-    const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(symbolDto.name);
+export const mapSymbolDtoToSymbol = (symbolDto: SymbolDto, currenciesProvider: CurrenciesProvider, defaultDecimals = 9): ExchangeSymbol => {
+  const [quoteCurrency, baseCurrency] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(symbolDto.name);
 
-    return {
-      name: symbolDto.name,
-      minimumQty: new BigNumber(symbolDto.minimumQty),
-      quoteCurrency,
-      baseCurrency
-    };
-  });
+  return {
+    name: symbolDto.name,
+    baseCurrency,
+    baseCurrencyDecimals: currenciesProvider.getCurrency(baseCurrency)?.decimals || defaultDecimals,
+    quoteCurrency,
+    quoteCurrencyDecimals: currenciesProvider.getCurrency(quoteCurrency)?.decimals || defaultDecimals,
+    minimumQty: new BigNumber(symbolDto.minimumQty),
+  };
+};
 
-  return symbols;
+export const mapSymbolDtosToSymbols = (
+  symbolDtos: readonly SymbolDto[],
+  currenciesProvider: CurrenciesProvider,
+  defaultDecimals?: number
+): ExchangeSymbol[] => {
+  return symbolDtos.map(symbolDto => mapSymbolDtoToSymbol(symbolDto, currenciesProvider, defaultDecimals));
 };
 
 export const mapOrderBookDtoToOrderBook = (orderBookDto: OrderBookDto): OrderBook => {
-  const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
+  const [quoteCurrency, baseCurrency] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
 
   const orderBook: OrderBook = {
     updateId: orderBookDto.updateId,
@@ -111,7 +80,7 @@ export const mapWebSocketOrderBookEntryDtoToOrderBook = (orderBookEntryDtos: Web
   if (!firstOrderBookEntry)
     throw new Error('Unexpected dto');
 
-  const [quoteCurrency, baseCurrency] = getQuoteBaseCurrenciesBySymbol(firstOrderBookEntry.symbol);
+  const [quoteCurrency, baseCurrency] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(firstOrderBookEntry.symbol);
 
   const orderBook: OrderBook = {
     updateId: firstOrderBookEntry.updateId,
@@ -128,8 +97,12 @@ export const mapWebSocketOrderBookEntryDtoToOrderBook = (orderBookEntryDtos: Web
   return orderBook;
 };
 
-export const mapOrderDtoToOrder = (orderDto: OrderDto): Order => {
-  const [from, to] = getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
+export const mapOrderDtoToOrder = (orderDto: OrderDto, exchangeSymbolsProvider: ExchangeSymbolsProvider): Order => {
+  const exchangeSymbol = exchangeSymbolsProvider.getSymbol(orderDto.symbol);
+  if (!exchangeSymbol)
+    throw new Error(`"${orderDto.symbol}" symbol not found`);
+
+  const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(exchangeSymbol, orderDto.side, orderDto.qty, orderDto.price);
 
   return {
     id: orderDto.id,
@@ -146,10 +119,8 @@ export const mapOrderDtoToOrder = (orderDto: OrderDto): Order => {
   };
 };
 
-export const mapOrderDtosToOrders = (orderDtos: OrderDto[]): Order[] => {
-  const orders = orderDtos.map(orderDto => mapOrderDtoToOrder(orderDto));
-
-  return orders;
+export const mapOrderDtosToOrders = (orderDtos: OrderDto[], exchangeSymbolsProvider: ExchangeSymbolsProvider): Order[] => {
+  return orderDtos.map(orderDto => mapOrderDtoToOrder(orderDto, exchangeSymbolsProvider));
 };
 
 export const mapTransactionDtosToTransactions = (transactionDtos: TransactionDto[]): Transaction[] => {
@@ -165,8 +136,12 @@ export const mapTransactionDtosToTransactions = (transactionDtos: TransactionDto
   return transactions;
 };
 
-export const mapSwapDtoToSwap = (swapDto: SwapDto): Swap => {
-  const [from, to] = getFromToCurrencies(swapDto.symbol, swapDto.qty, swapDto.price, swapDto.side);
+export const mapSwapDtoToSwap = (swapDto: SwapDto, exchangeSymbolsProvider: ExchangeSymbolsProvider): Swap => {
+  const exchangeSymbol = exchangeSymbolsProvider.getSymbol(swapDto.symbol);
+  if (!exchangeSymbol)
+    throw new Error(`"${swapDto.symbol}" symbol not found`);
+
+  const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(exchangeSymbol, swapDto.side, swapDto.qty, swapDto.price);
 
   const swap: Swap = {
     isInitiator: swapDto.isInitiator,
@@ -215,14 +190,16 @@ export const mapTradeDtosToTrades = (tradeDtos: TradeDto[]): SwapParticipantTrad
   return trades;
 };
 
-export const mapSwapDtosToSwaps = (swapDtos: SwapDto[]): Swap[] => {
-  const swaps = swapDtos.map(swapDto => mapSwapDtoToSwap(swapDto));
-
-  return swaps;
+export const mapSwapDtosToSwaps = (swapDtos: SwapDto[], exchangeSymbolsProvider: ExchangeSymbolsProvider): Swap[] => {
+  return swapDtos.map(swapDto => mapSwapDtoToSwap(swapDto, exchangeSymbolsProvider));
 };
 
-export const mapWebSocketOrderDtoToOrder = (orderDto: WebSocketOrderDataDto): Order => {
-  const [from, to] = getFromToCurrencies(orderDto.symbol, orderDto.qty, orderDto.price, orderDto.side);
+export const mapWebSocketOrderDtoToOrder = (orderDto: WebSocketOrderDataDto, exchangeSymbolsProvider: ExchangeSymbolsProvider): Order => {
+  const exchangeSymbol = exchangeSymbolsProvider.getSymbol(orderDto.symbol);
+  if (!exchangeSymbol)
+    throw new Error(`"${orderDto.symbol}" symbol not found`);
+
+  const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(exchangeSymbol, orderDto.side, orderDto.qty, orderDto.price);
 
   const order: Order = {
     id: orderDto.id,

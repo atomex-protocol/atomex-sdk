@@ -1,4 +1,6 @@
 export * from './models/index';
-export type { CurrenciesProvider } from './currenciesProvider';
 
 export { InMemoryCurrenciesProvider } from './inMemoryCurrenciesProvider';
+
+export type { AtomexComponent } from './atomexComponent';
+export type { CurrenciesProvider } from './currenciesProvider';

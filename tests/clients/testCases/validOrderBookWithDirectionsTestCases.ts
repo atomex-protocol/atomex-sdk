@@ -1,12 +1,12 @@
 import BigNumber from 'bignumber.js';
 
-import type { OrderBookDto, SymbolDto } from '../../../src/clients/dtos';
-import type { CurrencyDirection, OrderBook } from '../../../src/exchange/index';
+import type { OrderBookDto } from '../../../src/clients/dtos';
+import type { CurrencyDirection, ExchangeSymbol, OrderBook } from '../../../src/exchange/index';
 
 const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
   message: string,
   testValue: readonly [
-    symbolDtos: SymbolDto[],
+    exchangeSymbols: ExchangeSymbol[],
     orderBookDto: OrderBookDto,
     direction: CurrencyDirection,
     orderBook: OrderBook,
@@ -19,7 +19,11 @@ const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
         [
           {
             name: 'ETH/BTC',
-            minimumQty: 0.0001
+            baseCurrency: 'BTC',
+            baseCurrencyDecimals: 8,
+            quoteCurrency: 'ETH',
+            quoteCurrencyDecimals: 18,
+            minimumQty: new BigNumber(0.0001)
           }
         ],
         {
@@ -74,7 +78,11 @@ const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
         [
           {
             name: 'ETH/BTC',
-            minimumQty: 0.0001
+            baseCurrency: 'BTC',
+            baseCurrencyDecimals: 8,
+            quoteCurrency: 'ETH',
+            quoteCurrencyDecimals: 18,
+            minimumQty: new BigNumber(0.0001)
           }
         ],
         {

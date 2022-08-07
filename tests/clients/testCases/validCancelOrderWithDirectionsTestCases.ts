@@ -1,16 +1,21 @@
-import type { SymbolDto } from '../../../src/clients/dtos';
-import type { CancelOrderRequest } from '../../../src/exchange/index';
+import BigNumber from 'bignumber.js';
+
+import type { CancelOrderRequest, ExchangeSymbol } from '../../../src/exchange/index';
 
 const validCancelOrderWithDirectionsTestCases: ReadonlyArray<readonly [
   message: string,
-  testValue: readonly [symbolDtos: SymbolDto[], request: CancelOrderRequest, expectedSymbol: string, expectedFilterValue: string]
+  testValue: readonly [exchangeSymbols: ExchangeSymbol[], request: CancelOrderRequest, expectedSymbol: string, expectedFilterValue: string]
 ]> = [
     [
       'Buy case',
       [
         [{
           name: 'XTZ/ETH',
-          minimumQty: 1
+          baseCurrency: 'ETH',
+          baseCurrencyDecimals: 18,
+          quoteCurrency: 'XTZ',
+          quoteCurrencyDecimals: 6,
+          minimumQty: new BigNumber(1)
         }],
         {
           orderId: 1,
@@ -26,7 +31,11 @@ const validCancelOrderWithDirectionsTestCases: ReadonlyArray<readonly [
       [
         [{
           name: 'XTZ/ETH',
-          minimumQty: 1
+          baseCurrency: 'ETH',
+          baseCurrencyDecimals: 18,
+          quoteCurrency: 'XTZ',
+          quoteCurrencyDecimals: 6,
+          minimumQty: new BigNumber(1)
         }],
         {
           orderId: 1,

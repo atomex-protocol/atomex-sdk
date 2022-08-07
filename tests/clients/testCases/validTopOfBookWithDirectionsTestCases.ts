@@ -1,12 +1,12 @@
 import BigNumber from 'bignumber.js';
 
-import type { QuoteDto, SymbolDto } from '../../../src/clients/dtos';
-import type { CurrencyDirection, Quote } from '../../../src/exchange/index';
+import type { QuoteDto } from '../../../src/clients/dtos';
+import type { CurrencyDirection, ExchangeSymbol, Quote } from '../../../src/exchange/index';
 
 const validTopOfBookWithDirectionsTestCases: ReadonlyArray<readonly [
   message: string,
   testValue: readonly [
-    symbolDtos: SymbolDto[],
+    exchangeSymbols: ExchangeSymbol[],
     quoteDtos: QuoteDto[],
     directions: CurrencyDirection[],
     quotes: Quote[],
@@ -18,11 +18,19 @@ const validTopOfBookWithDirectionsTestCases: ReadonlyArray<readonly [
         [
           {
             name: 'ETH/BTC',
-            minimumQty: 0.0001
+            baseCurrency: 'BTC',
+            baseCurrencyDecimals: 8,
+            quoteCurrency: 'ETH',
+            quoteCurrencyDecimals: 18,
+            minimumQty: new BigNumber(0.0001)
           },
           {
             name: 'LTC/BTC',
-            minimumQty: 0.0001
+            baseCurrency: 'BTC',
+            baseCurrencyDecimals: 8,
+            quoteCurrency: 'LTC',
+            quoteCurrencyDecimals: 18,
+            minimumQty: new BigNumber(0.0001)
           }
         ],
         [

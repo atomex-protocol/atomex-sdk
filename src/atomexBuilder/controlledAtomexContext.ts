@@ -1,8 +1,8 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
 import type { SignersManager } from '../blockchain/index';
-import type { AtomexNetwork } from '../common/index';
-import type { ExchangeManager, ExchangeService } from '../exchange/index';
+import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
+import type { ExchangeManager, ExchangeService, ExchangeSymbolsProvider } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
 
 export interface ControlledAtomexContext {
@@ -31,6 +31,7 @@ interface ControlledAtomexContextManagersSection {
 interface ControlledAtomexContextServicesSection {
   get exchangeService(): ExchangeService;
   set exchangeService(value: ExchangeService);
+
   get swapService(): SwapService;
   set swapService(value: SwapService);
 }
@@ -38,4 +39,10 @@ interface ControlledAtomexContextServicesSection {
 interface ControlledAtomexContextProvidersSection {
   get blockchainProvider(): AtomexBlockchainProvider;
   set blockchainProvider(value: AtomexBlockchainProvider);
+
+  get currenciesProvider(): CurrenciesProvider;
+  set currenciesProvider(value: CurrenciesProvider);
+
+  get exchangeSymbolsProvider(): ExchangeSymbolsProvider;
+  set exchangeSymbolsProvider(value: ExchangeSymbolsProvider);
 }

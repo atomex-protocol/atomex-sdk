@@ -12,12 +12,14 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
       'Simple buy order',
       [
         {
-          amount: new BigNumber(1),
-          price: new BigNumber(2),
-          side: 'Buy',
-          symbol: 'XTZ/ETH',
+          orderBody: {
+            type: 'FillOrKill',
+            fromAmount: new BigNumber(1),
+            price: new BigNumber(2),
+            side: 'Buy',
+            symbol: 'XTZ/ETH',
+          },
           clientOrderId: 'client-order-id',
-          type: 'FillOrKill'
         },
         {
           orderId: 777
@@ -37,12 +39,14 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
       'Simple sell order',
       [
         {
-          amount: new BigNumber(1),
-          price: new BigNumber(2),
-          side: 'Sell',
-          symbol: 'XTZ/ETH',
+          orderBody: {
+            type: 'FillOrKill',
+            fromAmount: new BigNumber(1),
+            price: new BigNumber(2),
+            side: 'Sell',
+            symbol: 'XTZ/ETH',
+          },
           clientOrderId: 'client-order-id',
-          type: 'FillOrKill'
         },
         {
           orderId: 123

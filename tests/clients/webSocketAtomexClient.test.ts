@@ -3,8 +3,11 @@ import WS from 'jest-websocket-mock';
 import type { AuthToken } from '../../src/authorization/index';
 import { WebSocketAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
-import { TestAuthorizationManager } from '../testHelpers/testAuthManager';
-import { validWsOrderBookUpdatedTestCases, validWsOrderUpdatedTestCases, validWsSwapUpdatedTestCases, validWsTopOfBookUpdatedTestCases } from './testCases/index';
+import { TestCurrenciesProvider, TestAuthorizationManager, TestExchangeSymbolsProvider } from '../testHelpers/index';
+import {
+  validWsOrderBookUpdatedTestCases, validWsOrderUpdatedTestCases,
+  validWsSwapUpdatedTestCases, validWsTopOfBookUpdatedTestCases
+} from './testCases/index';
 
 describe('WebSocket Atomex Client', () => {
   const testApiUrl = 'ws://test-api.com';
@@ -59,7 +62,7 @@ describe('WebSocket Atomex Client', () => {
     });
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     createExchangeWebServer();
     createMarketDataWebServer();
 
@@ -71,11 +74,15 @@ describe('WebSocket Atomex Client', () => {
       webSocketApiBaseUrl: testApiUrl,
       atomexNetwork,
       authorizationManager,
+      currenciesProvider: new TestCurrenciesProvider(),
+      exchangeSymbolsProvider: new TestExchangeSymbolsProvider(),
     });
+
+    await client.start();
   });
 
   afterEach(() => {
-    client.dispose();
+    client.stop();
     WS.clean();
   });
 
@@ -287,7 +294,7 @@ describe('WebSocket Atomex Client', () => {
     expect(disconnectionsCount).toBe(1);
   });
 
-  test('closes active connections on dispose', async () => {
+  test('closes active connections on stop', async () => {
     expect(marketDataWsServer.server.clients().length).toBe(1);
     expect(exchangeWsServer.server.clients().length).toBe(0);
 
@@ -307,7 +314,7 @@ describe('WebSocket Atomex Client', () => {
     const disconnectMarketDataPromise = getOnClosePromise(marketDataWsServer);
     const disconnectExchangePromise = getOnClosePromise(exchangeWsServer);
 
-    client.dispose();
+    client.stop();
 
     await Promise.all([disconnectMarketDataPromise, disconnectExchangePromise]);
 
