@@ -193,12 +193,6 @@ export class ExchangeManager implements AtomexComponent {
     (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(updatedQuotes);
   };
 
-  protected getCachedOrderBook(symbol: string) {
-    const cachedOrderBook = this._orderBookCache.get(symbol);
-
-    return cachedOrderBook ? Promise.resolve(cachedOrderBook) : this.getOrderBook(symbol);
-  }
-
   protected getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters: OrderPreviewParameters): readonly [symbol: string, side: Side] {
     if (orderPreviewParameters.symbol && orderPreviewParameters.side)
       return [orderPreviewParameters.symbol, orderPreviewParameters.side];
@@ -225,5 +219,11 @@ export class ExchangeManager implements AtomexComponent {
         return entry;
       }
     }
+  }
+
+  protected getCachedOrderBook(symbol: string) {
+    const cachedOrderBook = this._orderBookCache.get(symbol);
+
+    return cachedOrderBook ? Promise.resolve(cachedOrderBook) : this.getOrderBook(symbol);
   }
 }
