@@ -1,27 +1,39 @@
 import type { BigNumber } from 'bignumber.js';
-import { ImportantDataReceivingMode } from '../common/index';
+import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
 import { type Result } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
-import type { CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol, NewOrderRequest, Order, OrderBook, OrdersSelector, Quote } from './models/index';
-export declare class ExchangeManager {
+import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider';
+import type { CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol, OrderPreviewParameters as OrderPreviewParameters, NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType } from './models/index';
+export declare class ExchangeManager implements AtomexService {
     protected readonly exchangeService: ExchangeService;
+    protected readonly symbolsProvider: ManagedExchangeSymbolsProvider;
     readonly events: ExchangeServiceEvents;
-    constructor(exchangeService: ExchangeService);
+    private _isStarted;
+    private _orderBookCache;
+    constructor(exchangeService: ExchangeService, symbolsProvider: ManagedExchangeSymbolsProvider);
+    get isStarted(): boolean;
+    start(): Promise<void>;
+    stop(): void;
     getOrder(accountAddress: string, orderId: number, _mode?: ImportantDataReceivingMode): Promise<Order | undefined>;
     getOrders(accountAddress: string, selector?: OrdersSelector | undefined, _mode?: ImportantDataReceivingMode): Promise<Order[]>;
-    getSymbols(): Promise<ExchangeSymbol[]>;
+    getSymbol(name: string, dataSource?: DataSource): Promise<ExchangeSymbol | undefined>;
+    getSymbols(dataSource?: DataSource): Promise<readonly ExchangeSymbol[]>;
     getTopOfBook(symbols?: string[]): Promise<Quote[]>;
     getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
-    getOrderBook(symbol: string): Promise<OrderBook>;
-    getOrderBook(direction: CurrencyDirection): Promise<OrderBook>;
+    getOrderBook(symbol: string): Promise<OrderBook | undefined>;
+    getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
     addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
     cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
     cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
+    getOrderPreview(orderPreviewParameters: OrderPreviewParameters): Promise<OrderPreview | undefined>;
+    getMaximumLiquidity(_direction: CurrencyDirection): Promise<BigNumber>;
     getRewardForRedeem(_nativeTokenUsdPrice: number, _nativeTokenCurrencyPrice: number): Promise<Result<BigNumber>>;
     protected attachEvents(): void;
     protected detachEvents(): void;
     protected handleExchangeServiceOrderUpdated: (updatedOrder: Order) => void;
     protected handleExchangeServiceOrderBookUpdated: (updatedOrderBook: OrderBook) => void;
-    protected handleExchangeServiceTopOfBookUpdated: (updatedQuotes: Quote[]) => void;
-    dispose(): void;
+    protected handleExchangeServiceTopOfBookUpdated: (updatedQuotes: readonly Quote[]) => void;
+    protected getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters: OrderPreviewParameters): readonly [symbol: string, side: Side];
+    protected findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isFromAmount: boolean): Promise<import("./models/orderBook").OrderBookEntry | undefined>;
+    protected getCachedOrderBook(symbol: string): Promise<OrderBook | undefined>;
 }

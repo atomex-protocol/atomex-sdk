@@ -11,9 +11,11 @@ export declare class MarketDataWebSocketClient {
     protected static readonly ORDER_BOOK_STREAM = "orderBook";
     readonly events: MarketDataWebSocketClientEvents;
     protected socket: WebSocketClient;
+    private _isStarted;
     constructor(webSocketApiBaseUrl: string);
-    connect(): Promise<void>;
-    dispose(): void;
+    get isStarted(): boolean;
+    start(): Promise<void>;
+    stop(): void;
     protected subscribeOnStreams(socket: WebSocketClient): void;
     protected onSocketClosed: (socket: WebSocketClient, _event: CloseEvent) => void;
     protected onSocketMessageReceived: (message: WebSocketResponseDto) => void;

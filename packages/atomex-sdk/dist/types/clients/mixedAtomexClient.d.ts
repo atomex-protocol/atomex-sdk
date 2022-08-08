@@ -8,7 +8,11 @@ export declare class MixedApiAtomexClient implements AtomexClient {
     protected readonly restAtomexClient: AtomexClient;
     protected readonly webSocketAtomexClient: AtomexClient;
     readonly events: AtomexClient['events'];
+    private _isStarted;
     constructor(atomexNetwork: AtomexNetwork, restAtomexClient: AtomexClient, webSocketAtomexClient: AtomexClient);
+    get isStarted(): boolean;
+    start(): Promise<void>;
+    stop(): void;
     getOrder(accountAddress: string, orderId: number): Promise<Order | undefined>;
     getOrders(accountAddress: string, selector?: OrdersSelector | undefined): Promise<Order[]>;
     getSymbols(): Promise<ExchangeSymbol[]>;
@@ -24,5 +28,4 @@ export declare class MixedApiAtomexClient implements AtomexClient {
     getSwap(swapId: number, accountAddresses: string[]): Promise<Swap | undefined>;
     getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
     getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
-    dispose(): void;
 }

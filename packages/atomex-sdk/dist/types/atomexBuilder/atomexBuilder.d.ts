@@ -1,9 +1,9 @@
 import { Atomex, AtomexContext } from '../atomex/index';
 import type { AtomexBlockchainOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
-import { SignersManager } from '../blockchain/signersManager';
+import { SignersManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
-import { ExchangeManager } from '../exchange/exchangeManager';
+import { ExchangeManager, InMemoryExchangeSymbolsProvider } from '../exchange/index';
 import { SwapManager } from '../swaps/swapManager';
 import type { AtomexBuilderOptions } from './atomexBuilderOptions';
 import { AuthorizationManagerDefaultComponentOptions } from './atomexComponents/index';
@@ -20,6 +20,7 @@ export declare class AtomexBuilder {
     useSignersManager(customSignersManagerFactory: NonNullable<AtomexBuilder['customSignersManagerFactory']>): AtomexBuilder;
     useExchangeManager(customExchangeManagerFactory: NonNullable<AtomexBuilder['customExchangeManagerFactory']>): AtomexBuilder;
     build(): Atomex;
+    protected createExchangeSymbolsProvider(): InMemoryExchangeSymbolsProvider;
     protected createAuthorizationManager(): AuthorizationManager;
     protected createSignersManager(): SignersManager;
     protected createDefaultExchangeService(): import("../index").MixedApiAtomexClient;

@@ -1,8 +1,7 @@
 import type { AuthorizationManager } from '../authorization/index';
-import type { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
-import type { SignersManager } from '../blockchain/index';
-import type { ExchangeManager, ExchangeService } from '../exchange';
-import type { AtomexNetwork } from '../index';
+import type { SignersManager, AtomexBlockchainProvider } from '../blockchain/index';
+import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
+import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
 export declare class AtomexContext {
     readonly atomexNetwork: AtomexNetwork;
@@ -42,9 +41,15 @@ declare class AtomexContextServicesSection {
 declare class AtomexContextProvidersSection {
     readonly context: AtomexContext;
     private _blockchainProvider;
+    private _currenciesProvider;
+    private _exchangeSymbolsProvider;
     constructor(context: AtomexContext);
     get blockchainProvider(): AtomexBlockchainProvider;
     private set blockchainProvider(value);
+    get currenciesProvider(): CurrenciesProvider;
+    private set currenciesProvider(value);
+    get exchangeSymbolsProvider(): ManagedExchangeSymbolsProvider;
+    private set exchangeSymbolsProvider(value);
 }
 export declare class AtomexComponentNotResolvedError extends Error {
     readonly name: string;

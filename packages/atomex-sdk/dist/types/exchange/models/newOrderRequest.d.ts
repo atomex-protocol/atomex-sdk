@@ -2,16 +2,13 @@ import type { BigNumber } from 'bignumber.js';
 import type { Side } from '../../common/index';
 import type { SwapParticipantRequisites } from '../../swaps/index';
 import type { CurrencyDirection } from './currencyDirection';
+import type { OrderPreview } from './orderPreview';
 import type { OrderType } from './orderType';
-interface NewOrderRequestBase {
-    clientOrderId: string;
-    price: BigNumber;
-    amount: BigNumber;
+declare type OrderBody = (({
     type: OrderType;
-    proofsOfFunds?: ProofOfFunds[];
-    requisites?: SwapParticipantRequisites;
-}
-export declare type NewOrderRequest = NewOrderRequestBase & ({
+    price: BigNumber;
+    fromAmount: BigNumber;
+}) & ({
     from: CurrencyDirection['from'];
     to: CurrencyDirection['to'];
     symbol?: never;
@@ -21,7 +18,13 @@ export declare type NewOrderRequest = NewOrderRequestBase & ({
     to?: never;
     symbol: string;
     side: Side;
-});
+}));
+export interface NewOrderRequest {
+    orderBody: OrderPreview | OrderBody;
+    clientOrderId?: string;
+    proofsOfFunds?: ProofOfFunds[];
+    requisites?: SwapParticipantRequisites;
+}
 export interface ProofOfFunds {
     address: string;
     currency: string;

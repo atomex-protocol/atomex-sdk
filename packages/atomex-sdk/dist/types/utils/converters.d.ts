@@ -7,3 +7,4 @@ export declare const objectToHexString: (value: Record<string, unknown>) => stri
 export declare const hexStringToObject: <T extends Record<string, unknown> = Record<string, unknown>>(value: string) => T | null;
 export declare const tokensAmountToNat: (tokensAmount: BigNumber | number, decimals: number) => BigNumber;
 export declare const numberToTokensAmount: (value: BigNumber | number, decimals: number) => BigNumber;
+export declare const toFixedBigNumber: (value: BigNumber.Value, decimalPlaces: number, roundingMode?: BigNumber.RoundingMode) => BigNumber;

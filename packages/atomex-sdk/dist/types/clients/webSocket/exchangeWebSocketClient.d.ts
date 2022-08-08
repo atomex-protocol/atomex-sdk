@@ -11,8 +11,11 @@ export declare class ExchangeWebSocketClient {
     protected static readonly EXCHANGE_URL_PATH = "/ws/exchange";
     readonly events: ExchangeWebSocketClientEvents;
     protected readonly sockets: Map<string, WebSocketClient>;
+    private _isStarted;
     constructor(webSocketApiBaseUrl: string, authorizationManager: AuthorizationManager);
-    dispose(): void;
+    get isStarted(): boolean;
+    start(): Promise<void>;
+    stop(): void;
     protected subscribeOnAuthEvents(): void;
     protected onAuthorized: (authToken: AuthToken) => Promise<void>;
     protected onUnauthorized: (authToken: AuthToken) => void;
