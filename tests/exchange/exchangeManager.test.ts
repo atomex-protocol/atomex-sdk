@@ -54,7 +54,7 @@ describe('Exchange Manager', () => {
     expect(testExchangeService.getSymbols).toHaveBeenCalledTimes(0);
   });
 
-  test.only.each(validGetOrderPreviewTestCases)(
+  test.each(validGetOrderPreviewTestCases)(
     'get order preview: %p [%p]',
     async (_, orderPreviewParameters, expectedOrderPreview, symbolsUpdates, orderBookUpdates) => {
       symbolsUpdates.forEach(update => testExchangeService.getSymbols.mockResolvedValueOnce(update));

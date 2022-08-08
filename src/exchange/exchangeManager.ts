@@ -8,7 +8,7 @@ import { symbolsHelper } from './helpers/index';
 import type {
   CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol,
   OrderPreviewParameters as OrderPreviewParameters,
-  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote
+  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderBookEntry, OrderType
 } from './models/index';
 
 export class ExchangeManager implements AtomexComponent {
@@ -141,34 +141,16 @@ export class ExchangeManager implements AtomexComponent {
     if (orderPreviewParameters.type !== 'SolidFillOrKill')
       throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
 
-    let symbol: string | undefined = undefined;
-    let side: Side | undefined = undefined;
-    if (orderPreviewParameters.symbol && orderPreviewParameters.side) {
-      symbol = orderPreviewParameters.symbol;
-      side = orderPreviewParameters.side;
-    }
-    else if (orderPreviewParameters.from && orderPreviewParameters.to) {
-      const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
-      [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
-    }
-    else
-      throw new Error('Invalid orderPreviewParameters argument passed');
-
-    const orderBook = await this.getCachedOrderBook(symbol);
-    if (!orderBook)
-      return undefined;
-
-    const entry = orderBook.entries
-      .filter(entry => entry.side == side)
-      .find(entry => (isFromAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile)));
-    if (!entry)
-      return undefined;
-
+    const [symbol, side] = this.getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters);
     const exchangeSymbol = this.symbolsProvider.getSymbol(symbol);
     if (!exchangeSymbol)
-      throw new Error(`"${exchangeSymbol}" symbol not found`);
+      throw undefined;
 
-    const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(exchangeSymbol, side, amount, entry.price);
+    const orderBookEntry = await this.findOrderBookEntry(symbol, side, orderPreviewParameters.type, amount, isFromAmount);
+    if (!orderBookEntry)
+      return undefined;
+
+    const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(exchangeSymbol, side, amount, orderBookEntry.price);
 
     return {
       type: orderPreviewParameters.type,
@@ -215,5 +197,33 @@ export class ExchangeManager implements AtomexComponent {
     const cachedOrderBook = this._orderBookCache.get(symbol);
 
     return cachedOrderBook ? Promise.resolve(cachedOrderBook) : this.getOrderBook(symbol);
+  }
+
+  protected getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters: OrderPreviewParameters): readonly [symbol: string, side: Side] {
+    if (orderPreviewParameters.symbol && orderPreviewParameters.side)
+      return [orderPreviewParameters.symbol, orderPreviewParameters.side];
+
+    if (orderPreviewParameters.from && orderPreviewParameters.to) {
+      const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
+
+      return symbolsHelper.findSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
+    }
+
+    throw new Error('Invalid orderPreviewParameters argument passed');
+  }
+
+  protected async findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isFromAmount: boolean) {
+    if (orderType !== 'SolidFillOrKill')
+      return undefined;
+
+    const orderBook = await this.getCachedOrderBook(symbol);
+    if (!orderBook)
+      return undefined;
+
+    for (const entry of orderBook.entries) {
+      if (entry.side == side && (isFromAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
+        return entry;
+      }
+    }
   }
 }
