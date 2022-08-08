@@ -186,6 +186,7 @@ export class ExchangeManager implements AtomexComponent {
   };
 
   protected handleExchangeServiceOrderBookUpdated = (updatedOrderBook: OrderBook) => {
+    this._orderBookCache.set(updatedOrderBook.symbol, updatedOrderBook);
     (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(updatedOrderBook);
   };
 
