@@ -135,22 +135,31 @@ export class ExchangeManager implements AtomexService {
   }
 
   async getOrderPreview(orderPreviewParameters: OrderPreviewParameters): Promise<OrderPreview | undefined> {
-    const isFromAmount = orderPreviewParameters.isFromAmount || true;
+    const isFromAmount = (orderPreviewParameters.isFromAmount === undefined || orderPreviewParameters.isFromAmount === null)
+      ? true
+      : orderPreviewParameters.isFromAmount;
     const amount = orderPreviewParameters.amount;
 
     if (orderPreviewParameters.type !== 'SolidFillOrKill')
       throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
 
     const [symbol, side] = this.getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters);
+    const isQuoteCurrencyAmount = side === 'Sell' ? isFromAmount : !isFromAmount;
     const exchangeSymbol = this.symbolsProvider.getSymbol(symbol);
     if (!exchangeSymbol)
       throw undefined;
 
-    const orderBookEntry = await this.findOrderBookEntry(symbol, side, orderPreviewParameters.type, amount, isFromAmount);
+    const orderBookEntry = await this.findOrderBookEntry(symbol, side, orderPreviewParameters.type, amount, isQuoteCurrencyAmount);
     if (!orderBookEntry)
       return undefined;
 
-    const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(exchangeSymbol, side, amount, orderBookEntry.price);
+    const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(
+      exchangeSymbol,
+      side,
+      amount,
+      orderBookEntry.price,
+      isQuoteCurrencyAmount
+    );
 
     return {
       type: orderPreviewParameters.type,
@@ -185,9 +194,17 @@ export class ExchangeManager implements AtomexService {
     (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(updatedOrder);
   };
 
-  protected handleExchangeServiceOrderBookUpdated = (updatedOrderBook: OrderBook) => {
-    this._orderBookCache.set(updatedOrderBook.symbol, updatedOrderBook);
-    (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(updatedOrderBook);
+  protected handleExchangeServiceOrderBookUpdated = (orderBookUpdates: OrderBook) => {
+    // TODO: temporary
+    this.getOrderBook(orderBookUpdates.symbol)
+      .then(updatedOrderBook => {
+        if (!updatedOrderBook)
+          return;
+
+        this._orderBookCache.set(updatedOrderBook.symbol, updatedOrderBook);
+        (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(updatedOrderBook);
+      })
+      .catch(error => console.error(error));
   };
 
   protected handleExchangeServiceTopOfBookUpdated = (updatedQuotes: readonly Quote[]) => {
@@ -207,7 +224,7 @@ export class ExchangeManager implements AtomexService {
     throw new Error('Invalid orderPreviewParameters argument passed');
   }
 
-  protected async findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isFromAmount: boolean) {
+  protected async findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isQuoteCurrencyAmount: boolean) {
     if (orderType !== 'SolidFillOrKill')
       return undefined;
 
@@ -216,7 +233,7 @@ export class ExchangeManager implements AtomexService {
       return undefined;
 
     for (const entry of orderBook.entries) {
-      if (entry.side == side && (isFromAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
+      if (entry.side !== side && (isQuoteCurrencyAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
         return entry;
       }
     }

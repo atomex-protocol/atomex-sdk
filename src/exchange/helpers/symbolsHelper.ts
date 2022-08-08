@@ -13,23 +13,40 @@ export const getQuoteBaseCurrenciesBySymbol = (symbol: string): readonly [quoteC
 export const convertSymbolToFromToCurrenciesPair = (
   symbol: ExchangeSymbol,
   side: Side,
-  quoteCurrencyAmount: BigNumber.Value,
-  quoteCurrencyPrice: BigNumber.Value
+  currencyAmount: BigNumber.Value,
+  quoteCurrencyPrice: BigNumber.Value,
+  isQuoteCurrencyAmount = true
 ): readonly [from: SymbolCurrency, to: SymbolCurrency] => {
-  const preparedQuoteCurrencyAmount = converters.toFixedBigNumber(quoteCurrencyAmount, symbol.decimals.quoteCurrency, BigNumber.ROUND_FLOOR);
   const preparedQuoteCurrencyPrice = converters.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber.ROUND_FLOOR);
-
   const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
-  const preparedBaseCurrencyAmount = converters.toFixedBigNumber(
-    preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount),
-    symbol.decimals.baseCurrency,
-    BigNumber.ROUND_FLOOR
-  );
-  const preparedBaseCurrencyPrice = converters.toFixedBigNumber(
-    preparedQuoteCurrencyAmount.div(preparedBaseCurrencyAmount),
-    symbol.decimals.price,
-    BigNumber.ROUND_FLOOR
-  );
+
+  let preparedQuoteCurrencyAmount: BigNumber;
+  let preparedBaseCurrencyAmount: BigNumber;
+
+  if (isQuoteCurrencyAmount) {
+    preparedQuoteCurrencyAmount = converters.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber.ROUND_FLOOR);
+    preparedBaseCurrencyAmount = converters.toFixedBigNumber(
+      preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount),
+      symbol.decimals.baseCurrency,
+      BigNumber.ROUND_FLOOR
+    );
+  }
+  else {
+    preparedBaseCurrencyAmount = converters.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber.ROUND_FLOOR);
+    preparedQuoteCurrencyAmount = converters.toFixedBigNumber(
+      preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice),
+      symbol.decimals.quoteCurrency,
+      BigNumber.ROUND_CEIL
+    );
+  }
+
+  const preparedBaseCurrencyPrice = !preparedBaseCurrencyAmount.isZero()
+    ? converters.toFixedBigNumber(
+      preparedQuoteCurrencyAmount.div(preparedBaseCurrencyAmount),
+      symbol.decimals.price,
+      BigNumber.ROUND_FLOOR
+    )
+    : new BigNumber(0);
 
   const quoteCurrency: SymbolCurrency = {
     currencyId: quoteCurrencyId,
