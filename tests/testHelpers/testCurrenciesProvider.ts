@@ -1,5 +1,6 @@
 import { InMemoryCurrenciesProvider } from '../../src/common/index';
 import { ethereumMainnetCurrencies } from '../../src/ethereum/currencies';
+import type { ERC20EthereumCurrency } from '../../src/ethereum/models/currency';
 import type { Currency, TezosFA12Currency } from '../../src/index';
 import { tezosMainnetCurrencies } from '../../src/tezos/currencies';
 
@@ -27,15 +28,17 @@ const kusdCurrency: TezosFA12Currency = {
   blockchain: 'tezos',
   symbol: 'KUSD',
   type: 'fa1.2',
+  contractAddress: 'KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV',
   decimals: 18
 };
 
-const usdtCurrency: Currency = {
+const usdtCurrency: ERC20EthereumCurrency = {
   id: 'USDT',
   name: 'USDt',
   blockchain: 'ethereum',
   symbol: 'USDT',
-  type: 'erc20',
+  type: 'erc-20',
+  contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
   decimals: 6
 };
 
