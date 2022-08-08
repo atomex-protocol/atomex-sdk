@@ -1,4 +1,4 @@
-import type { AtomexComponent } from '../common/atomexComponent';
+import type { AtomexService } from '../common/atomexService';
 import type { PublicEventEmitter } from '../core/index';
 import type { Order, ExchangeSymbol, NewOrderRequest, Quote, OrderBook, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, CurrencyDirection } from './models/index';
 
@@ -8,7 +8,7 @@ export interface ExchangeServiceEvents {
   readonly topOfBookUpdated: PublicEventEmitter<readonly [updatedQuotes: readonly Quote[]]>;
 }
 
-export interface ExchangeService extends AtomexComponent {
+export interface ExchangeService extends AtomexService {
   readonly events: ExchangeServiceEvents;
 
   getOrder(accountAddress: string, orderId: number): Promise<Order | undefined>;

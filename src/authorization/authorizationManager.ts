@@ -1,5 +1,5 @@
 import type { SignersManager } from '../blockchain/index';
-import type { AtomexComponent, AtomexNetwork } from '../common/index';
+import type { AtomexService, AtomexNetwork } from '../common/index';
 import { EventEmitter, type ToEventEmitters, type PublicEventEmitter } from '../core/index';
 import type { AuthorizationManagerStore } from '../stores/index';
 import { atomexUtils, prepareTimeoutDuration } from '../utils/index';
@@ -15,7 +15,7 @@ interface AuthorizationManagerEvents {
   readonly authTokenExpired: PublicEventEmitter<readonly [expiredAuthToken: AuthToken]>;
 }
 
-export class AuthorizationManager implements AtomexComponent {
+export class AuthorizationManager implements AtomexService {
   readonly events: AuthorizationManagerEvents = {
     authorized: new EventEmitter(),
     unauthorized: new EventEmitter(),

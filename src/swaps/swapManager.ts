@@ -1,10 +1,10 @@
-import { AtomexComponent, ImportantDataReceivingMode } from '../common/index';
+import { AtomexService, ImportantDataReceivingMode } from '../common/index';
 import { EventEmitter, ToEventEmitter } from '../core/index';
 import type { SwapsSelector } from '../exchange/index';
 import type { Swap } from './models/index';
 import type { SwapService, SwapServiceEvents } from './swapService';
 
-export class SwapManager implements AtomexComponent {
+export class SwapManager implements AtomexService {
   readonly events: SwapServiceEvents = {
     swapUpdated: new EventEmitter()
   };

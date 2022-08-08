@@ -1,4 +1,4 @@
-export interface AtomexComponent {
+export interface AtomexService {
   isStarted: boolean;
 
   start(): Promise<void>;

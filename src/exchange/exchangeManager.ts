@@ -1,6 +1,6 @@
 import type { BigNumber } from 'bignumber.js';
 
-import { AtomexComponent, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
+import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
 import { EventEmitter, type ToEventEmitter, type Result } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider';
@@ -11,7 +11,7 @@ import type {
   NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType
 } from './models/index';
 
-export class ExchangeManager implements AtomexComponent {
+export class ExchangeManager implements AtomexService {
   readonly events: ExchangeServiceEvents = {
     orderUpdated: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
