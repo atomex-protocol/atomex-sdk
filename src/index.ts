@@ -1,5 +1,5 @@
 export { Atomex } from './atomex/index';
-export { AtomexBuilder } from './atomexBuilder/index';
+export { AtomexBuilder, createDefaultMainnetAtomex, createDefaultTestnetAtomex } from './atomexBuilder/index';
 export { AuthorizationManager, AuthTokenSource } from './authorization/index';
 export { SignersManager } from './blockchain/index';
 export { LocalStorageAuthorizationManagerStore, DefaultSerializedAuthTokenMapper } from './browser/index';
