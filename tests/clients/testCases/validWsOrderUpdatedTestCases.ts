@@ -44,8 +44,8 @@ const validWsOrderUpdatedTestCases: ReadonlyArray<readonly [
           timeStamp: new Date('2022-07-20T18:28:14.521308Z'),
           from: {
             currencyId: 'ETH',
-            amount: new BigNumber(0.01),
-            price: new BigNumber(920.0859)
+            amount: new BigNumber(0.009999999),
+            price: new BigNumber(920.085992008)
           },
           to: {
             currencyId: 'XTZ',

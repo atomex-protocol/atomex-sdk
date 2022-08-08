@@ -31,8 +31,12 @@ export const numberToTokensAmount = (value: BigNumber | number, decimals: number
   return new BigNumber(value).integerValue().div(10 ** decimals);
 };
 
-export const toFixedBigNumber = (value: BigNumber.Value, decimalPlaces: number): BigNumber => {
+export const toFixedBigNumber = (
+  value: BigNumber.Value,
+  decimalPlaces: number,
+  roundingMode?: BigNumber.RoundingMode
+): BigNumber => {
   value = BigNumber.isBigNumber(value) ? value : new BigNumber(value);
 
-  return new BigNumber((value as BigNumber).toFixed(decimalPlaces));
+  return new BigNumber((value as BigNumber).toFixed(decimalPlaces, roundingMode));
 };

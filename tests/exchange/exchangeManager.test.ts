@@ -15,10 +15,11 @@ describe('Exchange Manager', () => {
   });
 
   afterEach(() => {
+    exchangeManager.stop();
     testExchangeService.resetAllMocks();
   });
 
-  test.each(validGetSymbolsTestCases)('get symbols with the default source [%p]', async (_, symbolsUpdates) => {
+  test.each(validGetSymbolsTestCases)('get symbols with the default source: %s', async (_, symbolsUpdates) => {
     symbolsUpdates.forEach(update => testExchangeService.getSymbols.mockResolvedValueOnce(update));
 
     for (let i = 0; i < 1; i++) {
@@ -30,7 +31,7 @@ describe('Exchange Manager', () => {
     expect(testExchangeService.getSymbols).toHaveBeenCalledTimes(1);
   });
 
-  test.each(validGetSymbolsTestCases)('get symbols with the remote source [%p]', async (_, symbolsUpdates) => {
+  test.each(validGetSymbolsTestCases)('get symbols with the remote source: %s', async (_, symbolsUpdates) => {
     symbolsUpdates.forEach(update => testExchangeService.getSymbols.mockResolvedValueOnce(update));
 
     for (let i = 0; i < symbolsUpdates.length; i++) {
@@ -42,7 +43,7 @@ describe('Exchange Manager', () => {
     expect(testExchangeService.getSymbols).toHaveBeenCalledTimes(symbolsUpdates.length);
   });
 
-  test.each(validGetSymbolsTestCases)('get symbols with the local source: %p', async (_, symbolsUpdates) => {
+  test.each(validGetSymbolsTestCases)('get symbols with the local source: %s', async (_, symbolsUpdates) => {
     symbolsUpdates.forEach(_ => testExchangeService.getSymbols.mockRejectedValueOnce(new Error('Should not be called')));
 
     for (let i = 0; i < 10; i++) {
@@ -55,10 +56,10 @@ describe('Exchange Manager', () => {
   });
 
   test.each(validGetOrderPreviewTestCases)(
-    'get order preview: %p [%p]',
-    async (_, orderPreviewParameters, expectedOrderPreview, symbolsUpdates, orderBookUpdates) => {
-      symbolsUpdates.forEach(update => testExchangeService.getSymbols.mockResolvedValueOnce(update));
-      orderBookUpdates.forEach(update => testExchangeService.getOrderBook.mockResolvedValueOnce(update));
+    'get order preview: %s [%p]',
+    async (_, orderPreviewParameters, expectedOrderPreview, symbols, orderBook) => {
+      testExchangeService.getSymbols.mockResolvedValueOnce(symbols);
+      testExchangeService.getOrderBook.mockResolvedValueOnce(orderBook);
       await exchangeManager.start();
 
       const orderPreview = await exchangeManager.getOrderPreview(orderPreviewParameters);

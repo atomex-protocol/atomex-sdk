@@ -109,8 +109,8 @@ const validWsSwapUpdatedTestCases: ReadonlyArray<readonly [
           },
           from: {
             currencyId: 'ETH',
-            amount: new BigNumber(0.01),
-            price: new BigNumber(920.0859)
+            amount: new BigNumber(0.009999999),
+            price: new BigNumber(920.085992008)
           },
           to: {
             currencyId: 'XTZ',

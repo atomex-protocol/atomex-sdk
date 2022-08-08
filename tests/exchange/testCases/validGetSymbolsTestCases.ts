@@ -7,7 +7,7 @@ const validGetSymbolsTestCases: ReadonlyArray<[
   symbolUpdates: readonly ExchangeSymbol[][]
 ]> = [
     [
-      'Symbols with one update',
+      'symbols with one update',
       [
         [
           {
@@ -36,7 +36,7 @@ const validGetSymbolsTestCases: ReadonlyArray<[
       ]
     ],
     [
-      'Symbols with two updates',
+      'symbols with two updates',
       [
         [
           {

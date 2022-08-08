@@ -1,4 +1,4 @@
-import type BigNumber from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 
 import type { Currency, Side } from '../../common/index';
 import { converters, guards } from '../../utils/index';
@@ -16,17 +16,19 @@ export const convertSymbolToFromToCurrenciesPair = (
   quoteCurrencyAmount: BigNumber.Value,
   quoteCurrencyPrice: BigNumber.Value
 ): readonly [from: SymbolCurrency, to: SymbolCurrency] => {
-  const preparedQuoteCurrencyAmount = converters.toFixedBigNumber(quoteCurrencyAmount, symbol.decimals.quoteCurrency);
-  const preparedQuoteCurrencyPrice = converters.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price);
+  const preparedQuoteCurrencyAmount = converters.toFixedBigNumber(quoteCurrencyAmount, symbol.decimals.quoteCurrency, BigNumber.ROUND_FLOOR);
+  const preparedQuoteCurrencyPrice = converters.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber.ROUND_FLOOR);
 
   const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
-  const baseCurrencyAmount = converters.toFixedBigNumber(
-    preparedQuoteCurrencyPrice.multipliedBy(quoteCurrencyAmount),
-    symbol.decimals.baseCurrency
+  const preparedBaseCurrencyAmount = converters.toFixedBigNumber(
+    preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount),
+    symbol.decimals.baseCurrency,
+    BigNumber.ROUND_FLOOR
   );
-  const baseCurrencyPrice = converters.toFixedBigNumber(
-    preparedQuoteCurrencyAmount.div(baseCurrencyAmount),
-    symbol.decimals.price
+  const preparedBaseCurrencyPrice = converters.toFixedBigNumber(
+    preparedQuoteCurrencyAmount.div(preparedBaseCurrencyAmount),
+    symbol.decimals.price,
+    BigNumber.ROUND_FLOOR
   );
 
   const quoteCurrency: SymbolCurrency = {
@@ -37,8 +39,8 @@ export const convertSymbolToFromToCurrenciesPair = (
 
   const baseCurrency: SymbolCurrency = {
     currencyId: baseCurrencyId,
-    amount: baseCurrencyAmount,
-    price: baseCurrencyPrice,
+    amount: preparedBaseCurrencyAmount,
+    price: preparedBaseCurrencyPrice,
   };
 
   return side === 'Buy'

@@ -8,7 +8,7 @@ import { symbolsHelper } from './helpers/index';
 import type {
   CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol,
   OrderPreviewParameters as OrderPreviewParameters,
-  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderBookEntry, OrderType
+  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType
 } from './models/index';
 
 export class ExchangeManager implements AtomexComponent {
