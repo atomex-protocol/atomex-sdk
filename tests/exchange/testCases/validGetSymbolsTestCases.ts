@@ -13,18 +13,24 @@ const validGetSymbolsTestCases: ReadonlyArray<[
           {
             name: 'ETH/BTC',
             baseCurrency: 'BTC',
-            baseCurrencyDecimals: 8,
             quoteCurrency: 'ETH',
-            quoteCurrencyDecimals: 9,
-            minimumQty: new BigNumber(0.001)
+            minimumQty: new BigNumber(0.001),
+            decimals: {
+              baseCurrency: 8,
+              quoteCurrency: 9,
+              price: 9
+            }
           },
           {
             name: 'XTZ/ETH',
             baseCurrency: 'ETH',
-            baseCurrencyDecimals: 9,
             quoteCurrency: 'XTZ',
-            quoteCurrencyDecimals: 6,
-            minimumQty: new BigNumber(0.0001)
+            minimumQty: new BigNumber(0.0001),
+            decimals: {
+              baseCurrency: 9,
+              quoteCurrency: 6,
+              price: 9
+            }
           }
         ]
       ]
@@ -36,36 +42,48 @@ const validGetSymbolsTestCases: ReadonlyArray<[
           {
             name: 'ETH/BTC',
             baseCurrency: 'BTC',
-            baseCurrencyDecimals: 8,
             quoteCurrency: 'ETH',
-            quoteCurrencyDecimals: 9,
-            minimumQty: new BigNumber(0.001)
+            minimumQty: new BigNumber(0.001),
+            decimals: {
+              baseCurrency: 8,
+              quoteCurrency: 9,
+              price: 9
+            }
           },
           {
             name: 'XTZ/ETH',
             baseCurrency: 'ETH',
-            baseCurrencyDecimals: 9,
             quoteCurrency: 'XTZ',
-            quoteCurrencyDecimals: 6,
-            minimumQty: new BigNumber(0.0001)
+            minimumQty: new BigNumber(0.0001),
+            decimals: {
+              baseCurrency: 9,
+              quoteCurrency: 6,
+              price: 9
+            }
           }
         ],
         [
           {
             name: 'ETH/BTC',
             baseCurrency: 'BTC',
-            baseCurrencyDecimals: 8,
             quoteCurrency: 'ETH',
-            quoteCurrencyDecimals: 9,
-            minimumQty: new BigNumber(0.001)
+            minimumQty: new BigNumber(0.001),
+            decimals: {
+              baseCurrency: 8,
+              quoteCurrency: 9,
+              price: 9
+            }
           },
           {
             name: 'XTZ/ETH',
             baseCurrency: 'ETH',
-            baseCurrencyDecimals: 4,
             quoteCurrency: 'XTZ',
-            quoteCurrencyDecimals: 2,
-            minimumQty: new BigNumber(0.01)
+            minimumQty: new BigNumber(0.01),
+            decimals: {
+              baseCurrency: 4,
+              quoteCurrency: 2,
+              price: 3
+            }
           }
         ]
       ],

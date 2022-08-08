@@ -2,11 +2,16 @@ import type BigNumber from 'bignumber.js';
 
 import type { Currency } from '../../common/index';
 
+interface ExchangeSymbolDecimals {
+  readonly quoteCurrency: number;
+  readonly baseCurrency: number;
+  readonly price: number;
+}
+
 export interface ExchangeSymbol {
   readonly name: string;
   readonly quoteCurrency: Currency['id'];
-  readonly quoteCurrencyDecimals: number;
   readonly baseCurrency: Currency['id'];
-  readonly baseCurrencyDecimals: number;
   readonly minimumQty: BigNumber;
+  readonly decimals: ExchangeSymbolDecimals;
 }

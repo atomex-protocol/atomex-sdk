@@ -19,18 +19,24 @@ const validTopOfBookWithDirectionsTestCases: ReadonlyArray<readonly [
           {
             name: 'ETH/BTC',
             baseCurrency: 'BTC',
-            baseCurrencyDecimals: 8,
             quoteCurrency: 'ETH',
-            quoteCurrencyDecimals: 9,
-            minimumQty: new BigNumber(0.0001)
+            minimumQty: new BigNumber(0.0001),
+            decimals: {
+              baseCurrency: 8,
+              quoteCurrency: 9,
+              price: 9
+            }
           },
           {
             name: 'LTC/BTC',
             baseCurrency: 'BTC',
-            baseCurrencyDecimals: 8,
             quoteCurrency: 'LTC',
-            quoteCurrencyDecimals: 9,
-            minimumQty: new BigNumber(0.0001)
+            minimumQty: new BigNumber(0.0001),
+            decimals: {
+              baseCurrency: 8,
+              quoteCurrency: 9,
+              price: 9
+            }
           }
         ],
         [

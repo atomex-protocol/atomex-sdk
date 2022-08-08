@@ -24,10 +24,13 @@ const validAddOrderWithDirectionsTestCases: ReadonlyArray<readonly [
         [{
           name: 'XTZ/ETH',
           baseCurrency: 'ETH',
-          baseCurrencyDecimals: 9,
           quoteCurrency: 'XTZ',
-          quoteCurrencyDecimals: 6,
-          minimumQty: new BigNumber(0.0001)
+          minimumQty: new BigNumber(0.0001),
+          decimals: {
+            baseCurrency: 9,
+            quoteCurrency: 6,
+            price: 9
+          }
         }],
         {
           orderId: 777
@@ -59,10 +62,13 @@ const validAddOrderWithDirectionsTestCases: ReadonlyArray<readonly [
         [{
           name: 'XTZ/ETH',
           baseCurrency: 'ETH',
-          baseCurrencyDecimals: 9,
           quoteCurrency: 'XTZ',
-          quoteCurrencyDecimals: 6,
-          minimumQty: new BigNumber(0.0001)
+          minimumQty: new BigNumber(0.0001),
+          decimals: {
+            baseCurrency: 9,
+            quoteCurrency: 6,
+            price: 9
+          }
         }],
         {
           orderId: 123

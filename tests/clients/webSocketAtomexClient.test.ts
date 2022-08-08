@@ -77,18 +77,24 @@ describe('WebSocket Atomex Client', () => {
       {
         name: 'ETH/BTC',
         baseCurrency: 'BTC',
-        baseCurrencyDecimals: 8,
         quoteCurrency: 'ETH',
-        quoteCurrencyDecimals: 9,
-        minimumQty: new BigNumber(0.001)
+        minimumQty: new BigNumber(0.001),
+        decimals: {
+          baseCurrency: 8,
+          quoteCurrency: 9,
+          price: 9
+        }
       },
       {
         name: 'XTZ/ETH',
         baseCurrency: 'ETH',
-        baseCurrencyDecimals: 9,
         quoteCurrency: 'XTZ',
-        quoteCurrencyDecimals: 6,
-        minimumQty: new BigNumber(1)
+        minimumQty: new BigNumber(1),
+        decimals: {
+          baseCurrency: 9,
+          quoteCurrency: 6,
+          price: 9
+        }
       }
     ]);
 

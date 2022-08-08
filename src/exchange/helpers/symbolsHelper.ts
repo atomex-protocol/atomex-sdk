@@ -14,20 +14,19 @@ export const convertSymbolToFromToCurrenciesPair = (
   symbol: ExchangeSymbol,
   side: Side,
   quoteCurrencyAmount: BigNumber.Value,
-  quoteCurrencyPrice: BigNumber.Value,
-  priceDecimals = 9
+  quoteCurrencyPrice: BigNumber.Value
 ): readonly [from: SymbolCurrency, to: SymbolCurrency] => {
-  const preparedQuoteCurrencyAmount = converters.toFixedBigNumber(quoteCurrencyAmount, symbol.quoteCurrencyDecimals);
-  const preparedQuoteCurrencyPrice = converters.toFixedBigNumber(quoteCurrencyPrice, priceDecimals);
+  const preparedQuoteCurrencyAmount = converters.toFixedBigNumber(quoteCurrencyAmount, symbol.decimals.quoteCurrency);
+  const preparedQuoteCurrencyPrice = converters.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price);
 
   const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
   const baseCurrencyAmount = converters.toFixedBigNumber(
     preparedQuoteCurrencyPrice.multipliedBy(quoteCurrencyAmount),
-    symbol.baseCurrencyDecimals
+    symbol.decimals.baseCurrency
   );
   const baseCurrencyPrice = converters.toFixedBigNumber(
     preparedQuoteCurrencyAmount.div(baseCurrencyAmount),
-    priceDecimals
+    symbol.decimals.price
   );
 
   const quoteCurrency: SymbolCurrency = {

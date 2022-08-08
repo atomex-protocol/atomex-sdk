@@ -47,10 +47,13 @@ export const mapSymbolDtoToSymbol = (symbolDto: SymbolDto, currenciesProvider: C
   return {
     name: symbolDto.name,
     baseCurrency,
-    baseCurrencyDecimals: preparedBaseCurrencyDecimals,
     quoteCurrency,
-    quoteCurrencyDecimals: preparedQuoteCurrencyDecimals,
     minimumQty: new BigNumber(symbolDto.minimumQty),
+    decimals: {
+      baseCurrency: preparedBaseCurrencyDecimals,
+      quoteCurrency: preparedQuoteCurrencyDecimals,
+      price: defaultDecimals
+    }
   };
 };
 
