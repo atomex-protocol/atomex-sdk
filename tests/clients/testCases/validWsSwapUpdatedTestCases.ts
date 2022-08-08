@@ -109,12 +109,12 @@ const validWsSwapUpdatedTestCases: ReadonlyArray<readonly [
           },
           from: {
             currencyId: 'ETH',
-            amount: new BigNumber(0.0099999999997128),
-            price: new BigNumber(9.200859360).div(new BigNumber(0.0099999999997128))
+            amount: new BigNumber(0.01),
+            price: new BigNumber(920.0859)
           },
           to: {
             currencyId: 'XTZ',
-            amount: new BigNumber(9.200859360),
+            amount: new BigNumber(9.200859),
             price: new BigNumber(0.001086855)
           },
           isInitiator: false,
@@ -297,7 +297,7 @@ const validWsSwapUpdatedTestCases: ReadonlyArray<readonly [
           to: {
             currencyId: 'ETH',
             amount: new BigNumber(0.01053590),
-            price: new BigNumber(10.000000000).div(new BigNumber(0.01053590))
+            price: new BigNumber(949.135811843)
           },
           isInitiator: false,
           timeStamp: new Date('2022-07-21T10:58:11.698128Z'),

@@ -112,11 +112,11 @@ export class ExchangeManager implements AtomexComponent {
       [symbol] = symbolsHelper.findSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to);
     }
 
-    if (symbol)
+    if (!symbol)
       throw new Error('Invalid Symbol');
 
-    const orderBook = this.exchangeService.getOrderBook(symbol);
-    if (!orderBook)
+    const orderBook = await this.exchangeService.getOrderBook(symbol);
+    if (orderBook)
       this._orderBookCache.set(symbol, orderBook);
 
     return orderBook;

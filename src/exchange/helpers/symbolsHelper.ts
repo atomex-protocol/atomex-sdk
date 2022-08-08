@@ -1,7 +1,7 @@
-import BigNumber from 'bignumber.js';
+import type BigNumber from 'bignumber.js';
 
 import type { Currency, Side } from '../../common/index';
-import { guards } from '../../utils/index';
+import { converters, guards } from '../../utils/index';
 import type { ExchangeSymbol, SymbolCurrency } from '../models/index';
 
 export const getQuoteBaseCurrenciesBySymbol = (symbol: string): readonly [quoteCurrency: string, baseCurrency: string] => {
@@ -13,20 +13,27 @@ export const getQuoteBaseCurrenciesBySymbol = (symbol: string): readonly [quoteC
 export const convertSymbolToFromToCurrenciesPair = (
   symbol: ExchangeSymbol,
   side: Side,
-  quoteCurrencyAmount: BigNumber | number | string,
-  quoteCurrencyPrice: BigNumber | number | string
+  quoteCurrencyAmount: BigNumber.Value,
+  quoteCurrencyPrice: BigNumber.Value,
+  priceDecimals = 9
 ): readonly [from: SymbolCurrency, to: SymbolCurrency] => {
-  quoteCurrencyAmount = new BigNumber(quoteCurrencyAmount);
-  quoteCurrencyPrice = new BigNumber(quoteCurrencyPrice);
+  const preparedQuoteCurrencyAmount = converters.toFixedBigNumber(quoteCurrencyAmount, symbol.quoteCurrencyDecimals);
+  const preparedQuoteCurrencyPrice = converters.toFixedBigNumber(quoteCurrencyPrice, priceDecimals);
 
   const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
-  const baseCurrencyAmount = quoteCurrencyPrice.multipliedBy(quoteCurrencyAmount);
-  const baseCurrencyPrice = quoteCurrencyAmount.div(baseCurrencyAmount);
+  const baseCurrencyAmount = converters.toFixedBigNumber(
+    preparedQuoteCurrencyPrice.multipliedBy(quoteCurrencyAmount),
+    symbol.baseCurrencyDecimals
+  );
+  const baseCurrencyPrice = converters.toFixedBigNumber(
+    preparedQuoteCurrencyAmount.div(baseCurrencyAmount),
+    priceDecimals
+  );
 
   const quoteCurrency: SymbolCurrency = {
     currencyId: quoteCurrencyId,
-    amount: quoteCurrencyAmount,
-    price: quoteCurrencyPrice,
+    amount: preparedQuoteCurrencyAmount,
+    price: preparedQuoteCurrencyPrice,
   };
 
   const baseCurrency: SymbolCurrency = {
