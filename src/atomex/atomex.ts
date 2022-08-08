@@ -1,6 +1,6 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { Signer, SignersManager } from '../blockchain/index';
-import type { AtomexComponent } from '../common/index';
+import type { AtomexComponent, CurrenciesProvider, Currency } from '../common/index';
 import type { ExchangeManager } from '../exchange/exchangeManager';
 import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
@@ -74,6 +74,10 @@ export class Atomex implements AtomexComponent {
 
     if (networkOptions)
       this.atomexContext.providers.blockchainProvider.addBlockchain(networkOptions);
+  }
+
+  getCurrency(currencyId: Currency['id']) {
+    return this.atomexContext.providers.currenciesProvider.getCurrency(currencyId);
   }
 
   async swap(newSwapRequest: NewSwapRequest, completeStage: SwapOperationCompleteStage): Promise<Swap>;
