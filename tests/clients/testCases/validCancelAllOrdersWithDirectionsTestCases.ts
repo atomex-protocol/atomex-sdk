@@ -1,17 +1,25 @@
-import type { SymbolDto } from '../../../src/clients/dtos';
+import BigNumber from 'bignumber.js';
+
 import type { CancelAllSide } from '../../../src/common/index';
-import type { CancelAllOrdersRequest } from '../../../src/exchange/index';
+import type { CancelAllOrdersRequest, ExchangeSymbol } from '../../../src/exchange/index';
 
 const validCancelAllOrdersWithDirectionsTestCases: ReadonlyArray<readonly [
   message: string,
-  testValue: readonly [symbolDto: SymbolDto[], request: CancelAllOrdersRequest, expectedSymbol: string, expectedFilterValue: CancelAllSide]
+  testValue: readonly [symbolDto: ExchangeSymbol[], request: CancelAllOrdersRequest, expectedSymbol: string, expectedFilterValue: CancelAllSide]
 ]> = [
     [
       'Buy case',
       [
         [{
           name: 'XTZ/ETH',
-          minimumQty: 1
+          baseCurrency: 'ETH',
+          quoteCurrency: 'XTZ',
+          minimumQty: new BigNumber(1),
+          decimals: {
+            baseCurrency: 9,
+            quoteCurrency: 6,
+            price: 0
+          }
         }],
         {
           from: 'ETH',
@@ -26,7 +34,14 @@ const validCancelAllOrdersWithDirectionsTestCases: ReadonlyArray<readonly [
       [
         [{
           name: 'XTZ/ETH',
-          minimumQty: 1
+          baseCurrency: 'ETH',
+          quoteCurrency: 'XTZ',
+          minimumQty: new BigNumber(1),
+          decimals: {
+            baseCurrency: 9,
+            quoteCurrency: 6,
+            price: 9
+          }
         }],
         {
           from: 'XTZ',
@@ -41,7 +56,14 @@ const validCancelAllOrdersWithDirectionsTestCases: ReadonlyArray<readonly [
       [
         [{
           name: 'XTZ/ETH',
-          minimumQty: 1
+          baseCurrency: 'ETH',
+          quoteCurrency: 'XTZ',
+          minimumQty: new BigNumber(1),
+          decimals: {
+            baseCurrency: 9,
+            quoteCurrency: 6,
+            price: 9
+          }
         }],
         {
           from: 'XTZ',

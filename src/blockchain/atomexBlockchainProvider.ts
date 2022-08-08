@@ -1,5 +1,5 @@
 import type { AtomexBlockchainNetworkOptions } from '../atomex/models/atomexOptions';
-import type { Currency } from '../common/index';
+import type { CurrenciesProvider, Currency } from '../common/index';
 import type { AtomexProtocol } from './atomexProtocol';
 import type { BalancesProvider } from './balancesProvider';
 import type { BlockchainToolkitProvider } from './blockchainToolkitProvider';
@@ -15,7 +15,7 @@ export interface CurrencyInfo {
   swapTransactionsProvider: SwapTransactionsProvider;
 }
 
-export class AtomexBlockchainProvider {
+export class AtomexBlockchainProvider implements CurrenciesProvider {
   protected readonly currencyInfoMap: Map<Currency['id'], CurrencyInfo> = new Map();
 
   addBlockchain(networkOptions: AtomexBlockchainNetworkOptions) {
@@ -33,6 +33,10 @@ export class AtomexBlockchainProvider {
       };
       this.currencyInfoMap.set(currency.id, options);
     }
+  }
+
+  getCurrency(currencyId: Currency['id']): Currency | undefined {
+    return this.getCurrencyInfo(currencyId)?.currency;
   }
 
   getCurrencyInfo(currencyId: Currency['id']): CurrencyInfo | undefined {

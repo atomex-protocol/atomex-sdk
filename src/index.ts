@@ -1,11 +1,12 @@
 export { Atomex } from './atomex/index';
-export { AtomexBuilder } from './atomexBuilder/index';
+export { AtomexBuilder, createDefaultMainnetAtomex, createDefaultTestnetAtomex } from './atomexBuilder/index';
 export { AuthorizationManager, AuthTokenSource } from './authorization/index';
 export { SignersManager } from './blockchain/index';
 export { LocalStorageAuthorizationManagerStore, DefaultSerializedAuthTokenMapper } from './browser/index';
 export { RestAtomexClient, WebSocketAtomexClient, MixedApiAtomexClient } from './clients/index';
-export { ImportantDataReceivingMode, InMemoryCurrenciesProvider } from './common/index';
+export { DataSource, ImportantDataReceivingMode } from './common/index';
 export { Web3EthereumSigner } from './ethereum/index';
+export { ExchangeManager, InMemoryExchangeSymbolsProvider } from './exchange';
 export { InMemoryAuthorizationManagerStore } from './stores/index';
 export { InMemoryTezosSigner, WalletTezosSigner } from './tezos/index';
 export * from './utils';

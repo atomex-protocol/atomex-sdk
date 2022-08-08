@@ -1,5 +1,5 @@
 import type { SignersManager } from '../blockchain/index';
-import type { AtomexNetwork } from '../common/index';
+import type { AtomexService, AtomexNetwork } from '../common/index';
 import { EventEmitter, type ToEventEmitters, type PublicEventEmitter } from '../core/index';
 import type { AuthorizationManagerStore } from '../stores/index';
 import { atomexUtils, prepareTimeoutDuration } from '../utils/index';
@@ -15,7 +15,7 @@ interface AuthorizationManagerEvents {
   readonly authTokenExpired: PublicEventEmitter<readonly [expiredAuthToken: AuthToken]>;
 }
 
-export class AuthorizationManager {
+export class AuthorizationManager implements AtomexService {
   readonly events: AuthorizationManagerEvents = {
     authorized: new EventEmitter(),
     unauthorized: new EventEmitter(),
@@ -36,6 +36,8 @@ export class AuthorizationManager {
 
   private readonly _authTokenData: Map<string, AuthTokenData> = new Map();
 
+  private _isStarted = false;
+
   constructor(options: AuthorizationManagerOptions) {
     this.atomexNetwork = options.atomexNetwork;
     this.store = options.store;
@@ -45,6 +47,27 @@ export class AuthorizationManager {
 
     this.authorizationUrl = new URL(AuthorizationManager.DEFAULT_GET_AUTH_TOKEN_URI, options.authorizationBaseUrl);
     this.expiringNotificationTimeInSeconds = options.expiringNotificationTimeInSeconds || AuthorizationManager.DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS;
+  }
+
+  get isStarted() {
+    return this._isStarted;
+  }
+
+  async start(): Promise<void> {
+    if (this.isStarted)
+      return;
+
+    this._isStarted = true;
+  }
+
+  stop(): void {
+    if (!this.isStarted)
+      return;
+
+    for (const authTokenDataTuple of this.authTokenData)
+      this.untrackAuthToken(authTokenDataTuple[1].watcherId);
+
+    this._isStarted = false;
   }
 
   protected get authTokenData(): ReadonlyMap<string, AuthTokenData> {
@@ -106,11 +129,6 @@ export class AuthorizationManager {
     const authToken = this.getAuthToken(address);
 
     return authToken ? this.unregisterAuthToken(authToken) : false;
-  }
-
-  dispose() {
-    for (const authTokenDataTuple of this.authTokenData)
-      this.untrackAuthToken(authTokenDataTuple[1].watcherId);
   }
 
   protected async loadAuthTokenFromStore(address: string): Promise<AuthToken | undefined> {

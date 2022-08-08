@@ -11,10 +11,12 @@ export interface TezosCurrency extends Currency {
 export interface TezosFA12Currency extends Currency {
   readonly blockchain: 'tezos';
   readonly type: 'fa1.2';
+  readonly contractAddress: string;
 }
 
 export interface TezosFA2Currency extends Currency {
   readonly blockchain: 'tezos';
   readonly type: 'fa2';
+  readonly contractAddress: string;
   readonly tokenId: number;
 }

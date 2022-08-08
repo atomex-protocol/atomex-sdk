@@ -30,3 +30,13 @@ export const tokensAmountToNat = (tokensAmount: BigNumber | number, decimals: nu
 export const numberToTokensAmount = (value: BigNumber | number, decimals: number): BigNumber => {
   return new BigNumber(value).integerValue().div(10 ** decimals);
 };
+
+export const toFixedBigNumber = (
+  value: BigNumber.Value,
+  decimalPlaces: number,
+  roundingMode?: BigNumber.RoundingMode
+): BigNumber => {
+  value = BigNumber.isBigNumber(value) ? value : new BigNumber(value);
+
+  return new BigNumber((value as BigNumber).toFixed(decimalPlaces, roundingMode));
+};

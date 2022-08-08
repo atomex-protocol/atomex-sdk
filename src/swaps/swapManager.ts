@@ -1,23 +1,48 @@
-import { ImportantDataReceivingMode } from '../common/index';
+import { AtomexService, ImportantDataReceivingMode } from '../common/index';
 import { EventEmitter, ToEventEmitter } from '../core/index';
 import type { SwapsSelector } from '../exchange/index';
 import type { Swap } from './models/index';
 import type { SwapService, SwapServiceEvents } from './swapService';
 
-export class SwapManager {
+export class SwapManager implements AtomexService {
   readonly events: SwapServiceEvents = {
     swapUpdated: new EventEmitter()
   };
 
+  private _isStarted = false;
+
   constructor(
     protected readonly swapService: SwapService
   ) {
-    this.attachEvents();
   }
 
-  getSwap(swapId: number, accountAddress: string, mode?: ImportantDataReceivingMode): Promise<Swap>;
-  getSwap(swapId: number, accountAddresses: string[], mode?: ImportantDataReceivingMode): Promise<Swap>;
-  getSwap(swapId: number, addressOrAddresses: string | string[], _mode = ImportantDataReceivingMode.SafeMerged): Promise<Swap> {
+  get isStarted() {
+    return this._isStarted;
+  }
+
+  async start(): Promise<void> {
+    if (this.isStarted)
+      return;
+
+    this.attachEvents();
+    await this.swapService.start();
+
+    this._isStarted = true;
+  }
+
+  stop(): void {
+    if (!this.isStarted)
+      return;
+
+    this.detachEvents();
+    this.swapService.stop();
+
+    this._isStarted = false;
+  }
+
+  getSwap(swapId: number, accountAddress: string, mode?: ImportantDataReceivingMode): Promise<Swap | undefined>;
+  getSwap(swapId: number, accountAddresses: string[], mode?: ImportantDataReceivingMode): Promise<Swap | undefined>;
+  getSwap(swapId: number, addressOrAddresses: string | string[], _mode = ImportantDataReceivingMode.SafeMerged): Promise<Swap | undefined> {
     return (this.swapService.getSwap as (swapId: number, addressOrAddresses: string | string[]) => Promise<Swap>)(swapId, addressOrAddresses);
   }
 
@@ -38,8 +63,4 @@ export class SwapManager {
   protected handleSwapServiceSwapUpdated = (updatedSwap: Swap) => {
     (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(updatedSwap);
   };
-
-  dispose() {
-    this.swapService.dispose();
-  }
 }

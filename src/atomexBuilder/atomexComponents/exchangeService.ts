@@ -16,11 +16,15 @@ export const createDefaultExchangeService = (
     new RestAtomexClient({
       atomexNetwork: atomexContext.atomexNetwork,
       authorizationManager: atomexContext.managers.authorizationManager,
+      currenciesProvider: atomexContext.providers.currenciesProvider,
+      exchangeSymbolsProvider: atomexContext.providers.exchangeSymbolsProvider,
       apiBaseUrl: options.apiBaseUrl,
     }),
     new WebSocketAtomexClient({
       atomexNetwork: atomexContext.atomexNetwork,
       authorizationManager: atomexContext.managers.authorizationManager,
+      currenciesProvider: atomexContext.providers.currenciesProvider,
+      exchangeSymbolsProvider: atomexContext.providers.exchangeSymbolsProvider,
       webSocketApiBaseUrl: options.webSocketApiBaseUrl
     })
   );

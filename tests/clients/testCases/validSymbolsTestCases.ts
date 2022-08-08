@@ -32,13 +32,23 @@ const validSymbolsTestCases: ReadonlyArray<readonly [
             name: 'BTC/KUSD',
             minimumQty: new BigNumber(0.0001),
             quoteCurrency: 'BTC',
-            baseCurrency: 'KUSD'
+            baseCurrency: 'KUSD',
+            decimals: {
+              baseCurrency: 9,
+              quoteCurrency: 8,
+              price: 9
+            }
           },
           {
             name: 'BTC/USDT',
             minimumQty: new BigNumber(0.002),
             quoteCurrency: 'BTC',
-            baseCurrency: 'USDT'
+            baseCurrency: 'USDT',
+            decimals: {
+              baseCurrency: 6,
+              quoteCurrency: 8,
+              price: 9
+            }
           }
         ]
       ]

@@ -120,17 +120,17 @@ const validOrderTestCases: ReadonlyArray<readonly [
           symbol: 'XTZ/ETH',
           side: 'Buy',
           type: 'SolidFillOrKill',
-          leaveQty: new BigNumber(0.000000000),
+          leaveQty: new BigNumber(0),
           status: 'Filled',
           timeStamp: new Date('2022-07-20T18:28:14.521308Z'),
           from: {
             currencyId: 'ETH',
-            amount: new BigNumber(0.0099999999997128),
-            price: new BigNumber(9.200859360).div(new BigNumber(0.0099999999997128))
+            amount: new BigNumber(0.009999999),
+            price: new BigNumber(920.085992008)
           },
           to: {
             currencyId: 'XTZ',
-            amount: new BigNumber(9.200859360),
+            amount: new BigNumber(9.200859),
             price: new BigNumber(0.001086855)
           },
           swapIds: [386]
@@ -244,7 +244,7 @@ const validOrderTestCases: ReadonlyArray<readonly [
           symbol: 'XTZ/ETH',
           side: 'Sell',
           type: 'SolidFillOrKill',
-          leaveQty: new BigNumber(0.000000000),
+          leaveQty: new BigNumber(0),
           status: 'Filled',
           timeStamp: new Date('2022-07-21T10:58:11.698128Z'),
           from: {
@@ -255,7 +255,7 @@ const validOrderTestCases: ReadonlyArray<readonly [
           to: {
             currencyId: 'ETH',
             amount: new BigNumber(0.01053590),
-            price: new BigNumber(10.000000000).div(new BigNumber(0.01053590))
+            price: new BigNumber(949.135811843)
           },
           swapIds: [387]
         }

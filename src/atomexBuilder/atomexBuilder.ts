@@ -1,11 +1,10 @@
 import { Atomex, AtomexContext } from '../atomex/index';
 import type { AtomexBlockchainOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
-import { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
-import { SignersManager } from '../blockchain/signersManager';
+import { AtomexBlockchainProvider, SignersManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
 import { EthereumBalancesProvider, EthereumBlockchainToolkitProvider, ethereumMainnetCurrencies, EthereumSwapTransactionsProvider, ethereumTestnetCurrencies } from '../ethereum/index';
-import { ExchangeManager } from '../exchange/exchangeManager';
+import { ExchangeManager, InMemoryExchangeSymbolsProvider } from '../exchange/index';
 import { SwapManager } from '../swaps/swapManager';
 import { TezosBalancesProvider, TezosBlockchainToolkitProvider, tezosMainnetCurrencies, TezosSwapTransactionsProvider, tezosTestnetCurrencies } from '../tezos/index';
 import type { AtomexBuilderOptions } from './atomexBuilderOptions';
@@ -46,7 +45,10 @@ export class AtomexBuilder {
   }
 
   build(): Atomex {
-    this.controlledAtomexContext.providers.blockchainProvider = new AtomexBlockchainProvider();
+    const blockchainProvider = new AtomexBlockchainProvider();
+    this.controlledAtomexContext.providers.blockchainProvider = blockchainProvider;
+    this.controlledAtomexContext.providers.currenciesProvider = blockchainProvider;
+    this.controlledAtomexContext.providers.exchangeSymbolsProvider = this.createExchangeSymbolsProvider();
     this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
     this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
     const atomexClient = this.createDefaultExchangeService();
@@ -66,6 +68,10 @@ export class AtomexBuilder {
       },
       blockchains
     });
+  }
+
+  protected createExchangeSymbolsProvider() {
+    return new InMemoryExchangeSymbolsProvider();
   }
 
   protected createAuthorizationManager() {
@@ -91,7 +97,7 @@ export class AtomexBuilder {
   protected createExchangeManager() {
     return this.customExchangeManagerFactory
       ? this.customExchangeManagerFactory(this.atomexContext, this.options)
-      : new ExchangeManager(this.atomexContext.services.exchangeService);
+      : new ExchangeManager(this.atomexContext.services.exchangeService, this.atomexContext.providers.exchangeSymbolsProvider);
   }
 
   protected createSwapManager() {

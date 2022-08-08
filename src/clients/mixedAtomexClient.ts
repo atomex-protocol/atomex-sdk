@@ -12,6 +12,8 @@ import type { AtomexClient } from './atomexClient';
 export class MixedApiAtomexClient implements AtomexClient {
   readonly events: AtomexClient['events'];
 
+  private _isStarted = false;
+
   constructor(
     readonly atomexNetwork: AtomexNetwork,
     protected readonly restAtomexClient: AtomexClient,
@@ -26,6 +28,32 @@ export class MixedApiAtomexClient implements AtomexClient {
       orderUpdated: this.webSocketAtomexClient.events.orderUpdated,
       topOfBookUpdated: this.webSocketAtomexClient.events.topOfBookUpdated
     };
+  }
+
+  get isStarted() {
+    return this._isStarted;
+  }
+
+  async start() {
+    if (this.isStarted)
+      return;
+
+    await Promise.all([
+      this.webSocketAtomexClient.start(),
+      this.restAtomexClient.start()
+    ]);
+
+    this._isStarted = true;
+  }
+
+  stop(): void {
+    if (!this.isStarted)
+      return;
+
+    this.webSocketAtomexClient.stop();
+    this.restAtomexClient.stop();
+
+    this._isStarted = false;
   }
 
   getOrder(accountAddress: string, orderId: number): Promise<Order | undefined> {
@@ -78,10 +106,5 @@ export class MixedApiAtomexClient implements AtomexClient {
   getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
   getSwaps(addressOrAddresses: string | string[], selector?: SwapsSelector): Promise<Swap[]> {
     return (this.restAtomexClient.getSwaps as (addressOrAddresses: string | string[], selector?: SwapsSelector) => Promise<Swap[]>)(addressOrAddresses, selector);
-  }
-
-  dispose() {
-    this.webSocketAtomexClient.dispose();
-    this.restAtomexClient.dispose();
   }
 }

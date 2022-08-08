@@ -16,17 +16,36 @@ export class ExchangeWebSocketClient {
 
   protected readonly sockets: Map<string, WebSocketClient> = new Map();
 
+  private _isStarted = false;
+
   constructor(
     protected readonly webSocketApiBaseUrl: string,
     protected readonly authorizationManager: AuthorizationManager
   ) {
-    this.subscribeOnAuthEvents();
   }
 
-  dispose() {
+  get isStarted() {
+    return this._isStarted;
+  }
+
+  async start() {
+    if (this.isStarted)
+      return;
+
+    this.subscribeOnAuthEvents();
+
+    this._isStarted = true;
+  }
+
+  stop() {
+    if (!this.isStarted)
+      return;
+
     this.sockets.forEach((_, userId) => {
       this.removeSocket(userId);
     });
+
+    this._isStarted = false;
   }
 
   protected subscribeOnAuthEvents() {

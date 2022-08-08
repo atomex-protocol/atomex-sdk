@@ -1,17 +1,19 @@
+import type BigNumber from 'bignumber.js';
+
 import type { AuthorizationManager } from '../../authorization/index';
 import type { Transaction } from '../../blockchain/index';
-import type { AtomexNetwork, CancelAllSide, Side } from '../../common/index';
+import type { AtomexNetwork, CancelAllSide, CurrenciesProvider, Side } from '../../common/index';
 import { EventEmitter } from '../../core';
-import type {
+import {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
   OrdersSelector, CancelOrderRequest,
-  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection
+  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, symbolsHelper, ExchangeSymbolsProvider
 } from '../../exchange/index';
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
 import type { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from '../dtos';
 import {
-  findSymbolAndSide,
+  isOrderPreview,
   mapOrderBookDtoToOrderBook, mapOrderDtosToOrders, mapOrderDtoToOrder,
   mapQuoteDtosToQuotes, mapSwapDtosToSwaps, mapSwapDtoToSwap, mapSymbolDtosToSymbols
 } from '../helpers';
@@ -20,6 +22,8 @@ import { HttpClient } from './httpClient';
 export interface RestAtomexClientOptions {
   atomexNetwork: AtomexNetwork;
   authorizationManager: AuthorizationManager;
+  currenciesProvider: CurrenciesProvider;
+  exchangeSymbolsProvider: ExchangeSymbolsProvider;
   apiBaseUrl: string;
 }
 
@@ -34,15 +38,38 @@ export class RestAtomexClient implements AtomexClient {
   };
 
   protected readonly authorizationManager: AuthorizationManager;
+  protected readonly currenciesProvider: CurrenciesProvider;
+  protected readonly exchangeSymbolsProvider: ExchangeSymbolsProvider;
   protected readonly apiBaseUrl: string;
   protected readonly httpClient: HttpClient;
-  private _symbolsCache: ExchangeSymbol[] | undefined;
+
+  private _isStarted = false;
 
   constructor(options: RestAtomexClientOptions) {
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
+    this.currenciesProvider = options.currenciesProvider;
+    this.exchangeSymbolsProvider = options.exchangeSymbolsProvider;
     this.apiBaseUrl = options.apiBaseUrl;
     this.httpClient = new HttpClient(this.apiBaseUrl);
+  }
+
+  get isStarted() {
+    return this._isStarted;
+  }
+
+  async start() {
+    if (this.isStarted)
+      return;
+
+    this._isStarted = true;
+  }
+
+  stop(): void {
+    if (!this.isStarted)
+      return;
+
+    this._isStarted = false;
   }
 
   async getOrder(accountAddress: string, orderId: number): Promise<Order | undefined> {
@@ -50,7 +77,7 @@ export class RestAtomexClient implements AtomexClient {
     const authToken = this.getRequiredAuthToken(accountAddress);
     const orderDto = await this.httpClient.request<OrderDto>({ urlPath, authToken });
 
-    return orderDto ? mapOrderDtoToOrder(orderDto) : undefined;
+    return orderDto ? mapOrderDtoToOrder(orderDto, this.exchangeSymbolsProvider) : undefined;
   }
 
   async getOrders(accountAddress: string, selector?: OrdersSelector | undefined): Promise<Order[]> {
@@ -66,18 +93,14 @@ export class RestAtomexClient implements AtomexClient {
 
     const orderDtos = await this.httpClient.request<OrderDto[]>({ urlPath, authToken, params });
 
-    return orderDtos ? mapOrderDtosToOrders(orderDtos) : [];
+    return orderDtos ? mapOrderDtosToOrders(orderDtos, this.exchangeSymbolsProvider) : [];
   }
 
   async getSymbols(): Promise<ExchangeSymbol[]> {
     const urlPath = '/v1/Symbols';
     const symbolDtos = await this.httpClient.request<SymbolDto[]>({ urlPath });
 
-    const symbols = symbolDtos ? mapSymbolDtosToSymbols(symbolDtos) : [];
-    if (symbolDtos)
-      this._symbolsCache = symbols;
-
-    return symbols;
+    return symbolDtos ? mapSymbolDtosToSymbols(symbolDtos, this.currenciesProvider) : [];
   }
 
   getTopOfBook(symbols?: string[]): Promise<Quote[]>;
@@ -90,8 +113,8 @@ export class RestAtomexClient implements AtomexClient {
       if (typeof symbolsOrDirections[0] === 'string')
         symbols = symbolsOrDirections as string[];
       else {
-        const cachedSymbols = await this.getCachedSymbols();
-        symbols = (symbolsOrDirections as CurrencyDirection[]).map(d => findSymbolAndSide(cachedSymbols, d.from, d.to)[0]);
+        const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
+        symbols = (symbolsOrDirections as CurrencyDirection[]).map(d => symbolsHelper.findSymbolAndSide(exchangeSymbols, d.from, d.to)[0]);
       }
     }
 
@@ -111,8 +134,8 @@ export class RestAtomexClient implements AtomexClient {
     if (typeof symbolOrDirection === 'string')
       symbol = symbolOrDirection;
     else {
-      const cachedSymbols = await this.getCachedSymbols();
-      [symbol] = findSymbolAndSide(cachedSymbols, symbolOrDirection.from, symbolOrDirection.to);
+      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
+      [symbol] = symbolsHelper.findSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to);
     }
 
     const params = { symbol };
@@ -127,24 +150,35 @@ export class RestAtomexClient implements AtomexClient {
     let symbol: string | undefined = undefined;
     let side: Side | undefined = undefined;
 
-    if (newOrderRequest.symbol && newOrderRequest.side)
-      [symbol, side] = [newOrderRequest.symbol, newOrderRequest.side];
-    else if (newOrderRequest.from && newOrderRequest.to) {
-      const cachedSymbols = await this.getCachedSymbols();
-      [symbol, side] = findSymbolAndSide(cachedSymbols, newOrderRequest.from, newOrderRequest.to);
+    if (newOrderRequest.orderBody.symbol && newOrderRequest.orderBody.side)
+      [symbol, side] = [newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side];
+    else if (typeof newOrderRequest.orderBody.from === 'string' && typeof newOrderRequest.orderBody.to === 'string') {
+      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
+      [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, newOrderRequest.orderBody.from, newOrderRequest.orderBody.to);
     }
     else
       throw new Error('Invalid newOrderRequest argument passed');
+
+    let amountBigNumber: BigNumber;
+    let priceBigNumber: BigNumber;
+    if (isOrderPreview(newOrderRequest.orderBody)) {
+      amountBigNumber = newOrderRequest.orderBody.from.amount;
+      priceBigNumber = newOrderRequest.orderBody.from.price;
+    }
+    else {
+      amountBigNumber = newOrderRequest.orderBody.fromAmount;
+      priceBigNumber = newOrderRequest.orderBody.price;
+    }
 
     const payload = {
       symbol,
       side,
       clientOrderId: newOrderRequest.clientOrderId,
-      type: newOrderRequest.type,
+      type: newOrderRequest.orderBody.type,
       proofsOfFunds: newOrderRequest.proofsOfFunds,
       requisites: newOrderRequest.requisites,
-      amount: newOrderRequest.amount.toNumber(),
-      price: newOrderRequest.price.toNumber(),
+      amount: amountBigNumber.toNumber(),
+      price: priceBigNumber.toNumber(),
     };
 
     const newOrderDto = await this.httpClient.request<CreatedOrderDto>({
@@ -169,8 +203,8 @@ export class RestAtomexClient implements AtomexClient {
     if (cancelOrderRequest.symbol && cancelOrderRequest.side)
       [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
     else if (cancelOrderRequest.from && cancelOrderRequest.to) {
-      const cachedSymbols = await this.getCachedSymbols();
-      [symbol, side] = findSymbolAndSide(cachedSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
+      [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
     }
     else
       throw new Error('Invalid cancelOrderRequest argument passed');
@@ -200,8 +234,8 @@ export class RestAtomexClient implements AtomexClient {
     if (cancelAllOrdersRequest.symbol && cancelAllOrdersRequest.side)
       [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
     else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
-      const cachedSymbols = await this.getCachedSymbols();
-      [symbol, side] = findSymbolAndSide(cachedSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
+      [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
 
       if (cancelAllOrdersRequest.cancelAllDirections)
         side = 'All';
@@ -245,7 +279,7 @@ export class RestAtomexClient implements AtomexClient {
       params
     });
 
-    return swapDto ? mapSwapDtoToSwap(swapDto) : undefined;
+    return swapDto ? mapSwapDtoToSwap(swapDto, this.exchangeSymbolsProvider) : undefined;
   }
 
   async getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
@@ -268,11 +302,7 @@ export class RestAtomexClient implements AtomexClient {
       params
     });
 
-    return swapDtos ? mapSwapDtosToSwaps(swapDtos) : [];
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  dispose() {
+    return swapDtos ? mapSwapDtosToSwaps(swapDtos, this.exchangeSymbolsProvider) : [];
   }
 
   private getUserIds(addressOrAddresses: string | string[]) {
@@ -291,17 +321,9 @@ export class RestAtomexClient implements AtomexClient {
   private getRequiredAuthToken(accountAddress: string): string {
     const authToken = this.authorizationManager.getAuthToken(accountAddress)?.value;
 
-    if (!authToken) {
+    if (!authToken)
       throw new Error(`Cannot find auth token for address: ${accountAddress}`);
-    }
 
     return authToken;
-  }
-
-  private async getCachedSymbols() {
-    if (!this._symbolsCache)
-      this._symbolsCache = await this.getSymbols();
-
-    return this._symbolsCache;
   }
 }

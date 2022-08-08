@@ -26,10 +26,11 @@ describe('Atomex authorization', () => {
     });
 
     await signersManager.addSigner(signer);
+    await authorizationManager.start();
   });
 
   afterEach(() => {
-    authorizationManager.dispose();
+    authorizationManager.stop();
   });
 
   test('first authorization', async () => {

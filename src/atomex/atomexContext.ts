@@ -1,8 +1,7 @@
 import type { AuthorizationManager } from '../authorization/index';
-import type { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
-import type { SignersManager } from '../blockchain/index';
-import type { ExchangeManager, ExchangeService } from '../exchange';
-import type { AtomexNetwork } from '../index';
+import type { SignersManager, AtomexBlockchainProvider } from '../blockchain/index';
+import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
+import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
 
 export class AtomexContext {
@@ -109,6 +108,8 @@ class AtomexContextServicesSection {
 
 class AtomexContextProvidersSection {
   private _blockchainProvider: AtomexBlockchainProvider | undefined;
+  private _currenciesProvider: CurrenciesProvider | undefined;
+  private _exchangeSymbolsProvider: ManagedExchangeSymbolsProvider | undefined;
 
   constructor(readonly context: AtomexContext) {
   }
@@ -122,6 +123,28 @@ class AtomexContextProvidersSection {
 
   private set blockchainProvider(blockchainProvider: AtomexBlockchainProvider) {
     this._blockchainProvider = blockchainProvider;
+  }
+
+  get currenciesProvider(): CurrenciesProvider {
+    if (!this._currenciesProvider)
+      throw new AtomexComponentNotResolvedError('providers.currenciesProvider');
+
+    return this._currenciesProvider;
+  }
+
+  private set currenciesProvider(currenciesProvider: CurrenciesProvider) {
+    this._currenciesProvider = currenciesProvider;
+  }
+
+  get exchangeSymbolsProvider(): ManagedExchangeSymbolsProvider {
+    if (!this._exchangeSymbolsProvider)
+      throw new AtomexComponentNotResolvedError('providers.exchangeSymbolsProvider');
+
+    return this._exchangeSymbolsProvider;
+  }
+
+  private set exchangeSymbolsProvider(exchangeSymbolsProvider: ManagedExchangeSymbolsProvider) {
+    this._exchangeSymbolsProvider = exchangeSymbolsProvider;
   }
 }
 

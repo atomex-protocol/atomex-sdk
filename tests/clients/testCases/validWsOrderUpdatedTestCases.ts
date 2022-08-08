@@ -44,12 +44,12 @@ const validWsOrderUpdatedTestCases: ReadonlyArray<readonly [
           timeStamp: new Date('2022-07-20T18:28:14.521308Z'),
           from: {
             currencyId: 'ETH',
-            amount: new BigNumber(0.0099999999997128),
-            price: new BigNumber(9.200859360).div(new BigNumber(0.0099999999997128))
+            amount: new BigNumber(0.009999999),
+            price: new BigNumber(920.085992008)
           },
           to: {
             currencyId: 'XTZ',
-            amount: new BigNumber(9.200859360),
+            amount: new BigNumber(9.200859),
             price: new BigNumber(0.001086855)
           },
           swapIds: [386]
@@ -99,7 +99,7 @@ const validWsOrderUpdatedTestCases: ReadonlyArray<readonly [
           to: {
             currencyId: 'ETH',
             amount: new BigNumber(0.01053590),
-            price: new BigNumber(10.000000000).div(new BigNumber(0.01053590))
+            price: new BigNumber(949.135811843)
           },
           swapIds: [387]
         }

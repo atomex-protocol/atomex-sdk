@@ -1,13 +1,14 @@
+import type { AtomexService } from '../common/atomexService';
 import type { PublicEventEmitter } from '../core/index';
 import type { Order, ExchangeSymbol, NewOrderRequest, Quote, OrderBook, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, CurrencyDirection } from './models/index';
 
 export interface ExchangeServiceEvents {
   readonly orderUpdated: PublicEventEmitter<readonly [updatedOrder: Order]>;
   readonly orderBookUpdated: PublicEventEmitter<readonly [updatedOrderBook: OrderBook]>;
-  readonly topOfBookUpdated: PublicEventEmitter<readonly [updatedQuotes: Quote[]]>;
+  readonly topOfBookUpdated: PublicEventEmitter<readonly [updatedQuotes: readonly Quote[]]>;
 }
 
-export interface ExchangeService {
+export interface ExchangeService extends AtomexService {
   readonly events: ExchangeServiceEvents;
 
   getOrder(accountAddress: string, orderId: number): Promise<Order | undefined>;
@@ -24,6 +25,4 @@ export interface ExchangeService {
   addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
   cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
   cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
-
-  dispose(): void;
 }

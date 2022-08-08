@@ -17,24 +17,40 @@ export class MarketDataWebSocketClient {
 
   protected socket: WebSocketClient;
 
+  private _isStarted = false;
+
   constructor(
     protected readonly webSocketApiBaseUrl: string
   ) {
     this.socket = new WebSocketClient(new URL(MarketDataWebSocketClient.MARKET_DATA_URL_PATH, this.webSocketApiBaseUrl));
   }
 
-  async connect(): Promise<void> {
+  get isStarted() {
+    return this._isStarted;
+  }
+
+  async start(): Promise<void> {
+    if (this.isStarted)
+      return;
+
     this.socket.events.messageReceived.addListener(this.onSocketMessageReceived);
     this.socket.events.closed.addListener(this.onSocketClosed);
     await this.socket.connect();
 
     this.subscribeOnStreams(this.socket);
+
+    this._isStarted = true;
   }
 
-  dispose() {
+  stop() {
+    if (!this.isStarted)
+      return;
+
     this.socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
     this.socket.events.closed.removeListener(this.onSocketClosed);
     this.socket.disconnect();
+
+    this._isStarted = false;
   }
 
   protected subscribeOnStreams(socket: WebSocketClient) {

@@ -1,5 +1,6 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { Signer, SignersManager } from '../blockchain/index';
+import type { AtomexService, Currency } from '../common/index';
 import type { ExchangeManager } from '../exchange/exchangeManager';
 import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
@@ -8,13 +9,15 @@ import type {
   AtomexOptions, NewSwapRequest
 } from './models/index';
 
-export class Atomex {
+export class Atomex implements AtomexService {
   readonly authorization: AuthorizationManager;
   readonly exchangeManager: ExchangeManager;
   readonly swapManager: SwapManager;
   readonly signers: SignersManager;
 
   protected readonly atomexContext: AtomexContext;
+
+  private _isStarted = false;
 
   constructor(readonly options: AtomexOptions) {
     this.atomexContext = options.atomexContext;
@@ -33,6 +36,32 @@ export class Atomex {
     return this.atomexContext.atomexNetwork;
   }
 
+  get isStarted() {
+    return this._isStarted;
+  }
+
+  async start(): Promise<void> {
+    if (this.isStarted)
+      return;
+
+    await this.authorization.start();
+    await this.exchangeManager.start();
+    await this.swapManager.start();
+
+    this._isStarted = true;
+  }
+
+  stop(): void {
+    if (!this.isStarted)
+      return;
+
+    this.authorization.stop();
+    this.exchangeManager.stop();
+    this.swapManager.stop();
+
+    this._isStarted = false;
+  }
+
   async addSigner(signer: Signer) {
     await this.signers.addSigner(signer);
 
@@ -47,17 +76,13 @@ export class Atomex {
       this.atomexContext.providers.blockchainProvider.addBlockchain(networkOptions);
   }
 
+  getCurrency(currencyId: Currency['id']) {
+    return this.atomexContext.providers.currenciesProvider.getCurrency(currencyId);
+  }
+
   async swap(newSwapRequest: NewSwapRequest, completeStage: SwapOperationCompleteStage): Promise<Swap>;
   async swap(swapId: Swap['id'], completeStage: SwapOperationCompleteStage): Promise<Swap>;
   async swap(_newSwapRequestOrSwapId: NewSwapRequest | Swap['id'], _completeStage: SwapOperationCompleteStage): Promise<Swap> {
     throw new Error('Not implemented');
-  }
-
-  dispose() {
-    this.authorization.dispose();
-    this.atomexContext.managers.exchangeManager.dispose();
-    this.atomexContext.managers.swapManager.dispose();
-    this.atomexContext.services.exchangeService.dispose();
-    this.atomexContext.services.swapService.dispose();
   }
 }
