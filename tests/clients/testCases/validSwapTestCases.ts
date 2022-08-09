@@ -106,7 +106,7 @@ const validSwapTestCases: ReadonlyArray<readonly [
           from: {
             currencyId: 'ETH',
             amount: new BigNumber(0.009999999),
-            price: new BigNumber(920.085992008)
+            price: new BigNumber(920.085936026)
           },
           to: {
             currencyId: 'XTZ',

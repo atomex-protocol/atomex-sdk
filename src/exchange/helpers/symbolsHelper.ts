@@ -40,13 +40,11 @@ export const convertSymbolToFromToCurrenciesPair = (
     );
   }
 
-  const preparedBaseCurrencyPrice = !preparedBaseCurrencyAmount.isZero()
-    ? converters.toFixedBigNumber(
-      preparedQuoteCurrencyAmount.div(preparedBaseCurrencyAmount),
-      symbol.decimals.price,
-      BigNumber.ROUND_FLOOR
-    )
-    : new BigNumber(0);
+  const preparedBaseCurrencyPrice = converters.toFixedBigNumber(
+    new BigNumber(1).div(preparedQuoteCurrencyPrice),
+    symbol.decimals.price,
+    BigNumber.ROUND_FLOOR
+  );
 
   const quoteCurrency: SymbolCurrency = {
     currencyId: quoteCurrencyId,
