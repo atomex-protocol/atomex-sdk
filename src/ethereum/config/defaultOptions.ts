@@ -5,8 +5,8 @@ import { EthereumSwapTransactionsProvider } from '../swapTransactionsProviders/i
 import { ethereumMainnetCurrencies, ethereumTestnetCurrencies } from './currencies';
 
 export const createDefaultEthereumBlockchainOptions = (): AtomexBlockchainOptions => {
-  const mainnetRpcUrl = 'https://mainnet.infura.io/v3/';
-  const testNetRpcUrl = 'https://goerli.infura.io/v3/';
+  const mainnetRpcUrl = 'https://eth-mainnet.public.blastapi.io';
+  const testNetRpcUrl = 'https://rpc.goerli.mudit.blog';
   const balancesProvider = new EthereumBalancesProvider();
   const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
 
