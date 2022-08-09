@@ -25,7 +25,7 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
           orderId: 777
         },
         {
-          amount: 1,
+          qty: 1,
           price: 2,
           symbol: 'XTZ/ETH',
           clientOrderId: 'client-order-id',
@@ -60,7 +60,7 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
           orderId: 8473
         },
         {
-          amount: 30,
+          qty: 30,
           price: 0.001107006,
           symbol: 'XTZ/ETH',
           clientOrderId: 'client-order-id',
@@ -87,7 +87,7 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
           orderId: 123
         },
         {
-          amount: 1,
+          qty: 1,
           price: 2,
           symbol: 'XTZ/ETH',
           clientOrderId: 'client-order-id',
@@ -122,7 +122,7 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
           orderId: 12345
         },
         {
-          amount: 0.03321018,
+          qty: 0.03321018,
           price: 903.337470618,
           symbol: 'XTZ/ETH',
           clientOrderId: 'client-order-id',

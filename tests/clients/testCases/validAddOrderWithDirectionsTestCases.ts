@@ -36,7 +36,7 @@ const validAddOrderWithDirectionsTestCases: ReadonlyArray<readonly [
           orderId: 777
         },
         {
-          amount: 1,
+          qty: 1,
           price: 2,
           symbol: 'XTZ/ETH',
           clientOrderId: 'client-order-id',
@@ -74,7 +74,7 @@ const validAddOrderWithDirectionsTestCases: ReadonlyArray<readonly [
           orderId: 123
         },
         {
-          amount: 1,
+          qty: 1,
           price: 2,
           symbol: 'XTZ/ETH',
           clientOrderId: 'client-order-id',
