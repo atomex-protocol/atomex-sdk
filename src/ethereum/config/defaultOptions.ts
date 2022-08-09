@@ -10,7 +10,7 @@ export const createDefaultEthereumBlockchainOptions = (): AtomexBlockchainOption
   const balancesProvider = new EthereumBalancesProvider();
   const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
 
-  const tezosOptions: AtomexBlockchainOptions = {
+  const ethereumOptions: AtomexBlockchainOptions = {
     mainnet: {
       currencies: ethereumMainnetCurrencies,
       currencyOptions: {},
@@ -27,5 +27,5 @@ export const createDefaultEthereumBlockchainOptions = (): AtomexBlockchainOption
     }
   };
 
-  return tezosOptions;
+  return ethereumOptions;
 };
