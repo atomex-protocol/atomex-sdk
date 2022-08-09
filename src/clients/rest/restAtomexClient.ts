@@ -170,15 +170,24 @@ export class RestAtomexClient implements AtomexClient {
       priceBigNumber = newOrderRequest.orderBody.price;
     }
 
+    // TODO: move to the mapper
     const payload = {
+      clientOrderId: newOrderRequest.clientOrderId,
       symbol,
       side,
-      clientOrderId: newOrderRequest.clientOrderId,
       type: newOrderRequest.orderBody.type,
+      requisites: newOrderRequest.requisites ? {
+        secretHash: newOrderRequest.requisites.secretHash,
+        receivingAddress: newOrderRequest.requisites.receivingAddress,
+        refundAddress: newOrderRequest.requisites.refundAddress,
+        rewardForRedeem: newOrderRequest.requisites.rewardForRedeem.toNumber(),
+        lockTime: newOrderRequest.requisites.lockTime,
+        baseCurrencyContract: newOrderRequest.requisites.baseCurrencyContract,
+        quoteCurrencyContract: newOrderRequest.requisites.quoteCurrencyContract
+      } : undefined,
       proofsOfFunds: newOrderRequest.proofsOfFunds,
-      requisites: newOrderRequest.requisites,
-      amount: amountBigNumber.toNumber(),
-      price: priceBigNumber.toNumber(),
+      qty: amountBigNumber.toNumber(),
+      price: priceBigNumber.toNumber()
     };
 
     const newOrderDto = await this.httpClient.request<CreatedOrderDto>({

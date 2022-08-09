@@ -1,4 +1,5 @@
 import type { BigNumber } from 'bignumber.js';
+import { nanoid } from 'nanoid';
 
 import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
 import { EventEmitter, type ToEventEmitter, type Result } from '../core/index';
@@ -123,7 +124,8 @@ export class ExchangeManager implements AtomexService {
   }
 
   addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
-    return this.exchangeService.addOrder(accountAddress, newOrderRequest);
+    const clientOrderId = newOrderRequest.clientOrderId || nanoid(17);
+    return this.exchangeService.addOrder(accountAddress, { ...newOrderRequest, clientOrderId });
   }
 
   cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
