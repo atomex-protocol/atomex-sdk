@@ -1,1 +1,1 @@
-export { EthereumBlockchainToolkitProvider } from './ethereumBlockchainToolkitProvider';
+export { Web3BlockchainToolkitProvider } from './web3BlockchainToolkitProvider';

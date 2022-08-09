@@ -1,5 +1,7 @@
 import type Web3 from 'web3';
 
+import type { AtomexContext } from '../../atomex/atomexContext';
+import type { Atomex } from '../../atomex/index';
 import type { AtomexSignature, Signer } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import { recoverPublicKey } from '../utils/index';
@@ -11,12 +13,18 @@ export class Web3EthereumSigner implements Signer {
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,
-    protected readonly web3: Web3
-  ) {
+    readonly atomexContext: AtomexContext,
+    readonly provider: Web3['currentProvider']
+  ) { }
+
+  static bind(atomex: Atomex, provider: Web3['currentProvider']): void {
+    const signer = new Web3EthereumSigner(atomex.atomexNetwork, atomex.atomexContext, provider);
+    atomex.addSigner(signer);
   }
 
   async getAddress(): Promise<string> {
-    const accounts = await this.web3.eth.getAccounts();
+    const web3 = await this.atomexContext.providers.blockchainProvider.getReadonlyToolkit(this.blockchain, 'web3') as Web3;
+    const accounts = await web3.eth.getAccounts();
     const address = accounts[0];
     if (!address)
       throw new Error('Address is unavailable');
@@ -30,8 +38,9 @@ export class Web3EthereumSigner implements Signer {
 
   async sign(message: string): Promise<AtomexSignature> {
     const address = await this.getAddress();
-    const signatureBytes = await this.signInternal(message, address);
-    const publicKeyBytes = recoverPublicKey(signatureBytes, this.web3.eth.accounts.hashMessage(message));
+    const web3 = await this.atomexContext.providers.blockchainProvider.getToolkit(this.blockchain, address, 'web3') as Web3;
+    const signatureBytes = await this.signInternal(message, address, web3);
+    const publicKeyBytes = recoverPublicKey(signatureBytes, web3.eth.accounts.hashMessage(message));
 
     return {
       address,
@@ -41,8 +50,8 @@ export class Web3EthereumSigner implements Signer {
     };
   }
 
-  protected signInternal(message: string, address: string) {
-    return new Promise<string>((resolve, reject) => this.web3.eth.personal.sign(message, address, '', (error, signature) => {
+  protected signInternal(message: string, address: string, web3: Web3) {
+    return new Promise<string>((resolve, reject) => web3.eth.personal.sign(message, address, '', (error, signature) => {
       return signature ? resolve(signature) : reject(error);
     }));
   }

@@ -12,7 +12,7 @@ export class BeaconWalletTezosSigner implements Signer {
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,
-    protected readonly beaconWallet: BeaconWallet
+    readonly beaconWallet: BeaconWallet
   ) {
   }
 

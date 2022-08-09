@@ -11,7 +11,7 @@ export class TempleWalletTezosSigner implements Signer {
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,
-    protected readonly templeWallet: TempleWallet
+    readonly templeWallet: TempleWallet
   ) {
   }
 

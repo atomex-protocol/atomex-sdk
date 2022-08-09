@@ -1,6 +1,7 @@
 import type { BeaconWallet } from '@taquito/beacon-wallet';
 import type { TempleWallet } from '@temple-wallet/dapp';
 
+import type { Atomex } from '../../atomex/index';
 import type { AtomexSignature, Signer } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import { BeaconWalletTezosSigner } from './beaconWalletTezosSigner';
@@ -13,9 +14,14 @@ export class WalletTezosSigner implements Signer {
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,
-    protected readonly wallet: TempleWallet | BeaconWallet
+    readonly wallet: TempleWallet | BeaconWallet
   ) {
     this.internalSigner = this.createInternalSigner();
+  }
+
+  static bind(atomex: Atomex, wallet: TempleWallet | BeaconWallet): void {
+    const signer = new WalletTezosSigner(atomex.atomexNetwork, wallet);
+    atomex.addSigner(signer);
   }
 
   getAddress(): Promise<string> | string {
