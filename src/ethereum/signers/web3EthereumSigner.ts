@@ -23,7 +23,10 @@ export class Web3EthereumSigner implements Signer {
   }
 
   async getAddress(): Promise<string> {
-    const web3 = await this.atomexContext.providers.blockchainProvider.getReadonlyToolkit(this.blockchain, 'web3') as Web3;
+    const web3 = await this.atomexContext.providers.blockchainProvider.getReadonlyToolkit(this.blockchain, 'web3') as Web3 | undefined;
+    if (!web3)
+      throw new Error('readonly web3 toolkit is unavailable');
+
     const accounts = await web3.eth.getAccounts();
     const address = accounts[0];
     if (!address)
@@ -38,7 +41,10 @@ export class Web3EthereumSigner implements Signer {
 
   async sign(message: string): Promise<AtomexSignature> {
     const address = await this.getAddress();
-    const web3 = await this.atomexContext.providers.blockchainProvider.getToolkit(this.blockchain, address, 'web3') as Web3;
+    const web3 = await this.atomexContext.providers.blockchainProvider.getToolkit(this.blockchain, address, 'web3') as Web3 | undefined;
+    if (!web3)
+      throw new Error('web3 toolkit is unavailable');
+
     const signatureBytes = await this.signInternal(message, address, web3);
     const publicKeyBytes = recoverPublicKey(signatureBytes, web3.eth.accounts.hashMessage(message));
 
