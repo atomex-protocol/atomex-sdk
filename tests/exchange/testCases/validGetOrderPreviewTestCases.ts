@@ -75,12 +75,12 @@ const validGetOrderPreviewTestCases: ReadonlyArray<[
         from: {
           currencyId: 'XTZ',
           amount: new BigNumber('35.483843'),
-          price: new BigNumber('0.001132176')
+          price: new BigNumber('0.001097614')
         },
         to: {
           currencyId: 'ETH',
-          amount: new BigNumber('0.040173955'),
-          price: new BigNumber('883.254909804')
+          amount: new BigNumber('0.038947562'),
+          price: new BigNumber('911.067096447')
         }
       },
       symbols,
@@ -101,12 +101,12 @@ const validGetOrderPreviewTestCases: ReadonlyArray<[
         from: {
           currencyId: 'XTZ',
           amount: new BigNumber('35.483843'),
-          price: new BigNumber('0.001132176')
+          price: new BigNumber('0.001097614')
         },
         to: {
           currencyId: 'ETH',
-          amount: new BigNumber('0.040173955'),
-          price: new BigNumber('883.254909804')
+          amount: new BigNumber('0.038947562'),
+          price: new BigNumber('911.067096447')
         }
       },
       symbols,
@@ -127,12 +127,12 @@ const validGetOrderPreviewTestCases: ReadonlyArray<[
         from: {
           currencyId: 'XTZ',
           amount: new BigNumber('57.123456'),
-          price: new BigNumber('0.001132176')
+          price: new BigNumber('0.001097614')
         },
         to: {
           currencyId: 'ETH',
-          amount: new BigNumber('0.064673805'),
-          price: new BigNumber('883.254912866')
+          amount: new BigNumber('0.062699505'),
+          price: new BigNumber('911.067096447')
         }
       },
       symbols,
