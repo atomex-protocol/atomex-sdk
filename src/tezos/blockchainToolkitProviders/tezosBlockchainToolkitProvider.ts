@@ -46,7 +46,7 @@ export class TezosBlockchainToolkitProvider implements BlockchainToolkitProvider
     if (!walletProvider)
       return false;
 
-    this.readonlyToolkit = undefined;
+    this.toolkit = undefined;
 
     return true;
   }

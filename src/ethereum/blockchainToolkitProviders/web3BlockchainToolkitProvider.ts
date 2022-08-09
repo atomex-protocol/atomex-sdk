@@ -5,7 +5,7 @@ import { Web3EthereumSigner } from '../index';
 
 export class Web3BlockchainToolkitProvider implements BlockchainToolkitProvider {
   readonly toolkitId = 'web3';
-  
+
   protected readonlyToolkit: Web3 | undefined;
   protected toolkit: Web3 | undefined;
 
@@ -32,7 +32,7 @@ export class Web3BlockchainToolkitProvider implements BlockchainToolkitProvider 
     if (!(signer instanceof Web3EthereumSigner))
       return false;
 
-    this.readonlyToolkit = new Web3(signer.provider);
+    this.toolkit = new Web3(signer.web3.currentProvider);
 
     return true;
   }
@@ -41,7 +41,7 @@ export class Web3BlockchainToolkitProvider implements BlockchainToolkitProvider 
     if (!(signer instanceof Web3EthereumSigner))
       return false;
 
-    this.readonlyToolkit = undefined;
+    this.toolkit = undefined;
 
     return true;
   }
