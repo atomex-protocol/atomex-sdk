@@ -548,12 +548,19 @@ var getQuoteBaseCurrenciesBySymbol = (symbol) => {
   const [quoteCurrency = "", baseCurrency = ""] = symbol.split("/");
   return [quoteCurrency, baseCurrency];
 };
-var convertSymbolToFromToCurrenciesPair = (symbol, side, quoteCurrencyAmount, quoteCurrencyPrice) => {
-  const preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(quoteCurrencyAmount, symbol.decimals.quoteCurrency, BigNumber2.ROUND_FLOOR);
+var convertSymbolToFromToCurrenciesPair = (symbol, side, currencyAmount, quoteCurrencyPrice, isQuoteCurrencyAmount = true) => {
   const preparedQuoteCurrencyPrice = converters_exports.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber2.ROUND_FLOOR);
   const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
-  const preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, BigNumber2.ROUND_FLOOR);
-  const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(preparedQuoteCurrencyAmount.div(preparedBaseCurrencyAmount), symbol.decimals.price, BigNumber2.ROUND_FLOOR);
+  let preparedQuoteCurrencyAmount;
+  let preparedBaseCurrencyAmount;
+  if (isQuoteCurrencyAmount) {
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber2.ROUND_FLOOR);
+    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, BigNumber2.ROUND_FLOOR);
+  } else {
+    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber2.ROUND_FLOOR);
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice), symbol.decimals.quoteCurrency, BigNumber2.ROUND_CEIL);
+  }
+  const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(new BigNumber2(1).div(preparedQuoteCurrencyPrice), symbol.decimals.price, BigNumber2.ROUND_FLOOR);
   const quoteCurrency = {
     currencyId: quoteCurrencyId,
     amount: preparedQuoteCurrencyAmount,
@@ -655,9 +662,13 @@ var ExchangeManager = class {
     __publicField(this, "handleExchangeServiceOrderUpdated", (updatedOrder) => {
       this.events.orderUpdated.emit(updatedOrder);
     });
-    __publicField(this, "handleExchangeServiceOrderBookUpdated", (updatedOrderBook) => {
-      this._orderBookCache.set(updatedOrderBook.symbol, updatedOrderBook);
-      this.events.orderBookUpdated.emit(updatedOrderBook);
+    __publicField(this, "handleExchangeServiceOrderBookUpdated", (orderBookUpdates) => {
+      this.getOrderBook(orderBookUpdates.symbol).then((updatedOrderBook) => {
+        if (!updatedOrderBook)
+          return;
+        this._orderBookCache.set(updatedOrderBook.symbol, updatedOrderBook);
+        this.events.orderBookUpdated.emit(updatedOrderBook);
+      }).catch((error) => console.error(error));
     });
     __publicField(this, "handleExchangeServiceTopOfBookUpdated", (updatedQuotes) => {
       this.events.topOfBookUpdated.emit(updatedQuotes);
@@ -741,18 +752,19 @@ var ExchangeManager = class {
     return this.exchangeService.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
   }
   async getOrderPreview(orderPreviewParameters) {
-    const isFromAmount = orderPreviewParameters.isFromAmount || true;
+    const isFromAmount = orderPreviewParameters.isFromAmount === void 0 || orderPreviewParameters.isFromAmount === null ? true : orderPreviewParameters.isFromAmount;
     const amount = orderPreviewParameters.amount;
     if (orderPreviewParameters.type !== "SolidFillOrKill")
       throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
     const [symbol, side] = this.getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters);
+    const isQuoteCurrencyAmount = side === "Sell" ? isFromAmount : !isFromAmount;
     const exchangeSymbol = this.symbolsProvider.getSymbol(symbol);
     if (!exchangeSymbol)
       throw void 0;
-    const orderBookEntry = await this.findOrderBookEntry(symbol, side, orderPreviewParameters.type, amount, isFromAmount);
+    const orderBookEntry = await this.findOrderBookEntry(symbol, side, orderPreviewParameters.type, amount, isQuoteCurrencyAmount);
     if (!orderBookEntry)
       return void 0;
-    const [from, to] = symbolsHelper_exports.convertSymbolToFromToCurrenciesPair(exchangeSymbol, side, amount, orderBookEntry.price);
+    const [from, to] = symbolsHelper_exports.convertSymbolToFromToCurrenciesPair(exchangeSymbol, side, amount, orderBookEntry.price, isQuoteCurrencyAmount);
     return {
       type: orderPreviewParameters.type,
       from,
@@ -786,14 +798,14 @@ var ExchangeManager = class {
     }
     throw new Error("Invalid orderPreviewParameters argument passed");
   }
-  async findOrderBookEntry(symbol, side, orderType, amount, isFromAmount) {
+  async findOrderBookEntry(symbol, side, orderType, amount, isQuoteCurrencyAmount) {
     if (orderType !== "SolidFillOrKill")
       return void 0;
     const orderBook = await this.getCachedOrderBook(symbol);
     if (!orderBook)
       return void 0;
     for (const entry of orderBook.entries) {
-      if (entry.side == side && (isFromAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
+      if (entry.side !== side && (isQuoteCurrencyAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
         return entry;
       }
     }
@@ -1616,14 +1628,11 @@ var WebSocketClient = class {
       throw new Error("Internal websocket is not created. Use the connect method first");
     return this._socket;
   }
-  set socket(value) {
-    this._socket = value;
-  }
   async connect() {
     this.disconnect();
     return new Promise((resolve) => {
       const protocols = this.authToken ? ["access_token", this.authToken] : void 0;
-      this.socket = new WebSocket(this.url, protocols);
+      this._socket = new WebSocket(this.url, protocols);
       this.socket.addEventListener("message", this.onMessageReceived);
       this.socket.addEventListener("error", this.onError);
       this.socket.addEventListener("close", this.onClosed);

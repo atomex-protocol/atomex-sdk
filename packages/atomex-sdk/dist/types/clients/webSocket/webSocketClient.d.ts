@@ -10,7 +10,6 @@ export declare class WebSocketClient {
     readonly events: WebSocketClientEvents;
     protected _socket: WebSocket | undefined;
     protected get socket(): WebSocket;
-    protected set socket(value: WebSocket);
     constructor(url: string | URL, authToken?: string | undefined);
     connect(): Promise<void>;
     disconnect(): void;

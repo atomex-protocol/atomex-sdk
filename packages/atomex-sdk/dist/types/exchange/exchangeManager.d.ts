@@ -31,9 +31,9 @@ export declare class ExchangeManager implements AtomexService {
     protected attachEvents(): void;
     protected detachEvents(): void;
     protected handleExchangeServiceOrderUpdated: (updatedOrder: Order) => void;
-    protected handleExchangeServiceOrderBookUpdated: (updatedOrderBook: OrderBook) => void;
+    protected handleExchangeServiceOrderBookUpdated: (orderBookUpdates: OrderBook) => void;
     protected handleExchangeServiceTopOfBookUpdated: (updatedQuotes: readonly Quote[]) => void;
     protected getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters: OrderPreviewParameters): readonly [symbol: string, side: Side];
-    protected findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isFromAmount: boolean): Promise<import("./models/orderBook").OrderBookEntry | undefined>;
+    protected findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isQuoteCurrencyAmount: boolean): Promise<import("./models/orderBook").OrderBookEntry | undefined>;
     protected getCachedOrderBook(symbol: string): Promise<OrderBook | undefined>;
 }
