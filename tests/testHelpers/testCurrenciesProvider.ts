@@ -1,8 +1,8 @@
 import { InMemoryCurrenciesProvider } from '../../src/common/index';
-import { ethereumMainnetCurrencies } from '../../src/ethereum/currencies';
-import type { ERC20EthereumCurrency } from '../../src/ethereum/models/currency';
+import { ethereumMainnetCurrencies } from '../../src/ethereum/index';
+import type { ERC20EthereumCurrency } from '../../src/ethereum/models/index';
 import type { Currency, TezosFA12Currency } from '../../src/index';
-import { tezosMainnetCurrencies } from '../../src/tezos/currencies';
+import { tezosMainnetCurrencies } from '../../src/tezos/index';
 
 const btcCurrency: Currency = {
   id: 'BTC',

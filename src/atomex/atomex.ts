@@ -14,8 +14,7 @@ export class Atomex implements AtomexService {
   readonly exchangeManager: ExchangeManager;
   readonly swapManager: SwapManager;
   readonly signers: SignersManager;
-
-  protected readonly atomexContext: AtomexContext;
+  readonly atomexContext: AtomexContext;
 
   private _isStarted = false;
 
@@ -29,7 +28,7 @@ export class Atomex implements AtomexService {
     if (options.blockchains)
       for (const blockchainName of Object.keys(options.blockchains))
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this.addBlockchain(_context => options.blockchains![blockchainName]!);
+        this.addBlockchain(_context => [blockchainName, options.blockchains![blockchainName]!]);
   }
 
   get atomexNetwork() {
@@ -68,12 +67,12 @@ export class Atomex implements AtomexService {
     await this.options.blockchains?.[signer.blockchain]?.mainnet.blockchainToolkitProvider?.addSigner(signer);
   }
 
-  addBlockchain(factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions) {
-    const blockchainOptions = factoryMethod(this.atomexContext);
+  addBlockchain(factoryMethod: (context: AtomexContext) => [blockchain: string, options: AtomexBlockchainOptions]) {
+    const [blockchain, blockchainOptions] = factoryMethod(this.atomexContext);
     const networkOptions = this.atomexNetwork == 'mainnet' ? blockchainOptions.mainnet : blockchainOptions.testnet;
 
     if (networkOptions)
-      this.atomexContext.providers.blockchainProvider.addBlockchain(networkOptions);
+      this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, networkOptions);
   }
 
   getCurrency(currencyId: Currency['id']) {

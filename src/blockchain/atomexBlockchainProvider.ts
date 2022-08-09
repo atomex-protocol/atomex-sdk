@@ -17,8 +17,14 @@ export interface CurrencyInfo {
 
 export class AtomexBlockchainProvider implements CurrenciesProvider {
   protected readonly currencyInfoMap: Map<Currency['id'], CurrencyInfo> = new Map();
+  protected readonly blockchainToolkitProviderMap: Map<string, BlockchainToolkitProvider> = new Map();
 
-  addBlockchain(networkOptions: AtomexBlockchainNetworkOptions) {
+  addBlockchain(blockchain: string, networkOptions: AtomexBlockchainNetworkOptions) {
+    if (this.blockchainToolkitProviderMap.has(blockchain))
+      throw new Error('There is already blockchain added with the same key');
+
+    this.blockchainToolkitProviderMap.set(blockchain, networkOptions.blockchainToolkitProvider);
+
     for (const currency of networkOptions.currencies) {
       if (this.currencyInfoMap.has(currency.id))
         throw new Error('There is already currency added with the same key');
@@ -37,6 +43,22 @@ export class AtomexBlockchainProvider implements CurrenciesProvider {
 
   getCurrency(currencyId: Currency['id']): Currency | undefined {
     return this.getCurrencyInfo(currencyId)?.currency;
+  }
+
+  getReadonlyToolkit(blockchain: string, toolkitId: string): Promise<unknown | undefined> {
+    const provider = this.blockchainToolkitProviderMap.get(blockchain);
+    if (!provider || provider.toolkitId !== toolkitId)
+      return Promise.resolve(undefined);
+
+    return provider.getReadonlyToolkit();
+  }
+
+  getToolkit(blockchain: string, address: string, toolkitId: string): Promise<unknown | undefined> {
+    const provider = this.blockchainToolkitProviderMap.get(blockchain);
+    if (!provider || provider.toolkitId !== toolkitId)
+      return Promise.resolve(undefined);
+
+    return provider.getToolkit(address);
   }
 
   getCurrencyInfo(currencyId: Currency['id']): CurrencyInfo | undefined {
