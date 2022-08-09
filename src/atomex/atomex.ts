@@ -63,8 +63,8 @@ export class Atomex implements AtomexService {
 
   async addSigner(signer: Signer) {
     await this.signers.addSigner(signer);
-
-    await this.options.blockchains?.[signer.blockchain]?.mainnet.blockchainToolkitProvider?.addSigner(signer);
+    const blockchainToolkitProvider = this.atomexContext.providers.blockchainProvider.getBlockchainToolkitProvider(signer.blockchain);
+    await blockchainToolkitProvider?.addSigner(signer);
   }
 
   addBlockchain(factoryMethod: (context: AtomexContext) => [blockchain: string, options: AtomexBlockchainOptions]) {
