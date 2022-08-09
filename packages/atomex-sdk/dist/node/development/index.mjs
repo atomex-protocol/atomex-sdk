@@ -64,8 +64,21 @@ var Atomex = class {
   getCurrency(currencyId) {
     return this.atomexContext.providers.currenciesProvider.getCurrency(currencyId);
   }
-  async swap(_newSwapRequestOrSwapId, _completeStage) {
-    throw new Error("Not implemented");
+  async swap(newSwapRequestOrSwapId, _completeStage = 15 /* All */) {
+    if (typeof newSwapRequestOrSwapId === "number")
+      throw new Error("Swap tracking is not implemented yet");
+    const orderId = await this.exchangeManager.addOrder(newSwapRequestOrSwapId.accountAddress, newSwapRequestOrSwapId);
+    const order = await this.exchangeManager.getOrder(newSwapRequestOrSwapId.accountAddress, orderId);
+    if (!order)
+      throw new Error(`The ${orderId} order not found`);
+    if (order.status !== "Filled")
+      throw new Error(`The ${orderId} order is not filled`);
+    const swaps = await Promise.all(order.swapIds.map((swapId) => this.swapManager.getSwap(swapId, newSwapRequestOrSwapId.accountAddress)));
+    if (!swaps.length)
+      throw new Error("Swaps not found");
+    if (swaps.some((swap) => !swap))
+      throw new Error("Swap not found");
+    return swaps.length === 1 ? swaps[0] : swaps;
   }
 };
 
@@ -580,6 +593,9 @@ var findSymbolAndSide = (symbols, from, to) => {
   return [symbol.name, side];
 };
 
+// src/exchange/exchangeManager.ts
+import { nanoid } from "nanoid";
+
 // src/common/models/dataSource.ts
 var DataSource = /* @__PURE__ */ ((DataSource2) => {
   DataSource2[DataSource2["Local"] = 1] = "Local";
@@ -705,7 +721,8 @@ var ExchangeManager = class {
     return orderBook;
   }
   addOrder(accountAddress, newOrderRequest) {
-    return this.exchangeService.addOrder(accountAddress, newOrderRequest);
+    const clientOrderId = newOrderRequest.clientOrderId || nanoid(17);
+    return this.exchangeService.addOrder(accountAddress, { ...newOrderRequest, clientOrderId });
   }
   cancelOrder(accountAddress, cancelOrderRequest) {
     return this.exchangeService.cancelOrder(accountAddress, cancelOrderRequest);
@@ -1463,13 +1480,21 @@ var RestAtomexClient = class {
       priceBigNumber = newOrderRequest.orderBody.price;
     }
     const payload = {
+      clientOrderId: newOrderRequest.clientOrderId,
       symbol,
       side,
-      clientOrderId: newOrderRequest.clientOrderId,
       type: newOrderRequest.orderBody.type,
+      requisites: newOrderRequest.requisites ? {
+        secretHash: newOrderRequest.requisites.secretHash,
+        receivingAddress: newOrderRequest.requisites.receivingAddress,
+        refundAddress: newOrderRequest.requisites.refundAddress,
+        rewardForRedeem: newOrderRequest.requisites.rewardForRedeem.toNumber(),
+        lockTime: newOrderRequest.requisites.lockTime,
+        baseCurrencyContract: newOrderRequest.requisites.baseCurrencyContract,
+        quoteCurrencyContract: newOrderRequest.requisites.quoteCurrencyContract
+      } : void 0,
       proofsOfFunds: newOrderRequest.proofsOfFunds,
-      requisites: newOrderRequest.requisites,
-      amount: amountBigNumber.toNumber(),
+      qty: amountBigNumber.toNumber(),
       price: priceBigNumber.toNumber()
     };
     const newOrderDto = await this.httpClient.request({

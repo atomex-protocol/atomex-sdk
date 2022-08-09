@@ -23,7 +23,7 @@ export declare class AtomexBuilder {
     protected createExchangeSymbolsProvider(): InMemoryExchangeSymbolsProvider;
     protected createAuthorizationManager(): AuthorizationManager;
     protected createSignersManager(): SignersManager;
-    protected createDefaultExchangeService(): import("../index").MixedApiAtomexClient;
+    protected createDefaultExchangeService(): import("..").MixedApiAtomexClient;
     protected createExchangeManager(): ExchangeManager;
     protected createSwapManager(): SwapManager;
     protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainOptions>;

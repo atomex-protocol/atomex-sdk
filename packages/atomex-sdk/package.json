@@ -44,6 +44,7 @@
     "buffer": "^6.0.3",
     "elliptic": "^6.5.4",
     "lodash.isplainobject": "^4.0.6",
+    "nanoid": "^3.3.4",
     "node-fetch": "^2.6.7",
     "web3": "^1.7.4"
   },
