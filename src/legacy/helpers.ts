@@ -1,3 +1,8 @@
+import type BigNumber from 'bignumber.js';
+
+import type { Atomex } from '../atomex';
+import type { Swap } from '../swaps';
+import { converters } from '../utils';
 import type {
   AuthMessage,
   InitiateParameters,
@@ -7,6 +12,9 @@ import type {
 } from './types';
 
 export abstract class Helpers {
+  constructor(readonly atomex: Atomex) {
+  }
+
   /**
    * Get the details needed for `getAuthToken` request
    *
@@ -52,17 +60,6 @@ export abstract class Helpers {
   ): PartialTransactionBody;
 
   /**
-   * Get the tx data for Atomex Contract AdditionalFunds call
-   *
-   * @param secretHash secretHash to identify swap
-   * @returns contract address and tx data that can be used to make a contract call
-   */
-  abstract buildAddTransaction(
-    secretHash: string,
-    amount: number,
-  ): PartialTransactionBody;
-
-  /**
    * Validate the Swap Details on chain using the tx detail from Atomex
    * [does not check tx status, use status provided by atomex]
    *
@@ -78,8 +75,8 @@ export abstract class Helpers {
     txID: string,
     secretHash: string,
     receivingAddress: string,
-    amount: number,
-    payoff: number,
+    amount: BigNumber | number,
+    payoff: BigNumber | number,
     minRefundTimestamp: number,
     minConfirmations: number,
   ): Promise<SwapTransactionStatus>;
@@ -123,6 +120,31 @@ export abstract class Helpers {
    * @returns true if valid, else false
    */
   abstract isValidAddress(address: string): boolean;
+
+  validateInitiateTransactionBySwap(swap: Swap): Promise<SwapTransactionStatus> {
+    const initiateTransaction = swap.counterParty.transactions.find(transaction => transaction.type === 'Lock');
+    if (!initiateTransaction)
+      return Promise.resolve({
+        status: 'NotFound',
+        confirmations: 0,
+        nextBlockETA: 0
+      });
+
+    const toCurrency = this.atomex.getCurrency(swap.to.currencyId);
+    if (!toCurrency)
+      throw new Error(`Config of the "${swap.to.currencyId}" not found`);
+
+    return this.validateInitiateTransaction(
+      initiateTransaction.blockId,
+      initiateTransaction.id,
+      swap.secretHash,
+      swap.user.requisites.receivingAddress,
+      converters.tokensAmountToNat(swap.to.amount, toCurrency.decimals),
+      converters.tokensAmountToNat(swap.user.requisites.rewardForRedeem, toCurrency.decimals),
+      0,
+      2
+    );
+  }
 }
 
 export const dt2ts = (isoTime: Date | string): number =>

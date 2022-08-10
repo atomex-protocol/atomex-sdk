@@ -72,7 +72,7 @@ export interface SwapDto {
   timeStamp: string;
   price: number;
   qty: number;
-  secret: string;
+  secret: string | null;
   secretHash: string;
   isInitiator: boolean;
   user: UserSwapDataDto;
