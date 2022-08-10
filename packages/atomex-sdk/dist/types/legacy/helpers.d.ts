@@ -1,5 +1,10 @@
+import type BigNumber from 'bignumber.js';
+import type { Atomex } from '../atomex';
+import type { Swap } from '../swaps';
 import type { AuthMessage, InitiateParameters, PartialTransactionBody, RedeemFees, SwapTransactionStatus } from './types';
 export declare abstract class Helpers {
+    readonly atomex: Atomex;
+    constructor(atomex: Atomex);
     /**
      * Get the details needed for `getAuthToken` request
      *
@@ -31,13 +36,6 @@ export declare abstract class Helpers {
      */
     abstract buildRefundTransaction(secretHash: string): PartialTransactionBody;
     /**
-     * Get the tx data for Atomex Contract AdditionalFunds call
-     *
-     * @param secretHash secretHash to identify swap
-     * @returns contract address and tx data that can be used to make a contract call
-     */
-    abstract buildAddTransaction(secretHash: string, amount: number): PartialTransactionBody;
-    /**
      * Validate the Swap Details on chain using the tx detail from Atomex
      * [does not check tx status, use status provided by atomex]
      *
@@ -48,7 +46,7 @@ export declare abstract class Helpers {
      * @returns status of tx, current no. of confirms and est. next block generation timestamp.
      * No. of confirmations and block timestamp is only returned when `status:Included`
      */
-    abstract validateInitiateTransaction(blockHeight: number, txID: string, secretHash: string, receivingAddress: string, amount: number, payoff: number, minRefundTimestamp: number, minConfirmations: number): Promise<SwapTransactionStatus>;
+    abstract validateInitiateTransaction(blockHeight: number, txID: string, secretHash: string, receivingAddress: string, amount: BigNumber | number, payoff: BigNumber | number, minRefundTimestamp: number, minConfirmations: number): Promise<SwapTransactionStatus>;
     /**
      * Encodes Signature in a form compliant with Atomex
      *
@@ -84,6 +82,7 @@ export declare abstract class Helpers {
      * @returns true if valid, else false
      */
     abstract isValidAddress(address: string): boolean;
+    validateInitiateTransactionBySwap(swap: Swap): Promise<SwapTransactionStatus>;
 }
 export declare const dt2ts: (isoTime: Date | string) => number;
 export declare const now: () => number;

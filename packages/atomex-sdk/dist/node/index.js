@@ -2546,7 +2546,7 @@ __export(legacy_exports, {
   now: () => now
 });
 
-// src/legacy/config.json
+// src/legacy/config.ts
 var config_default = {
   api: {
     mainnet: {
@@ -3678,11 +3678,28 @@ var Atomex2 = class {
 };
 
 // src/legacy/ethereum.ts
+var import_bignumber4 = __toESM(require("bignumber.js"));
 var import_elliptic2 = __toESM(require("elliptic"));
 var import_web3 = __toESM(require("web3"));
 
 // src/legacy/helpers.ts
 var Helpers = class {
+  constructor(atomex) {
+    this.atomex = atomex;
+  }
+  validateInitiateTransactionBySwap(swap) {
+    const initiateTransaction = swap.counterParty.transactions.find((transaction) => transaction.type === "Lock");
+    if (!initiateTransaction)
+      return Promise.resolve({
+        status: "NotFound",
+        confirmations: 0,
+        nextBlockETA: 0
+      });
+    const toCurrency = this.atomex.getCurrency(swap.to.currencyId);
+    if (!toCurrency)
+      throw new Error(`Config of the "${swap.to.currencyId}" not found`);
+    return this.validateInitiateTransaction(initiateTransaction.blockId, initiateTransaction.id, swap.secretHash, swap.user.requisites.receivingAddress, converters_exports.tokensAmountToNat(swap.to.amount, toCurrency.decimals), converters_exports.tokensAmountToNat(swap.user.requisites.rewardForRedeem, toCurrency.decimals), 0, 2);
+  }
 };
 var dt2ts = (isoTime) => Math.round(new Date(isoTime).getTime() / 1e3);
 var now = () => Math.round(Date.now() / 1e3);
@@ -3694,23 +3711,26 @@ var EthereumHelpers = class extends Helpers {
   _timeBetweenBlocks;
   _functions;
   _gasLimit;
-  constructor(web3, jsonInterface, contractAddress, timeBetweenBlocks, gasLimit) {
-    super();
+  constructor(atomex, web3, jsonInterface, contractAddress, timeBetweenBlocks, gasLimit) {
+    super(atomex);
     this._web3 = web3;
-    this._contract = new web3.eth.Contract(jsonInterface, contractAddress);
+    this._contract = this.createContract(jsonInterface, contractAddress);
     this._timeBetweenBlocks = timeBetweenBlocks;
     this._gasLimit = gasLimit;
     this._functions = /* @__PURE__ */ new Map();
+    this.initializeFunctions(jsonInterface);
+  }
+  initializeFunctions(jsonInterface) {
     jsonInterface.forEach((item) => {
       if (item.type === "function") {
         this._functions.set(item.name, {
           types: item.inputs,
-          signature: web3.eth.abi.encodeFunctionSignature(item)
+          signature: this._web3.eth.abi.encodeFunctionSignature(item)
         });
       }
     });
   }
-  static async create(network, rpcUri) {
+  static async create(newAtomex, network, rpcUri) {
     const networkSettings = config_default.blockchains.ethereum.rpc[network];
     if (rpcUri !== void 0) {
       networkSettings.rpc = rpcUri;
@@ -3720,7 +3740,7 @@ var EthereumHelpers = class extends Helpers {
     if (networkSettings.chainID !== chainID) {
       throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
     }
-    return new EthereumHelpers(web3, config_default.currencies.ETH.contracts.abi, config_default.currencies.ETH.contracts[network].address, networkSettings.blockTime, config_default.currencies.ETH.contracts[network].gasLimit);
+    return new EthereumHelpers(newAtomex, web3, config_default.currencies.ETH.contracts.abi, config_default.currencies.ETH.contracts[network].address, networkSettings.blockTime, config_default.currencies.ETH.contracts[network].gasLimit);
   }
   getAuthMessage(message, _address) {
     const nowMillis = Date.now();
@@ -3739,7 +3759,7 @@ var EthereumHelpers = class extends Helpers {
     return {
       data,
       contractAddr: this._contract.options.address,
-      amount: initiateParameters.netAmount + initiateParameters.rewardForRedeem
+      amount: initiateParameters.netAmount.plus(initiateParameters.rewardForRedeem)
     };
   }
   buildRedeemTransaction(secret, hashedSecret) {
@@ -3754,14 +3774,6 @@ var EthereumHelpers = class extends Helpers {
     return {
       data,
       contractAddr: this._contract.options.address
-    };
-  }
-  buildAddTransaction(secretHash, amount) {
-    const data = this._contract.methods.add(secretHash).encodeABI();
-    return {
-      data,
-      contractAddr: this._contract.options.address,
-      amount
     };
   }
   buildActivateTransaction(secretHash) {
@@ -3781,32 +3793,35 @@ var EthereumHelpers = class extends Helpers {
       secretHash: params["_hashedSecret"].slice(2),
       receivingAddress: params["_participant"],
       refundTimestamp: parseInt(params["_refundTimestamp"]),
-      rewardForRedeem: parseInt(this._web3.utils.toBN(params["_payoff"]).toString()),
-      netAmount: parseInt(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
+      rewardForRedeem: new import_bignumber4.default(this._web3.utils.toBN(params["_payoff"]).toString()),
+      netAmount: new import_bignumber4.default(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
     };
   }
-  async validateInitiateTransaction(_blockHeight, txID, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
-    const netAmount = amount - payoff;
-    const transaction = await this._web3.eth.getTransaction(txID);
+  async validateInitiateTransaction(_blockHeight, txId, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
+    var _a;
+    amount = new import_bignumber4.default(amount);
+    payoff = new import_bignumber4.default(payoff);
+    const netAmount = amount.minus(payoff);
+    const transaction = await this.getTransaction(txId);
     try {
-      if (transaction === void 0) {
-        throw new Error(`Failed to retrieve transaction: ${txID}`);
-      }
-      if (transaction.to !== this._contract.options.address) {
-        throw new Error(`Wrong contract address: ${transaction.to}`);
-      }
+      if (!transaction)
+        throw new Error(`Failed to retrieve transaction: ${txId}`);
+      const errors = [];
+      if (((_a = transaction.to) == null ? void 0 : _a.toLowerCase()) !== this._contract.options.address.toLowerCase())
+        errors.push(`Wrong contract address: expect ${this._contract.options.address}, actual ${transaction.to}`);
       const initiateParameters = this.parseInitiateParameters(transaction);
-      if (initiateParameters.secretHash !== secretHash) {
-        throw new Error(`Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`);
-      }
-      if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase()) {
-        throw new Error(`Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`);
-      }
-      if (initiateParameters.netAmount !== netAmount) {
-        throw new Error(`Net amount: expect ${netAmount}, actual ${initiateParameters.netAmount}`);
-      }
-      if (initiateParameters.refundTimestamp < minRefundTimestamp) {
-        throw new Error(`Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`);
+      if (initiateParameters.secretHash !== secretHash)
+        errors.push(`Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`);
+      if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase())
+        errors.push(`Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`);
+      if (!initiateParameters.netAmount.isEqualTo(netAmount))
+        errors.push(`Net amount: expect ${netAmount.toString(10)}, actual ${initiateParameters.netAmount.toString(10)}`);
+      if (initiateParameters.refundTimestamp < minRefundTimestamp)
+        errors.push(`Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`);
+      if (errors.length) {
+        const errorMessage = errors.reduce((result, error, index) => `${result}
+	${index + 1}. ${error};`, `Initiate transaction that satisfies the expected criteria is not found in ${txId} contents:`);
+        throw new Error(errorMessage);
       }
     } catch (e) {
       return {
@@ -3816,7 +3831,7 @@ var EthereumHelpers = class extends Helpers {
         nextBlockETA: 0
       };
     }
-    const latestBlock = await this._web3.eth.getBlock("latest");
+    const latestBlock = await this.getBlock("latest");
     const confirmations = latestBlock.number - (transaction.blockNumber || latestBlock.number);
     const res = {
       status: transaction.blockNumber !== void 0 ? "Included" : "Pending",
@@ -3861,12 +3876,13 @@ var EthereumHelpers = class extends Helpers {
     return vrs.r.padStart(64, "0") + vrs.s.padStart(64, "0");
   }
   async estimateInitiateFees(source) {
+    var _a;
     const dummyTx = {
       receivingAddress: "0x0000000000000000000000000000000000000000",
       secretHash: "0000000000000000000000000000000000000000000000000000000000000000",
       refundTimestamp: 2147483647,
-      rewardForRedeem: 0,
-      netAmount: 0
+      rewardForRedeem: new import_bignumber4.default(0),
+      netAmount: new import_bignumber4.default(0)
     };
     const txData = this.buildInitiateTransaction(dummyTx);
     const gasPrice = await this._web3.eth.getGasPrice();
@@ -3874,7 +3890,7 @@ var EthereumHelpers = class extends Helpers {
       from: source,
       to: txData.contractAddr,
       data: txData.data,
-      value: txData.amount
+      value: (_a = txData.amount) == null ? void 0 : _a.toString(10)
     });
     const fee = parseInt(gasPrice) * gasEstimate;
     return fee;
@@ -3890,13 +3906,23 @@ var EthereumHelpers = class extends Helpers {
   isValidAddress(address) {
     return this._web3.utils.isAddress(address);
   }
+  getTransaction(txId) {
+    return this._web3.eth.getTransaction(txId);
+  }
+  getBlock(blockId) {
+    return this._web3.eth.getBlock(blockId);
+  }
+  createContract(jsonInterface, contractAddress) {
+    return new this._web3.eth.Contract(jsonInterface, contractAddress);
+  }
 };
 
 // src/legacy/tezos.ts
 var import_michelson_encoder = require("@taquito/michelson-encoder");
 var import_rpc = require("@taquito/rpc");
 var import_taquito = require("@taquito/taquito");
-var import_utils14 = require("@taquito/utils");
+var import_utils15 = require("@taquito/utils");
+var import_bignumber5 = __toESM(require("bignumber.js"));
 var formatTimestamp = (timestamp) => {
   return new Date(timestamp * 1e3).toISOString().slice(0, -5) + "Z";
 };
@@ -3912,8 +3938,8 @@ var TezosHelpers = class extends Helpers {
   _costPerByte;
   _redeemTxSize;
   _initiateTxSize;
-  constructor(tezos, entrypoints, contractAddress, timeBetweenBlocks, gasLimit, minimalFees, minimalNanotezPerGasUnit, minimalNanotezPerByte, costPerByte, redeemTxSize, initiateTxSize) {
-    super();
+  constructor(atomex, tezos, entrypoints, contractAddress, timeBetweenBlocks, gasLimit, minimalFees, minimalNanotezPerGasUnit, minimalNanotezPerByte, costPerByte, redeemTxSize, initiateTxSize) {
+    super(atomex);
     this._tezos = tezos;
     this._contractAddress = contractAddress;
     this._timeBetweenBlocks = timeBetweenBlocks;
@@ -3928,7 +3954,7 @@ var TezosHelpers = class extends Helpers {
       return [name, new import_michelson_encoder.ParameterSchema(typeExpr)];
     }));
   }
-  static async create(network, currency = "XTZ", rpcUri) {
+  static async create(newAtomex, network, currency = "XTZ", rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
     if (rpcUri !== void 0) {
       networkSettings.rpc = rpcUri;
@@ -3938,7 +3964,7 @@ var TezosHelpers = class extends Helpers {
     if (networkSettings.chainID !== chainID.toString()) {
       throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
     }
-    return new TezosHelpers(tezos, config_default.currencies[currency].contracts.entrypoints, config_default.currencies[currency].contracts[network].address, config_default.blockchains.tezos.rpc[network].blockTime, config_default.currencies[currency].contracts[network].gasLimit, config_default.blockchains.tezos.rpc[network].minimalFees, config_default.blockchains.tezos.rpc[network].minimalNanotezPerGasUnit, config_default.blockchains.tezos.rpc[network].minimalNanotezPerByte, config_default.blockchains.tezos.rpc[network].costPerByte, config_default.currencies[currency].contracts[network].redeemTxSize, config_default.currencies[currency].contracts[network].initiateTxSize);
+    return new TezosHelpers(newAtomex, tezos, config_default.currencies[currency].contracts.entrypoints, config_default.currencies[currency].contracts[network].address, config_default.blockchains.tezos.rpc[network].blockTime, config_default.currencies[currency].contracts[network].gasLimit, config_default.blockchains.tezos.rpc[network].minimalFees, config_default.blockchains.tezos.rpc[network].minimalNanotezPerGasUnit, config_default.blockchains.tezos.rpc[network].minimalNanotezPerByte, config_default.blockchains.tezos.rpc[network].costPerByte, config_default.currencies[currency].contracts[network].redeemTxSize, config_default.currencies[currency].contracts[network].initiateTxSize);
   }
   getTezosAlgorithm(prefix4) {
     switch (prefix4) {
@@ -3973,7 +3999,7 @@ var TezosHelpers = class extends Helpers {
         value: parameter
       },
       contractAddr: this._contractAddress,
-      amount: initiateParameters.netAmount + initiateParameters.rewardForRedeem
+      amount: initiateParameters.netAmount.plus(initiateParameters.rewardForRedeem)
     };
   }
   buildRedeemTransaction(secret, _hashedSecret = "") {
@@ -3992,17 +4018,6 @@ var TezosHelpers = class extends Helpers {
       data: {
         entrypoint: "refund",
         value: (_a = this._entrypoints.get("refund")) == null ? void 0 : _a.Encode(secretHash)
-      },
-      contractAddr: this._contractAddress
-    };
-  }
-  buildAddTransaction(secretHash, amount) {
-    var _a;
-    return {
-      amount,
-      data: {
-        entrypoint: "add",
-        value: (_a = this._entrypoints.get("add")) == null ? void 0 : _a.Encode(secretHash)
       },
       contractAddr: this._contractAddress
     };
@@ -4037,8 +4052,8 @@ var TezosHelpers = class extends Helpers {
       secretHash: initiateParams["settings"]["hashed_secret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["settings"]["refund_time"]),
-      netAmount: parseInt(content.amount) - parseInt(initiateParams["settings"]["payoff"]),
-      rewardForRedeem: parseInt(initiateParams["settings"]["payoff"])
+      netAmount: new import_bignumber5.default(content.amount).minus(initiateParams["settings"]["payoff"]),
+      rewardForRedeem: new import_bignumber5.default(initiateParams["settings"]["payoff"])
     };
   }
   findContractCall(block, txID) {
@@ -4054,33 +4069,29 @@ var TezosHelpers = class extends Helpers {
     return contents;
   }
   async validateInitiateTransaction(blockHeight, txID, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
-    const netAmount = amount - payoff;
-    const block = await this._tezos.rpc.getBlock({
-      block: blockHeight.toString()
-    });
+    amount = new import_bignumber5.default(amount);
+    payoff = new import_bignumber5.default(payoff);
+    const netAmount = amount.minus(payoff);
+    const block = await this.getBlock(blockHeight);
     try {
+      let errors = [];
       const tx = this.findContractCall(block, txID).find((content) => {
+        errors = [];
         const initiateParameters = this.parseInitiateParameters(content);
-        if (initiateParameters.secretHash !== secretHash) {
-          console.log(`[${content.counter}] Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`);
-          return false;
-        }
-        if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase()) {
-          console.log(`[${content.counter}] Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`);
-          return false;
-        }
-        if (initiateParameters.netAmount !== netAmount) {
-          console.log(`[${content.counter}] Net amount: expect ${netAmount}, actual ${initiateParameters.netAmount}`);
-          return false;
-        }
-        if (initiateParameters.refundTimestamp < minRefundTimestamp) {
-          console.log(`[${content.counter}] Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`);
-          return false;
-        }
-        return true;
+        if (initiateParameters.secretHash !== secretHash)
+          errors.push(`Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}. Counter = ${content.counter}`);
+        if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase())
+          errors.push(`Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}. Counter = ${content.counter}`);
+        if (!initiateParameters.netAmount.isEqualTo(netAmount))
+          errors.push(`Net amount: expect ${netAmount.toString(10)}, actual ${initiateParameters.netAmount.toString(10)}. Counter = ${content.counter}`);
+        if (initiateParameters.refundTimestamp < minRefundTimestamp)
+          errors.push(`Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}. Counter = ${content.counter}`);
+        return !errors.length;
       }, this);
-      if (tx === void 0) {
-        throw new Error(`Initiate transaction that satisfies the expected criteria is not found in ${txID} contents`);
+      if (!tx) {
+        const errorMessage = errors.reduce((result, error, index) => `${result}
+	${index + 1}. ${error};`, `Initiate transaction that satisfies the expected criteria is not found in ${txID} contents:`);
+        throw new Error(errorMessage);
       }
     } catch (e) {
       return {
@@ -4090,7 +4101,7 @@ var TezosHelpers = class extends Helpers {
         nextBlockETA: 0
       };
     }
-    const headDetails = this.getBlockDetails(await this._tezos.rpc.getBlock({ block: "head" }));
+    const headDetails = this.getBlockDetails(await this.getBlock("head"));
     const txBlockDetails = this.getBlockDetails(block);
     const confirmations = headDetails.level - txBlockDetails.level;
     const res = {
@@ -4107,11 +4118,11 @@ var TezosHelpers = class extends Helpers {
     const curve = pubKey.substring(0, 2);
     switch (curve) {
       case "ed":
-        return Buffer.from((0, import_utils14.b58cdecode)(pubKey, import_utils14.prefix["edpk"])).toString("hex");
+        return Buffer.from((0, import_utils15.b58cdecode)(pubKey, import_utils15.prefix["edpk"])).toString("hex");
       case "p2":
-        return Buffer.from((0, import_utils14.b58cdecode)(pubKey, import_utils14.prefix["p2pk"])).toString("hex");
+        return Buffer.from((0, import_utils15.b58cdecode)(pubKey, import_utils15.prefix["p2pk"])).toString("hex");
       case "sp":
-        return Buffer.from((0, import_utils14.b58cdecode)(pubKey, import_utils14.prefix["sppk"])).toString("hex");
+        return Buffer.from((0, import_utils15.b58cdecode)(pubKey, import_utils15.prefix["sppk"])).toString("hex");
       default:
         throw new Error("Unsupported Public Key Type");
     }
@@ -4119,8 +4130,8 @@ var TezosHelpers = class extends Helpers {
   encodeSignature(signature) {
     var _a;
     const pref = signature.startsWith("sig") ? signature.substring(0, 3) : signature.substring(0, 5);
-    if (Object.prototype.hasOwnProperty.call(import_utils14.prefix, pref)) {
-      return Buffer.from((0, import_utils14.b58cdecode)(signature, (_a = Object.getOwnPropertyDescriptor(import_utils14.prefix, pref)) == null ? void 0 : _a.value)).toString("hex");
+    if (Object.prototype.hasOwnProperty.call(import_utils15.prefix, pref)) {
+      return Buffer.from((0, import_utils15.b58cdecode)(signature, (_a = Object.getOwnPropertyDescriptor(import_utils15.prefix, pref)) == null ? void 0 : _a.value)).toString("hex");
     }
     throw new Error("Unsupported Signature Type");
   }
@@ -4132,8 +4143,8 @@ var TezosHelpers = class extends Helpers {
       receivingAddress: "tz1Q2prWCrDGFDuGTe7axdt4z9e3QkCqdhmD",
       secretHash: "169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b",
       refundTimestamp: 2147483647,
-      rewardForRedeem: 0,
-      netAmount: 100
+      rewardForRedeem: new import_bignumber5.default(0),
+      netAmount: new import_bignumber5.default(100)
     };
     const tx = this.buildInitiateTransaction(dummyTx);
     const header = await this._tezos.rpc.getBlockHeader();
@@ -4180,14 +4191,18 @@ var TezosHelpers = class extends Helpers {
     };
   }
   isValidAddress(address) {
-    return (0, import_utils14.validateAddress)(address) == import_utils14.ValidationResult.VALID;
+    return (0, import_utils15.validateAddress)(address) == import_utils15.ValidationResult.VALID;
+  }
+  getBlock(blockId) {
+    return this._tezos.rpc.getBlock({ block: blockId.toString() });
   }
 };
 
 // src/legacy/fa12.ts
 var import_taquito2 = require("@taquito/taquito");
+var import_bignumber6 = __toESM(require("bignumber.js"));
 var FA12Helpers = class extends TezosHelpers {
-  static async create(network, currency, rpcUri) {
+  static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
     if (rpcUri !== void 0) {
       networkSettings.rpc = rpcUri;
@@ -4197,7 +4212,7 @@ var FA12Helpers = class extends TezosHelpers {
     if (networkSettings.chainID !== chainID.toString()) {
       throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
     }
-    return new FA12Helpers(tezos, config_default.currencies[currency].contracts.entrypoints, config_default.currencies[currency].contracts[network].address, config_default.blockchains.tezos.rpc[network].blockTime, config_default.currencies[currency].contracts[network].gasLimit, config_default.blockchains.tezos.rpc[network].minimalFees, config_default.blockchains.tezos.rpc[network].minimalNanotezPerGasUnit, config_default.blockchains.tezos.rpc[network].minimalNanotezPerByte, config_default.blockchains.tezos.rpc[network].costPerByte, config_default.currencies[currency].contracts[network].redeemTxSize, config_default.currencies[currency].contracts[network].initiateTxSize);
+    return new FA12Helpers(newAtomex, tezos, config_default.currencies[currency].contracts.entrypoints, config_default.currencies[currency].contracts[network].address, config_default.blockchains.tezos.rpc[network].blockTime, config_default.currencies[currency].contracts[network].gasLimit, config_default.blockchains.tezos.rpc[network].minimalFees, config_default.blockchains.tezos.rpc[network].minimalNanotezPerGasUnit, config_default.blockchains.tezos.rpc[network].minimalNanotezPerByte, config_default.blockchains.tezos.rpc[network].costPerByte, config_default.currencies[currency].contracts[network].redeemTxSize, config_default.currencies[currency].contracts[network].initiateTxSize);
   }
   parseInitiateParameters(content) {
     var _a;
@@ -4222,16 +4237,17 @@ var FA12Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: parseInt(initiateParams["totalAmount"]) - parseInt(initiateParams["payoffAmount"]),
-      rewardForRedeem: parseInt(initiateParams["payoffAmount"])
+      netAmount: new import_bignumber6.default(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new import_bignumber6.default(initiateParams["payoffAmount"])
     };
   }
 };
 
 // src/legacy/fa2.ts
 var import_taquito3 = require("@taquito/taquito");
+var import_bignumber7 = __toESM(require("bignumber.js"));
 var FA2Helpers = class extends TezosHelpers {
-  static async create(network, currency, rpcUri) {
+  static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
     if (rpcUri !== void 0) {
       networkSettings.rpc = rpcUri;
@@ -4241,7 +4257,7 @@ var FA2Helpers = class extends TezosHelpers {
     if (networkSettings.chainID !== chainID.toString()) {
       throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
     }
-    return new FA2Helpers(tezos, config_default.currencies[currency].contracts.entrypoints, config_default.currencies[currency].contracts[network].address, config_default.blockchains.tezos.rpc[network].blockTime, config_default.currencies[currency].contracts[network].gasLimit, config_default.blockchains.tezos.rpc[network].minimalFees, config_default.blockchains.tezos.rpc[network].minimalNanotezPerGasUnit, config_default.blockchains.tezos.rpc[network].minimalNanotezPerByte, config_default.blockchains.tezos.rpc[network].costPerByte, config_default.currencies[currency].contracts[network].redeemTxSize, config_default.currencies[currency].contracts[network].initiateTxSize);
+    return new FA2Helpers(newAtomex, tezos, config_default.currencies[currency].contracts.entrypoints, config_default.currencies[currency].contracts[network].address, config_default.blockchains.tezos.rpc[network].blockTime, config_default.currencies[currency].contracts[network].gasLimit, config_default.blockchains.tezos.rpc[network].minimalFees, config_default.blockchains.tezos.rpc[network].minimalNanotezPerGasUnit, config_default.blockchains.tezos.rpc[network].minimalNanotezPerByte, config_default.blockchains.tezos.rpc[network].costPerByte, config_default.currencies[currency].contracts[network].redeemTxSize, config_default.currencies[currency].contracts[network].initiateTxSize);
   }
   parseInitiateParameters(content) {
     var _a;
@@ -4257,8 +4273,8 @@ var FA2Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: parseInt(initiateParams["totalAmount"]) - parseInt(initiateParams["payoffAmount"]),
-      rewardForRedeem: parseInt(initiateParams["payoffAmount"])
+      netAmount: new import_bignumber7.default(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new import_bignumber7.default(initiateParams["payoffAmount"])
     };
   }
   getInitiateParams(entrypoint, params) {

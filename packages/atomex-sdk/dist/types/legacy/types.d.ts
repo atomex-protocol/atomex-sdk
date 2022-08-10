@@ -1,3 +1,4 @@
+import type BigNumber from 'bignumber.js';
 export declare type Side = 'Buy' | 'Sell';
 export declare type Sort = 'Asc' | 'Desc';
 export declare type TxType = 'Lock' | 'AdditionalLock' | 'Redeem' | 'Refund';
@@ -137,8 +138,8 @@ export interface SymbolData {
 export interface InitiateParameters {
     secretHash: string;
     receivingAddress: string;
-    netAmount: number;
-    rewardForRedeem: number;
+    netAmount: BigNumber;
+    rewardForRedeem: BigNumber;
     refundTimestamp: number;
     countdown?: number;
     active?: boolean;
@@ -146,10 +147,10 @@ export interface InitiateParameters {
 export interface PartialTransactionBody {
     contractAddr: string;
     data: any;
-    amount?: number;
+    amount?: BigNumber;
 }
 export interface SwapTransactionStatus {
-    status: 'Confirmed' | 'Pending' | 'Included' | 'Invalid';
+    status: 'Confirmed' | 'Pending' | 'Included' | 'Invalid' | 'NotFound';
     message?: string;
     confirmations: number;
     nextBlockETA: number;
