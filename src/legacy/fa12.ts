@@ -1,5 +1,6 @@
 import type { OperationContentsAndResultTransaction } from '@taquito/rpc';
 import { TezosToolkit } from '@taquito/taquito';
+import BigNumber from 'bignumber.js';
 
 import type { Atomex } from '../atomex';
 import config from './config';
@@ -90,8 +91,8 @@ export class FA12Helpers extends TezosHelpers {
       secretHash: initiateParams['hashedSecret'],
       receivingAddress: initiateParams['participant'],
       refundTimestamp: dt2ts(initiateParams['refundTime']),
-      netAmount: parseInt(initiateParams['totalAmount']) - parseInt(initiateParams['payoffAmount']),
-      rewardForRedeem: parseInt(initiateParams['payoffAmount']),
+      netAmount: new BigNumber(initiateParams['totalAmount']).minus(initiateParams['payoffAmount']),
+      rewardForRedeem: new BigNumber(initiateParams['payoffAmount']),
     };
   }
 }

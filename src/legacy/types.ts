@@ -1,3 +1,5 @@
+import type BigNumber from 'bignumber.js';
+
 export type Side = 'Buy' | 'Sell';
 
 export type Sort = 'Asc' | 'Desc';
@@ -194,8 +196,8 @@ export interface SymbolData {
 export interface InitiateParameters {
   secretHash: string;
   receivingAddress: string;
-  netAmount: number;
-  rewardForRedeem: number;
+  netAmount: BigNumber;
+  rewardForRedeem: BigNumber;
   refundTimestamp: number;
   countdown?: number;
   active?: boolean;
@@ -205,7 +207,7 @@ export interface PartialTransactionBody {
   contractAddr: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
-  amount?: number;
+  amount?: BigNumber;
 }
 
 export interface SwapTransactionStatus {

@@ -2,7 +2,8 @@
 import { Atomex, createDefaultTestnetAtomex, legacy } from '../../src/index';
 import {
   validXtzToEthSwapInitiatedTransactionValidationTestCases,
-  validEthToXtzSwapInitiatedTransactionValidationTestCases
+  validEthToXtzSwapInitiatedTransactionValidationTestCases,
+  invalidEthToXtzSwapInitiatedTransactionValidationTestCases
 } from './testCases/index';
 
 describe('Legacy : Validation', () => {
@@ -30,5 +31,16 @@ describe('Legacy : Validation', () => {
     const result = await tezosHelpers.validateInitiateTransactionBySwap(swap);
 
     expect(result.status).toBe('Confirmed');
+  });
+
+  test.each(
+    invalidEthToXtzSwapInitiatedTransactionValidationTestCases
+  )('validation of the invalid initiated transaction [ETH -> XTZ]: %s', async (_, { swap }, expectedErrors) => {
+    const result = await tezosHelpers.validateInitiateTransactionBySwap(swap);
+
+    expect(result.status).toBe('Invalid');
+    expectedErrors.forEach(expectedError => {
+      expect(result.message).toMatch(new RegExp(expectedError, 'i'));
+    });
   });
 });

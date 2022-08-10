@@ -60,17 +60,6 @@ export abstract class Helpers {
   ): PartialTransactionBody;
 
   /**
-   * Get the tx data for Atomex Contract AdditionalFunds call
-   *
-   * @param secretHash secretHash to identify swap
-   * @returns contract address and tx data that can be used to make a contract call
-   */
-  abstract buildAddTransaction(
-    secretHash: string,
-    amount: number,
-  ): PartialTransactionBody;
-
-  /**
    * Validate the Swap Details on chain using the tx detail from Atomex
    * [does not check tx status, use status provided by atomex]
    *

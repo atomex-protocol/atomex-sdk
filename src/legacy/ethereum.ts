@@ -126,7 +126,7 @@ export class EthereumHelpers extends Helpers {
     return {
       data,
       contractAddr: this._contract.options.address,
-      amount: initiateParameters.netAmount + initiateParameters.rewardForRedeem,
+      amount: initiateParameters.netAmount.plus(initiateParameters.rewardForRedeem),
     };
   }
 
@@ -148,18 +148,6 @@ export class EthereumHelpers extends Helpers {
     return {
       data,
       contractAddr: this._contract.options.address,
-    };
-  }
-
-  buildAddTransaction(
-    secretHash: string,
-    amount: number,
-  ): PartialTransactionBody {
-    const data = this._contract.methods.add(secretHash).encodeABI();
-    return {
-      data,
-      contractAddr: this._contract.options.address,
-      amount,
     };
   }
 
@@ -195,10 +183,10 @@ export class EthereumHelpers extends Helpers {
       secretHash: params['_hashedSecret'].slice(2),
       receivingAddress: params['_participant'],
       refundTimestamp: parseInt(params['_refundTimestamp']),
-      rewardForRedeem: parseInt(
+      rewardForRedeem: new BigNumber(
         this._web3.utils.toBN(params['_payoff']).toString(),
       ),
-      netAmount: parseInt(
+      netAmount: new BigNumber(
         this._web3.utils
           .toBN(transaction.value)
           .sub(this._web3.utils.toBN(params['_payoff']))
@@ -239,7 +227,7 @@ export class EthereumHelpers extends Helpers {
       if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase())
         errors.push(`Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`);
 
-      if (!(new BigNumber(initiateParameters.netAmount).isEqualTo(netAmount)))
+      if (!initiateParameters.netAmount.isEqualTo(netAmount))
         errors.push(`Net amount: expect ${netAmount.toString(10)}, actual ${initiateParameters.netAmount.toString(10)}`);
 
       if (initiateParameters.refundTimestamp < minRefundTimestamp)
@@ -332,8 +320,8 @@ export class EthereumHelpers extends Helpers {
       secretHash:
         '0000000000000000000000000000000000000000000000000000000000000000',
       refundTimestamp: 2147483647,
-      rewardForRedeem: 0,
-      netAmount: 0,
+      rewardForRedeem: new BigNumber(0),
+      netAmount: new BigNumber(0),
     };
     const txData = this.buildInitiateTransaction(dummyTx);
     const gasPrice = await this._web3.eth.getGasPrice();
@@ -341,7 +329,7 @@ export class EthereumHelpers extends Helpers {
       from: source,
       to: txData.contractAddr,
       data: txData.data,
-      value: txData.amount,
+      value: txData.amount?.toString(10),
     });
     const fee = parseInt(gasPrice) * gasEstimate;
     return fee;

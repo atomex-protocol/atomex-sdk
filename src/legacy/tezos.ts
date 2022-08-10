@@ -169,7 +169,7 @@ export class TezosHelpers extends Helpers {
         value: parameter,
       },
       contractAddr: this._contractAddress,
-      amount: initiateParameters.netAmount + initiateParameters.rewardForRedeem,
+      amount: initiateParameters.netAmount.plus(initiateParameters.rewardForRedeem),
     };
   }
 
@@ -191,20 +191,6 @@ export class TezosHelpers extends Helpers {
       data: {
         entrypoint: 'refund',
         value: this._entrypoints.get('refund')?.Encode(secretHash),
-      },
-      contractAddr: this._contractAddress,
-    };
-  }
-
-  buildAddTransaction(
-    secretHash: string,
-    amount: number,
-  ): PartialTransactionBody {
-    return {
-      amount,
-      data: {
-        entrypoint: 'add',
-        value: this._entrypoints.get('add')?.Encode(secretHash),
       },
       contractAddr: this._contractAddress,
     };
@@ -257,10 +243,8 @@ export class TezosHelpers extends Helpers {
       secretHash: initiateParams['settings']['hashed_secret'],
       receivingAddress: initiateParams['participant'],
       refundTimestamp: dt2ts(initiateParams['settings']['refund_time']),
-      netAmount:
-        parseInt(content.amount) -
-        parseInt(initiateParams['settings']['payoff']),
-      rewardForRedeem: parseInt(initiateParams['settings']['payoff']),
+      netAmount: new BigNumber(content.amount).minus(initiateParams['settings']['payoff']),
+      rewardForRedeem: new BigNumber(initiateParams['settings']['payoff']),
     };
   }
 
@@ -311,7 +295,7 @@ export class TezosHelpers extends Helpers {
         if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase())
           errors.push(`Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}. Counter = ${content.counter}`);
 
-        if (!(new BigNumber(initiateParameters.netAmount).isEqualTo(netAmount)))
+        if (!initiateParameters.netAmount.isEqualTo(netAmount))
           errors.push(`Net amount: expect ${netAmount.toString(10)}, actual ${initiateParameters.netAmount.toString(10)}. Counter = ${content.counter}`);
 
         if (initiateParameters.refundTimestamp < minRefundTimestamp)
@@ -399,8 +383,8 @@ export class TezosHelpers extends Helpers {
       secretHash:
         '169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b',
       refundTimestamp: 2147483647,
-      rewardForRedeem: 0,
-      netAmount: 100,
+      rewardForRedeem: new BigNumber(0),
+      netAmount: new BigNumber(100),
     };
 
     const tx = this.buildInitiateTransaction(dummyTx);
