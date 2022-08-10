@@ -3755,7 +3755,7 @@ var EthereumHelpers = class extends Helpers {
     if (initiateParameters.refundTimestamp < now()) {
       throw new Error(`Swap timestamp is in the past: ${initiateParameters.refundTimestamp}`);
     }
-    const data = this._contract.methods.initiate("0x" + initiateParameters.secretHash, initiateParameters.receivingAddress, initiateParameters.refundTimestamp, initiateParameters.rewardForRedeem).encodeABI();
+    const data = this._contract.methods.initiate("0x" + initiateParameters.secretHash, initiateParameters.receivingAddress, initiateParameters.refundTimestamp, initiateParameters.rewardForRedeem.toString(10)).encodeABI();
     return {
       data,
       contractAddr: this._contract.options.address,
