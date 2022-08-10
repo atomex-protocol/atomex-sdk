@@ -209,7 +209,7 @@ export interface PartialTransactionBody {
 }
 
 export interface SwapTransactionStatus {
-  status: 'Confirmed' | 'Pending' | 'Included' | 'Invalid';
+  status: 'Confirmed' | 'Pending' | 'Included' | 'Invalid' | 'NotFound';
   message?: string;
   confirmations: number;
   nextBlockETA: number;

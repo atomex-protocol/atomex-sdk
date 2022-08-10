@@ -11,8 +11,10 @@ import {
   validateAddress,
   ValidationResult,
 } from '@taquito/utils';
+import BigNumber from 'bignumber.js';
 
-import config from './config.json';
+import type { Atomex } from '../atomex';
+import config from './config';
 import { dt2ts, Helpers, now } from './helpers';
 import type {
   Algorithm,
@@ -46,6 +48,7 @@ export class TezosHelpers extends Helpers {
   protected _initiateTxSize: number;
 
   constructor(
+    atomex: Atomex,
     tezos: TezosToolkit,
     entrypoints: Record<string, any>,
     contractAddress: string,
@@ -58,7 +61,7 @@ export class TezosHelpers extends Helpers {
     redeemTxSize: number,
     initiateTxSize: number,
   ) {
-    super();
+    super(atomex);
     this._tezos = tezos;
     this._contractAddress = contractAddress;
     this._timeBetweenBlocks = timeBetweenBlocks;
@@ -79,12 +82,14 @@ export class TezosHelpers extends Helpers {
   /**
    * Connects to the supported tezos chain
    *
+   * @param newAtomex instance of new Atomex class
    * @param network networks supported by atomex, can be either mainnet or testnet
    * @param currency either native currency (XTZ) or any supported FA1.2/FA2 token symbol
-   * @param rpc optional rpc endpoint to create tezos chain client
+   * @param rpcUri optional rpc endpoint to create tezos chain client
    * @returns chain id of the connected chain
    */
   static async create(
+    newAtomex: Atomex,
     network: Network,
     currency: TezosBasedCurrency = 'XTZ',
     rpcUri?: string,
@@ -103,6 +108,7 @@ export class TezosHelpers extends Helpers {
     }
 
     return new TezosHelpers(
+      newAtomex,
       tezos,
       config.currencies[currency].contracts.entrypoints,
       config.currencies[currency].contracts[network].address,
@@ -282,44 +288,44 @@ export class TezosHelpers extends Helpers {
     txID: string,
     secretHash: string,
     receivingAddress: string,
-    amount: number,
-    payoff: number,
+    amount: BigNumber | number,
+    payoff: BigNumber | number,
     minRefundTimestamp: number,
     minConfirmations = 2,
   ): Promise<SwapTransactionStatus> {
-    const netAmount = amount - payoff;
-    const block = await this._tezos.rpc.getBlock({
-      block: blockHeight.toString(),
-    });
+    amount = new BigNumber(amount);
+    payoff = new BigNumber(payoff);
+
+    const netAmount = amount.minus(payoff);
+    const block = await this.getBlock(blockHeight);
 
     try {
+      let errors: string[] = [];
       const tx = this.findContractCall(block, txID).find(content => {
+        errors = [];
+
         const initiateParameters = this.parseInitiateParameters(content);
-        if (initiateParameters.secretHash !== secretHash) {
-          console.log(`[${content.counter}] Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`);
-          return false;
-        }
+        if (initiateParameters.secretHash !== secretHash)
+          errors.push(`Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}. Counter = ${content.counter}`);
 
-        if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase()) {
-          console.log(`[${content.counter}] Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`);
-          return false;
-        }
+        if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase())
+          errors.push(`Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}. Counter = ${content.counter}`);
 
-        if (initiateParameters.netAmount !== netAmount) {
-          console.log(`[${content.counter}] Net amount: expect ${netAmount}, actual ${initiateParameters.netAmount}`);
-          return false;
-        }
+        if (!(new BigNumber(initiateParameters.netAmount).isEqualTo(netAmount)))
+          errors.push(`Net amount: expect ${netAmount.toString(10)}, actual ${initiateParameters.netAmount.toString(10)}. Counter = ${content.counter}`);
 
-        if (initiateParameters.refundTimestamp < minRefundTimestamp) {
-          console.log(`[${content.counter}] Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`);
-          return false;
-        }
+        if (initiateParameters.refundTimestamp < minRefundTimestamp)
+          errors.push(`Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}. Counter = ${content.counter}`);
 
-        return true;
+        return !errors.length;
       }, this);
 
-      if (tx === undefined) {
-        throw new Error(`Initiate transaction that satisfies the expected criteria is not found in ${txID} contents`);
+      if (!tx) {
+        const errorMessage = errors.reduce(
+          (result, error, index) => `${result}\n\t${index + 1}. ${error};`,
+          `Initiate transaction that satisfies the expected criteria is not found in ${txID} contents:`
+        );
+        throw new Error(errorMessage);
       }
     } catch (e: any) {
       return {
@@ -331,7 +337,7 @@ export class TezosHelpers extends Helpers {
     }
 
     const headDetails = this.getBlockDetails(
-      await this._tezos.rpc.getBlock({ block: 'head' }),
+      await this.getBlock('head')
     );
     const txBlockDetails = this.getBlockDetails(block);
     const confirmations = headDetails.level! - txBlockDetails.level!;
@@ -452,5 +458,9 @@ export class TezosHelpers extends Helpers {
 
   isValidAddress(address: string): boolean {
     return validateAddress(address) == ValidationResult.VALID;
+  }
+
+  private getBlock(blockId: string | number) {
+    return this._tezos.rpc.getBlock({ block: blockId.toString() });
   }
 }

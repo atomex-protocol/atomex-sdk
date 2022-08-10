@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import BigNumber from 'bignumber.js';
 import elliptic from 'elliptic';
 import Web3 from 'web3';
 import type { Transaction } from 'web3-core';
 import type { Contract } from 'web3-eth-contract';
 import type { AbiInput, AbiItem } from 'web3-utils';
 
-import config from './config.json';
+import type { Atomex } from '../atomex';
+import config from './config';
 import { Helpers, now } from './helpers';
 import type {
   AuthMessage,
@@ -31,23 +33,28 @@ export class EthereumHelpers extends Helpers {
   private _gasLimit: number;
 
   constructor(
+    atomex: Atomex,
     web3: Web3,
     jsonInterface: AbiItem[],
     contractAddress: string,
     timeBetweenBlocks: number,
     gasLimit: number,
   ) {
-    super();
+    super(atomex);
     this._web3 = web3;
-    this._contract = new web3.eth.Contract(jsonInterface, contractAddress);
+    this._contract = this.createContract(jsonInterface, contractAddress);
     this._timeBetweenBlocks = timeBetweenBlocks;
     this._gasLimit = gasLimit;
     this._functions = new Map<string, Function>();
+    this.initializeFunctions(jsonInterface);
+  }
+
+  private initializeFunctions(jsonInterface: AbiItem[]) {
     jsonInterface.forEach(item => {
       if (item.type === 'function') {
         this._functions.set(item.name!, {
           types: item.inputs!,
-          signature: web3.eth.abi.encodeFunctionSignature(item as AbiItem),
+          signature: this._web3.eth.abi.encodeFunctionSignature(item as AbiItem),
         });
       }
     });
@@ -56,11 +63,13 @@ export class EthereumHelpers extends Helpers {
   /**
    * Connects to the supported ethereum chain
    *
-   * @param chain chains supported by atomex, can be either mainnet or testnet
-   * @param rpc optional rpc endpoint to create eth chain client
+   * @param newAtomex instance of new Atomex class
+   * @param network networks supported by atomex, can be either mainnet or testnet
+   * @param rpcUri optional rpc endpoint to create eth chain client
    * @returns chain id of the connected chain
    */
   static async create(
+    newAtomex: Atomex,
     network: 'mainnet' | 'testnet',
     rpcUri?: string,
   ): Promise<EthereumHelpers> {
@@ -78,6 +87,7 @@ export class EthereumHelpers extends Helpers {
     }
 
     return new EthereumHelpers(
+      newAtomex,
       web3,
       config.currencies.ETH.contracts.abi as AbiItem[],
       config.currencies.ETH.contracts[network].address,
@@ -199,49 +209,48 @@ export class EthereumHelpers extends Helpers {
 
   async validateInitiateTransaction(
     _blockHeight: number,
-    txID: string,
+    txId: string,
     secretHash: string,
     receivingAddress: string,
-    amount: number,
-    payoff: number,
+    amount: BigNumber | number,
+    payoff: BigNumber | number,
     minRefundTimestamp: number,
     minConfirmations = 2,
   ): Promise<SwapTransactionStatus> {
-    const netAmount = amount - payoff;
-    const transaction = await this._web3.eth.getTransaction(txID);
+    amount = new BigNumber(amount);
+    payoff = new BigNumber(payoff);
+
+    const netAmount = amount.minus(payoff);
+    const transaction = await this.getTransaction(txId);
 
     try {
-      if (transaction === undefined) {
-        throw new Error(`Failed to retrieve transaction: ${txID}`);
-      }
+      if (!transaction)
+        throw new Error(`Failed to retrieve transaction: ${txId}`);
 
-      if (transaction.to !== this._contract.options.address) {
-        throw new Error(`Wrong contract address: ${transaction.to}`);
-      }
+      const errors: string[] = [];
+      if (transaction.to?.toLowerCase() !== this._contract.options.address.toLowerCase())
+        errors.push(`Wrong contract address: expect ${this._contract.options.address}, actual ${transaction.to}`);
+
 
       const initiateParameters = this.parseInitiateParameters(transaction);
-      if (initiateParameters.secretHash !== secretHash) {
-        throw new Error(
-          `Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`,
-        );
-      }
+      if (initiateParameters.secretHash !== secretHash)
+        errors.push(`Secret hash: expect ${secretHash}, actual ${initiateParameters.secretHash}`);
 
-      if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase()) {
-        throw new Error(
-          `Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`,
-        );
-      }
+      if (initiateParameters.receivingAddress.toLowerCase() !== receivingAddress.toLowerCase())
+        errors.push(`Receiving address: expect ${receivingAddress}, actual ${initiateParameters.receivingAddress}`);
 
-      if (initiateParameters.netAmount !== netAmount) {
-        throw new Error(
-          `Net amount: expect ${netAmount}, actual ${initiateParameters.netAmount}`,
-        );
-      }
+      if (!(new BigNumber(initiateParameters.netAmount).isEqualTo(netAmount)))
+        errors.push(`Net amount: expect ${netAmount.toString(10)}, actual ${initiateParameters.netAmount.toString(10)}`);
 
-      if (initiateParameters.refundTimestamp < minRefundTimestamp) {
-        throw new Error(
-          `Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`,
+      if (initiateParameters.refundTimestamp < minRefundTimestamp)
+        errors.push(`Refund timestamp: minimum ${minRefundTimestamp}, actual ${initiateParameters.refundTimestamp}`);
+
+      if (errors.length) {
+        const errorMessage = errors.reduce(
+          (result, error, index) => `${result}\n\t${index + 1}. ${error};`,
+          `Initiate transaction that satisfies the expected criteria is not found in ${txId} contents:`
         );
+        throw new Error(errorMessage);
       }
     } catch (e: any) {
       return {
@@ -252,15 +261,13 @@ export class EthereumHelpers extends Helpers {
       };
     }
 
-    const latestBlock = await this._web3.eth.getBlock('latest');
-    const confirmations =
-      latestBlock.number - (transaction.blockNumber || latestBlock.number);
+    const latestBlock = await this.getBlock('latest');
+    const confirmations = latestBlock.number - (transaction.blockNumber || latestBlock.number);
 
     const res: SwapTransactionStatus = {
       status: transaction.blockNumber !== undefined ? 'Included' : 'Pending',
       confirmations,
-      nextBlockETA:
-        parseInt(latestBlock.timestamp.toString()) + this._timeBetweenBlocks,
+      nextBlockETA: parseInt(latestBlock.timestamp.toString()) + this._timeBetweenBlocks,
     };
 
     if (confirmations >= minConfirmations) {
@@ -351,5 +358,17 @@ export class EthereumHelpers extends Helpers {
 
   isValidAddress(address: string): boolean {
     return this._web3.utils.isAddress(address);
+  }
+
+  private getTransaction(txId: string) {
+    return this._web3.eth.getTransaction(txId);
+  }
+
+  private getBlock(blockId: string | number) {
+    return this._web3.eth.getBlock(blockId);
+  }
+
+  private createContract(jsonInterface: AbiItem[], contractAddress: string) {
+    return new this._web3.eth.Contract(jsonInterface, contractAddress);
   }
 }

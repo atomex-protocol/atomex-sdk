@@ -1,7 +1,8 @@
 import type { OperationContentsAndResultTransaction } from '@taquito/rpc';
 import { TezosToolkit } from '@taquito/taquito';
 
-import config from './config.json';
+import type { Atomex } from '../atomex';
+import config from './config';
 import { dt2ts } from './helpers';
 import { TezosHelpers } from './tezos';
 import type { InitiateParameters, Network, TezosBasedCurrency } from './types';
@@ -12,12 +13,14 @@ export class FA2Helpers extends TezosHelpers {
   /**
    * Connects to the supported tezos chain
    *
+   * @param newAtomex instance of new Atomex class
    * @param network networks supported by atomex, can be either mainnet or testnet
    * @param currency FA2 token symbol
-   * @param rpc optional rpc endpoint to create tezos chain client
+   * @param rpcUri optional rpc endpoint to create tezos chain client
    * @returns chain id of the connected chain
    */
   static async create(
+    newAtomex: Atomex,
     network: Network,
     currency: TezosBasedCurrency,
     rpcUri?: string,
@@ -36,6 +39,7 @@ export class FA2Helpers extends TezosHelpers {
     }
 
     return new FA2Helpers(
+      newAtomex,
       tezos,
       config.currencies[currency].contracts.entrypoints,
       config.currencies[currency].contracts[network].address,
