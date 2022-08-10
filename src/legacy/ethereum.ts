@@ -120,7 +120,7 @@ export class EthereumHelpers extends Helpers {
         '0x' + initiateParameters.secretHash,
         initiateParameters.receivingAddress,
         initiateParameters.refundTimestamp,
-        initiateParameters.rewardForRedeem,
+        initiateParameters.rewardForRedeem.toString(10),
       )
       .encodeABI();
     return {
