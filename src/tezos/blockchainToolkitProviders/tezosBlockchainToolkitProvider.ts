@@ -22,12 +22,14 @@ export class TezosBlockchainToolkitProvider implements BlockchainToolkitProvider
     return Promise.resolve(this.readonlyToolkit);
   }
 
-  async getToolkit(address: string): Promise<unknown | undefined> {
-    const toolkitAddress = await this.toolkit?.wallet.pkh();
+  async getToolkit(address?: string): Promise<unknown | undefined> {
+    if (address) {
+      const toolkitAddress = await this.toolkit?.wallet.pkh();
+      if (toolkitAddress !== address)
+        return undefined;
+    }
 
-    return toolkitAddress && toolkitAddress[0] === address
-      ? this.toolkit
-      : undefined;
+    return this.toolkit;
   }
 
   async addSigner(signer: Signer): Promise<boolean> {

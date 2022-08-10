@@ -57,7 +57,7 @@ export class AtomexBlockchainProvider implements CurrenciesProvider {
     return provider.getReadonlyToolkit();
   }
 
-  getToolkit(blockchain: string, address: string, toolkitId: string): Promise<unknown | undefined> {
+  getToolkit(blockchain: string, toolkitId: string, address?: string): Promise<unknown | undefined> {
     const provider = this.blockchainToolkitProviderMap.get(blockchain);
     if (!provider || provider.toolkitId !== toolkitId)
       return Promise.resolve(undefined);

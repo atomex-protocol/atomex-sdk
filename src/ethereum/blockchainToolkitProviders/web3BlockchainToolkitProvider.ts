@@ -20,19 +20,21 @@ export class Web3BlockchainToolkitProvider implements BlockchainToolkitProvider 
     return Promise.resolve(this.readonlyToolkit);
   }
 
-  async getToolkit(address: string): Promise<unknown | undefined> {
-    const toolkitAccounts = await this.toolkit?.eth.getAccounts();
+  async getToolkit(address?: string): Promise<unknown | undefined> {
+    if (address) {
+      const toolkitAccounts = await this.toolkit?.eth.getAccounts();
+      if (!toolkitAccounts || toolkitAccounts[0] !== address)
+        return undefined;
+    }
 
-    return toolkitAccounts && toolkitAccounts[0] === address
-      ? this.toolkit
-      : undefined;
+    return this.toolkit;
   }
 
   async addSigner(signer: Signer): Promise<boolean> {
     if (!(signer instanceof Web3EthereumSigner))
       return false;
 
-    this.toolkit = new Web3(signer.web3.currentProvider);
+    this.toolkit = new Web3(signer.provider);
 
     return true;
   }

@@ -14,16 +14,20 @@ export class Web3EthereumSigner implements Signer {
   constructor(
     readonly atomexNetwork: AtomexNetwork,
     readonly atomexContext: AtomexContext,
-    readonly web3: Web3
+    readonly provider: Web3['currentProvider']
   ) { }
 
-  static bind(atomex: Atomex, web3: Web3): void {
-    const signer = new Web3EthereumSigner(atomex.atomexNetwork, atomex.atomexContext, web3);
+  static bind(atomex: Atomex, provider: Web3['currentProvider']): void {
+    const signer = new Web3EthereumSigner(atomex.atomexNetwork, atomex.atomexContext, provider);
     atomex.addSigner(signer);
   }
 
   async getAddress(): Promise<string> {
-    const accounts = await this.web3.eth.getAccounts();
+    const web3 = await this.atomexContext.providers.blockchainProvider.getToolkit(this.blockchain, 'web3') as Web3 | undefined;
+    if (!web3)
+      throw new Error('web3 toolkit is unavailable');
+
+    const accounts = await web3.eth.getAccounts();
     const address = accounts[0];
     if (!address)
       throw new Error('Address is unavailable');
@@ -37,7 +41,7 @@ export class Web3EthereumSigner implements Signer {
 
   async sign(message: string): Promise<AtomexSignature> {
     const address = await this.getAddress();
-    const web3 = await this.atomexContext.providers.blockchainProvider.getToolkit(this.blockchain, address, 'web3') as Web3 | undefined;
+    const web3 = await this.atomexContext.providers.blockchainProvider.getToolkit(this.blockchain, 'web3', address) as Web3 | undefined;
     if (!web3)
       throw new Error('web3 toolkit is unavailable');
 
