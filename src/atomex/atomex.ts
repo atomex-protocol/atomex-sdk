@@ -1,5 +1,5 @@
 import type { AuthorizationManager } from '../authorization/index';
-import type { Signer, SignersManager } from '../blockchain/index';
+import type { WalletsManager } from '../blockchain/index';
 import type { AtomexService, Currency } from '../common/index';
 import type { ExchangeManager } from '../exchange/exchangeManager';
 import type { Swap, SwapManager } from '../swaps/index';
@@ -13,15 +13,14 @@ export class Atomex implements AtomexService {
   readonly authorization: AuthorizationManager;
   readonly exchangeManager: ExchangeManager;
   readonly swapManager: SwapManager;
-  readonly signers: SignersManager;
-
-  protected readonly atomexContext: AtomexContext;
+  readonly wallets: WalletsManager;
+  readonly atomexContext: AtomexContext;
 
   private _isStarted = false;
 
   constructor(readonly options: AtomexOptions) {
     this.atomexContext = options.atomexContext;
-    this.signers = options.managers.signersManager;
+    this.wallets = options.managers.walletsManager;
     this.authorization = options.managers.authorizationManager;
     this.exchangeManager = options.managers.exchangeManager;
     this.swapManager = options.managers.swapManager;
@@ -29,7 +28,7 @@ export class Atomex implements AtomexService {
     if (options.blockchains)
       for (const blockchainName of Object.keys(options.blockchains))
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this.addBlockchain(_context => options.blockchains![blockchainName]!);
+        this.addBlockchain(_context => [blockchainName, options.blockchains![blockchainName]!]);
   }
 
   get atomexNetwork() {
@@ -62,18 +61,12 @@ export class Atomex implements AtomexService {
     this._isStarted = false;
   }
 
-  async addSigner(signer: Signer) {
-    await this.signers.addSigner(signer);
-
-    await this.options.blockchains?.[signer.blockchain]?.mainnet.blockchainToolkitProvider?.addSigner(signer);
-  }
-
-  addBlockchain(factoryMethod: (context: AtomexContext) => AtomexBlockchainOptions) {
-    const blockchainOptions = factoryMethod(this.atomexContext);
+  addBlockchain(factoryMethod: (context: AtomexContext) => [blockchain: string, options: AtomexBlockchainOptions]) {
+    const [blockchain, blockchainOptions] = factoryMethod(this.atomexContext);
     const networkOptions = this.atomexNetwork == 'mainnet' ? blockchainOptions.mainnet : blockchainOptions.testnet;
 
     if (networkOptions)
-      this.atomexContext.providers.blockchainProvider.addBlockchain(networkOptions);
+      this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, networkOptions);
   }
 
   getCurrency(currencyId: Currency['id']) {

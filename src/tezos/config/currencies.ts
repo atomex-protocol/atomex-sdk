@@ -1,5 +1,5 @@
-import type { AtomexBlockchainNetworkOptions } from '../atomex/models/atomexOptions';
-import type { TezosCurrency, TezosFA12Currency, TezosFA2Currency } from './models/index';
+import type { AtomexBlockchainNetworkOptions } from '../../atomex/models/atomexOptions';
+import type { TezosCurrency, TezosFA12Currency, TezosFA2Currency } from '../models/index';
 
 const tezosNativeCurrency: TezosCurrency = {
   id: 'XTZ',

@@ -50,31 +50,31 @@ export class TestAtomexClient implements AtomexClient {
   getTopOfBook = jest.fn<Promise<Quote[]>, [symbolsOrDirections?: string[] | CurrencyDirection[]]>();
   getOrderBook = jest.fn<Promise<OrderBook | undefined>, [symbolOrDirection: string | CurrencyDirection]>();
 
-  addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
+  addOrder(_accountAddress: string, _newOrderRequest: NewOrderRequest): Promise<number> {
     throw new Error('Method not implemented.');
   }
 
-  cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
+  cancelOrder(_accountAddress: string, _cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
 
-  cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
+  cancelAllOrders(_accountAddress: string, _cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number> {
     throw new Error('Method not implemented.');
   }
 
   getSwap(swapId: number, accountAddress: string): Promise<Swap | undefined>;
   getSwap(swapId: number, accountAddresses: string[]): Promise<Swap | undefined>;
-  getSwap(swapId: unknown, accountAddresses: unknown): Promise<Swap | undefined> {
+  getSwap(_swapId: unknown, _accountAddresses: unknown): Promise<Swap | undefined> {
     throw new Error('Method not implemented.');
   }
 
   getSwaps(accountAddress: string, selector?: SwapsSelector | undefined): Promise<Swap[]>;
   getSwaps(accountAddresses: string[], selector?: SwapsSelector | undefined): Promise<Swap[]>;
-  getSwaps(accountAddresses: unknown, selector?: unknown): Promise<Swap[]> {
+  getSwaps(_accountAddresses: unknown, _selector?: unknown): Promise<Swap[]> {
     throw new Error('Method not implemented.');
   }
 
-  getSwapTransactions(swap: Swap): Promise<readonly Transaction[]> {
+  getSwapTransactions(_swap: Swap): Promise<readonly Transaction[]> {
     throw new Error('Method not implemented.');
   }
 

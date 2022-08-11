@@ -2,7 +2,7 @@ import type { FetchMock } from 'jest-fetch-mock';
 
 import type { AuthenticationResponseData } from '../../src/authorization/models/index';
 import {
-  AuthorizationManager, AuthTokenSource, SignersManager, InMemoryAuthorizationManagerStore, InMemoryTezosSigner,
+  AuthorizationManager, AuthTokenSource, WalletsManager, InMemoryAuthorizationManagerStore, TaquitoBlockchainWallet,
   type AtomexNetwork, type AuthToken
 } from '../../src/index';
 
@@ -11,8 +11,8 @@ describe('Atomex authorization', () => {
 
   const authTokenExpirationPeriodMs = 720 * 60 * 60 * 1000;
   const atomexNetwork: AtomexNetwork = 'testnet';
-  const signersManager = new SignersManager(atomexNetwork);
-  const signer = new InMemoryTezosSigner(atomexNetwork, 'edskReuKVn9gfiboVjbcPkNnhLiyyFLDAwB3CHemb43zpKG3MpBf2CvwDNML2FitCP8fvdLXi4jdDVR1PHB4V9D8BWoYB4SQCU');
+  const walletsManager = new WalletsManager(atomexNetwork);
+  const wallet = new TaquitoBlockchainWallet(atomexNetwork, 'edskReuKVn9gfiboVjbcPkNnhLiyyFLDAwB3CHemb43zpKG3MpBf2CvwDNML2FitCP8fvdLXi4jdDVR1PHB4V9D8BWoYB4SQCU', '');
   let authorizationManager: AuthorizationManager;
 
   beforeEach(async () => {
@@ -20,12 +20,12 @@ describe('Atomex authorization', () => {
 
     authorizationManager = new AuthorizationManager({
       atomexNetwork,
-      signersManager,
+      walletsManager,
       store: new InMemoryAuthorizationManagerStore(),
       authorizationBaseUrl: 'https://fake-api.test.atomex.me'
     });
 
-    await signersManager.addSigner(signer);
+    await walletsManager.addWallet(wallet);
     await authorizationManager.start();
   });
 
@@ -43,7 +43,7 @@ describe('Atomex authorization', () => {
 
     fetchMock.mockResponseOnce(JSON.stringify(tokenResponse));
 
-    const address = await signer.getAddress();
+    const address = await wallet.getAddress();
     const authToken = await authorizationManager.authorize({ address });
 
     expectAuthTokenToEqualAuthenticationResponseData(address, authToken, tokenResponse);
@@ -60,7 +60,7 @@ describe('Atomex authorization', () => {
 
     fetchMock.mockResponseOnce(JSON.stringify(tokenResponse));
 
-    const address = await signer.getAddress();
+    const address = await wallet.getAddress();
     let authToken = await authorizationManager.authorize({ address, authTokenSource: AuthTokenSource.Remote });
     expectAuthTokenToEqualAuthenticationResponseData(address, authToken, tokenResponse);
 

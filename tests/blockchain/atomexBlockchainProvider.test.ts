@@ -2,10 +2,11 @@ import type { AtomexBlockchainNetworkOptions, AtomexCurrencyOptions } from '../.
 import { AtomexBlockchainProvider } from '../../src/blockchain/atomexBlockchainProvider';
 import type { Currency } from '../../src/common/index';
 import {
-  EthereumBalancesProvider, EthereumBlockchainToolkitProvider, EthereumSwapTransactionsProvider
+  EthereumBalancesProvider, EthereumSwapTransactionsProvider
 } from '../../src/ethereum/index';
+import { Web3BlockchainToolkitProvider } from '../../src/evm/index';
 import {
-  TezosBalancesProvider, TezosBlockchainToolkitProvider, TezosCurrency, TezosSwapTransactionsProvider
+  TezosBalancesProvider, TaquitoBlockchainToolkitProvider, TezosCurrency, TezosSwapTransactionsProvider
 } from '../../src/tezos/index';
 
 describe('Atomex Blockchain Provider', () => {
@@ -39,8 +40,9 @@ describe('Atomex Blockchain Provider', () => {
 
   test('applies blockchain options and returns them', () => {
     const tezosNetworkOptions: AtomexBlockchainNetworkOptions = {
+      rpcUrl: '',
       balancesProvider: new TezosBalancesProvider(),
-      blockchainToolkitProvider: new TezosBlockchainToolkitProvider(),
+      blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(''),
       swapTransactionsProvider: new TezosSwapTransactionsProvider(),
       currencies: [tezosNativeCurrency],
       currencyOptions: {
@@ -49,15 +51,16 @@ describe('Atomex Blockchain Provider', () => {
     };
 
     const ethereumNetworkOptions: AtomexBlockchainNetworkOptions = {
+      rpcUrl: '',
       balancesProvider: new EthereumBalancesProvider(),
-      blockchainToolkitProvider: new EthereumBlockchainToolkitProvider(),
+      blockchainToolkitProvider: new Web3BlockchainToolkitProvider('ethereum', ''),
       swapTransactionsProvider: new EthereumSwapTransactionsProvider(),
       currencies: [ethereumNativeCurrency],
       currencyOptions: {}
     };
 
-    provider.addBlockchain(tezosNetworkOptions);
-    provider.addBlockchain(ethereumNetworkOptions);
+    provider.addBlockchain('tezos', tezosNetworkOptions);
+    provider.addBlockchain('ethereum', ethereumNetworkOptions);
 
     const tezosCurrencyInfo = provider.getCurrencyInfo(tezosNativeCurrency.id);
     expect(tezosCurrencyInfo?.currency).toBe(tezosNativeCurrency);
@@ -75,8 +78,9 @@ describe('Atomex Blockchain Provider', () => {
     expect.assertions(1);
     try {
       const networkOptions: AtomexBlockchainNetworkOptions = {
+        rpcUrl: '',
         balancesProvider: new TezosBalancesProvider(),
-        blockchainToolkitProvider: new TezosBlockchainToolkitProvider(),
+        blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(''),
         swapTransactionsProvider: new TezosSwapTransactionsProvider(),
         currencies: [tezosNativeCurrency],
         currencyOptions: {
@@ -84,8 +88,8 @@ describe('Atomex Blockchain Provider', () => {
         }
       };
 
-      provider.addBlockchain(networkOptions);
-      provider.addBlockchain(networkOptions);
+      provider.addBlockchain('tezos', networkOptions);
+      provider.addBlockchain('ethereum', networkOptions);
     } catch (e) {
       expect((e as Error).message).toMatch('same key');
     }

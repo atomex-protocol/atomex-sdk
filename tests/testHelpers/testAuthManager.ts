@@ -1,5 +1,5 @@
 import type { ToEventEmitters } from '../../src/core/index';
-import { AuthorizationManager, type AuthorizationManagerOptions, type AuthToken, InMemoryAuthorizationManagerStore, SignersManager } from '../../src/index';
+import { AuthorizationManager, type AuthorizationManagerOptions, type AuthToken, InMemoryAuthorizationManagerStore, WalletsManager } from '../../src/index';
 
 export class TestAuthorizationManager extends AuthorizationManager {
   readonly authToken: AuthToken | undefined | ((address: string) => AuthToken | undefined);
@@ -9,7 +9,7 @@ export class TestAuthorizationManager extends AuthorizationManager {
   ) {
     const defaultOptions: AuthorizationManagerOptions = {
       atomexNetwork: 'testnet',
-      signersManager: new SignersManager('testnet'),
+      walletsManager: new WalletsManager('testnet'),
       store: new InMemoryAuthorizationManagerStore(),
       authorizationBaseUrl: 'https://fake-api.test.atomex.me'
     };

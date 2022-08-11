@@ -1,5 +1,5 @@
-import type { AtomexBlockchainNetworkOptions } from '../atomex/models/atomexOptions';
-import type { EthereumCurrency } from './models/currency';
+import type { AtomexBlockchainNetworkOptions } from '../../atomex/models/atomexOptions';
+import type { EthereumCurrency } from '../models/currency';
 
 const ethereumNativeCurrency: EthereumCurrency = {
   id: 'ETH',

@@ -1,19 +1,28 @@
 import { SigningType } from '@airgap/beacon-sdk';
 import type { BeaconWallet } from '@taquito/beacon-wallet';
+import { TezosToolkit } from '@taquito/taquito';
 
-import type { AtomexSignature, Signer } from '../../blockchain/index';
+import type { AtomexSignature, BlockchainWallet } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import { TezosAtomexSigningDataType } from '../models/index';
 import { decodePublicKey, signingUtils } from '../utils/index';
 import { decodeSignature } from '../utils/signing';
 
-export class BeaconWalletTezosSigner implements Signer {
-  readonly blockchain = 'tezos';
+export class BeaconWalletTezosWallet implements BlockchainWallet<TezosToolkit> {
+  readonly id = 'taquito';
+  readonly toolkit: TezosToolkit;
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,
-    protected readonly beaconWallet: BeaconWallet
+    readonly beaconWallet: BeaconWallet,
+    rpcUrl: string
   ) {
+    this.toolkit = new TezosToolkit(rpcUrl);
+    this.toolkit.setWalletProvider(beaconWallet);
+  }
+
+  getBlockchain(): string | Promise<string> {
+    return 'tezos';
   }
 
   getAddress(): Promise<string> {

@@ -1,9 +1,5 @@
-import type { Signer } from './signer';
+export interface BlockchainToolkitProvider<T = unknown> {
+  readonly toolkitId: string;
 
-export interface BlockchainToolkitProvider {
-  getReadonlyToolkit(blockchain: string, toolkitId: string): Promise<unknown | undefined>;
-  getToolkit(blockchain: string, address: string, toolkitId: string): Promise<unknown | undefined>;
-
-  addSigner(signer: Signer): Promise<boolean>;
-  removeSigner(signer: Signer): Promise<boolean>;
+  getReadonlyToolkit(blockchain?: string): Promise<T | undefined>;
 }
