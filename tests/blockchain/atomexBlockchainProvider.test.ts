@@ -6,7 +6,7 @@ import {
 } from '../../src/ethereum/index';
 import { Web3BlockchainToolkitProvider } from '../../src/evm/index';
 import {
-  TezosBalancesProvider, TezosBlockchainToolkitProvider, TezosCurrency, TezosSwapTransactionsProvider
+  TezosBalancesProvider, TaquitoBlockchainToolkitProvider, TezosCurrency, TezosSwapTransactionsProvider
 } from '../../src/tezos/index';
 
 describe('Atomex Blockchain Provider', () => {
@@ -42,7 +42,7 @@ describe('Atomex Blockchain Provider', () => {
     const tezosNetworkOptions: AtomexBlockchainNetworkOptions = {
       rpcUrl: '',
       balancesProvider: new TezosBalancesProvider(),
-      blockchainToolkitProvider: new TezosBlockchainToolkitProvider(''),
+      blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(''),
       swapTransactionsProvider: new TezosSwapTransactionsProvider(),
       currencies: [tezosNativeCurrency],
       currencyOptions: {
@@ -80,7 +80,7 @@ describe('Atomex Blockchain Provider', () => {
       const networkOptions: AtomexBlockchainNetworkOptions = {
         rpcUrl: '',
         balancesProvider: new TezosBalancesProvider(),
-        blockchainToolkitProvider: new TezosBlockchainToolkitProvider(''),
+        blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(''),
         swapTransactionsProvider: new TezosSwapTransactionsProvider(),
         currencies: [tezosNativeCurrency],
         currencyOptions: {

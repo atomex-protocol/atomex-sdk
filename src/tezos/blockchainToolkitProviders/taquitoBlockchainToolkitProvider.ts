@@ -2,7 +2,7 @@ import { TezosToolkit } from '@taquito/taquito';
 
 import type { BlockchainToolkitProvider } from '../../blockchain/index';
 
-export class TezosBlockchainToolkitProvider implements BlockchainToolkitProvider {
+export class TaquitoBlockchainToolkitProvider implements BlockchainToolkitProvider {
   static readonly BLOCKCHAIN = 'tezos';
 
   readonly toolkitId = 'tezosToolkit';
@@ -13,7 +13,7 @@ export class TezosBlockchainToolkitProvider implements BlockchainToolkitProvider
   ) { }
 
   getReadonlyToolkit(blockchain?: string): Promise<TezosToolkit | undefined> {
-    if (blockchain && blockchain !== TezosBlockchainToolkitProvider.BLOCKCHAIN)
+    if (blockchain && blockchain !== TaquitoBlockchainToolkitProvider.BLOCKCHAIN)
       return Promise.resolve(undefined);
 
     if (!this.toolkit)

@@ -1,1 +1,1 @@
-export { TezosBlockchainToolkitProvider } from './tezosBlockchainToolkitProvider';
+export { TaquitoBlockchainToolkitProvider } from './taquitoBlockchainToolkitProvider';

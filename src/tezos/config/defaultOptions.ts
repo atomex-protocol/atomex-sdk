@@ -1,6 +1,6 @@
 import type { AtomexBlockchainOptions } from '../../atomex/models/index';
 import { TezosBalancesProvider } from '../balancesProviders/index';
-import { TezosBlockchainToolkitProvider } from '../blockchainToolkitProviders/index';
+import { TaquitoBlockchainToolkitProvider } from '../blockchainToolkitProviders/index';
 import { TezosSwapTransactionsProvider } from '../swapTransactionsProviders/index';
 import { tezosMainnetCurrencies, tezosTestnetCurrencies } from './currencies';
 
@@ -15,7 +15,7 @@ export const createDefaultTezosBlockchainOptions = (): AtomexBlockchainOptions =
       rpcUrl: mainnetRpcUrl,
       currencies: tezosMainnetCurrencies,
       currencyOptions: {},
-      blockchainToolkitProvider: new TezosBlockchainToolkitProvider(mainnetRpcUrl),
+      blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(mainnetRpcUrl),
       balancesProvider,
       swapTransactionsProvider,
     },
@@ -23,7 +23,7 @@ export const createDefaultTezosBlockchainOptions = (): AtomexBlockchainOptions =
       rpcUrl: testNetRpcUrl,
       currencies: tezosTestnetCurrencies,
       currencyOptions: {},
-      blockchainToolkitProvider: new TezosBlockchainToolkitProvider(testNetRpcUrl),
+      blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(testNetRpcUrl),
       balancesProvider,
       swapTransactionsProvider,
     }
