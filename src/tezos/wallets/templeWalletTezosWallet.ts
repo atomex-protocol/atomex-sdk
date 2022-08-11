@@ -8,7 +8,7 @@ import { decodePublicKey, signingUtils } from '../utils/index';
 import { decodeSignature } from '../utils/signing';
 
 export class TempleWalletTezosWallet implements BlockchainWallet<TezosToolkit> {
-  readonly id = 'tezosToolkit';
+  readonly id = 'taquito';
   readonly blockchain = 'tezos';
   readonly toolkit: TezosToolkit;
 

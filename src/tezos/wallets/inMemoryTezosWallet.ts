@@ -6,7 +6,7 @@ import type { AtomexNetwork } from '../../common/index';
 import { decodePublicKey, signingUtils } from '../utils/index';
 
 export class InMemoryTezosWallet implements BlockchainWallet<TezosToolkit> {
-  readonly id = 'tezosToolkit';
+  readonly id = 'taquito';
   readonly toolkit: TezosToolkit;
 
   protected readonly internalInMemorySigner: InMemorySigner;

@@ -5,7 +5,7 @@ import type { BlockchainToolkitProvider } from '../../blockchain/index';
 export class TaquitoBlockchainToolkitProvider implements BlockchainToolkitProvider {
   static readonly BLOCKCHAIN = 'tezos';
 
-  readonly toolkitId = 'tezosToolkit';
+  readonly toolkitId = 'taquito';
   protected toolkit: TezosToolkit | undefined;
 
   constructor(

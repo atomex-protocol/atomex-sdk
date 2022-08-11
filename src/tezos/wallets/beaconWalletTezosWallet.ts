@@ -9,7 +9,7 @@ import { decodePublicKey, signingUtils } from '../utils/index';
 import { decodeSignature } from '../utils/signing';
 
 export class BeaconWalletTezosWallet implements BlockchainWallet<TezosToolkit> {
-  readonly id = 'tezosToolkit';
+  readonly id = 'taquito';
   readonly toolkit: TezosToolkit;
 
   constructor(
