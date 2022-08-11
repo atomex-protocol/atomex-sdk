@@ -1,1 +1,0 @@
-export { WalletTezosSigner } from './walletTezosSigner';

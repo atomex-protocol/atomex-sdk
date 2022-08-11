@@ -1,7 +1,7 @@
 import { Atomex, AtomexContext } from '../atomex/index';
 import type { AtomexBlockchainOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
-import { SignersManager } from '../blockchain/index';
+import { WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
 import { ExchangeManager, InMemoryExchangeSymbolsProvider } from '../exchange/index';
 import { SwapManager } from '../swaps/swapManager';
@@ -12,21 +12,19 @@ export declare class AtomexBuilder {
     protected readonly options: DeepReadonly<AtomexBuilderOptions>;
     protected readonly atomexContext: AtomexContext;
     protected customAuthorizationManagerFactory?: CustomAtomexComponentFactory<AuthorizationManager, AuthorizationManagerDefaultComponentOptions>;
-    protected customSignersManagerFactory?: CustomAtomexComponentFactory<SignersManager>;
+    protected customWalletsManagerFactory?: CustomAtomexComponentFactory<WalletsManager>;
     protected customExchangeManagerFactory?: CustomAtomexComponentFactory<ExchangeManager>;
     private get controlledAtomexContext();
     constructor(options: DeepReadonly<AtomexBuilderOptions>, atomexContext?: AtomexContext);
     useAuthorizationManager(customAuthorizationManagerFactory: NonNullable<AtomexBuilder['customAuthorizationManagerFactory']>): AtomexBuilder;
-    useSignersManager(customSignersManagerFactory: NonNullable<AtomexBuilder['customSignersManagerFactory']>): AtomexBuilder;
+    useWalletsManager(customWalletsManagerFactory: NonNullable<AtomexBuilder['customWalletsManagerFactory']>): AtomexBuilder;
     useExchangeManager(customExchangeManagerFactory: NonNullable<AtomexBuilder['customExchangeManagerFactory']>): AtomexBuilder;
     build(): Atomex;
     protected createExchangeSymbolsProvider(): InMemoryExchangeSymbolsProvider;
     protected createAuthorizationManager(): AuthorizationManager;
-    protected createSignersManager(): SignersManager;
+    protected createWalletsManager(): WalletsManager;
     protected createDefaultExchangeService(): import("..").MixedApiAtomexClient;
     protected createExchangeManager(): ExchangeManager;
     protected createSwapManager(): SwapManager;
     protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainOptions>;
-    protected createDefaultTezosBlockchainOptions(): AtomexBlockchainOptions;
-    protected createDefaultEthereumBlockchainOptions(): AtomexBlockchainOptions;
 }

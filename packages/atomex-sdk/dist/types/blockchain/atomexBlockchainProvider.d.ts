@@ -15,8 +15,12 @@ export interface CurrencyInfo {
 }
 export declare class AtomexBlockchainProvider implements CurrenciesProvider {
     protected readonly currencyInfoMap: Map<Currency['id'], CurrencyInfo>;
-    addBlockchain(networkOptions: AtomexBlockchainNetworkOptions): void;
+    protected readonly networkOptionsMap: Map<string, AtomexBlockchainNetworkOptions>;
+    protected readonly blockchainToolkitProviders: Set<BlockchainToolkitProvider>;
+    addBlockchain(blockchain: string, networkOptions: AtomexBlockchainNetworkOptions): void;
+    getNetworkOptions(blockchain: string): AtomexBlockchainNetworkOptions | undefined;
     getCurrency(currencyId: Currency['id']): Currency | undefined;
+    getReadonlyToolkit(toolkitId: string, blockchain?: string): Promise<unknown | undefined>;
     getCurrencyInfo(currencyId: Currency['id']): CurrencyInfo | undefined;
     protected createControlledBalancesProvider(currency: Currency, balancesProvider: BalancesProvider): ControlledCurrencyBalancesProvider;
 }

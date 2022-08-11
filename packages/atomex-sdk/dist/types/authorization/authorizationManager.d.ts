@@ -1,4 +1,4 @@
-import type { SignersManager } from '../blockchain/index';
+import type { WalletsManager } from '../blockchain/index';
 import type { AtomexService, AtomexNetwork } from '../common/index';
 import { type PublicEventEmitter } from '../core/index';
 import type { AuthorizationManagerStore } from '../stores/index';
@@ -15,7 +15,7 @@ export declare class AuthorizationManager implements AtomexService {
     protected static readonly DEFAULT_GET_AUTH_TOKEN_URI = "/v1/token";
     protected static readonly DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS = 60;
     readonly atomexNetwork: AtomexNetwork;
-    protected readonly signersManager: SignersManager;
+    protected readonly walletsManager: WalletsManager;
     protected readonly store: AuthorizationManagerStore;
     protected readonly authorizationUrl: URL;
     protected readonly expiringNotificationTimeInSeconds: number;

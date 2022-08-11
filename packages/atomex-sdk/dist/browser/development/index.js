@@ -33,17 +33,17 @@ var Atomex = class {
     __publicField(this, "authorization");
     __publicField(this, "exchangeManager");
     __publicField(this, "swapManager");
-    __publicField(this, "signers");
+    __publicField(this, "wallets");
     __publicField(this, "atomexContext");
     __publicField(this, "_isStarted", false);
     this.atomexContext = options.atomexContext;
-    this.signers = options.managers.signersManager;
+    this.wallets = options.managers.walletsManager;
     this.authorization = options.managers.authorizationManager;
     this.exchangeManager = options.managers.exchangeManager;
     this.swapManager = options.managers.swapManager;
     if (options.blockchains)
       for (const blockchainName of Object.keys(options.blockchains))
-        this.addBlockchain((_context) => options.blockchains[blockchainName]);
+        this.addBlockchain((_context) => [blockchainName, options.blockchains[blockchainName]]);
   }
   get atomexNetwork() {
     return this.atomexContext.atomexNetwork;
@@ -67,16 +67,11 @@ var Atomex = class {
     this.swapManager.stop();
     this._isStarted = false;
   }
-  async addSigner(signer) {
-    var _a, _b, _c;
-    await this.signers.addSigner(signer);
-    await ((_c = (_b = (_a = this.options.blockchains) == null ? void 0 : _a[signer.blockchain]) == null ? void 0 : _b.mainnet.blockchainToolkitProvider) == null ? void 0 : _c.addSigner(signer));
-  }
   addBlockchain(factoryMethod) {
-    const blockchainOptions = factoryMethod(this.atomexContext);
+    const [blockchain, blockchainOptions] = factoryMethod(this.atomexContext);
     const networkOptions = this.atomexNetwork == "mainnet" ? blockchainOptions.mainnet : blockchainOptions.testnet;
     if (networkOptions)
-      this.atomexContext.providers.blockchainProvider.addBlockchain(networkOptions);
+      this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, networkOptions);
   }
   getCurrency(currencyId) {
     return this.atomexContext.providers.currenciesProvider.getCurrency(currencyId);
@@ -118,18 +113,18 @@ __publicField(AtomexContext, "idCounter", 0);
 var AtomexContextManagersSection = class {
   constructor(context) {
     this.context = context;
-    __publicField(this, "_signersManager");
+    __publicField(this, "_walletsManager");
     __publicField(this, "_authorizationManager");
     __publicField(this, "_exchangeManager");
     __publicField(this, "_swapManager");
   }
-  get signersManager() {
-    if (!this._signersManager)
-      throw new AtomexComponentNotResolvedError("managers.signersManager");
-    return this._signersManager;
+  get walletsManager() {
+    if (!this._walletsManager)
+      throw new AtomexComponentNotResolvedError("managers.walletsManager");
+    return this._walletsManager;
   }
-  set signersManager(signersManager) {
-    this._signersManager = signersManager;
+  set walletsManager(walletsManager) {
+    this._walletsManager = walletsManager;
   }
   get authorizationManager() {
     if (!this._authorizationManager)
@@ -329,47 +324,42 @@ var padEnd = (string, maxLength, fillString = " ") => String.prototype.padEnd !=
 var wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 var prepareTimeoutDuration = (durationMs) => Math.min(durationMs, 2147483647);
 
-// src/blockchain/signersManager.ts
-var SignersManager = class {
+// src/blockchain/walletsManager.ts
+var WalletsManager = class {
   constructor(atomexNetwork) {
     this.atomexNetwork = atomexNetwork;
-    __publicField(this, "_signers", /* @__PURE__ */ new Set());
+    __publicField(this, "wallets", /* @__PURE__ */ new Set());
   }
-  get signers() {
-    return this._signers;
+  addWallet(wallet) {
+    atomexUtils_exports.ensureNetworksAreSame(this, wallet);
+    this.wallets.add(wallet);
+    return Promise.resolve(wallet);
   }
-  addSigner(signer) {
-    atomexUtils_exports.ensureNetworksAreSame(this, signer);
-    this._signers.add(signer);
-    return Promise.resolve(signer);
+  async removeWallet(wallet) {
+    const result = this.wallets.delete(wallet);
+    return Promise.resolve(result);
   }
-  async removeSigner(signerOrAddress, blockchain) {
-    const signer = typeof signerOrAddress === "string" ? await this.findSigner(signerOrAddress, blockchain) : signerOrAddress;
-    return signer ? this._signers.delete(signer) : false;
-  }
-  async findSigner(address, blockchain) {
-    if (!this.signers.size)
+  async getWallet(address, blockchain, toolkit) {
+    if (!this.wallets.size || !address && !blockchain && !toolkit)
       return void 0;
-    const signerAndAddressPromises = [];
-    for (const signer of this.signers) {
-      if (blockchain && signer.blockchain !== blockchain)
+    const walletPromises = [];
+    for (const wallet of this.wallets) {
+      if (toolkit && wallet.id !== toolkit)
         continue;
-      const addressOrPromise = signer.getAddress();
-      if (typeof addressOrPromise === "string") {
-        if (addressOrPromise === address)
-          return signer;
-        else
-          continue;
-      }
-      signerAndAddressPromises.push(addressOrPromise.then((address2) => [signer, address2]));
+      const addressOrPromise = address ? wallet.getAddress() : void 0;
+      const blockchainOrPromise = blockchain ? wallet.getBlockchain() : void 0;
+      if ((!address || address === addressOrPromise) && (!blockchain || blockchain == blockchainOrPromise))
+        return wallet;
+      walletPromises.push(Promise.all([addressOrPromise, blockchainOrPromise]).then(([address2, blockchain2]) => [wallet, address2, blockchain2]));
     }
-    const signerAndAddressResults = await Promise.allSettled(signerAndAddressPromises);
-    for (const signerAndAddressResult of signerAndAddressResults) {
-      if (signerAndAddressResult.status !== "fulfilled") {
+    const walletResults = await Promise.allSettled(walletPromises);
+    for (const walletResult of walletResults) {
+      if (walletResult.status !== "fulfilled") {
         continue;
       }
-      if (signerAndAddressResult.value[1] === address)
-        return signerAndAddressResult.value[0];
+      const [wallet, walletAddress, walletBlockchain] = walletResult.value;
+      if ((!address || address === walletAddress) && (!blockchain || blockchain == walletBlockchain))
+        return wallet;
     }
     return void 0;
   }
@@ -390,9 +380,15 @@ var ControlledCurrencyBalancesProvider = class {
 var AtomexBlockchainProvider = class {
   constructor() {
     __publicField(this, "currencyInfoMap", /* @__PURE__ */ new Map());
+    __publicField(this, "networkOptionsMap", /* @__PURE__ */ new Map());
+    __publicField(this, "blockchainToolkitProviders", /* @__PURE__ */ new Set());
   }
-  addBlockchain(networkOptions) {
+  addBlockchain(blockchain, networkOptions) {
     var _a, _b;
+    if (this.networkOptionsMap.has(blockchain))
+      throw new Error("There is already blockchain added with the same key");
+    this.networkOptionsMap.set(blockchain, networkOptions);
+    this.blockchainToolkitProviders.add(networkOptions.blockchainToolkitProvider);
     for (const currency of networkOptions.currencies) {
       if (this.currencyInfoMap.has(currency.id))
         throw new Error("There is already currency added with the same key");
@@ -407,9 +403,25 @@ var AtomexBlockchainProvider = class {
       this.currencyInfoMap.set(currency.id, options);
     }
   }
+  getNetworkOptions(blockchain) {
+    return this.networkOptionsMap.get(blockchain);
+  }
   getCurrency(currencyId) {
     var _a;
     return (_a = this.getCurrencyInfo(currencyId)) == null ? void 0 : _a.currency;
+  }
+  async getReadonlyToolkit(toolkitId, blockchain) {
+    const providerToolkitPromises = [];
+    for (const provider of this.blockchainToolkitProviders) {
+      if (provider.toolkitId === toolkitId)
+        providerToolkitPromises.push(provider.getReadonlyToolkit(blockchain));
+    }
+    const providerToolkitResults = await Promise.all(providerToolkitPromises);
+    for (const providerResult of providerToolkitResults) {
+      if (providerResult)
+        return providerResult;
+    }
+    return Promise.resolve(void 0);
   }
   getCurrencyInfo(currencyId) {
     const options = this.currencyInfoMap.get(currencyId);
@@ -419,6 +431,25 @@ var AtomexBlockchainProvider = class {
     return new ControlledCurrencyBalancesProvider(currency, (address) => balancesProvider.getBalance(address, currency));
   }
 };
+
+// src/ethereum/config/currencies.ts
+var ethereumNativeCurrency = {
+  id: "ETH",
+  name: "Ethereum",
+  symbol: "ETH",
+  blockchain: "ethereum",
+  decimals: 18,
+  type: "native"
+};
+var ethereumMainnetCurrencies = [
+  ethereumNativeCurrency
+];
+var ethereumTestnetCurrencies = [
+  ethereumNativeCurrency
+];
+
+// src/evm/wallets/web3BlockchainWallet.ts
+import Web3 from "web3";
 
 // src/ethereum/utils/index.ts
 import { ec as EC } from "elliptic";
@@ -450,15 +481,29 @@ var recoverPublicKey = (hexSignature, web3MessageHash) => {
   return "0x" + ecPublicKey.encode("hex", false);
 };
 
-// src/ethereum/signers/web3EthereumSigner.ts
-var _Web3EthereumSigner = class {
-  constructor(atomexNetwork, web3) {
+// src/evm/wallets/web3BlockchainWallet.ts
+var _Web3BlockchainWallet = class {
+  constructor(atomexNetwork, provider) {
     this.atomexNetwork = atomexNetwork;
-    this.web3 = web3;
-    __publicField(this, "blockchain", "ethereum");
+    this.provider = provider;
+    __publicField(this, "id", "web3");
+    __publicField(this, "toolkit");
+    this.toolkit = new Web3(provider);
+  }
+  async getBlockchain() {
+    const chainId = await this.toolkit.eth.getChainId();
+    switch (chainId) {
+      case 1:
+      case 5:
+        return "ethereum";
+      case 56:
+      case 97:
+        return "binance";
+    }
+    return "";
   }
   async getAddress() {
-    const accounts = await this.web3.eth.getAccounts();
+    const accounts = await this.toolkit.eth.getAccounts();
     const address = accounts[0];
     if (!address)
       throw new Error("Address is unavailable");
@@ -470,38 +515,45 @@ var _Web3EthereumSigner = class {
   async sign(message) {
     const address = await this.getAddress();
     const signatureBytes = await this.signInternal(message, address);
-    const publicKeyBytes = recoverPublicKey(signatureBytes, this.web3.eth.accounts.hashMessage(message));
+    const publicKeyBytes = recoverPublicKey(signatureBytes, this.toolkit.eth.accounts.hashMessage(message));
     return {
       address,
       publicKeyBytes: publicKeyBytes.startsWith("0x") ? publicKeyBytes.substring(2) : publicKeyBytes,
       signatureBytes: signatureBytes.substring(signatureBytes.startsWith("0x") ? 2 : 0, signatureBytes.length - 2),
-      algorithm: _Web3EthereumSigner.signingAlgorithm
+      algorithm: _Web3BlockchainWallet.signingAlgorithm
     };
   }
   signInternal(message, address) {
-    return new Promise((resolve, reject) => this.web3.eth.personal.sign(message, address, "", (error, signature) => {
+    return new Promise((resolve, reject) => this.toolkit.eth.personal.sign(message, address, "", (error, signature) => {
       return signature ? resolve(signature) : reject(error);
     }));
   }
+  static async bind(atomex, provider) {
+    const wallet = new _Web3BlockchainWallet(atomex.atomexNetwork, provider);
+    await atomex.wallets.addWallet(wallet);
+    return wallet;
+  }
 };
-var Web3EthereumSigner = _Web3EthereumSigner;
-__publicField(Web3EthereumSigner, "signingAlgorithm", "Keccak256WithEcdsa:Geth2940");
+var Web3BlockchainWallet = _Web3BlockchainWallet;
+__publicField(Web3BlockchainWallet, "signingAlgorithm", "Keccak256WithEcdsa:Geth2940");
 
-// src/ethereum/currencies.ts
-var ethereumNativeCurrency = {
-  id: "ETH",
-  name: "Ethereum",
-  symbol: "ETH",
-  blockchain: "ethereum",
-  decimals: 18,
-  type: "native"
+// src/evm/blockchainToolkitProviders/web3BlockchainToolkitProvider.ts
+import Web32 from "web3";
+var Web3BlockchainToolkitProvider = class {
+  constructor(blockchain, rpcUrl) {
+    this.blockchain = blockchain;
+    this.rpcUrl = rpcUrl;
+    __publicField(this, "toolkitId", "web3");
+    __publicField(this, "toolkit");
+  }
+  getReadonlyToolkit(blockchain) {
+    if (blockchain && blockchain !== this.blockchain)
+      return Promise.resolve(void 0);
+    if (!this.toolkit)
+      this.toolkit = new Web32(this.rpcUrl);
+    return Promise.resolve(this.toolkit);
+  }
 };
-var ethereumMainnetCurrencies = [
-  ethereumNativeCurrency
-];
-var ethereumTestnetCurrencies = [
-  ethereumNativeCurrency
-];
 
 // src/ethereum/balancesProviders/ethereumBalancesProvider.ts
 var EthereumBalancesProvider = class {
@@ -533,20 +585,32 @@ var EthereumSwapTransactionsProvider = class {
   }
 };
 
-// src/ethereum/blockchainToolkitProviders/ethereumBlockchainToolkitProvider.ts
-var EthereumBlockchainToolkitProvider = class {
-  getReadonlyToolkit(_blockchain, _toolkitId) {
-    throw new Error("Method not implemented.");
-  }
-  getToolkit(_blockchain, _address, _toolkitId) {
-    throw new Error("Method not implemented.");
-  }
-  addSigner(_signer) {
-    throw new Error("Method not implemented.");
-  }
-  removeSigner(_signer) {
-    throw new Error("Method not implemented.");
-  }
+// src/ethereum/config/defaultOptions.ts
+var createDefaultEthereumBlockchainOptions = () => {
+  const blockchain = "ethereum";
+  const mainnetRpcUrl = "https://eth-mainnet.public.blastapi.io";
+  const testNetRpcUrl = "https://rpc.goerli.mudit.blog";
+  const balancesProvider = new EthereumBalancesProvider();
+  const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
+  const ethereumOptions = {
+    mainnet: {
+      rpcUrl: mainnetRpcUrl,
+      currencies: ethereumMainnetCurrencies,
+      currencyOptions: {},
+      blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, mainnetRpcUrl),
+      balancesProvider,
+      swapTransactionsProvider
+    },
+    testnet: {
+      rpcUrl: testNetRpcUrl,
+      currencies: ethereumTestnetCurrencies,
+      currencyOptions: {},
+      blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, testNetRpcUrl),
+      balancesProvider,
+      swapTransactionsProvider
+    }
+  };
+  return ethereumOptions;
 };
 
 // src/exchange/helpers/symbolsHelper.ts
@@ -903,8 +967,9 @@ var SwapManager = class {
   }
 };
 
-// src/tezos/walletTezosSigner/beaconWalletTezosSigner.ts
+// src/tezos/wallets/beaconWalletTezosWallet.ts
 import { SigningType } from "@airgap/beacon-sdk";
+import { TezosToolkit } from "@taquito/taquito";
 
 // src/tezos/utils/index.ts
 import { b58cdecode as b58cdecode2, prefix as prefix2, validatePkAndExtractPrefix } from "@taquito/utils";
@@ -958,12 +1023,18 @@ var decodePublicKey = (publicKey) => {
   return Buffer2.from(decodedKeyBytes).toString("hex");
 };
 
-// src/tezos/walletTezosSigner/beaconWalletTezosSigner.ts
-var BeaconWalletTezosSigner = class {
-  constructor(atomexNetwork, beaconWallet) {
+// src/tezos/wallets/beaconWalletTezosWallet.ts
+var BeaconWalletTezosWallet = class {
+  constructor(atomexNetwork, beaconWallet, rpcUrl) {
     this.atomexNetwork = atomexNetwork;
     this.beaconWallet = beaconWallet;
-    __publicField(this, "blockchain", "tezos");
+    __publicField(this, "id", "taquito");
+    __publicField(this, "toolkit");
+    this.toolkit = new TezosToolkit(rpcUrl);
+    this.toolkit.setWalletProvider(beaconWallet);
+  }
+  getBlockchain() {
+    return "tezos";
   }
   getAddress() {
     return this.beaconWallet.getPKH();
@@ -996,12 +1067,61 @@ var BeaconWalletTezosSigner = class {
   }
 };
 
-// src/tezos/walletTezosSigner/templeWalletTezosSigner.ts
-var TempleWalletTezosSigner = class {
-  constructor(atomexNetwork, templeWallet) {
+// src/tezos/wallets/inMemoryTezosWallet.ts
+import { InMemorySigner } from "@taquito/signer";
+import { TezosToolkit as TezosToolkit2 } from "@taquito/taquito";
+var InMemoryTezosWallet = class {
+  constructor(atomexNetwork, secretKey, rpcUrl) {
+    this.atomexNetwork = atomexNetwork;
+    __publicField(this, "id", "taquito");
+    __publicField(this, "toolkit");
+    __publicField(this, "internalInMemorySigner");
+    this.internalInMemorySigner = new InMemorySigner(secretKey);
+    this.toolkit = new TezosToolkit2(rpcUrl);
+    this.toolkit.setSignerProvider(this.internalInMemorySigner);
+  }
+  getBlockchain() {
+    return "tezos";
+  }
+  getAddress() {
+    return this.internalInMemorySigner.publicKeyHash();
+  }
+  getPublicKey() {
+    return this.internalInMemorySigner.publicKey();
+  }
+  async sign(message) {
+    const messageBytes = signing_exports.getRawSigningData(message);
+    const [address, publicKey, rawSignature] = await Promise.all([
+      this.getAddress(),
+      this.getPublicKey(),
+      this.internalInMemorySigner.sign(messageBytes)
+    ]);
+    const publicKeyBytes = decodePublicKey(publicKey);
+    const signatureBytes = rawSignature.sbytes.substring(rawSignature.bytes.length);
+    const algorithm = signing_exports.getTezosSigningAlgorithm(publicKey);
+    return {
+      address,
+      algorithm,
+      publicKeyBytes,
+      signatureBytes
+    };
+  }
+};
+
+// src/tezos/wallets/templeWalletTezosWallet.ts
+import { TezosToolkit as TezosToolkit3 } from "@taquito/taquito";
+var TempleWalletTezosWallet = class {
+  constructor(atomexNetwork, templeWallet, rpcUrl) {
     this.atomexNetwork = atomexNetwork;
     this.templeWallet = templeWallet;
+    __publicField(this, "id", "taquito");
     __publicField(this, "blockchain", "tezos");
+    __publicField(this, "toolkit");
+    this.toolkit = new TezosToolkit3(rpcUrl);
+    this.toolkit.setWalletProvider(templeWallet);
+  }
+  getBlockchain() {
+    return "tezos";
   }
   getAddress() {
     return this.templeWallet.getPKH();
@@ -1031,70 +1151,57 @@ var TempleWalletTezosSigner = class {
   }
 };
 
-// src/tezos/walletTezosSigner/walletTezosSigner.ts
-var WalletTezosSigner = class {
-  constructor(atomexNetwork, wallet) {
+// src/tezos/wallets/taquitoBlockchainWallet.ts
+var TaquitoBlockchainWallet = class {
+  constructor(atomexNetwork, walletOrSecretKey, rpcUrl) {
     this.atomexNetwork = atomexNetwork;
-    this.wallet = wallet;
-    __publicField(this, "blockchain", "tezos");
-    __publicField(this, "internalSigner");
-    this.internalSigner = this.createInternalSigner();
+    this.walletOrSecretKey = walletOrSecretKey;
+    this.rpcUrl = rpcUrl;
+    __publicField(this, "internalWallet");
+    this.internalWallet = this.createInternalWallet(walletOrSecretKey);
+  }
+  get id() {
+    return this.internalWallet.id;
+  }
+  get toolkit() {
+    return this.internalWallet.toolkit;
   }
   getAddress() {
-    return this.internalSigner.getAddress();
+    return this.internalWallet.getAddress();
   }
   getPublicKey() {
-    return this.internalSigner.getPublicKey();
+    return this.internalWallet.getPublicKey();
+  }
+  getBlockchain() {
+    return this.internalWallet.getBlockchain();
   }
   sign(message) {
-    return this.internalSigner.sign(message);
+    return this.internalWallet.sign(message);
   }
-  createInternalSigner() {
+  createInternalWallet(walletOrSecretKey) {
     var _a;
-    if (((_a = this.wallet.client) == null ? void 0 : _a.name) !== void 0)
-      return new BeaconWalletTezosSigner(this.atomexNetwork, this.wallet);
-    else if (this.wallet.permission !== void 0 && this.wallet.connected !== void 0)
-      return new TempleWalletTezosSigner(this.atomexNetwork, this.wallet);
+    if (typeof walletOrSecretKey === "string")
+      return new InMemoryTezosWallet(this.atomexNetwork, walletOrSecretKey, this.rpcUrl);
+    else if (((_a = walletOrSecretKey.client) == null ? void 0 : _a.name) !== void 0)
+      return new BeaconWalletTezosWallet(this.atomexNetwork, walletOrSecretKey, this.rpcUrl);
+    else if (walletOrSecretKey.permission !== void 0 && walletOrSecretKey.connected !== void 0)
+      return new TempleWalletTezosWallet(this.atomexNetwork, walletOrSecretKey, this.rpcUrl);
     else
       throw new Error("Unknown Tezos wallet");
   }
-};
-
-// src/tezos/inMemoryTezosSigner.ts
-import { InMemorySigner } from "@taquito/signer";
-var InMemoryTezosSigner = class {
-  constructor(atomexNetwork, secretKey) {
-    this.atomexNetwork = atomexNetwork;
-    __publicField(this, "blockchain", "tezos");
-    __publicField(this, "internalInMemorySigner");
-    this.internalInMemorySigner = new InMemorySigner(secretKey);
-  }
-  getAddress() {
-    return this.internalInMemorySigner.publicKeyHash();
-  }
-  getPublicKey() {
-    return this.internalInMemorySigner.publicKey();
-  }
-  async sign(message) {
-    const messageBytes = signing_exports.getRawSigningData(message);
-    const [address, publicKey, rawSignature] = await Promise.all([
-      this.getAddress(),
-      this.getPublicKey(),
-      this.internalInMemorySigner.sign(messageBytes)
-    ]);
-    const publicKeyBytes = decodePublicKey(publicKey);
-    const signatureBytes = rawSignature.sbytes.substring(rawSignature.bytes.length);
-    const algorithm = signing_exports.getTezosSigningAlgorithm(publicKey);
-    return {
-      address,
-      algorithm,
-      publicKeyBytes,
-      signatureBytes
-    };
+  static async bind(atomex, walletOrSecretKey) {
+    var _a;
+    const blockchain = "tezos";
+    const rpcUrl = (_a = atomex.atomexContext.providers.blockchainProvider.getNetworkOptions(blockchain)) == null ? void 0 : _a.rpcUrl;
+    if (!rpcUrl)
+      throw new Error(`There is not rpc url for ${blockchain} network`);
+    const wallet = new TaquitoBlockchainWallet(atomex.atomexNetwork, walletOrSecretKey, rpcUrl);
+    await atomex.wallets.addWallet(wallet);
+    return wallet;
   }
 };
 
-// src/tezos/currencies.ts
+// src/tezos/config/currencies.ts
 var tezosNativeCurrency = {
   id: "XTZ",
   name: "Tezos",
@@ -1140,6 +1247,25 @@ var TezosBalancesProvider = class {
   }
 };
 
+// src/tezos/blockchainToolkitProviders/taquitoBlockchainToolkitProvider.ts
+import { TezosToolkit as TezosToolkit4 } from "@taquito/taquito";
+var _TaquitoBlockchainToolkitProvider = class {
+  constructor(rpcUrl) {
+    this.rpcUrl = rpcUrl;
+    __publicField(this, "toolkitId", "taquito");
+    __publicField(this, "toolkit");
+  }
+  getReadonlyToolkit(blockchain) {
+    if (blockchain && blockchain !== _TaquitoBlockchainToolkitProvider.BLOCKCHAIN)
+      return Promise.resolve(void 0);
+    if (!this.toolkit)
+      this.toolkit = new TezosToolkit4(this.rpcUrl);
+    return Promise.resolve(this.toolkit);
+  }
+};
+var TaquitoBlockchainToolkitProvider = _TaquitoBlockchainToolkitProvider;
+__publicField(TaquitoBlockchainToolkitProvider, "BLOCKCHAIN", "tezos");
+
 // src/tezos/swapTransactionsProviders/tezosSwapTransactionsProvider.ts
 var TezosSwapTransactionsProvider = class {
   constructor() {
@@ -1163,20 +1289,31 @@ var TezosSwapTransactionsProvider = class {
   }
 };
 
-// src/tezos/blockchainToolkitProviders/tezosBlockchainToolkitProvider.ts
-var TezosBlockchainToolkitProvider = class {
-  getReadonlyToolkit(_blockchain, _toolkitId) {
-    throw new Error("Method not implemented.");
-  }
-  getToolkit(_blockchain, _address, _toolkitId) {
-    throw new Error("Method not implemented.");
-  }
-  addSigner(_signer) {
-    throw new Error("Method not implemented.");
-  }
-  removeSigner(_signer) {
-    throw new Error("Method not implemented.");
-  }
+// src/tezos/config/defaultOptions.ts
+var createDefaultTezosBlockchainOptions = () => {
+  const mainnetRpcUrl = "https://rpc.tzkt.io/mainnet/";
+  const testNetRpcUrl = "https://rpc.tzkt.io/ithacanet/";
+  const balancesProvider = new TezosBalancesProvider();
+  const swapTransactionsProvider = new TezosSwapTransactionsProvider();
+  const tezosOptions = {
+    mainnet: {
+      rpcUrl: mainnetRpcUrl,
+      currencies: tezosMainnetCurrencies,
+      currencyOptions: {},
+      blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(mainnetRpcUrl),
+      balancesProvider,
+      swapTransactionsProvider
+    },
+    testnet: {
+      rpcUrl: testNetRpcUrl,
+      currencies: tezosTestnetCurrencies,
+      currencyOptions: {},
+      blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(testNetRpcUrl),
+      balancesProvider,
+      swapTransactionsProvider
+    }
+  };
+  return tezosOptions;
 };
 
 // src/clients/rest/httpClient.ts
@@ -2012,7 +2149,7 @@ var _AuthorizationManager = class {
       authTokenExpired: new EventEmitter()
     });
     __publicField(this, "atomexNetwork");
-    __publicField(this, "signersManager");
+    __publicField(this, "walletsManager");
     __publicField(this, "store");
     __publicField(this, "authorizationUrl");
     __publicField(this, "expiringNotificationTimeInSeconds");
@@ -2036,8 +2173,8 @@ var _AuthorizationManager = class {
     });
     this.atomexNetwork = options.atomexNetwork;
     this.store = options.store;
-    this.signersManager = options.signersManager;
-    atomexUtils_exports.ensureNetworksAreSame(this, this.signersManager);
+    this.walletsManager = options.walletsManager;
+    atomexUtils_exports.ensureNetworksAreSame(this, this.walletsManager);
     this.authorizationUrl = new URL(_AuthorizationManager.DEFAULT_GET_AUTH_TOKEN_URI, options.authorizationBaseUrl);
     this.expiringNotificationTimeInSeconds = options.expiringNotificationTimeInSeconds || _AuthorizationManager.DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS;
   }
@@ -2076,11 +2213,11 @@ var _AuthorizationManager = class {
     }
     if ((authTokenSource & 2 /* Remote */) !== 2 /* Remote */)
       return void 0;
-    const signer = await this.signersManager.findSigner(address, blockchain);
-    if (!signer)
-      throw new Error(`Not found: the corresponding signer by the ${address} address`);
+    const wallet = await this.walletsManager.getWallet(address, blockchain);
+    if (!wallet)
+      throw new Error(`Not found: the corresponding wallet by the ${address} address`);
     const timeStamp = this.getAuthorizationTimeStamp(authMessage);
-    const atomexSignature = await signer.sign(authMessage + timeStamp);
+    const atomexSignature = await wallet.sign(authMessage + timeStamp);
     if (atomexSignature.address !== address)
       throw new Error("Invalid address in the signed data");
     const authenticationResponseData = await this.requestAuthToken({
@@ -2335,7 +2472,7 @@ var createDefaultAuthorizationManager = (atomexContext, options, _builderOptions
   const environment = globalThis.window ? "browser" : "node";
   return new AuthorizationManager({
     atomexNetwork: atomexContext.atomexNetwork,
-    signersManager: atomexContext.managers.signersManager,
+    walletsManager: atomexContext.managers.walletsManager,
     authorizationBaseUrl: options.authorizationBaseUrl,
     store: environment === "browser" ? new LocalStorageAuthorizationManagerStore(options.store.browser.storeStrategy) : new InMemoryAuthorizationManagerStore()
   });
@@ -2385,7 +2522,7 @@ var AtomexBuilder = class {
     this.options = options;
     this.atomexContext = atomexContext;
     __publicField(this, "customAuthorizationManagerFactory");
-    __publicField(this, "customSignersManagerFactory");
+    __publicField(this, "customWalletsManagerFactory");
     __publicField(this, "customExchangeManagerFactory");
   }
   get controlledAtomexContext() {
@@ -2395,8 +2532,8 @@ var AtomexBuilder = class {
     this.customAuthorizationManagerFactory = customAuthorizationManagerFactory;
     return this;
   }
-  useSignersManager(customSignersManagerFactory) {
-    this.customSignersManagerFactory = customSignersManagerFactory;
+  useWalletsManager(customWalletsManagerFactory) {
+    this.customWalletsManagerFactory = customWalletsManagerFactory;
     return this;
   }
   useExchangeManager(customExchangeManagerFactory) {
@@ -2408,7 +2545,7 @@ var AtomexBuilder = class {
     this.controlledAtomexContext.providers.blockchainProvider = blockchainProvider;
     this.controlledAtomexContext.providers.currenciesProvider = blockchainProvider;
     this.controlledAtomexContext.providers.exchangeSymbolsProvider = this.createExchangeSymbolsProvider();
-    this.controlledAtomexContext.managers.signersManager = this.createSignersManager();
+    this.controlledAtomexContext.managers.walletsManager = this.createWalletsManager();
     this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
     const atomexClient = this.createDefaultExchangeService();
     this.controlledAtomexContext.services.exchangeService = atomexClient;
@@ -2419,7 +2556,7 @@ var AtomexBuilder = class {
     return new Atomex({
       atomexContext: this.atomexContext,
       managers: {
-        signersManager: this.atomexContext.managers.signersManager,
+        walletsManager: this.atomexContext.managers.walletsManager,
         authorizationManager: this.atomexContext.managers.authorizationManager,
         exchangeManager: this.atomexContext.managers.exchangeManager,
         swapManager: this.atomexContext.managers.swapManager
@@ -2434,8 +2571,8 @@ var AtomexBuilder = class {
     const defaultAuthorizationManagerOptions = config[this.atomexContext.atomexNetwork].authorization;
     return this.customAuthorizationManagerFactory ? this.customAuthorizationManagerFactory(this.atomexContext, defaultAuthorizationManagerOptions, this.options) : createDefaultAuthorizationManager(this.atomexContext, defaultAuthorizationManagerOptions, this.options);
   }
-  createSignersManager() {
-    return this.customSignersManagerFactory ? this.customSignersManagerFactory(this.atomexContext, this.options) : new SignersManager(this.atomexContext.atomexNetwork);
+  createWalletsManager() {
+    return this.customWalletsManagerFactory ? this.customWalletsManagerFactory(this.atomexContext, this.options) : new WalletsManager(this.atomexContext.atomexNetwork);
   }
   createDefaultExchangeService() {
     const defaultExchangeManagerOptions = config[this.atomexContext.atomexNetwork].exchange;
@@ -2449,53 +2586,9 @@ var AtomexBuilder = class {
   }
   createDefaultBlockchainOptions() {
     return {
-      tezos: this.createDefaultTezosBlockchainOptions(),
-      ethereum: this.createDefaultEthereumBlockchainOptions()
+      tezos: createDefaultTezosBlockchainOptions(),
+      ethereum: createDefaultEthereumBlockchainOptions()
     };
-  }
-  createDefaultTezosBlockchainOptions() {
-    const balancesProvider = new TezosBalancesProvider();
-    const swapTransactionsProvider = new TezosSwapTransactionsProvider();
-    const blockchainToolkitProvider = new TezosBlockchainToolkitProvider();
-    const tezosOptions = {
-      mainnet: {
-        currencies: tezosMainnetCurrencies,
-        balancesProvider,
-        swapTransactionsProvider,
-        blockchainToolkitProvider,
-        currencyOptions: {}
-      },
-      testnet: {
-        currencies: tezosTestnetCurrencies,
-        balancesProvider,
-        swapTransactionsProvider,
-        blockchainToolkitProvider,
-        currencyOptions: {}
-      }
-    };
-    return tezosOptions;
-  }
-  createDefaultEthereumBlockchainOptions() {
-    const balancesProvider = new EthereumBalancesProvider();
-    const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
-    const blockchainToolkitProvider = new EthereumBlockchainToolkitProvider();
-    const ethereumOptions = {
-      mainnet: {
-        currencies: ethereumMainnetCurrencies,
-        balancesProvider,
-        swapTransactionsProvider,
-        blockchainToolkitProvider,
-        currencyOptions: {}
-      },
-      testnet: {
-        currencies: ethereumTestnetCurrencies,
-        balancesProvider,
-        swapTransactionsProvider,
-        blockchainToolkitProvider,
-        currencyOptions: {}
-      }
-    };
-    return ethereumOptions;
   }
 };
 
@@ -3655,7 +3748,7 @@ var Atomex2 = class {
 // src/legacy/ethereum.ts
 import BigNumber4 from "bignumber.js";
 import elliptic from "elliptic";
-import Web3 from "web3";
+import Web33 from "web3";
 
 // src/legacy/helpers.ts
 var Helpers = class {
@@ -3710,7 +3803,7 @@ var EthereumHelpers = class extends Helpers {
     if (rpcUri !== void 0) {
       networkSettings.rpc = rpcUri;
     }
-    const web3 = new Web3(networkSettings.rpc);
+    const web3 = new Web33(networkSettings.rpc);
     const chainID = await web3.eth.getChainId();
     if (networkSettings.chainID !== chainID) {
       throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
@@ -3897,7 +3990,7 @@ import { ParameterSchema } from "@taquito/michelson-encoder";
 import {
   OpKind
 } from "@taquito/rpc";
-import { TezosToolkit } from "@taquito/taquito";
+import { TezosToolkit as TezosToolkit5 } from "@taquito/taquito";
 import {
   b58cdecode as b58cdecode3,
   prefix as prefix3,
@@ -3941,7 +4034,7 @@ var TezosHelpers = class extends Helpers {
     if (rpcUri !== void 0) {
       networkSettings.rpc = rpcUri;
     }
-    const tezos = new TezosToolkit(networkSettings.rpc);
+    const tezos = new TezosToolkit5(networkSettings.rpc);
     const chainID = await tezos.rpc.getChainId();
     if (networkSettings.chainID !== chainID.toString()) {
       throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
@@ -4181,7 +4274,7 @@ var TezosHelpers = class extends Helpers {
 };
 
 // src/legacy/fa12.ts
-import { TezosToolkit as TezosToolkit2 } from "@taquito/taquito";
+import { TezosToolkit as TezosToolkit6 } from "@taquito/taquito";
 import BigNumber6 from "bignumber.js";
 var FA12Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
@@ -4189,7 +4282,7 @@ var FA12Helpers = class extends TezosHelpers {
     if (rpcUri !== void 0) {
       networkSettings.rpc = rpcUri;
     }
-    const tezos = new TezosToolkit2(networkSettings.rpc);
+    const tezos = new TezosToolkit6(networkSettings.rpc);
     const chainID = await tezos.rpc.getChainId();
     if (networkSettings.chainID !== chainID.toString()) {
       throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
@@ -4226,7 +4319,7 @@ var FA12Helpers = class extends TezosHelpers {
 };
 
 // src/legacy/fa2.ts
-import { TezosToolkit as TezosToolkit3 } from "@taquito/taquito";
+import { TezosToolkit as TezosToolkit7 } from "@taquito/taquito";
 import BigNumber7 from "bignumber.js";
 var FA2Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
@@ -4234,7 +4327,7 @@ var FA2Helpers = class extends TezosHelpers {
     if (rpcUri !== void 0) {
       networkSettings.rpc = rpcUri;
     }
-    const tezos = new TezosToolkit3(networkSettings.rpc);
+    const tezos = new TezosToolkit7(networkSettings.rpc);
     const chainID = await tezos.rpc.getChainId();
     if (networkSettings.chainID !== chainID.toString()) {
       throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
@@ -4281,13 +4374,12 @@ export {
   ImportantDataReceivingMode,
   InMemoryAuthorizationManagerStore,
   InMemoryExchangeSymbolsProvider,
-  InMemoryTezosSigner,
   LocalStorageAuthorizationManagerStore,
   MixedApiAtomexClient,
   RestAtomexClient,
-  SignersManager,
-  WalletTezosSigner,
-  Web3EthereumSigner,
+  TaquitoBlockchainWallet,
+  WalletsManager,
+  Web3BlockchainWallet,
   WebSocketAtomexClient,
   atomexUtils_exports as atomexUtils,
   converters_exports as converters,

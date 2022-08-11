@@ -1,5 +1,5 @@
 import type { AuthorizationManager } from '../authorization/index';
-import type { SignersManager, AtomexBlockchainProvider } from '../blockchain/index';
+import type { WalletsManager, AtomexBlockchainProvider } from '../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
 import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
@@ -14,13 +14,13 @@ export declare class AtomexContext {
 }
 declare class AtomexContextManagersSection {
     readonly context: AtomexContext;
-    private _signersManager;
+    private _walletsManager;
     private _authorizationManager;
     private _exchangeManager;
     private _swapManager;
     constructor(context: AtomexContext);
-    get signersManager(): SignersManager;
-    private set signersManager(value);
+    get walletsManager(): WalletsManager;
+    private set walletsManager(value);
     get authorizationManager(): AuthorizationManager;
     private set authorizationManager(value);
     get exchangeManager(): ExchangeManager;
