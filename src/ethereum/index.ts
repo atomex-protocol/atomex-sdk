@@ -1,3 +1,4 @@
 export { ethereumMainnetCurrencies, ethereumTestnetCurrencies, createDefaultEthereumBlockchainOptions } from './config/index';
-export { EthereumBalancesProvider } from './balancesProviders';
-export { EthereumSwapTransactionsProvider } from './swapTransactionsProviders';
+export { EthereumWeb3AtomexProtocolV1 } from './atomexProtocol/index';
+export { EthereumBalancesProvider } from './balancesProviders/index';
+export { EthereumSwapTransactionsProvider } from './swapTransactionsProviders/index';

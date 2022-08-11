@@ -1,10 +1,10 @@
 export { WalletsManager } from './walletsManager';
 
-export type { AtomexSignature, Transaction } from './models/index';
+export type { AtomexProtocolOptions, AtomexSignature, Transaction } from './models/index';
 export type { AtomexProtocol } from './atomexProtocol';
 export type {
-  AtomexProtocolV1, InitiateParametersAtomexProtocolV1,
-  RedeemParametersAtomexProtocolV1, RefundParametersAtomexProtocolV1
+  AtomexProtocolV1, AtomexProtocolV1Options,
+  AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters
 } from './atomexProtocolV1/index';
 export type { BalancesProvider } from './balancesProvider';
 export type { CurrencyBalanceProvider } from './currencyBalanceProvider';

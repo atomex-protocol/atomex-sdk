@@ -1,13 +1,15 @@
-import type { AtomexBlockchainOptions } from '../../atomex/models/index';
-import { Web3BlockchainToolkitProvider } from '../../evm';
+import type { AtomexContext, AtomexBlockchainOptions } from '../../atomex';
+import { Web3BlockchainToolkitProvider } from '../../evm/index';
+import { EthereumWeb3AtomexProtocolV1 } from '../atomexProtocol/index';
 import { EthereumBalancesProvider } from '../balancesProviders/index';
 import { EthereumSwapTransactionsProvider } from '../swapTransactionsProviders/index';
+import { mainnetEthereumAtomexProtocolV1Options, testnetEthereumAtomexProtocolV1Options } from './atomexProtocol';
 import { ethereumMainnetCurrencies, ethereumTestnetCurrencies } from './currencies';
 
-export const createDefaultEthereumBlockchainOptions = (): AtomexBlockchainOptions => {
+export const createDefaultEthereumBlockchainOptions = (atomexContext: AtomexContext): AtomexBlockchainOptions => {
   const blockchain = 'ethereum';
-  const mainnetRpcUrl = 'https://eth-mainnet.public.blastapi.io';
-  const testNetRpcUrl = 'https://rpc.goerli.mudit.blog';
+  const mainnetRpcUrl = 'https://mainnet.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/';
+  const testNetRpcUrl = 'https://goerli.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/';
 
   const balancesProvider = new EthereumBalancesProvider();
   const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
@@ -16,7 +18,15 @@ export const createDefaultEthereumBlockchainOptions = (): AtomexBlockchainOption
     mainnet: {
       rpcUrl: mainnetRpcUrl,
       currencies: ethereumMainnetCurrencies,
-      currencyOptions: {},
+      currencyOptions: {
+        ETH: {
+          atomexProtocol: new EthereumWeb3AtomexProtocolV1(
+            'mainnet',
+            atomexContext.providers.currenciesProvider,
+            mainnetEthereumAtomexProtocolV1Options
+          )
+        }
+      },
       blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, mainnetRpcUrl),
       balancesProvider,
       swapTransactionsProvider,
@@ -24,7 +34,15 @@ export const createDefaultEthereumBlockchainOptions = (): AtomexBlockchainOption
     testnet: {
       rpcUrl: testNetRpcUrl,
       currencies: ethereumTestnetCurrencies,
-      currencyOptions: {},
+      currencyOptions: {
+        ETH: {
+          atomexProtocol: new EthereumWeb3AtomexProtocolV1(
+            'testnet',
+            atomexContext.providers.currenciesProvider,
+            testnetEthereumAtomexProtocolV1Options
+          )
+        }
+      },
       blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, testNetRpcUrl),
       balancesProvider,
       swapTransactionsProvider,

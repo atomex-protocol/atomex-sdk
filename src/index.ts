@@ -15,7 +15,7 @@ export type { AtomexOptions, NewSwapRequest } from './atomex/index';
 export type { AuthToken, AuthorizationManagerOptions } from './authorization/index';
 export type {
   AtomexProtocol, Transaction,
-  AtomexProtocolV1, InitiateParametersAtomexProtocolV1, RedeemParametersAtomexProtocolV1, RefundParametersAtomexProtocolV1,
+  AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
   AtomexSignature, BlockchainWallet,
   BalancesProvider, SwapTransactionsProvider, TransactionsProvider
 } from './blockchain/index';
