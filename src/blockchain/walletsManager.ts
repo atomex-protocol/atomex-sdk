@@ -31,10 +31,13 @@ export class WalletsManager {
       if (toolkit && wallet.id !== toolkit)
         continue;
 
-      const addressPromise = address ? wallet.getAddress() : undefined;
-      const blockchainPromise = blockchain ? wallet.getBlockchain() : undefined;
+      const addressOrPromise = address ? wallet.getAddress() : undefined;
+      const blockchainOrPromise = blockchain ? wallet.getBlockchain() : undefined;
 
-      walletPromises.push(Promise.all([addressPromise, blockchainPromise]).then(([address, blockchain]) => [wallet, address, blockchain]));
+      if ((!address || address === addressOrPromise) && (!blockchain || blockchain == blockchainOrPromise))
+        return wallet;
+
+      walletPromises.push(Promise.all([addressOrPromise, blockchainOrPromise]).then(([address, blockchain]) => [wallet, address, blockchain]));
     }
 
     const walletResults = await Promise.allSettled(walletPromises);
@@ -45,7 +48,7 @@ export class WalletsManager {
       }
 
       const [wallet, walletAddress, walletBlockchain] = walletResult.value;
-      if (!address || address === walletAddress && !blockchain || blockchain == walletBlockchain)
+      if ((!address || address === walletAddress) && (!blockchain || blockchain == walletBlockchain))
         return wallet;
     }
 
