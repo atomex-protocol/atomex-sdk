@@ -1,18 +1,28 @@
+import { TezosToolkit } from '@taquito/taquito';
 import type { TempleWallet } from '@temple-wallet/dapp';
 
-import type { AtomexSignature, Signer } from '../../blockchain/index';
+import type { AtomexSignature, BlockchainWallet } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import { TezosAtomexSigningDataType } from '../models/index';
 import { decodePublicKey, signingUtils } from '../utils/index';
 import { decodeSignature } from '../utils/signing';
 
-export class TempleWalletTezosSigner implements Signer {
+export class TempleWalletTezosWallet implements BlockchainWallet<TezosToolkit> {
+  readonly id = 'tezosToolkit';
   readonly blockchain = 'tezos';
+  readonly toolkit: TezosToolkit;
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,
-    readonly templeWallet: TempleWallet
+    readonly templeWallet: TempleWallet,
+    rpcUrl: string
   ) {
+    this.toolkit = new TezosToolkit(rpcUrl);
+    this.toolkit.setWalletProvider(templeWallet);
+  }
+
+  getBlockchain(): string | Promise<string> {
+    return 'tezos';
   }
 
   getAddress(): Promise<string> {

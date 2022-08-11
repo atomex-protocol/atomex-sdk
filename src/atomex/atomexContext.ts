@@ -1,5 +1,5 @@
 import type { AuthorizationManager } from '../authorization/index';
-import type { SignersManager, AtomexBlockchainProvider } from '../blockchain/index';
+import type { WalletsManager, AtomexBlockchainProvider } from '../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
 import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
@@ -23,7 +23,7 @@ export class AtomexContext {
 }
 
 class AtomexContextManagersSection {
-  private _signersManager: SignersManager | undefined;
+  private _walletsManager: WalletsManager | undefined;
   private _authorizationManager: AuthorizationManager | undefined;
   private _exchangeManager: ExchangeManager | undefined;
   private _swapManager: SwapManager | undefined;
@@ -31,15 +31,15 @@ class AtomexContextManagersSection {
   constructor(readonly context: AtomexContext) {
   }
 
-  get signersManager(): SignersManager {
-    if (!this._signersManager)
-      throw new AtomexComponentNotResolvedError('managers.signersManager');
+  get walletsManager(): WalletsManager {
+    if (!this._walletsManager)
+      throw new AtomexComponentNotResolvedError('managers.walletsManager');
 
-    return this._signersManager;
+    return this._walletsManager;
   }
 
-  private set signersManager(signersManager: SignersManager) {
-    this._signersManager = signersManager;
+  private set walletsManager(walletsManager: WalletsManager) {
+    this._walletsManager = walletsManager;
   }
 
   get authorizationManager(): AuthorizationManager {

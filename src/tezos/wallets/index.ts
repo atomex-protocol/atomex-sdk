@@ -1,0 +1,1 @@
+export { TaquitoBlockchainWallet } from './taquitoBlockchainWallet';

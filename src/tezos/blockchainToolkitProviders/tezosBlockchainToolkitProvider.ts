@@ -1,72 +1,24 @@
-import { TezosToolkit, WalletProvider } from '@taquito/taquito';
+import { TezosToolkit } from '@taquito/taquito';
 
-import type { BlockchainToolkitProvider, Signer } from '../../blockchain/index';
-import { BeaconWalletTezosSigner } from '../walletTezosSigner/beaconWalletTezosSigner';
-import { WalletTezosSigner } from '../walletTezosSigner/index';
-import { TempleWalletTezosSigner } from '../walletTezosSigner/templeWalletTezosSigner';
+import type { BlockchainToolkitProvider } from '../../blockchain/index';
 
 export class TezosBlockchainToolkitProvider implements BlockchainToolkitProvider {
-  readonly toolkitId = 'tezosToolkit';
+  static readonly BLOCKCHAIN = 'tezos';
 
-  protected readonlyToolkit: TezosToolkit | undefined;
+  readonly toolkitId = 'tezosToolkit';
   protected toolkit: TezosToolkit | undefined;
 
   constructor(
     protected readonly rpcUrl: string
   ) { }
 
-  getReadonlyToolkit(): Promise<unknown> {
-    if (!this.readonlyToolkit)
-      this.readonlyToolkit = this.createToolkit();
+  getReadonlyToolkit(blockchain?: string): Promise<TezosToolkit | undefined> {
+    if (blockchain && blockchain !== TezosBlockchainToolkitProvider.BLOCKCHAIN)
+      return Promise.resolve(undefined);
 
-    return Promise.resolve(this.readonlyToolkit);
-  }
+    if (!this.toolkit)
+      this.toolkit = new TezosToolkit(this.rpcUrl);
 
-  async getToolkit(address?: string): Promise<unknown | undefined> {
-    if (address) {
-      const toolkitAddress = await this.toolkit?.wallet.pkh();
-      if (toolkitAddress !== address)
-        return undefined;
-    }
-
-    return this.toolkit;
-  }
-
-  async addSigner(signer: Signer): Promise<boolean> {
-    const walletProvider = this.getWalletProvider(signer);
-    if (!walletProvider)
-      return false;
-
-    this.toolkit = this.createToolkit();
-    this.toolkit.setWalletProvider(walletProvider);
-
-    return true;
-  }
-
-  async removeSigner(signer: Signer): Promise<boolean> {
-    const walletProvider = this.getWalletProvider(signer);
-    if (!walletProvider)
-      return false;
-
-    this.toolkit = undefined;
-
-    return true;
-  }
-
-  protected getWalletProvider(signer: Signer): WalletProvider | undefined {
-    let walletProvider: WalletProvider | undefined;
-
-    if (signer instanceof WalletTezosSigner)
-      walletProvider = signer.wallet;
-    else if (signer instanceof BeaconWalletTezosSigner)
-      walletProvider = signer.beaconWallet;
-    else if (signer instanceof TempleWalletTezosSigner)
-      walletProvider = signer.templeWallet;
-
-    return walletProvider;
-  }
-
-  protected createToolkit(): TezosToolkit {
-    return new TezosToolkit(this.rpcUrl);
+    return Promise.resolve(this.toolkit);
   }
 }

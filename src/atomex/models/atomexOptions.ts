@@ -1,7 +1,7 @@
 import type { AuthorizationManager } from '../../authorization/index';
 import type {
   AtomexProtocol, BalancesProvider, BlockchainToolkitProvider,
-  CurrencyBalanceProvider, SignersManager, SwapTransactionsProvider
+  CurrencyBalanceProvider, WalletsManager, SwapTransactionsProvider
 } from '../../blockchain/index';
 import type { Currency } from '../../common/index';
 import type { ExchangeManager, ExchangeService } from '../../exchange/index';
@@ -16,7 +16,7 @@ export interface AtomexOptions {
 
 export interface AtomexManagers {
   authorizationManager: AuthorizationManager;
-  signersManager: SignersManager;
+  walletsManager: WalletsManager;
   exchangeManager: ExchangeManager;
   swapManager: SwapManager;
 }
@@ -31,6 +31,7 @@ export interface AtomexBlockchainOptions {
 }
 
 export interface AtomexBlockchainNetworkOptions {
+  rpcUrl: string;
   blockchainToolkitProvider: BlockchainToolkitProvider;
   balancesProvider: BalancesProvider;
   swapTransactionsProvider: SwapTransactionsProvider;

@@ -2,8 +2,9 @@ import type { AtomexBlockchainNetworkOptions, AtomexCurrencyOptions } from '../.
 import { AtomexBlockchainProvider } from '../../src/blockchain/atomexBlockchainProvider';
 import type { Currency } from '../../src/common/index';
 import {
-  EthereumBalancesProvider, Web3BlockchainToolkitProvider, EthereumSwapTransactionsProvider
+  EthereumBalancesProvider, EthereumSwapTransactionsProvider
 } from '../../src/ethereum/index';
+import { Web3BlockchainToolkitProvider } from '../../src/evm/index';
 import {
   TezosBalancesProvider, TezosBlockchainToolkitProvider, TezosCurrency, TezosSwapTransactionsProvider
 } from '../../src/tezos/index';
@@ -52,7 +53,7 @@ describe('Atomex Blockchain Provider', () => {
     const ethereumNetworkOptions: AtomexBlockchainNetworkOptions = {
       rpcUrl: '',
       balancesProvider: new EthereumBalancesProvider(),
-      blockchainToolkitProvider: new Web3BlockchainToolkitProvider(''),
+      blockchainToolkitProvider: new Web3BlockchainToolkitProvider('ethereum', ''),
       swapTransactionsProvider: new EthereumSwapTransactionsProvider(),
       currencies: [ethereumNativeCurrency],
       currencyOptions: {}

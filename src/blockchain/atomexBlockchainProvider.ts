@@ -17,13 +17,15 @@ export interface CurrencyInfo {
 
 export class AtomexBlockchainProvider implements CurrenciesProvider {
   protected readonly currencyInfoMap: Map<Currency['id'], CurrencyInfo> = new Map();
-  protected readonly blockchainToolkitProviderMap: Map<string, BlockchainToolkitProvider> = new Map();
+  protected readonly networkOptionsMap: Map<string, AtomexBlockchainNetworkOptions> = new Map();
+  protected readonly blockchainToolkitProviders: Set<BlockchainToolkitProvider> = new Set();
 
   addBlockchain(blockchain: string, networkOptions: AtomexBlockchainNetworkOptions) {
-    if (this.blockchainToolkitProviderMap.has(blockchain))
+    if (this.networkOptionsMap.has(blockchain))
       throw new Error('There is already blockchain added with the same key');
 
-    this.blockchainToolkitProviderMap.set(blockchain, networkOptions.blockchainToolkitProvider);
+    this.networkOptionsMap.set(blockchain, networkOptions);
+    this.blockchainToolkitProviders.add(networkOptions.blockchainToolkitProvider);
 
     for (const currency of networkOptions.currencies) {
       if (this.currencyInfoMap.has(currency.id))
@@ -41,28 +43,28 @@ export class AtomexBlockchainProvider implements CurrenciesProvider {
     }
   }
 
+  getNetworkOptions(blockchain: string): AtomexBlockchainNetworkOptions | undefined {
+    return this.networkOptionsMap.get(blockchain);
+  }
+
   getCurrency(currencyId: Currency['id']): Currency | undefined {
     return this.getCurrencyInfo(currencyId)?.currency;
   }
 
-  getBlockchainToolkitProvider(blockchain: string): BlockchainToolkitProvider | undefined {
-    return this.blockchainToolkitProviderMap.get(blockchain);
-  }
+  async getReadonlyToolkit(toolkitId: string, blockchain?: string): Promise<unknown | undefined> {
+    const providerToolkitPromises: Array<Promise<unknown | undefined>> = [];
+    for (const provider of this.blockchainToolkitProviders) {
+      if (provider.toolkitId === toolkitId)
+        providerToolkitPromises.push(provider.getReadonlyToolkit(blockchain));
+    }
 
-  getReadonlyToolkit(blockchain: string, toolkitId: string): Promise<unknown | undefined> {
-    const provider = this.blockchainToolkitProviderMap.get(blockchain);
-    if (!provider || provider.toolkitId !== toolkitId)
-      return Promise.resolve(undefined);
+    const providerToolkitResults = await Promise.all(providerToolkitPromises);
+    for (const providerResult of providerToolkitResults) {
+      if (providerResult)
+        return providerResult;
+    }
 
-    return provider.getReadonlyToolkit();
-  }
-
-  getToolkit(blockchain: string, toolkitId: string, address?: string): Promise<unknown | undefined> {
-    const provider = this.blockchainToolkitProviderMap.get(blockchain);
-    if (!provider || provider.toolkitId !== toolkitId)
-      return Promise.resolve(undefined);
-
-    return provider.getToolkit(address);
+    return Promise.resolve(undefined);
   }
 
   getCurrencyInfo(currencyId: Currency['id']): CurrencyInfo | undefined {

@@ -28,7 +28,7 @@ export const createDefaultAuthorizationManager = (
 
   return new AuthorizationManager({
     atomexNetwork: atomexContext.atomexNetwork,
-    signersManager: atomexContext.managers.signersManager,
+    walletsManager: atomexContext.managers.walletsManager,
     authorizationBaseUrl: options.authorizationBaseUrl,
     store: environment === 'browser'
       ? new LocalStorageAuthorizationManagerStore(options.store.browser.storeStrategy)

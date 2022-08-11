@@ -1,4 +1,4 @@
-import type { SignersManager } from '../blockchain/index';
+import type { WalletsManager } from '../blockchain/index';
 import type { AtomexService, AtomexNetwork } from '../common/index';
 import { EventEmitter, type ToEventEmitters, type PublicEventEmitter } from '../core/index';
 import type { AuthorizationManagerStore } from '../stores/index';
@@ -29,7 +29,7 @@ export class AuthorizationManager implements AtomexService {
 
   readonly atomexNetwork: AtomexNetwork;
 
-  protected readonly signersManager: SignersManager;
+  protected readonly walletsManager: WalletsManager;
   protected readonly store: AuthorizationManagerStore;
   protected readonly authorizationUrl: URL;
   protected readonly expiringNotificationTimeInSeconds: number;
@@ -41,9 +41,9 @@ export class AuthorizationManager implements AtomexService {
   constructor(options: AuthorizationManagerOptions) {
     this.atomexNetwork = options.atomexNetwork;
     this.store = options.store;
-    this.signersManager = options.signersManager;
+    this.walletsManager = options.walletsManager;
 
-    atomexUtils.ensureNetworksAreSame(this, this.signersManager);
+    atomexUtils.ensureNetworksAreSame(this, this.walletsManager);
 
     this.authorizationUrl = new URL(AuthorizationManager.DEFAULT_GET_AUTH_TOKEN_URI, options.authorizationBaseUrl);
     this.expiringNotificationTimeInSeconds = options.expiringNotificationTimeInSeconds || AuthorizationManager.DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS;
@@ -94,12 +94,12 @@ export class AuthorizationManager implements AtomexService {
     if ((authTokenSource & AuthTokenSource.Remote) !== AuthTokenSource.Remote)
       return undefined;
 
-    const signer = await this.signersManager.findSigner(address, blockchain);
-    if (!signer)
-      throw new Error(`Not found: the corresponding signer by the ${address} address`);
+    const wallet = await this.walletsManager.getWallet(address, blockchain);
+    if (!wallet)
+      throw new Error(`Not found: the corresponding wallet by the ${address} address`);
 
     const timeStamp = this.getAuthorizationTimeStamp(authMessage);
-    const atomexSignature = await signer.sign(authMessage + timeStamp);
+    const atomexSignature = await wallet.sign(authMessage + timeStamp);
 
     if (atomexSignature.address !== address)
       throw new Error('Invalid address in the signed data');

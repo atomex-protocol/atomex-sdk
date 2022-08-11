@@ -12,6 +12,7 @@ export const createDefaultTezosBlockchainOptions = (): AtomexBlockchainOptions =
 
   const tezosOptions: AtomexBlockchainOptions = {
     mainnet: {
+      rpcUrl: mainnetRpcUrl,
       currencies: tezosMainnetCurrencies,
       currencyOptions: {},
       blockchainToolkitProvider: new TezosBlockchainToolkitProvider(mainnetRpcUrl),
@@ -19,6 +20,7 @@ export const createDefaultTezosBlockchainOptions = (): AtomexBlockchainOptions =
       swapTransactionsProvider,
     },
     testnet: {
+      rpcUrl: testNetRpcUrl,
       currencies: tezosTestnetCurrencies,
       currencyOptions: {},
       blockchainToolkitProvider: new TezosBlockchainToolkitProvider(testNetRpcUrl),
