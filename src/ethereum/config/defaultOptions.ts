@@ -3,7 +3,7 @@ import { Web3BlockchainToolkitProvider } from '../../evm/index';
 import { EthereumWeb3AtomexProtocolV1 } from '../atomexProtocol/index';
 import { EthereumBalancesProvider } from '../balancesProviders/index';
 import { EthereumSwapTransactionsProvider } from '../swapTransactionsProviders/index';
-import { mainnetEthereumAtomexProtocolV1Options, testnetEthereumAtomexProtocolV1Options } from './atomexProtocol';
+import { mainnetEthereumWeb3AtomexProtocolV1Options, testnetEthereumWeb3AtomexProtocolV1Options } from './atomexProtocol';
 import { ethereumMainnetCurrencies, ethereumTestnetCurrencies } from './currencies';
 
 export const createDefaultEthereumBlockchainOptions = (atomexContext: AtomexContext): AtomexBlockchainOptions => {
@@ -23,7 +23,7 @@ export const createDefaultEthereumBlockchainOptions = (atomexContext: AtomexCont
           atomexProtocol: new EthereumWeb3AtomexProtocolV1(
             'mainnet',
             atomexContext.providers.currenciesProvider,
-            mainnetEthereumAtomexProtocolV1Options
+            mainnetEthereumWeb3AtomexProtocolV1Options
           )
         }
       },
@@ -39,7 +39,7 @@ export const createDefaultEthereumBlockchainOptions = (atomexContext: AtomexCont
           atomexProtocol: new EthereumWeb3AtomexProtocolV1(
             'testnet',
             atomexContext.providers.currenciesProvider,
-            testnetEthereumAtomexProtocolV1Options
+            testnetEthereumWeb3AtomexProtocolV1Options
           )
         }
       },

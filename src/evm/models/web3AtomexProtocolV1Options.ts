@@ -1,4 +1,4 @@
-import type { AtomexProtocolV1Options } from '../../blockchain';
+import type { AtomexProtocolV1Options } from '../../blockchain/index';
 
 export interface Web3AtomexProtocolV1Options extends AtomexProtocolV1Options {
   initiateOperation: {

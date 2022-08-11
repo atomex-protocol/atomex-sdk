@@ -1,2 +1,2 @@
 export type { EthereumCurrency, ERC20EthereumCurrency } from './currency';
-export type { EthereumAtomexProtocolV1Options, ERC20EthereumAtomexProtocolV1Options } from './atomexProtocolOptions';
+export type { EthereumWeb3AtomexProtocolV1Options, ERC20EthereumWeb3AtomexProtocolV1Options } from './atomexProtocolOptions';

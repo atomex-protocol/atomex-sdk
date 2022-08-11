@@ -1,6 +1,6 @@
-import type { EthereumAtomexProtocolV1Options } from '../models/index';
+import type { EthereumWeb3AtomexProtocolV1Options } from '../models/index';
 
-export const mainnetEthereumAtomexProtocolV1Options: EthereumAtomexProtocolV1Options = {
+export const mainnetEthereumWeb3AtomexProtocolV1Options: EthereumWeb3AtomexProtocolV1Options = {
   atomexProtocolVersion: 1,
   currencyId: 'ETH',
   swapContractAddress: '0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df',
@@ -304,8 +304,8 @@ export const mainnetEthereumAtomexProtocolV1Options: EthereumAtomexProtocolV1Opt
   ]
 };
 
-export const testnetEthereumAtomexProtocolV1Options: EthereumAtomexProtocolV1Options = {
-  ...mainnetEthereumAtomexProtocolV1Options,
+export const testnetEthereumWeb3AtomexProtocolV1Options: EthereumWeb3AtomexProtocolV1Options = {
+  ...mainnetEthereumWeb3AtomexProtocolV1Options,
   swapContractAddress: '0x512fe6B803bA327DCeFBF2Cec7De333f761B0f2b',
   swapContractBlockId: '6954501',
 };
