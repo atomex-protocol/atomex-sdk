@@ -5,8 +5,8 @@ import { TezosSwapTransactionsProvider } from '../swapTransactionsProviders/inde
 import { tezosMainnetCurrencies, tezosTestnetCurrencies } from './currencies';
 
 export const createDefaultTezosBlockchainOptions = (): AtomexBlockchainOptions => {
-  const mainnetRpcUrl = 'https://mainnet.api.tez.ie';
-  const testNetRpcUrl = 'https://jakartanet.ecadinfra.com';
+  const mainnetRpcUrl = 'https://rpc.tzkt.io/mainnet/';
+  const testNetRpcUrl = 'https://rpc.tzkt.io/ithacanet/';
   const balancesProvider = new TezosBalancesProvider();
   const swapTransactionsProvider = new TezosSwapTransactionsProvider();
 
