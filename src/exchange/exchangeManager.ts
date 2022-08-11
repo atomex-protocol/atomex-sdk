@@ -176,10 +176,6 @@ export class ExchangeManager implements AtomexService {
     throw new Error('Not implemented');
   }
 
-  getRewardForRedeem(_nativeTokenUsdPrice: number, _nativeTokenCurrencyPrice: number): Promise<Result<BigNumber>> {
-    throw new Error('Not implemented');
-  }
-
   protected attachEvents() {
     this.exchangeService.events.orderUpdated.addListener(this.handleExchangeServiceOrderUpdated);
     this.exchangeService.events.orderBookUpdated.addListener(this.handleExchangeServiceOrderBookUpdated);
