@@ -432,21 +432,32 @@ var AtomexBlockchainProvider = class {
   }
 };
 
-// src/ethereum/config/currencies.ts
-var ethereumNativeCurrency = {
-  id: "ETH",
-  name: "Ethereum",
-  symbol: "ETH",
-  blockchain: "ethereum",
-  decimals: 18,
-  type: "native"
+// src/evm/atomexProtocol/web3AtomexProtocolV1.ts
+var Web3AtomexProtocolV1 = class {
+  constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
+    this.blockchain = blockchain;
+    this.atomexNetwork = atomexNetwork;
+    this.atomexProtocolOptions = atomexProtocolOptions;
+    this.atomexBlockchainProvider = atomexBlockchainProvider;
+    this.walletsManager = walletsManager;
+    __publicField(this, "version", 1);
+  }
+  get currencyId() {
+    return this.atomexProtocolOptions.currencyId;
+  }
+  async getReadonlyWeb3() {
+    const toolkit = await this.atomexBlockchainProvider.getReadonlyToolkit("web3", this.blockchain);
+    if (!toolkit)
+      throw new Error("Web3 toolkit not found");
+    return toolkit;
+  }
+  async getWallet(address) {
+    const web3Wallet = await this.walletsManager.getWallet(address, this.blockchain, "web3");
+    if (!web3Wallet)
+      throw new Error(`${this.blockchain} Web3 wallet not found`);
+    return web3Wallet;
+  }
 };
-var ethereumMainnetCurrencies = [
-  ethereumNativeCurrency
-];
-var ethereumTestnetCurrencies = [
-  ethereumNativeCurrency
-];
 
 // src/evm/wallets/web3BlockchainWallet.ts
 import Web3 from "web3";
@@ -555,6 +566,67 @@ var Web3BlockchainToolkitProvider = class {
   }
 };
 
+// src/ethereum/atomexProtocol/ethereumWeb3AtomexProtocolV1.ts
+var EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
+  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
+    super("ethereum", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+    this.atomexProtocolOptions = atomexProtocolOptions;
+  }
+  initiate(_params) {
+    throw new Error("Method not implemented.");
+  }
+  async getEstimatedInitiateFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+  redeem(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedRedeemFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+  refund(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedRefundFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+};
+
+// src/ethereum/atomexProtocol/erc20EthereumWeb3AtomexProtocolV1.ts
+var ERC20EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
+  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
+    super("ethereum", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+    this.atomexProtocolOptions = atomexProtocolOptions;
+  }
+  get currencyId() {
+    return this.atomexProtocolOptions.currencyId;
+  }
+  initiate(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedInitiateFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+  redeem(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedRedeemFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+  refund(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedRefundFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+};
+
 // src/ethereum/balancesProviders/ethereumBalancesProvider.ts
 var EthereumBalancesProvider = class {
   getBalance(_address, _currency) {
@@ -585,18 +657,380 @@ var EthereumSwapTransactionsProvider = class {
   }
 };
 
+// src/ethereum/config/currencies.ts
+var nativeEthereumCurrency = {
+  id: "ETH",
+  name: "Ethereum",
+  symbol: "ETH",
+  blockchain: "ethereum",
+  decimals: 18,
+  type: "native"
+};
+var ethereumMainnetCurrencies = [
+  nativeEthereumCurrency
+];
+var ethereumTestnetCurrencies = [
+  nativeEthereumCurrency
+];
+
+// src/ethereum/config/atomexProtocol/base.ts
+var ethereumWeb3AtomexProtocolV1ABI = [
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "_hashedSecret",
+        type: "bytes32"
+      }
+    ],
+    name: "Activated",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "_hashedSecret",
+        type: "bytes32"
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "_sender",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "_value",
+        type: "uint256"
+      }
+    ],
+    name: "Added",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "_hashedSecret",
+        type: "bytes32"
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "_participant",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "_initiator",
+        type: "address"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "_refundTimestamp",
+        type: "uint256"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "_countdown",
+        type: "uint256"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "_value",
+        type: "uint256"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "_payoff",
+        type: "uint256"
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "_active",
+        type: "bool"
+      }
+    ],
+    name: "Initiated",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "_hashedSecret",
+        type: "bytes32"
+      },
+      {
+        indexed: false,
+        internalType: "bytes32",
+        name: "_secret",
+        type: "bytes32"
+      }
+    ],
+    name: "Redeemed",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "_hashedSecret",
+        type: "bytes32"
+      }
+    ],
+    name: "Refunded",
+    type: "event"
+  },
+  {
+    constant: true,
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    name: "swaps",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "hashedSecret",
+        type: "bytes32"
+      },
+      {
+        internalType: "address payable",
+        name: "initiator",
+        type: "address"
+      },
+      {
+        internalType: "address payable",
+        name: "participant",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "refundTimestamp",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "countdown",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "payoff",
+        type: "uint256"
+      },
+      {
+        internalType: "bool",
+        name: "active",
+        type: "bool"
+      },
+      {
+        internalType: "enum Atomex.State",
+        name: "state",
+        type: "uint8"
+      }
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    constant: false,
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "_hashedSecret",
+        type: "bytes32"
+      },
+      {
+        internalType: "address payable",
+        name: "_participant",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "_refundTimestamp",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "_payoff",
+        type: "uint256"
+      }
+    ],
+    name: "initiate",
+    outputs: [],
+    payable: true,
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    constant: false,
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "_hashedSecret",
+        type: "bytes32"
+      }
+    ],
+    name: "add",
+    outputs: [],
+    payable: true,
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    constant: false,
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "_hashedSecret",
+        type: "bytes32"
+      }
+    ],
+    name: "activate",
+    outputs: [],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    constant: false,
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "_hashedSecret",
+        type: "bytes32"
+      },
+      {
+        internalType: "bytes32",
+        name: "_secret",
+        type: "bytes32"
+      }
+    ],
+    name: "redeem",
+    outputs: [],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    constant: false,
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "_hashedSecret",
+        type: "bytes32"
+      }
+    ],
+    name: "refund",
+    outputs: [],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
+  }
+];
+
+// src/ethereum/config/atomexProtocol/mainnetV1Options.ts
+var mainnetNativeEthereumWeb3AtomexProtocolV1Options = {
+  atomexProtocolVersion: 1,
+  currencyId: "ETH",
+  swapContractAddress: "0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df",
+  swapContractBlockId: "8168569",
+  initiateOperation: {
+    gasLimit: {
+      withoutReward: 2e5,
+      withReward: 21e4
+    }
+  },
+  redeemOperation: {
+    gasLimit: 14e4
+  },
+  refundOperation: {
+    gasLimit: 9e4
+  },
+  defaultGasPriceInGwei: 90,
+  maxGasPriceInGwei: 650,
+  abi: ethereumWeb3AtomexProtocolV1ABI
+};
+var mainnetEthereumWeb3AtomexProtocolV1Options = {
+  ETH: mainnetNativeEthereumWeb3AtomexProtocolV1Options
+};
+
+// src/ethereum/config/atomexProtocol/testnetV1Options.ts
+var testnetNativeEthereumWeb3AtomexProtocolV1Options = __spreadProps(__spreadValues({}, mainnetEthereumWeb3AtomexProtocolV1Options.ETH), {
+  swapContractAddress: "0x512fe6B803bA327DCeFBF2Cec7De333f761B0f2b",
+  swapContractBlockId: "6954501"
+});
+var testnetEthereumWeb3AtomexProtocolV1Options = {
+  ETH: testnetNativeEthereumWeb3AtomexProtocolV1Options
+};
+
 // src/ethereum/config/defaultOptions.ts
-var createDefaultEthereumBlockchainOptions = () => {
+var createAtomexProtocol = (atomexContext, currency, atomexProtocolOptions) => {
+  switch (currency.type) {
+    case "native":
+      return new EthereumWeb3AtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager);
+    case "erc-20":
+      return new ERC20EthereumWeb3AtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager);
+    default:
+      throw new Error(`Unknown Ethereum currency: ${currency.id}`);
+  }
+};
+var createCurrencyOptions = (atomexContext, currencies, atomexProtocolOptions) => {
+  const result = {};
+  const currenciesMap = currencies.reduce((obj, currency) => {
+    obj[currency.id] = currency;
+    return obj;
+  }, {});
+  for (const options of Object.values(atomexProtocolOptions)) {
+    const currency = currenciesMap[options.currencyId];
+    if (!currency)
+      throw new Error(`The ${options.currencyId} currency not found`);
+    result[currency.id] = {
+      atomexProtocol: createAtomexProtocol(atomexContext, currency, options)
+    };
+  }
+  return result;
+};
+var createDefaultEthereumBlockchainOptions = (atomexContext) => {
   const blockchain = "ethereum";
-  const mainnetRpcUrl = "https://eth-mainnet.public.blastapi.io";
-  const testNetRpcUrl = "https://rpc.goerli.mudit.blog";
+  const mainnetRpcUrl = "https://mainnet.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/";
+  const testNetRpcUrl = "https://goerli.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/";
   const balancesProvider = new EthereumBalancesProvider();
   const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
   const ethereumOptions = {
     mainnet: {
       rpcUrl: mainnetRpcUrl,
       currencies: ethereumMainnetCurrencies,
-      currencyOptions: {},
+      currencyOptions: createCurrencyOptions(atomexContext, ethereumMainnetCurrencies, mainnetEthereumWeb3AtomexProtocolV1Options),
       blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, mainnetRpcUrl),
       balancesProvider,
       swapTransactionsProvider
@@ -604,7 +1038,7 @@ var createDefaultEthereumBlockchainOptions = () => {
     testnet: {
       rpcUrl: testNetRpcUrl,
       currencies: ethereumTestnetCurrencies,
-      currencyOptions: {},
+      currencyOptions: createCurrencyOptions(atomexContext, ethereumTestnetCurrencies, testnetEthereumWeb3AtomexProtocolV1Options),
       blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, testNetRpcUrl),
       balancesProvider,
       swapTransactionsProvider
@@ -855,9 +1289,6 @@ var ExchangeManager = class {
     };
   }
   getMaximumLiquidity(_direction) {
-    throw new Error("Not implemented");
-  }
-  getRewardForRedeem(_nativeTokenUsdPrice, _nativeTokenCurrencyPrice) {
     throw new Error("Not implemented");
   }
   attachEvents() {
@@ -1201,44 +1632,128 @@ var TaquitoBlockchainWallet = class {
   }
 };
 
-// src/tezos/config/currencies.ts
-var tezosNativeCurrency = {
-  id: "XTZ",
-  name: "Tezos",
-  symbol: "XTZ",
-  blockchain: "tezos",
-  decimals: 6,
-  type: "native"
+// src/tezos/atomexProtocol/taquitoAtomexProtocolV1.ts
+var TaquitoAtomexProtocolV1 = class {
+  constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
+    this.blockchain = blockchain;
+    this.atomexNetwork = atomexNetwork;
+    this.atomexProtocolOptions = atomexProtocolOptions;
+    this.atomexBlockchainProvider = atomexBlockchainProvider;
+    this.walletsManager = walletsManager;
+    __publicField(this, "version", 1);
+  }
+  get currencyId() {
+    return this.atomexProtocolOptions.currencyId;
+  }
+  async getReadonlyTezosToolkit() {
+    const toolkit = await this.atomexBlockchainProvider.getReadonlyToolkit("taquito", this.blockchain);
+    if (!toolkit)
+      throw new Error("Tezos toolkit not found");
+    return toolkit;
+  }
+  async getWallet(address) {
+    const taquitoWallet = await this.walletsManager.getWallet(address, this.blockchain, "taquito");
+    if (!taquitoWallet)
+      throw new Error(`${this.blockchain} Taqutio wallet not found`);
+    return taquitoWallet;
+  }
 };
-var tzBtcCurrency = {
-  id: "TZBTC",
-  name: "tzBTC",
-  symbol: "tzBTC",
-  blockchain: "tezos",
-  type: "fa1.2",
-  contractAddress: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-  decimals: 8
+
+// src/tezos/atomexProtocol/tezosTaquitoAtomexProtocolV1.ts
+var TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
+  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
+    super("tezos", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+    this.atomexProtocolOptions = atomexProtocolOptions;
+  }
+  get currencyId() {
+    return this.atomexProtocolOptions.currencyId;
+  }
+  initiate(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedInitiateFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+  redeem(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedRedeemFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+  refund(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedRefundFees(_params) {
+    throw new Error("Method not implemented.");
+  }
 };
-var usdtCurrency = {
-  id: "USDT_XTZ",
-  name: "Tether USD",
-  symbol: "USDt",
-  blockchain: "tezos",
-  type: "fa2",
-  tokenId: 0,
-  contractAddress: "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
-  decimals: 6
+
+// src/tezos/atomexProtocol/fa12TezosTaquitoAtomexProtocolV1.ts
+var FA12TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
+  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
+    super("tezos", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+    this.atomexProtocolOptions = atomexProtocolOptions;
+  }
+  get currencyId() {
+    return this.atomexProtocolOptions.currencyId;
+  }
+  initiate(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedInitiateFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+  redeem(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedRedeemFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+  refund(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedRefundFees(_params) {
+    throw new Error("Method not implemented.");
+  }
 };
-var tezosMainnetCurrencies = [
-  tezosNativeCurrency,
-  tzBtcCurrency,
-  usdtCurrency
-];
-var tezosTestnetCurrencies = [
-  tezosNativeCurrency,
-  __spreadProps(__spreadValues({}, tzBtcCurrency), { contractAddress: "KT1DM4k79uSx5diQnwqDiF4XeA86aCBxBD35" }),
-  __spreadProps(__spreadValues({}, usdtCurrency), { contractAddress: "KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR" })
-];
+
+// src/tezos/atomexProtocol/fa2TezosTaquitoAtomexProtocolV1.ts
+var FA2TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
+  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
+    super("tezos", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+    this.atomexProtocolOptions = atomexProtocolOptions;
+  }
+  get currencyId() {
+    return this.atomexProtocolOptions.currencyId;
+  }
+  initiate(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedInitiateFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+  redeem(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedRedeemFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+  refund(_params) {
+    throw new Error("Method not implemented.");
+  }
+  getEstimatedRefundFees(_params) {
+    throw new Error("Method not implemented.");
+  }
+};
 
 // src/tezos/balancesProviders/tezosBalancesProvider.ts
 var TezosBalancesProvider = class {
@@ -1246,25 +1761,6 @@ var TezosBalancesProvider = class {
     throw new Error("Method not implemented.");
   }
 };
-
-// src/tezos/blockchainToolkitProviders/taquitoBlockchainToolkitProvider.ts
-import { TezosToolkit as TezosToolkit4 } from "@taquito/taquito";
-var _TaquitoBlockchainToolkitProvider = class {
-  constructor(rpcUrl) {
-    this.rpcUrl = rpcUrl;
-    __publicField(this, "toolkitId", "taquito");
-    __publicField(this, "toolkit");
-  }
-  getReadonlyToolkit(blockchain) {
-    if (blockchain && blockchain !== _TaquitoBlockchainToolkitProvider.BLOCKCHAIN)
-      return Promise.resolve(void 0);
-    if (!this.toolkit)
-      this.toolkit = new TezosToolkit4(this.rpcUrl);
-    return Promise.resolve(this.toolkit);
-  }
-};
-var TaquitoBlockchainToolkitProvider = _TaquitoBlockchainToolkitProvider;
-__publicField(TaquitoBlockchainToolkitProvider, "BLOCKCHAIN", "tezos");
 
 // src/tezos/swapTransactionsProviders/tezosSwapTransactionsProvider.ts
 var TezosSwapTransactionsProvider = class {
@@ -1289,8 +1785,242 @@ var TezosSwapTransactionsProvider = class {
   }
 };
 
+// src/tezos/blockchainToolkitProviders/taquitoBlockchainToolkitProvider.ts
+import { TezosToolkit as TezosToolkit4 } from "@taquito/taquito";
+var _TaquitoBlockchainToolkitProvider = class {
+  constructor(rpcUrl) {
+    this.rpcUrl = rpcUrl;
+    __publicField(this, "toolkitId", "taquito");
+    __publicField(this, "toolkit");
+  }
+  getReadonlyToolkit(blockchain) {
+    if (blockchain && blockchain !== _TaquitoBlockchainToolkitProvider.BLOCKCHAIN)
+      return Promise.resolve(void 0);
+    if (!this.toolkit)
+      this.toolkit = new TezosToolkit4(this.rpcUrl);
+    return Promise.resolve(this.toolkit);
+  }
+};
+var TaquitoBlockchainToolkitProvider = _TaquitoBlockchainToolkitProvider;
+__publicField(TaquitoBlockchainToolkitProvider, "BLOCKCHAIN", "tezos");
+
+// src/tezos/config/currencies.ts
+var nativeTezosCurrency = {
+  id: "XTZ",
+  name: "Tezos",
+  symbol: "XTZ",
+  blockchain: "tezos",
+  decimals: 6,
+  type: "native"
+};
+var tzBtcCurrency = {
+  id: "TZBTC",
+  name: "tzBTC",
+  symbol: "tzBTC",
+  blockchain: "tezos",
+  type: "fa1.2",
+  contractAddress: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+  decimals: 8
+};
+var kusdCurrency = {
+  id: "KUSD",
+  name: "Kolibri USD",
+  symbol: "kUSD",
+  blockchain: "tezos",
+  type: "fa1.2",
+  contractAddress: "KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV",
+  decimals: 18
+};
+var usdtCurrency = {
+  id: "USDT_XTZ",
+  name: "Tether USD",
+  symbol: "USDt",
+  blockchain: "tezos",
+  type: "fa2",
+  tokenId: 0,
+  contractAddress: "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+  decimals: 6
+};
+var tezosMainnetCurrencies = [
+  nativeTezosCurrency,
+  tzBtcCurrency,
+  kusdCurrency,
+  usdtCurrency
+];
+var tezosTestnetCurrencies = [
+  nativeTezosCurrency,
+  __spreadProps(__spreadValues({}, tzBtcCurrency), { contractAddress: "KT1DM4k79uSx5diQnwqDiF4XeA86aCBxBD35" }),
+  __spreadProps(__spreadValues({}, usdtCurrency), { contractAddress: "KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR" })
+];
+
+// src/tezos/config/atomexProtocol/base.ts
+var mainnetFA12TezosTaquitoAtomexProtocolV1OptionsBase = {
+  atomexProtocolVersion: 1,
+  initiateOperation: {
+    fee: 11e3,
+    gasLimit: 11e4,
+    storageLimit: 350
+  },
+  redeemOperation: {
+    fee: 11e3,
+    gasLimit: 15e3,
+    storageLimit: 257
+  },
+  refundOperation: {
+    fee: 11e3,
+    gasLimit: 11e4,
+    storageLimit: 257
+  }
+};
+var mainnetFA2TezosTaquitoAtomexProtocolV1OptionsBase = {
+  atomexProtocolVersion: 1,
+  initiateOperation: {
+    fee: 35e4,
+    gasLimit: 4e5,
+    storageLimit: 250
+  },
+  redeemOperation: {
+    fee: 12e4,
+    gasLimit: 4e5,
+    storageLimit: 257
+  },
+  refundOperation: {
+    fee: 12e4,
+    gasLimit: 4e5,
+    storageLimit: 257
+  }
+};
+var testnetFA2TezosTaquitoAtomexProtocolV1OptionsBase = {
+  atomexProtocolVersion: 1,
+  initiateOperation: {
+    fee: 35e4,
+    gasLimit: 4e5,
+    storageLimit: 250
+  },
+  redeemOperation: {
+    fee: 12e4,
+    gasLimit: 4e5,
+    storageLimit: 257
+  },
+  refundOperation: {
+    fee: 12e4,
+    gasLimit: 4e5,
+    storageLimit: 257
+  }
+};
+
+// src/tezos/config/atomexProtocol/mainnetV1Options.ts
+var mainnetNativeTezosTaquitoAtomexProtocolV1Options = {
+  atomexProtocolVersion: 1,
+  currencyId: "XTZ",
+  swapContractAddress: "KT1VG2WtYdSWz5E7chTeAdDPZNy2MpP8pTfL",
+  swapContractBlockId: "513046",
+  initiateOperation: {
+    fee: 2e3,
+    gasLimit: 11e3,
+    storageLimit: 257
+  },
+  redeemOperation: {
+    fee: 2e3,
+    gasLimit: 15e3,
+    storageLimit: 257
+  },
+  refundOperation: {
+    fee: 1600,
+    gasLimit: 13e3,
+    storageLimit: 257
+  }
+};
+var mainnetTZBTCTezosTaquitoAtomexProtocolV1Options = __spreadProps(__spreadValues({}, mainnetFA12TezosTaquitoAtomexProtocolV1OptionsBase), {
+  currencyId: "TZBTC",
+  swapContractAddress: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+  swapContractBlockId: "900350",
+  redeemOperation: __spreadProps(__spreadValues({}, mainnetFA12TezosTaquitoAtomexProtocolV1OptionsBase.redeemOperation), {
+    gasLimit: 18e4
+  })
+});
+var mainnetKUSDTezosTaquitoAtomexProtocolV1Options = __spreadProps(__spreadValues({}, mainnetFA12TezosTaquitoAtomexProtocolV1OptionsBase), {
+  currencyId: "KUSD",
+  swapContractAddress: "KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL",
+  swapContractBlockId: "1358868",
+  redeemOperation: __spreadProps(__spreadValues({}, mainnetFA12TezosTaquitoAtomexProtocolV1OptionsBase.redeemOperation), {
+    gasLimit: 11e4
+  })
+});
+var mainnetUSDtTezosTaquitoAtomexProtocolV1Options = __spreadProps(__spreadValues({}, mainnetFA2TezosTaquitoAtomexProtocolV1OptionsBase), {
+  currencyId: "USDT_XTZ",
+  swapContractAddress: "KT1Ays1Chwx3ArnHGoQXchUgDsvKe9JboUjj",
+  swapContractBlockId: "2496680"
+});
+var mainnetTezosTaquitoAtomexProtocolV1Options = {
+  XTZ: mainnetNativeTezosTaquitoAtomexProtocolV1Options,
+  TZBTC: mainnetTZBTCTezosTaquitoAtomexProtocolV1Options,
+  KUSD: mainnetKUSDTezosTaquitoAtomexProtocolV1Options,
+  USDT_XTZ: mainnetUSDtTezosTaquitoAtomexProtocolV1Options
+};
+
+// src/tezos/config/atomexProtocol/testnetV1Options.ts
+var testnetNativeTezosTaquitoAtomexProtocolV1Options = {
+  atomexProtocolVersion: 1,
+  currencyId: "XTZ",
+  swapContractAddress: "KT1VG2WtYdSWz5E7chTeAdDPZNy2MpP8pTfL",
+  swapContractBlockId: "513046",
+  initiateOperation: {
+    fee: 2e3,
+    gasLimit: 11e3,
+    storageLimit: 257
+  },
+  redeemOperation: {
+    fee: 2e3,
+    gasLimit: 15e3,
+    storageLimit: 257
+  },
+  refundOperation: {
+    fee: 1600,
+    gasLimit: 13e3,
+    storageLimit: 257
+  }
+};
+var testnetUSDtTezosTaquitoAtomexProtocolV1Options = __spreadProps(__spreadValues({}, testnetFA2TezosTaquitoAtomexProtocolV1OptionsBase), {
+  currencyId: "USDT_XTZ",
+  swapContractAddress: "KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR",
+  swapContractBlockId: "665321"
+});
+var testnetTezosTaquitoAtomexProtocolV1Options = {
+  XTZ: testnetNativeTezosTaquitoAtomexProtocolV1Options,
+  USDT_XTZ: testnetUSDtTezosTaquitoAtomexProtocolV1Options
+};
+
 // src/tezos/config/defaultOptions.ts
-var createDefaultTezosBlockchainOptions = () => {
+var createAtomexProtocol2 = (atomexContext, currency, atomexProtocolOptions) => {
+  switch (currency.type) {
+    case "native":
+      return new TezosTaquitoAtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager);
+    case "fa1.2":
+      return new FA12TezosTaquitoAtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager);
+    case "fa2":
+      return new FA2TezosTaquitoAtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager);
+    default:
+      throw new Error(`Unknown Tezos currency: ${currency.id}`);
+  }
+};
+var createCurrencyOptions2 = (atomexContext, currencies, atomexProtocolOptions) => {
+  const result = {};
+  const currenciesMap = currencies.reduce((obj, currency) => {
+    obj[currency.id] = currency;
+    return obj;
+  }, {});
+  for (const options of Object.values(atomexProtocolOptions)) {
+    const currency = currenciesMap[options.currencyId];
+    if (!currency)
+      throw new Error(`The ${options.currencyId} currency not found`);
+    result[currency.id] = {
+      atomexProtocol: createAtomexProtocol2(atomexContext, currency, options)
+    };
+  }
+  return result;
+};
+var createDefaultTezosBlockchainOptions = (atomexContext) => {
   const mainnetRpcUrl = "https://rpc.tzkt.io/mainnet/";
   const testNetRpcUrl = "https://rpc.tzkt.io/ithacanet/";
   const balancesProvider = new TezosBalancesProvider();
@@ -1299,7 +2029,7 @@ var createDefaultTezosBlockchainOptions = () => {
     mainnet: {
       rpcUrl: mainnetRpcUrl,
       currencies: tezosMainnetCurrencies,
-      currencyOptions: {},
+      currencyOptions: createCurrencyOptions2(atomexContext, tezosMainnetCurrencies, mainnetTezosTaquitoAtomexProtocolV1Options),
       blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(mainnetRpcUrl),
       balancesProvider,
       swapTransactionsProvider
@@ -1307,7 +2037,7 @@ var createDefaultTezosBlockchainOptions = () => {
     testnet: {
       rpcUrl: testNetRpcUrl,
       currencies: tezosTestnetCurrencies,
-      currencyOptions: {},
+      currencyOptions: createCurrencyOptions2(atomexContext, tezosTestnetCurrencies, testnetTezosTaquitoAtomexProtocolV1Options),
       blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(testNetRpcUrl),
       balancesProvider,
       swapTransactionsProvider
@@ -2586,8 +3316,8 @@ var AtomexBuilder = class {
   }
   createDefaultBlockchainOptions() {
     return {
-      tezos: createDefaultTezosBlockchainOptions(),
-      ethereum: createDefaultEthereumBlockchainOptions()
+      tezos: createDefaultTezosBlockchainOptions(this.atomexContext),
+      ethereum: createDefaultEthereumBlockchainOptions(this.atomexContext)
     };
   }
 };
@@ -4370,7 +5100,11 @@ export {
   AuthorizationManager,
   DataSource,
   DefaultSerializedAuthTokenMapper,
+  ERC20EthereumWeb3AtomexProtocolV1,
+  EthereumWeb3AtomexProtocolV1,
   ExchangeManager,
+  FA12TezosTaquitoAtomexProtocolV1,
+  FA2TezosTaquitoAtomexProtocolV1,
   ImportantDataReceivingMode,
   InMemoryAuthorizationManagerStore,
   InMemoryExchangeSymbolsProvider,
@@ -4378,6 +5112,7 @@ export {
   MixedApiAtomexClient,
   RestAtomexClient,
   TaquitoBlockchainWallet,
+  TezosTaquitoAtomexProtocolV1,
   WalletsManager,
   Web3BlockchainWallet,
   WebSocketAtomexClient,

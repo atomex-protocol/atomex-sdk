@@ -1,3 +1,3 @@
-import type { AtomexBlockchainNetworkOptions } from '../../atomex/models/atomexOptions';
-export declare const tezosMainnetCurrencies: AtomexBlockchainNetworkOptions['currencies'];
-export declare const tezosTestnetCurrencies: AtomexBlockchainNetworkOptions['currencies'];
+import type { TezosCurrency } from '../models/index';
+export declare const tezosMainnetCurrencies: TezosCurrency[];
+export declare const tezosTestnetCurrencies: TezosCurrency[];

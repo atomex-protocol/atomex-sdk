@@ -1,3 +1,3 @@
-import type { AtomexBlockchainNetworkOptions } from '../../atomex/models/atomexOptions';
-export declare const ethereumMainnetCurrencies: AtomexBlockchainNetworkOptions['currencies'];
-export declare const ethereumTestnetCurrencies: AtomexBlockchainNetworkOptions['currencies'];
+import type { EthereumCurrency } from '../models/currency';
+export declare const ethereumMainnetCurrencies: EthereumCurrency[];
+export declare const ethereumTestnetCurrencies: EthereumCurrency[];

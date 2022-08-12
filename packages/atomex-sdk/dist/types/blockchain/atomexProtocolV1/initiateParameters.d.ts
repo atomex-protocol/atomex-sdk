@@ -1,5 +1,5 @@
 import type { BigNumber } from 'bignumber.js';
-export interface InitiateParametersAtomexProtocolV1 {
+export interface AtomexProtocolV1InitiateParameters {
     readonly amount: BigNumber;
     readonly secretHash: string;
     readonly receivingAddress: string;

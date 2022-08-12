@@ -1,6 +1,5 @@
 import type { BigNumber } from 'bignumber.js';
 import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
-import { type Result } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider';
 import type { CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol, OrderPreviewParameters as OrderPreviewParameters, NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType } from './models/index';
@@ -27,7 +26,6 @@ export declare class ExchangeManager implements AtomexService {
     cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
     getOrderPreview(orderPreviewParameters: OrderPreviewParameters): Promise<OrderPreview | undefined>;
     getMaximumLiquidity(_direction: CurrencyDirection): Promise<BigNumber>;
-    getRewardForRedeem(_nativeTokenUsdPrice: number, _nativeTokenCurrencyPrice: number): Promise<Result<BigNumber>>;
     protected attachEvents(): void;
     protected detachEvents(): void;
     protected handleExchangeServiceOrderUpdated: (updatedOrder: Order) => void;

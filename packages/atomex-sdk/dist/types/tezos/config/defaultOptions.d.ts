@@ -1,2 +1,2 @@
-import type { AtomexBlockchainOptions } from '../../atomex/models/index';
-export declare const createDefaultTezosBlockchainOptions: () => AtomexBlockchainOptions;
+import type { AtomexContext, AtomexBlockchainOptions } from '../../atomex/index';
+export declare const createDefaultTezosBlockchainOptions: (atomexContext: AtomexContext) => AtomexBlockchainOptions;

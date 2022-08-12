@@ -1,4 +1,6 @@
+export { isAtomexProtocolV1 } from './guards';
 export type { AtomexProtocolV1 } from './atomexProtocolV1';
-export type { InitiateParametersAtomexProtocolV1 } from './initiateParametersAtomexProtocolV1';
-export type { RedeemParametersAtomexProtocolV1 } from './redeemParametersAtomexProtocolV1';
-export type { RefundParametersAtomexProtocolV1 } from './refundParametersAtomexProtocolV1';
+export type { AtomexProtocolV1Options } from './options';
+export type { AtomexProtocolV1InitiateParameters } from './initiateParameters';
+export type { AtomexProtocolV1RedeemParameters } from './redeemParameters';
+export type { AtomexProtocolV1RefundParameters } from './refundParameters';

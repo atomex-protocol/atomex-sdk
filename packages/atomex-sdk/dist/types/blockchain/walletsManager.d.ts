@@ -6,5 +6,5 @@ export declare class WalletsManager {
     constructor(atomexNetwork: AtomexNetwork);
     addWallet(wallet: BlockchainWallet): Promise<BlockchainWallet>;
     removeWallet(wallet: BlockchainWallet): Promise<boolean>;
-    getWallet(address?: string, blockchain?: string, toolkit?: string): Promise<BlockchainWallet | undefined>;
+    getWallet<Toolkit = unknown>(address?: string, blockchain?: string, toolkit?: string): Promise<BlockchainWallet<Toolkit> | undefined>;
 }

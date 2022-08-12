@@ -20,7 +20,7 @@ export declare class AtomexBlockchainProvider implements CurrenciesProvider {
     addBlockchain(blockchain: string, networkOptions: AtomexBlockchainNetworkOptions): void;
     getNetworkOptions(blockchain: string): AtomexBlockchainNetworkOptions | undefined;
     getCurrency(currencyId: Currency['id']): Currency | undefined;
-    getReadonlyToolkit(toolkitId: string, blockchain?: string): Promise<unknown | undefined>;
+    getReadonlyToolkit<Toolkit = unknown>(toolkitId: string, blockchain?: string): Promise<Toolkit | undefined>;
     getCurrencyInfo(currencyId: Currency['id']): CurrencyInfo | undefined;
     protected createControlledBalancesProvider(currency: Currency, balancesProvider: BalancesProvider): ControlledCurrencyBalancesProvider;
 }
