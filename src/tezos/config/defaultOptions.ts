@@ -1,5 +1,5 @@
 import type { AtomexContext, AtomexBlockchainOptions, AtomexCurrencyOptions } from '../../atomex/index';
-import { FA12TezosTaquitoAtomexProtocolV1, TezosTaquitoAtomexProtocolV1 } from '../atomexProtocol';
+import { FA12TezosTaquitoAtomexProtocolV1, FA2TezosTaquitoAtomexProtocolV1, TezosTaquitoAtomexProtocolV1 } from '../atomexProtocol';
 import { TezosBalancesProvider } from '../balancesProviders/index';
 import { TaquitoBlockchainToolkitProvider } from '../blockchainToolkitProviders/index';
 import type { TezosCurrency } from '../models';
@@ -18,20 +18,23 @@ const createAtomexProtocol = (
     case 'native':
       return new TezosTaquitoAtomexProtocolV1(
         atomexContext.atomexNetwork,
+        atomexProtocolOptions,
         atomexContext.providers.currenciesProvider,
-        atomexProtocolOptions
+        atomexContext.managers.walletsManager
       );
     case 'fa1.2':
       return new FA12TezosTaquitoAtomexProtocolV1(
         atomexContext.atomexNetwork,
+        atomexProtocolOptions,
         atomexContext.providers.currenciesProvider,
-        atomexProtocolOptions
+        atomexContext.managers.walletsManager
       );
     case 'fa2':
-      return new FA12TezosTaquitoAtomexProtocolV1(
+      return new FA2TezosTaquitoAtomexProtocolV1(
         atomexContext.atomexNetwork,
+        atomexProtocolOptions,
         atomexContext.providers.currenciesProvider,
-        atomexProtocolOptions
+        atomexContext.managers.walletsManager
       );
     default:
       throw new Error(`Unknown Tezos currency: ${(currency as TezosCurrency).id}`);

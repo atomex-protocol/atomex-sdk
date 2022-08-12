@@ -2,7 +2,7 @@ import type BigNumber from 'bignumber.js';
 
 import type {
   AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
-  Transaction
+  Transaction, WalletsManager
 } from '../../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../../common/index';
 import type { DeepReadonly } from '../../core';
@@ -13,8 +13,9 @@ export class ERC20EthereumWeb3AtomexProtocolV1 implements AtomexProtocolV1 {
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,
+    protected readonly atomexProtocolOptions: DeepReadonly<ERC20EthereumWeb3AtomexProtocolV1Options>,
     protected readonly currenciesProvider: CurrenciesProvider,
-    protected readonly atomexProtocolOptions: DeepReadonly<ERC20EthereumWeb3AtomexProtocolV1Options>
+    protected readonly walletsManager: WalletsManager
   ) {
   }
 
