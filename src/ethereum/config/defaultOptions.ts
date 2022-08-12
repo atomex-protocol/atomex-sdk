@@ -21,7 +21,7 @@ const createAtomexProtocol = (
       atomexProtocolOptions
     );
 
-  throw new Error(`Unknown Tezos currency: ${currency.id}`);
+  throw new Error(`Unknown Ethereum currency: ${currency.id}`);
 };
 
 const createCurrencyOptions = (
