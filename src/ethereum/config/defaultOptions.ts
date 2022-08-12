@@ -1,6 +1,6 @@
 import type { AtomexContext, AtomexBlockchainOptions, AtomexCurrencyOptions } from '../../atomex/index';
 import { Web3BlockchainToolkitProvider } from '../../evm/index';
-import { EthereumWeb3AtomexProtocolV1 } from '../atomexProtocol/index';
+import { ERC20EthereumWeb3AtomexProtocolV1, EthereumWeb3AtomexProtocolV1 } from '../atomexProtocol/index';
 import { EthereumBalancesProvider } from '../balancesProviders/index';
 import type { EthereumCurrency } from '../models';
 import { EthereumSwapTransactionsProvider } from '../swapTransactionsProviders/index';
@@ -14,14 +14,22 @@ const createAtomexProtocol = (
   currency: EthereumCurrency,
   atomexProtocolOptions: AtomexProtocolOptions[keyof AtomexProtocolOptions]
 ) => {
-  if (currency.type === 'native')
-    return new EthereumWeb3AtomexProtocolV1(
-      atomexContext.atomexNetwork,
-      atomexContext.providers.currenciesProvider,
-      atomexProtocolOptions
-    );
-
-  throw new Error(`Unknown Ethereum currency: ${currency.id}`);
+  switch (currency.type) {
+    case 'native':
+      return new EthereumWeb3AtomexProtocolV1(
+        atomexContext.atomexNetwork,
+        atomexContext.providers.currenciesProvider,
+        atomexProtocolOptions
+      );
+    case 'erc-20':
+      return new ERC20EthereumWeb3AtomexProtocolV1(
+        atomexContext.atomexNetwork,
+        atomexContext.providers.currenciesProvider,
+        atomexProtocolOptions
+      );
+    default:
+      throw new Error(`Unknown Ethereum currency: ${(currency as EthereumCurrency).id}`);
+  }
 };
 
 const createCurrencyOptions = (
