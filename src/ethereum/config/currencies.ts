@@ -10,10 +10,10 @@ const ethereumNativeCurrency: EthereumCurrency = {
   type: 'native'
 };
 
-export const ethereumMainnetCurrencies: AtomexBlockchainNetworkOptions['currencies'] = [
+export const ethereumMainnetCurrencies: EthereumCurrency[] = [
   ethereumNativeCurrency
 ];
 
-export const ethereumTestnetCurrencies: AtomexBlockchainNetworkOptions['currencies'] = [
+export const ethereumTestnetCurrencies: EthereumCurrency[] = [
   ethereumNativeCurrency
 ];
