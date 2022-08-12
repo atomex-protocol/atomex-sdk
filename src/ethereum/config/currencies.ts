@@ -1,7 +1,6 @@
-import type { AtomexBlockchainNetworkOptions } from '../../atomex/models/atomexOptions';
-import type { EthereumCurrency } from '../models/currency';
+import type { EthereumCurrency, NativeEthereumCurrency } from '../models/currency';
 
-const ethereumNativeCurrency: EthereumCurrency = {
+const nativeEthereumCurrency: NativeEthereumCurrency = {
   id: 'ETH',
   name: 'Ethereum',
   symbol: 'ETH',
@@ -10,10 +9,10 @@ const ethereumNativeCurrency: EthereumCurrency = {
   type: 'native'
 };
 
-export const ethereumMainnetCurrencies: AtomexBlockchainNetworkOptions['currencies'] = [
-  ethereumNativeCurrency
+export const ethereumMainnetCurrencies: EthereumCurrency[] = [
+  nativeEthereumCurrency
 ];
 
-export const ethereumTestnetCurrencies: AtomexBlockchainNetworkOptions['currencies'] = [
-  ethereumNativeCurrency
+export const ethereumTestnetCurrencies: EthereumCurrency[] = [
+  nativeEthereumCurrency
 ];

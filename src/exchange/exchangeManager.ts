@@ -2,7 +2,7 @@ import type { BigNumber } from 'bignumber.js';
 import { nanoid } from 'nanoid';
 
 import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
-import { EventEmitter, type ToEventEmitter, type Result } from '../core/index';
+import { EventEmitter, type ToEventEmitter } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider';
 import { symbolsHelper } from './helpers/index';
@@ -173,10 +173,6 @@ export class ExchangeManager implements AtomexService {
   }
 
   getMaximumLiquidity(_direction: CurrencyDirection): Promise<BigNumber> {
-    throw new Error('Not implemented');
-  }
-
-  getRewardForRedeem(_nativeTokenUsdPrice: number, _nativeTokenCurrencyPrice: number): Promise<Result<BigNumber>> {
     throw new Error('Not implemented');
   }
 

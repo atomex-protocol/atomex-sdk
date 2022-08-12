@@ -51,7 +51,7 @@ export class AtomexBlockchainProvider implements CurrenciesProvider {
     return this.getCurrencyInfo(currencyId)?.currency;
   }
 
-  async getReadonlyToolkit(toolkitId: string, blockchain?: string): Promise<unknown | undefined> {
+  async getReadonlyToolkit<Toolkit = unknown>(toolkitId: string, blockchain?: string): Promise<Toolkit | undefined> {
     const providerToolkitPromises: Array<Promise<unknown | undefined>> = [];
     for (const provider of this.blockchainToolkitProviders) {
       if (provider.toolkitId === toolkitId)
@@ -61,7 +61,7 @@ export class AtomexBlockchainProvider implements CurrenciesProvider {
     const providerToolkitResults = await Promise.all(providerToolkitPromises);
     for (const providerResult of providerToolkitResults) {
       if (providerResult)
-        return providerResult;
+        return providerResult as Toolkit;
     }
 
     return Promise.resolve(undefined);

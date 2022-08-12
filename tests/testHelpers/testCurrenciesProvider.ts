@@ -1,7 +1,7 @@
 import { InMemoryCurrenciesProvider } from '../../src/common/index';
 import { ethereumMainnetCurrencies } from '../../src/ethereum/index';
 import type { ERC20EthereumCurrency } from '../../src/ethereum/models/index';
-import type { Currency, TezosFA12Currency } from '../../src/index';
+import type { Currency, FA12TezosCurrency } from '../../src/index';
 import { tezosMainnetCurrencies } from '../../src/tezos/index';
 
 const btcCurrency: Currency = {
@@ -22,7 +22,7 @@ const ltcCurrency: Currency = {
   decimals: 8,
 };
 
-const kusdCurrency: TezosFA12Currency = {
+const kusdCurrency: FA12TezosCurrency = {
   id: 'KUSD',
   name: 'Kolibri USD',
   blockchain: 'tezos',

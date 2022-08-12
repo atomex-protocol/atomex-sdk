@@ -106,8 +106,8 @@ export class AtomexBuilder {
 
   protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainOptions> {
     return {
-      tezos: createDefaultTezosBlockchainOptions(),
-      ethereum: createDefaultEthereumBlockchainOptions()
+      tezos: createDefaultTezosBlockchainOptions(this.atomexContext),
+      ethereum: createDefaultEthereumBlockchainOptions(this.atomexContext)
     };
   }
 }

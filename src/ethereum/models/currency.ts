@@ -1,6 +1,6 @@
 import type { Currency } from '../../common/index';
 
-export interface EthereumCurrency extends Currency {
+export interface NativeEthereumCurrency extends Currency {
   readonly name: 'Ethereum';
   readonly symbol: 'ETH';
   readonly blockchain: 'ethereum';
@@ -13,3 +13,7 @@ export interface ERC20EthereumCurrency extends Currency {
   readonly type: 'erc-20';
   readonly contractAddress: string;
 }
+
+export type EthereumCurrency =
+  | NativeEthereumCurrency
+  | ERC20EthereumCurrency;

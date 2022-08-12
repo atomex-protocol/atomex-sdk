@@ -6,16 +6,20 @@ export { LocalStorageAuthorizationManagerStore, DefaultSerializedAuthTokenMapper
 export { RestAtomexClient, WebSocketAtomexClient, MixedApiAtomexClient } from './clients/index';
 export { DataSource, ImportantDataReceivingMode } from './common/index';
 export { Web3BlockchainWallet } from './evm/index';
-export { ExchangeManager, InMemoryExchangeSymbolsProvider } from './exchange';
+export { ExchangeManager, InMemoryExchangeSymbolsProvider } from './exchange/index';
+export { EthereumWeb3AtomexProtocolV1, ERC20EthereumWeb3AtomexProtocolV1 } from './ethereum/index';
 export { InMemoryAuthorizationManagerStore } from './stores/index';
-export { TaquitoBlockchainWallet } from './tezos/index';
+export {
+  TaquitoBlockchainWallet,
+  TezosTaquitoAtomexProtocolV1, FA12TezosTaquitoAtomexProtocolV1, FA2TezosTaquitoAtomexProtocolV1
+} from './tezos/index';
 export * from './utils';
 
 export type { AtomexOptions, NewSwapRequest } from './atomex/index';
 export type { AuthToken, AuthorizationManagerOptions } from './authorization/index';
 export type {
   AtomexProtocol, Transaction,
-  AtomexProtocolV1, InitiateParametersAtomexProtocolV1, RedeemParametersAtomexProtocolV1, RefundParametersAtomexProtocolV1,
+  AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
   AtomexSignature, BlockchainWallet,
   BalancesProvider, SwapTransactionsProvider, TransactionsProvider
 } from './blockchain/index';
@@ -25,6 +29,6 @@ export type { AtomexClient } from './clients/index';
 export type { AtomexNetwork, Currency, Side, CurrenciesProvider, CollectionSelector } from './common/index';
 export type { AtomexStore, AuthorizationManagerStore } from './stores/index';
 export type { Swap, SwapParticipant, SwapParticipantRequisites, SwapParticipantStatus } from './swaps/index';
-export type { TezosCurrency, TezosFA12Currency, TezosFA2Currency } from './tezos/index';
+export type { TezosCurrency, NativeTezosCurrency, FA12TezosCurrency, FA2TezosCurrency } from './tezos/index';
 
 export * as legacy from './legacy/index';

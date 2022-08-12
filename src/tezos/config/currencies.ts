@@ -1,7 +1,6 @@
-import type { AtomexBlockchainNetworkOptions } from '../../atomex/models/atomexOptions';
-import type { TezosCurrency, TezosFA12Currency, TezosFA2Currency } from '../models/index';
+import type { NativeTezosCurrency, TezosCurrency, FA12TezosCurrency, FA2TezosCurrency } from '../models/index';
 
-const tezosNativeCurrency: TezosCurrency = {
+const nativeTezosCurrency: NativeTezosCurrency = {
   id: 'XTZ',
   name: 'Tezos',
   symbol: 'XTZ',
@@ -10,7 +9,7 @@ const tezosNativeCurrency: TezosCurrency = {
   type: 'native'
 };
 
-const tzBtcCurrency: TezosFA12Currency = {
+const tzBtcCurrency: FA12TezosCurrency = {
   id: 'TZBTC',
   name: 'tzBTC',
   symbol: 'tzBTC',
@@ -20,7 +19,17 @@ const tzBtcCurrency: TezosFA12Currency = {
   decimals: 8,
 };
 
-const usdtCurrency: TezosFA2Currency = {
+const kusdCurrency: FA12TezosCurrency = {
+  id: 'KUSD',
+  name: 'Kolibri USD',
+  symbol: 'kUSD',
+  blockchain: 'tezos',
+  type: 'fa1.2',
+  contractAddress: 'KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV',
+  decimals: 18
+};
+
+const usdtCurrency: FA2TezosCurrency = {
   id: 'USDT_XTZ',
   name: 'Tether USD',
   symbol: 'USDt',
@@ -31,14 +40,15 @@ const usdtCurrency: TezosFA2Currency = {
   decimals: 6,
 };
 
-export const tezosMainnetCurrencies: AtomexBlockchainNetworkOptions['currencies'] = [
-  tezosNativeCurrency,
+export const tezosMainnetCurrencies: TezosCurrency[] = [
+  nativeTezosCurrency,
   tzBtcCurrency,
+  kusdCurrency,
   usdtCurrency
 ];
 
-export const tezosTestnetCurrencies: AtomexBlockchainNetworkOptions['currencies'] = [
-  tezosNativeCurrency,
-  ({ ...tzBtcCurrency, contractAddress: 'KT1DM4k79uSx5diQnwqDiF4XeA86aCBxBD35' } as TezosFA12Currency),
-  ({ ...usdtCurrency, contractAddress: 'KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR' } as TezosFA2Currency)
+export const tezosTestnetCurrencies: TezosCurrency[] = [
+  nativeTezosCurrency,
+  ({ ...tzBtcCurrency, contractAddress: 'KT1DM4k79uSx5diQnwqDiF4XeA86aCBxBD35' } as FA12TezosCurrency),
+  ({ ...usdtCurrency, contractAddress: 'KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR' } as FA2TezosCurrency)
 ];
