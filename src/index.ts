@@ -6,7 +6,8 @@ export { LocalStorageAuthorizationManagerStore, DefaultSerializedAuthTokenMapper
 export { RestAtomexClient, WebSocketAtomexClient, MixedApiAtomexClient } from './clients/index';
 export { DataSource, ImportantDataReceivingMode } from './common/index';
 export { Web3BlockchainWallet } from './evm/index';
-export { ExchangeManager, InMemoryExchangeSymbolsProvider } from './exchange';
+export { ExchangeManager, InMemoryExchangeSymbolsProvider } from './exchange/index';
+export { EthereumWeb3AtomexProtocolV1 } from './ethereum/index';
 export { InMemoryAuthorizationManagerStore } from './stores/index';
 export { TaquitoBlockchainWallet } from './tezos/index';
 export * from './utils';
