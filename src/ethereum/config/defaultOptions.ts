@@ -7,10 +7,27 @@ import { EthereumSwapTransactionsProvider } from '../swapTransactionsProviders/i
 import { mainnetEthereumWeb3AtomexProtocolV1Options, testnetEthereumWeb3AtomexProtocolV1Options } from './atomexProtocol';
 import { ethereumMainnetCurrencies, ethereumTestnetCurrencies } from './currencies';
 
+type AtomexProtocolOptions = typeof mainnetEthereumWeb3AtomexProtocolV1Options | typeof testnetEthereumWeb3AtomexProtocolV1Options;
+
+const createAtomexProtocol = (
+  atomexContext: AtomexContext,
+  currency: EthereumCurrency,
+  atomexProtocolOptions: AtomexProtocolOptions[keyof AtomexProtocolOptions]
+) => {
+  if (currency.type === 'native')
+    return new EthereumWeb3AtomexProtocolV1(
+      atomexContext.atomexNetwork,
+      atomexContext.providers.currenciesProvider,
+      atomexProtocolOptions
+    );
+
+  throw new Error(`Unknown Tezos currency: ${currency.id}`);
+};
+
 const createCurrencyOptions = (
   atomexContext: AtomexContext,
   currencies: EthereumCurrency[],
-  atomexProtocolOptions: typeof mainnetEthereumWeb3AtomexProtocolV1Options | typeof testnetEthereumWeb3AtomexProtocolV1Options
+  atomexProtocolOptions: AtomexProtocolOptions
 ): Record<EthereumCurrency['id'], AtomexCurrencyOptions> => {
   const result: Record<EthereumCurrency['id'], AtomexCurrencyOptions> = {};
   const currenciesMap = currencies.reduce<Record<EthereumCurrency['id'], EthereumCurrency>>(
@@ -22,19 +39,14 @@ const createCurrencyOptions = (
     {}
   );
 
-  for (const currencyOptions of Object.values(atomexProtocolOptions)) {
-    const currency = currenciesMap[currencyOptions.currencyId];
+  for (const options of Object.values(atomexProtocolOptions)) {
+    const currency = currenciesMap[options.currencyId];
     if (!currency)
-      throw new Error(`The ${currencyOptions.currencyId} currency not found`);
+      throw new Error(`The ${options.currencyId} currency not found`);
 
-    if (currency.type === 'native')
-      result[currency.id] = {
-        atomexProtocol: new EthereumWeb3AtomexProtocolV1(
-          atomexContext.atomexNetwork,
-          atomexContext.providers.currenciesProvider,
-          currencyOptions
-        )
-      };
+    result[currency.id] = {
+      atomexProtocol: createAtomexProtocol(atomexContext, currency, options)
+    };
   }
 
   return result;
