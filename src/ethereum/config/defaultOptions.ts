@@ -19,14 +19,14 @@ const createAtomexProtocol = (
       return new EthereumWeb3AtomexProtocolV1(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
-        atomexContext.providers.currenciesProvider,
+        atomexContext.providers.blockchainProvider,
         atomexContext.managers.walletsManager
       );
     case 'erc-20':
       return new ERC20EthereumWeb3AtomexProtocolV1(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
-        atomexContext.providers.currenciesProvider,
+        atomexContext.providers.blockchainProvider,
         atomexContext.managers.walletsManager
       );
     default:

@@ -1,22 +1,23 @@
 import type BigNumber from 'bignumber.js';
 
 import type {
-  AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
+  AtomexBlockchainProvider,
+  AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
   Transaction, WalletsManager
 } from '../../blockchain/index';
-import type { AtomexNetwork, CurrenciesProvider } from '../../common/index';
-import type { DeepReadonly } from '../../core';
-import type { FA12TezosTaquitoAtomexProtocolV1Options } from '../models/atomexProtocolOptions';
+import type { AtomexNetwork } from '../../common/index';
+import type { DeepReadonly } from '../../core/index';
+import type { FA12TezosTaquitoAtomexProtocolV1Options } from '../models/index';
+import { TaquitoAtomexProtocolV1 } from './taquitoAtomexProtocolV1';
 
-export class FA12TezosTaquitoAtomexProtocolV1 implements AtomexProtocolV1 {
-  readonly version = 1;
-
+export class FA12TezosTaquitoAtomexProtocolV1 extends TaquitoAtomexProtocolV1 {
   constructor(
-    readonly atomexNetwork: AtomexNetwork,
+    atomexNetwork: AtomexNetwork,
     protected readonly atomexProtocolOptions: DeepReadonly<FA12TezosTaquitoAtomexProtocolV1Options>,
-    protected readonly currenciesProvider: CurrenciesProvider,
-    protected readonly walletsManager: WalletsManager
+    atomexBlockchainProvider: AtomexBlockchainProvider,
+    walletsManager: WalletsManager
   ) {
+    super('tezos', atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
   }
 
   get currencyId() {

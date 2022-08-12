@@ -1,33 +1,30 @@
 import type BigNumber from 'bignumber.js';
 
 import type {
-  AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
+  AtomexBlockchainProvider,
+  AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
   Transaction, WalletsManager
 } from '../../blockchain/index';
-import type { AtomexNetwork, CurrenciesProvider } from '../../common/index';
-import type { DeepReadonly } from '../../core';
-import type { EthereumWeb3AtomexProtocolV1Options } from '../models/atomexProtocolOptions';
+import type { AtomexNetwork } from '../../common/index';
+import type { DeepReadonly } from '../../core/index';
+import { Web3AtomexProtocolV1 } from '../../evm/index';
+import type { EthereumWeb3AtomexProtocolV1Options } from '../models/index';
 
-export class EthereumWeb3AtomexProtocolV1 implements AtomexProtocolV1 {
-  readonly version = 1;
-
+export class EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtocolV1 {
   constructor(
-    readonly atomexNetwork: AtomexNetwork,
+    atomexNetwork: AtomexNetwork,
     protected readonly atomexProtocolOptions: DeepReadonly<EthereumWeb3AtomexProtocolV1Options>,
-    protected readonly currenciesProvider: CurrenciesProvider,
-    protected readonly walletsManager: WalletsManager
+    atomexBlockchainProvider: AtomexBlockchainProvider,
+    walletsManager: WalletsManager
   ) {
-  }
-
-  get currencyId() {
-    return this.atomexProtocolOptions.currencyId;
+    super('ethereum', atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
   }
 
   initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction> {
     throw new Error('Method not implemented.');
   }
 
-  getEstimatedInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
+  async getEstimatedInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
     throw new Error('Method not implemented.');
   }
 

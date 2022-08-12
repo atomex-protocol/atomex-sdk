@@ -19,21 +19,21 @@ const createAtomexProtocol = (
       return new TezosTaquitoAtomexProtocolV1(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
-        atomexContext.providers.currenciesProvider,
+        atomexContext.providers.blockchainProvider,
         atomexContext.managers.walletsManager
       );
     case 'fa1.2':
       return new FA12TezosTaquitoAtomexProtocolV1(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
-        atomexContext.providers.currenciesProvider,
+        atomexContext.providers.blockchainProvider,
         atomexContext.managers.walletsManager
       );
     case 'fa2':
       return new FA2TezosTaquitoAtomexProtocolV1(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
-        atomexContext.providers.currenciesProvider,
+        atomexContext.providers.blockchainProvider,
         atomexContext.managers.walletsManager
       );
     default:
