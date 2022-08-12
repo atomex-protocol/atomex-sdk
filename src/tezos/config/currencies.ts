@@ -19,6 +19,16 @@ const tzBtcCurrency: FA12TezosCurrency = {
   decimals: 8,
 };
 
+const kusdCurrency: FA12TezosCurrency = {
+  id: 'KUSD',
+  name: 'Kolibri USD',
+  symbol: 'kUSD',
+  blockchain: 'tezos',
+  type: 'fa1.2',
+  contractAddress: 'KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV',
+  decimals: 18
+};
+
 const usdtCurrency: FA2TezosCurrency = {
   id: 'USDT_XTZ',
   name: 'Tether USD',
@@ -33,6 +43,7 @@ const usdtCurrency: FA2TezosCurrency = {
 export const tezosMainnetCurrencies: TezosCurrency[] = [
   nativeTezosCurrency,
   tzBtcCurrency,
+  kusdCurrency,
   usdtCurrency
 ];
 

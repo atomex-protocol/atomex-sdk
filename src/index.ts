@@ -9,7 +9,10 @@ export { Web3BlockchainWallet } from './evm/index';
 export { ExchangeManager, InMemoryExchangeSymbolsProvider } from './exchange/index';
 export { EthereumWeb3AtomexProtocolV1, ERC20EthereumWeb3AtomexProtocolV1 } from './ethereum/index';
 export { InMemoryAuthorizationManagerStore } from './stores/index';
-export { TaquitoBlockchainWallet } from './tezos/index';
+export {
+  TaquitoBlockchainWallet,
+  TezosTaquitoAtomexProtocolV1, FA12TezosTaquitoAtomexProtocolV1, FA2TezosTaquitoAtomexProtocolV1
+} from './tezos/index';
 export * from './utils';
 
 export type { AtomexOptions, NewSwapRequest } from './atomex/index';
