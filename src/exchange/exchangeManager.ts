@@ -2,7 +2,7 @@ import type { BigNumber } from 'bignumber.js';
 import { nanoid } from 'nanoid';
 
 import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
-import { EventEmitter, type ToEventEmitter, type Result } from '../core/index';
+import { EventEmitter, type ToEventEmitter } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider';
 import { symbolsHelper } from './helpers/index';
