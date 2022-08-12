@@ -187,17 +187,8 @@ export class ExchangeManager implements AtomexService {
     (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(updatedOrder);
   };
 
-  protected handleExchangeServiceOrderBookUpdated = (orderBookUpdates: OrderBook) => {
-    // TODO: temporary
-    this.getOrderBook(orderBookUpdates.symbol)
-      .then(updatedOrderBook => {
-        if (!updatedOrderBook)
-          return;
-
-        this._orderBookCache.set(updatedOrderBook.symbol, updatedOrderBook);
-        (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(updatedOrderBook);
-      })
-      .catch(error => console.error(error));
+  protected handleExchangeServiceOrderBookUpdated = async (updatedOrderBook: OrderBook) => {
+    (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(updatedOrderBook);
   };
 
   protected handleExchangeServiceTopOfBookUpdated = (updatedQuotes: readonly Quote[]) => {
@@ -259,7 +250,7 @@ export class ExchangeManager implements AtomexService {
     }
   }
 
-  protected getCachedOrderBook(symbol: string) {
+  protected getCachedOrderBook(symbol: string): Promise<OrderBook | undefined> {
     const cachedOrderBook = this._orderBookCache.get(symbol);
 
     return cachedOrderBook ? Promise.resolve(cachedOrderBook) : this.getOrderBook(symbol);

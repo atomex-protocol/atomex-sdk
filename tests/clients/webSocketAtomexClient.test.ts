@@ -179,7 +179,7 @@ describe('WebSocket Atomex Client', () => {
     expect(onTopOfBookUpdatedCallback).toHaveBeenCalledWith(expectedQuotes);
   });
 
-  test.each(validWsOrderBookUpdatedTestCases)('emits orderBookUpdated event with correct data (%s)', async (_, [responseDto, expectedOrderBook]) => {
+  test.each(validWsOrderBookUpdatedTestCases)('emits orderBookUpdated event with correct data (%s)', async (_, [snapshotDtos, entryDtos, expectedOrderBook]) => {
     const onOrderUpdatedCallback = jest.fn();
     const onSwapUpdatedCallback = jest.fn();
     const onTopOfBookUpdatedCallback = jest.fn();
@@ -192,13 +192,14 @@ describe('WebSocket Atomex Client', () => {
 
     await exchangeWsServer.connected;
 
-    exchangeWsServer.send(responseDto);
+    snapshotDtos.forEach(snapshot => exchangeWsServer.send(snapshot));
+    entryDtos.forEach(entries => exchangeWsServer.send(entries));
 
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(0);
-    expect(onOrderBookUpdatedCallback).toHaveBeenCalledTimes(1);
-    expect(onOrderBookUpdatedCallback).toHaveBeenCalledWith(expectedOrderBook);
+    expect(onOrderBookUpdatedCallback).toHaveBeenCalledTimes(entryDtos.length);
+    expect(onOrderBookUpdatedCallback).toHaveBeenLastCalledWith(expectedOrderBook);
   });
 
   test('creates connection for every unique user', async () => {
