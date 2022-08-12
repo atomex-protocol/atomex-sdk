@@ -1,4 +1,5 @@
 export { WalletsManager } from './walletsManager';
+export { isAtomexProtocolV1 } from './atomexProtocolV1/index';
 
 export type { AtomexProtocolOptions, AtomexSignature, Transaction } from './models/index';
 export type { AtomexProtocol } from './atomexProtocol';
