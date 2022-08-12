@@ -25,6 +25,6 @@ export type { AtomexClient } from './clients/index';
 export type { AtomexNetwork, Currency, Side, CurrenciesProvider, CollectionSelector } from './common/index';
 export type { AtomexStore, AuthorizationManagerStore } from './stores/index';
 export type { Swap, SwapParticipant, SwapParticipantRequisites, SwapParticipantStatus } from './swaps/index';
-export type { TezosCurrency, TezosFA12Currency, TezosFA2Currency } from './tezos/index';
+export type { TezosCurrency, NativeTezosCurrency, FA12TezosCurrency, FA2TezosCurrency } from './tezos/index';
 
 export * as legacy from './legacy/index';
