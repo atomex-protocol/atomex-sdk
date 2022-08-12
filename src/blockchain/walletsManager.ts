@@ -21,13 +21,17 @@ export class WalletsManager {
     return Promise.resolve(result);
   }
 
-  async getWallet(address?: string, blockchain?: string, toolkit?: string): Promise<BlockchainWallet | undefined> {
+  async getWallet<Toolkit = unknown>(address?: string, blockchain?: string, toolkit?: string): Promise<BlockchainWallet<Toolkit> | undefined> {
     if (!this.wallets.size || (!address && !blockchain && !toolkit))
       return undefined;
 
-    const walletPromises: Array<Promise<[wallet: BlockchainWallet, address: string | undefined, blockchain: string | undefined]>> = [];
+    const walletPromises: Array<Promise<readonly [
+      wallet: BlockchainWallet<Toolkit>,
+      address: string | undefined,
+      blockchain: string | undefined
+    ]>> = [];
 
-    for (const wallet of this.wallets) {
+    for (const wallet of this.wallets as Set<BlockchainWallet<Toolkit>>) {
       if (toolkit && wallet.id !== toolkit)
         continue;
 
