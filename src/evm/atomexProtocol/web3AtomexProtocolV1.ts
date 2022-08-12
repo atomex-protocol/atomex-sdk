@@ -4,7 +4,7 @@ import type Web3 from 'web3';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
-  Transaction, WalletsManager
+  BlockchainWallet, Transaction, WalletsManager
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
@@ -40,15 +40,15 @@ export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
 
   abstract getEstimatedRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber>;
 
-  protected async getReadonlyWeb3() {
-    const toolkit = this.atomexBlockchainProvider.getReadonlyToolkit<Web3>('web3', this.blockchain);
+  protected async getReadonlyWeb3(): Promise<Web3> {
+    const toolkit = await this.atomexBlockchainProvider.getReadonlyToolkit<Web3>('web3', this.blockchain);
     if (!toolkit)
       throw new Error('Web3 toolkit not found');
 
     return toolkit;
   }
 
-  protected async getWallet(address?: string) {
+  protected async getWallet(address?: string): Promise<BlockchainWallet<Web3>> {
     const web3Wallet = await this.walletsManager.getWallet<Web3>(address, this.blockchain, 'web3');
     if (!web3Wallet)
       throw new Error(`${this.blockchain} Web3 wallet not found`);

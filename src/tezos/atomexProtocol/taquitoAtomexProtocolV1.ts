@@ -4,7 +4,7 @@ import type BigNumber from 'bignumber.js';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
-  Transaction, WalletsManager
+  BlockchainWallet, Transaction, WalletsManager
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
@@ -40,15 +40,15 @@ export abstract class TaquitoAtomexProtocolV1 implements AtomexProtocolV1 {
 
   abstract getEstimatedRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber>;
 
-  protected async getReadonlyTezosToolkit() {
-    const toolkit = this.atomexBlockchainProvider.getReadonlyToolkit<TezosToolkit>('taquito', this.blockchain);
+  protected async getReadonlyTezosToolkit(): Promise<TezosToolkit> {
+    const toolkit = await this.atomexBlockchainProvider.getReadonlyToolkit<TezosToolkit>('taquito', this.blockchain);
     if (!toolkit)
       throw new Error('Tezos toolkit not found');
 
     return toolkit;
   }
 
-  protected async getWallet(address?: string) {
+  protected async getWallet(address?: string): Promise<BlockchainWallet<TezosToolkit>> {
     const taquitoWallet = await this.walletsManager.getWallet<TezosToolkit>(address, this.blockchain, 'taquito');
     if (!taquitoWallet)
       throw new Error(`${this.blockchain} Taqutio wallet not found`);
