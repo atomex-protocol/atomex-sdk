@@ -100,12 +100,18 @@ export const mapWebSocketOrderBookEntryDtoToOrderBooks = (
       continue;
 
     const entry = mapOrderBookEntryDtoToOrderBookEntry(entryDto);
+    const storedEntry = orderBook.entries.find(e => e.side === entry.side && e.price.isEqualTo(entry.price));
+
+    const updatedEntries = entryDto.qtyProfile.length
+      ? storedEntry
+        ? orderBook.entries.map(e => e === storedEntry ? { ...e, qtyProfile: entry.qtyProfile } : e)
+        : [...orderBook.entries, entry]
+      : orderBook.entries.filter(e => e !== storedEntry);
+
     const updatedOrderBook: OrderBook = {
       ...orderBook,
       updateId: entryDto.updateId,
-      entries: entryDto.qtyProfile.length ?
-        [...orderBook.entries, entry]
-        : orderBook.entries.filter(e => e.side !== entry.side && e.price !== entry.price)
+      entries: updatedEntries
     };
 
     updatedOrderBooks.set(updatedOrderBook.symbol, updatedOrderBook);

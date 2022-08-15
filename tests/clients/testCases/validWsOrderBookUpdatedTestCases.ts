@@ -161,6 +161,55 @@ const validWsOrderBookUpdatedTestCases: ReadonlyArray<readonly [
       ]
     ],
     [
+      'Update qty profile',
+      [
+        [{
+          event: 'snapshot',
+          data: {
+            updateId: 57551,
+            symbol: 'ETH/BTC',
+            entries: [{
+              side: 'Buy',
+              price: 0.06688964,
+              qtyProfile: [4.0]
+            }, {
+              side: 'Sell',
+              price: 0.06754710,
+              qtyProfile: [1.5]
+            }]
+          }
+        }],
+        [{
+          event: 'entries',
+          data: [{
+            updateId: 57552,
+            symbol: 'ETH/BTC',
+            side: 'Buy',
+            price: 0.06688964,
+            qtyProfile: [2.0]
+          }]
+        }],
+        {
+          updateId: 57552,
+          symbol: 'ETH/BTC',
+          quoteCurrency: 'ETH',
+          baseCurrency: 'BTC',
+          entries: [
+            {
+              side: 'Buy',
+              price: new BigNumber(0.06688964),
+              qtyProfile: [2.0]
+            },
+            {
+              side: 'Sell',
+              price: new BigNumber(0.06754710),
+              qtyProfile: [1.5]
+            }
+          ]
+        }
+      ]
+    ],
+    [
       'Update entries',
       [
         [{
