@@ -6,7 +6,7 @@ import { RestAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
 import { TestAuthorizationManager, TestCurrenciesProvider, TestExchangeSymbolsProvider } from '../testHelpers/index';
 import {
-  validAddOrderTestCases, validAddOrderWithDirectionsTestCases, validCancelAllOrdersWithDirectionsTestCases,
+  validAddOrderTestCases, validCancelAllOrdersWithDirectionsTestCases,
   validCancelOrderWithDirectionsTestCases,
   validOrderBookTestCases, validOrderBookWithDirectionsTestCases, validOrderTestCases,
   validSwapTestCases, validSymbolsTestCases, validTopOfBookTestCases,
@@ -357,32 +357,6 @@ describe('Rest Atomex Client', () => {
       'passes and returns correct data (%s)',
       async (_, [requestData, createOrderDto, expectedPayload, expectedOrderId]) => {
         fetchMock.mockResponse(JSON.stringify(createOrderDto));
-
-        const orderId = await client.addOrder(testAccountAddress, requestData);
-
-        expect(orderId).toEqual(expectedOrderId);
-
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(fetch).toHaveBeenLastCalledWith(
-          `${testApiUrl}/v1/Orders`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${testAuthToken.value}`,
-              'Content-Type': 'application/json'
-            },
-            body: expect.anything()
-          }
-        );
-
-        expect(JSON.parse(fetchMock.mock.calls[0]![1]!.body as string)).toEqual(expectedPayload);
-      });
-
-    test.each(validAddOrderWithDirectionsTestCases)(
-      'passes and returns correct data (%s) using directions',
-      async (_, [requestData, exchangeSymbols, createOrderDto, expectedPayload, expectedOrderId]) => {
-        exchangeSymbolsProvider.setSymbols(exchangeSymbols);
-        fetchMock.mockResponses([JSON.stringify(createOrderDto), {}]);
 
         const orderId = await client.addOrder(testAccountAddress, requestData);
 
