@@ -1,6 +1,6 @@
 {
   "name": "atomex-sdk",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Atomex SDK",
   "engines": {
     "node": ">=16.14.0",
