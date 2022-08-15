@@ -1,3 +1,4 @@
+import { InMemoryOrderBookProvider } from '../../src/exchange/index';
 import { AtomexNetwork, DataSource, ExchangeManager } from '../../src/index';
 import { TestAtomexClient, TestExchangeSymbolsProvider } from '../testHelpers/index';
 import { validGetOrderPreviewTestCases, validGetSymbolsTestCases } from './testCases/index';
@@ -11,7 +12,11 @@ describe('Exchange Manager', () => {
   beforeEach(() => {
     testExchangeService = new TestAtomexClient(atomexNetwork);
     exchangeSymbolsProvider = new TestExchangeSymbolsProvider();
-    exchangeManager = new ExchangeManager(testExchangeService, exchangeSymbolsProvider);
+    exchangeManager = new ExchangeManager({
+      exchangeService: testExchangeService,
+      symbolsProvider: exchangeSymbolsProvider,
+      orderBookProvider: new InMemoryOrderBookProvider
+    });
   });
 
   afterEach(() => {

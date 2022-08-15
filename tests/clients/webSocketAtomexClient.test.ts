@@ -4,6 +4,7 @@ import WS from 'jest-websocket-mock';
 import type { AuthToken } from '../../src/authorization/index';
 import { WebSocketAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
+import { InMemoryOrderBookProvider } from '../../src/exchange/index';
 import { TestCurrenciesProvider, TestAuthorizationManager, TestExchangeSymbolsProvider } from '../testHelpers/index';
 import {
   validWsOrderBookUpdatedTestCases, validWsOrderUpdatedTestCases,
@@ -103,6 +104,7 @@ describe('WebSocket Atomex Client', () => {
       atomexNetwork,
       authorizationManager,
       currenciesProvider: new TestCurrenciesProvider(),
+      orderBookProvider: new InMemoryOrderBookProvider(),
       exchangeSymbolsProvider
     });
 

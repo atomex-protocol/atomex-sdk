@@ -25,6 +25,7 @@ export const createDefaultExchangeService = (
       authorizationManager: atomexContext.managers.authorizationManager,
       currenciesProvider: atomexContext.providers.currenciesProvider,
       exchangeSymbolsProvider: atomexContext.providers.exchangeSymbolsProvider,
+      orderBookProvider: atomexContext.providers.orderBookProvider,
       webSocketApiBaseUrl: options.webSocketApiBaseUrl
     })
   );

@@ -5,7 +5,7 @@ import { EventEmitter, type ToEventEmitter } from '../../core';
 import type {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
   OrdersSelector, CancelOrderRequest,
-  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider
+  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider, ManagedOrderBookProvider
 } from '../../exchange/index';
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
@@ -19,6 +19,7 @@ export interface WebSocketAtomexClientOptions {
   authorizationManager: AuthorizationManager;
   currenciesProvider: CurrenciesProvider;
   exchangeSymbolsProvider: ExchangeSymbolsProvider;
+  orderBookProvider: ManagedOrderBookProvider;
   webSocketApiBaseUrl: string;
 }
 
@@ -37,8 +38,8 @@ export class WebSocketAtomexClient implements AtomexClient {
   protected readonly webSocketApiBaseUrl: string;
   protected readonly marketDataWebSocketClient: MarketDataWebSocketClient;
   protected readonly exchangeWebSocketClient: ExchangeWebSocketClient;
+  protected readonly orderBookProvider: ManagedOrderBookProvider;
 
-  private readonly _orderBookCache: Map<OrderBook['symbol'], OrderBook> = new Map();
   private _isStarted = false;
 
   constructor(options: WebSocketAtomexClientOptions) {
@@ -46,6 +47,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     this.authorizationManager = options.authorizationManager;
     this.currenciesProvider = options.currenciesProvider;
     this.exchangeSymbolsProvider = options.exchangeSymbolsProvider;
+    this.orderBookProvider = options.orderBookProvider;
     this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
 
     this.exchangeWebSocketClient = new ExchangeWebSocketClient(this.webSocketApiBaseUrl, this.authorizationManager);
@@ -168,13 +170,13 @@ export class WebSocketAtomexClient implements AtomexClient {
 
   protected onOrderBookSnapshotReceived(orderBookDto: OrderBookDto) {
     const orderBook = mapOrderBookDtoToOrderBook(orderBookDto);
-    this._orderBookCache.set(orderBook.symbol, orderBook);
+    this.orderBookProvider.setOrderBook(orderBook.symbol, orderBook);
   }
 
   protected onOrderBookEntriesReceived(entryDtos: WebSocketOrderBookEntryDto[]) {
-    const updatedOrderBooks = mapWebSocketOrderBookEntryDtoToOrderBooks(entryDtos, this._orderBookCache);
+    const updatedOrderBooks = mapWebSocketOrderBookEntryDtoToOrderBooks(entryDtos, this.orderBookProvider);
     for (const updatedOrderBook of updatedOrderBooks) {
-      this._orderBookCache.set(updatedOrderBook.symbol, updatedOrderBook);
+      this.orderBookProvider.setOrderBook(updatedOrderBook.symbol, updatedOrderBook);
       (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(updatedOrderBook);
     }
   }

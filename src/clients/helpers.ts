@@ -2,8 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import type { Transaction } from '../blockchain/models/index';
 import type { CurrenciesProvider } from '../common/index';
-import type { DeepMutable } from '../core';
-import { ExchangeSymbol, ExchangeSymbolsProvider, NewOrderRequest, Order, OrderBook, OrderBookEntry, OrderPreview, Quote, symbolsHelper } from '../exchange/index';
+import { ExchangeSymbol, ExchangeSymbolsProvider, NewOrderRequest, Order, OrderBook, OrderBookEntry, OrderBookProvider, OrderPreview, Quote, symbolsHelper } from '../exchange/index';
 import type { Swap, SwapParticipantTrade } from '../swaps/index';
 import type {
   OrderBookDto, OrderBookEntryDto, OrderDto, QuoteDto, SwapDto, SymbolDto,
@@ -91,12 +90,12 @@ export const mapOrderBookEntryDtoToOrderBookEntry = (entryDto: OrderBookEntryDto
 
 export const mapWebSocketOrderBookEntryDtoToOrderBooks = (
   orderBookEntryDtos: WebSocketOrderBookEntryDto[],
-  orderBooksMap: ReadonlyMap<OrderBook['symbol'], OrderBook>
+  orderBookProvider: OrderBookProvider
 ): OrderBook[] => {
   const updatedOrderBooks: Map<OrderBook['symbol'], OrderBook> = new Map();
 
   for (const entryDto of orderBookEntryDtos) {
-    const orderBook = updatedOrderBooks.get(entryDto.symbol) || orderBooksMap.get(entryDto.symbol);
+    const orderBook = updatedOrderBooks.get(entryDto.symbol) || orderBookProvider.getOrderBook(entryDto.symbol);
     if (!orderBook || orderBook.updateId >= entryDto.updateId)
       continue;
 
