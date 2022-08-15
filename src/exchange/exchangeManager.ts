@@ -110,7 +110,7 @@ export class ExchangeManager implements AtomexService {
       symbol = symbolOrDirection;
     else {
       const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
-      [symbol] = symbolsHelper.findSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to);
+      symbol = symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
     }
 
     if (!symbol)
@@ -224,8 +224,8 @@ export class ExchangeManager implements AtomexService {
         isQuoteCurrencyAmount = orderPreviewParameters.isQuoteCurrencyAmount;
     }
     else if (orderPreviewParameters.from && orderPreviewParameters.to) {
-      [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
-      exchangeSymbol = exchangeSymbols.get(symbol);
+      [exchangeSymbol, side] = symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
+      symbol = exchangeSymbol.name;
       const isFromAmount = (orderPreviewParameters.isFromAmount !== undefined && orderPreviewParameters.isFromAmount !== null)
         ? orderPreviewParameters.isFromAmount
         : true;

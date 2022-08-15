@@ -14,10 +14,10 @@ const validAddOrderWithDirectionsTestCases: ReadonlyArray<readonly [
         {
           orderBody: {
             type: 'FillOrKill',
-            fromAmount: new BigNumber(1),
+            amount: new BigNumber(1),
             price: new BigNumber(2),
-            from: 'ETH',
-            to: 'XTZ',
+            symbol: 'XTZ/ETH',
+            side: 'Buy',
           },
           clientOrderId: 'client-order-id',
         },
@@ -52,10 +52,10 @@ const validAddOrderWithDirectionsTestCases: ReadonlyArray<readonly [
         {
           orderBody: {
             type: 'FillOrKill',
-            fromAmount: new BigNumber(1),
+            amount: new BigNumber(1),
             price: new BigNumber(2),
-            from: 'XTZ',
-            to: 'ETH',
+            symbol: 'XTZ/ETH',
+            side: 'Sell',
           },
           clientOrderId: 'client-order-id',
         },

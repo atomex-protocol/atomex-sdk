@@ -114,7 +114,8 @@ export class RestAtomexClient implements AtomexClient {
         symbols = symbolsOrDirections as string[];
       else {
         const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-        symbols = (symbolsOrDirections as CurrencyDirection[]).map(d => symbolsHelper.findSymbolAndSide(exchangeSymbols, d.from, d.to)[0]);
+        symbols = (symbolsOrDirections as CurrencyDirection[])
+          .map(d => symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, d.from, d.to)[0].name);
       }
     }
 
@@ -135,7 +136,7 @@ export class RestAtomexClient implements AtomexClient {
       symbol = symbolOrDirection;
     else {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      [symbol] = symbolsHelper.findSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to);
+      symbol = symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
     }
 
     const params = { symbol };
@@ -149,24 +150,27 @@ export class RestAtomexClient implements AtomexClient {
     const authToken = this.getRequiredAuthToken(accountAddress);
     let symbol: string | undefined = undefined;
     let side: Side | undefined = undefined;
-
-    if (newOrderRequest.orderBody.symbol && newOrderRequest.orderBody.side)
-      [symbol, side] = [newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side];
-    else if (typeof newOrderRequest.orderBody.from === 'string' && typeof newOrderRequest.orderBody.to === 'string') {
-      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, newOrderRequest.orderBody.from, newOrderRequest.orderBody.to);
-    }
-    else
-      throw new Error('Invalid newOrderRequest argument passed');
-
     let amountBigNumber: BigNumber;
     let priceBigNumber: BigNumber;
+
     if (isOrderPreview(newOrderRequest.orderBody)) {
-      amountBigNumber = newOrderRequest.orderBody.from.amount;
-      priceBigNumber = newOrderRequest.orderBody.from.price;
+      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
+      const exchangeSymbolAndSide = symbolsHelper.findExchangeSymbolAndSide(
+        exchangeSymbols,
+        newOrderRequest.orderBody.from.currencyId,
+        newOrderRequest.orderBody.to.currencyId
+      );
+      const exchangeSymbol = exchangeSymbolAndSide[0];
+      symbol = exchangeSymbol.name;
+      side = exchangeSymbolAndSide[1];
+
+      const directionName: 'from' | 'to' = exchangeSymbol.quoteCurrency === newOrderRequest.orderBody.from.currencyId ? 'from' : 'to';
+      amountBigNumber = newOrderRequest.orderBody[directionName].amount;
+      priceBigNumber = newOrderRequest.orderBody[directionName].price;
     }
     else {
-      amountBigNumber = newOrderRequest.orderBody.fromAmount;
+      [symbol, side] = [newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side];
+      amountBigNumber = newOrderRequest.orderBody.amount;
       priceBigNumber = newOrderRequest.orderBody.price;
     }
 
@@ -213,7 +217,9 @@ export class RestAtomexClient implements AtomexClient {
       [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
     else if (cancelOrderRequest.from && cancelOrderRequest.to) {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+      const exchangeSymbolAndSide = symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+      symbol = exchangeSymbolAndSide[0].name;
+      side = exchangeSymbolAndSide[1];
     }
     else
       throw new Error('Invalid cancelOrderRequest argument passed');
@@ -244,7 +250,9 @@ export class RestAtomexClient implements AtomexClient {
       [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
     else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      const exchangeSymbolAndSide = symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      symbol = exchangeSymbolAndSide[0].name;
+      side = exchangeSymbolAndSide[1];
 
       if (cancelAllOrdersRequest.cancelAllDirections)
         side = 'All';

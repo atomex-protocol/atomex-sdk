@@ -11,8 +11,7 @@ import type {
 
 export const isOrderPreview = (orderBody: NewOrderRequest['orderBody']): orderBody is OrderPreview => {
   return typeof orderBody.symbol === 'string' && typeof orderBody.side === 'string'
-    && orderBody.from !== undefined && typeof orderBody.from !== 'string'
-    && orderBody.to !== undefined && typeof orderBody.to !== 'string';
+    && !!(orderBody as OrderPreview).from && !!(orderBody as OrderPreview).to;
 };
 
 export const mapQuoteDtosToQuotes = (quoteDtos: QuoteDto[]): Quote[] => {

@@ -2,28 +2,16 @@ import type { BigNumber } from 'bignumber.js';
 
 import type { Side } from '../../common/index';
 import type { SwapParticipantRequisites } from '../../swaps/index';
-import type { CurrencyDirection } from './currencyDirection';
 import type { OrderPreview } from './orderPreview';
 import type { OrderType } from './orderType';
 
-type OrderBody = (({
+interface OrderBody {
   type: OrderType;
   price: BigNumber;
-  fromAmount: BigNumber;
-}) & (
-    {
-      from: CurrencyDirection['from'];
-      to: CurrencyDirection['to'];
-      symbol?: never;
-      side?: never;
-    } | {
-      from?: never;
-      to?: never;
-      symbol: string;
-      side: Side;
-    }
-  )
-);
+  amount: BigNumber;
+  symbol: string;
+  side: Side;
+}
 
 export interface NewOrderRequest {
   orderBody: OrderPreview | OrderBody;
