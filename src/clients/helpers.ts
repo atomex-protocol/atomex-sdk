@@ -96,7 +96,7 @@ export const mapWebSocketOrderBookEntryDtoToOrderBooks = (
 
   for (const entryDto of orderBookEntryDtos) {
     const orderBook = updatedOrderBooks.get(entryDto.symbol) || orderBookProvider.getOrderBook(entryDto.symbol);
-    if (!orderBook || orderBook.updateId >= entryDto.updateId)
+    if (!orderBook)
       continue;
 
     const entry = mapOrderBookEntryDtoToOrderBookEntry(entryDto);
