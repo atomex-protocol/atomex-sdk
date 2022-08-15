@@ -9,7 +9,7 @@ import { symbolsHelper } from './helpers/index';
 import type {
   CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol,
   OrderPreviewParameters as OrderPreviewParameters,
-  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType
+  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, PreparedPreviewParameters
 } from './models/index';
 
 export class ExchangeManager implements AtomexService {
@@ -137,38 +137,33 @@ export class ExchangeManager implements AtomexService {
   }
 
   async getOrderPreview(orderPreviewParameters: OrderPreviewParameters): Promise<OrderPreview | undefined> {
-    const isFromAmount = (orderPreviewParameters.isFromAmount === undefined || orderPreviewParameters.isFromAmount === null)
-      ? true
-      : orderPreviewParameters.isFromAmount;
-    const amount = orderPreviewParameters.amount;
-
     if (orderPreviewParameters.type !== 'SolidFillOrKill')
       throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
 
-    const [symbol, side] = this.getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters);
-    const isQuoteCurrencyAmount = side === 'Sell' ? isFromAmount : !isFromAmount;
-    const exchangeSymbol = this.symbolsProvider.getSymbol(symbol);
-    if (!exchangeSymbol)
-      throw undefined;
-
-    const orderBookEntry = await this.findOrderBookEntry(symbol, side, orderPreviewParameters.type, amount, isQuoteCurrencyAmount);
+    const preparedOrderPreviewParameters = this.getPreparedOrderPreviewParameters(orderPreviewParameters);
+    const orderBookEntry = await this.findOrderBookEntry(
+      preparedOrderPreviewParameters.exchangeSymbol.name,
+      preparedOrderPreviewParameters.side, orderPreviewParameters.type,
+      preparedOrderPreviewParameters.amount,
+      preparedOrderPreviewParameters.isQuoteCurrencyAmount
+    );
     if (!orderBookEntry)
       return undefined;
 
     const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(
-      exchangeSymbol,
-      side,
-      amount,
+      preparedOrderPreviewParameters.exchangeSymbol,
+      preparedOrderPreviewParameters.side,
+      preparedOrderPreviewParameters.amount,
       orderBookEntry.price,
-      isQuoteCurrencyAmount
+      preparedOrderPreviewParameters.isQuoteCurrencyAmount
     );
 
     return {
       type: orderPreviewParameters.type,
       from,
       to,
-      side,
-      symbol,
+      side: preparedOrderPreviewParameters.side,
+      symbol: preparedOrderPreviewParameters.exchangeSymbol.name,
     };
   }
 
@@ -213,17 +208,43 @@ export class ExchangeManager implements AtomexService {
     (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(updatedQuotes);
   };
 
-  protected getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters: OrderPreviewParameters): readonly [symbol: string, side: Side] {
-    if (orderPreviewParameters.symbol && orderPreviewParameters.side)
-      return [orderPreviewParameters.symbol, orderPreviewParameters.side];
+  protected getPreparedOrderPreviewParameters(orderPreviewParameters: OrderPreviewParameters): PreparedPreviewParameters {
+    const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
 
-    if (orderPreviewParameters.from && orderPreviewParameters.to) {
-      const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
+    let symbol: string;
+    let exchangeSymbol: PreparedPreviewParameters['exchangeSymbol'] | undefined;
+    let side: PreparedPreviewParameters['side'];
+    let isQuoteCurrencyAmount: PreparedPreviewParameters['isQuoteCurrencyAmount'] = true;
 
-      return symbolsHelper.findSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
+    if (orderPreviewParameters.symbol && orderPreviewParameters.side) {
+      symbol = orderPreviewParameters.symbol;
+      exchangeSymbol = exchangeSymbols.get(symbol);
+      side = orderPreviewParameters.side;
+      if (orderPreviewParameters.isQuoteCurrencyAmount !== undefined && orderPreviewParameters.isQuoteCurrencyAmount !== null)
+        isQuoteCurrencyAmount = orderPreviewParameters.isQuoteCurrencyAmount;
     }
+    else if (orderPreviewParameters.from && orderPreviewParameters.to) {
+      [symbol, side] = symbolsHelper.findSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
+      exchangeSymbol = exchangeSymbols.get(symbol);
+      const isFromAmount = (orderPreviewParameters.isFromAmount !== undefined && orderPreviewParameters.isFromAmount !== null)
+        ? orderPreviewParameters.isFromAmount
+        : true;
+      if (exchangeSymbol)
+        isQuoteCurrencyAmount = orderPreviewParameters.from === exchangeSymbol.quoteCurrency && isFromAmount;
+    }
+    else
+      throw new Error('Invalid orderPreviewParameters argument passed');
 
-    throw new Error('Invalid orderPreviewParameters argument passed');
+    if (!exchangeSymbol)
+      throw new Error(`The ${symbol} Symbol not found`);
+
+    return {
+      type: orderPreviewParameters.type,
+      amount: orderPreviewParameters.amount,
+      exchangeSymbol,
+      side,
+      isQuoteCurrencyAmount
+    };
   }
 
   protected async findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isQuoteCurrencyAmount: boolean) {
