@@ -2,7 +2,7 @@ import type { BigNumber } from 'bignumber.js';
 import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider';
-import type { CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol, OrderPreviewParameters as OrderPreviewParameters, NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType } from './models/index';
+import type { CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol, OrderPreviewParameters as OrderPreviewParameters, NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, PreparedPreviewParameters } from './models/index';
 export declare class ExchangeManager implements AtomexService {
     protected readonly exchangeService: ExchangeService;
     protected readonly symbolsProvider: ManagedExchangeSymbolsProvider;
@@ -31,7 +31,7 @@ export declare class ExchangeManager implements AtomexService {
     protected handleExchangeServiceOrderUpdated: (updatedOrder: Order) => void;
     protected handleExchangeServiceOrderBookUpdated: (orderBookUpdates: OrderBook) => void;
     protected handleExchangeServiceTopOfBookUpdated: (updatedQuotes: readonly Quote[]) => void;
-    protected getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters: OrderPreviewParameters): readonly [symbol: string, side: Side];
+    protected getPreparedOrderPreviewParameters(orderPreviewParameters: OrderPreviewParameters): PreparedPreviewParameters;
     protected findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isQuoteCurrencyAmount: boolean): Promise<import("./models/orderBook").OrderBookEntry | undefined>;
     protected getCachedOrderBook(symbol: string): Promise<OrderBook | undefined>;
 }

@@ -1051,7 +1051,7 @@ var createDefaultEthereumBlockchainOptions = (atomexContext) => {
 var symbolsHelper_exports = {};
 __export(symbolsHelper_exports, {
   convertSymbolToFromToCurrenciesPair: () => convertSymbolToFromToCurrenciesPair,
-  findSymbolAndSide: () => findSymbolAndSide,
+  findExchangeSymbolAndSide: () => findExchangeSymbolAndSide,
   getQuoteBaseCurrenciesBySymbol: () => getQuoteBaseCurrenciesBySymbol
 });
 import BigNumber2 from "bignumber.js";
@@ -1084,7 +1084,7 @@ var convertSymbolToFromToCurrenciesPair = (symbol, side, currencyAmount, quoteCu
   };
   return side === "Buy" ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
 };
-var findSymbolAndSide = (symbols, from, to) => {
+var findExchangeSymbolAndSide = (symbols, from, to) => {
   const sellSideSymbolName = `${from}/${to}`;
   const buySideSymbolName = `${to}/${from}`;
   let symbol;
@@ -1110,7 +1110,7 @@ var findSymbolAndSide = (symbols, from, to) => {
   }
   if (!symbol)
     throw new Error(`Invalid pair: ${from}/${to}`);
-  return [symbol.name, side];
+  return [symbol, side];
 };
 
 // src/exchange/exchangeManager.ts
@@ -1247,7 +1247,7 @@ var ExchangeManager = class {
       symbol = symbolOrDirection;
     else {
       const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
-      [symbol] = symbolsHelper_exports.findSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to);
+      symbol = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
     }
     if (!symbol)
       throw new Error("Invalid Symbol");
@@ -1267,25 +1267,19 @@ var ExchangeManager = class {
     return this.exchangeService.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
   }
   async getOrderPreview(orderPreviewParameters) {
-    const isFromAmount = orderPreviewParameters.isFromAmount === void 0 || orderPreviewParameters.isFromAmount === null ? true : orderPreviewParameters.isFromAmount;
-    const amount = orderPreviewParameters.amount;
     if (orderPreviewParameters.type !== "SolidFillOrKill")
       throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
-    const [symbol, side] = this.getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters);
-    const isQuoteCurrencyAmount = side === "Sell" ? isFromAmount : !isFromAmount;
-    const exchangeSymbol = this.symbolsProvider.getSymbol(symbol);
-    if (!exchangeSymbol)
-      throw void 0;
-    const orderBookEntry = await this.findOrderBookEntry(symbol, side, orderPreviewParameters.type, amount, isQuoteCurrencyAmount);
+    const preparedOrderPreviewParameters = this.getPreparedOrderPreviewParameters(orderPreviewParameters);
+    const orderBookEntry = await this.findOrderBookEntry(preparedOrderPreviewParameters.exchangeSymbol.name, preparedOrderPreviewParameters.side, orderPreviewParameters.type, preparedOrderPreviewParameters.amount, preparedOrderPreviewParameters.isQuoteCurrencyAmount);
     if (!orderBookEntry)
       return void 0;
-    const [from, to] = symbolsHelper_exports.convertSymbolToFromToCurrenciesPair(exchangeSymbol, side, amount, orderBookEntry.price, isQuoteCurrencyAmount);
+    const [from, to] = symbolsHelper_exports.convertSymbolToFromToCurrenciesPair(preparedOrderPreviewParameters.exchangeSymbol, preparedOrderPreviewParameters.side, preparedOrderPreviewParameters.amount, orderBookEntry.price, preparedOrderPreviewParameters.isQuoteCurrencyAmount);
     return {
       type: orderPreviewParameters.type,
       from,
       to,
-      side,
-      symbol
+      side: preparedOrderPreviewParameters.side,
+      symbol: preparedOrderPreviewParameters.exchangeSymbol.name
     };
   }
   getMaximumLiquidity(_direction) {
@@ -1301,14 +1295,35 @@ var ExchangeManager = class {
     this.exchangeService.events.orderBookUpdated.removeListener(this.handleExchangeServiceOrderBookUpdated);
     this.exchangeService.events.topOfBookUpdated.removeListener(this.handleExchangeServiceTopOfBookUpdated);
   }
-  getSymbolAndSideByOrderPreviewParameters(orderPreviewParameters) {
-    if (orderPreviewParameters.symbol && orderPreviewParameters.side)
-      return [orderPreviewParameters.symbol, orderPreviewParameters.side];
-    if (orderPreviewParameters.from && orderPreviewParameters.to) {
-      const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
-      return symbolsHelper_exports.findSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
-    }
-    throw new Error("Invalid orderPreviewParameters argument passed");
+  getPreparedOrderPreviewParameters(orderPreviewParameters) {
+    const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
+    let symbol;
+    let exchangeSymbol;
+    let side;
+    let isQuoteCurrencyAmount = true;
+    if (orderPreviewParameters.symbol && orderPreviewParameters.side) {
+      symbol = orderPreviewParameters.symbol;
+      exchangeSymbol = exchangeSymbols.get(symbol);
+      side = orderPreviewParameters.side;
+      if (orderPreviewParameters.isQuoteCurrencyAmount !== void 0 && orderPreviewParameters.isQuoteCurrencyAmount !== null)
+        isQuoteCurrencyAmount = orderPreviewParameters.isQuoteCurrencyAmount;
+    } else if (orderPreviewParameters.from && orderPreviewParameters.to) {
+      [exchangeSymbol, side] = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
+      symbol = exchangeSymbol.name;
+      const isFromAmount = orderPreviewParameters.isFromAmount !== void 0 && orderPreviewParameters.isFromAmount !== null ? orderPreviewParameters.isFromAmount : true;
+      if (exchangeSymbol)
+        isQuoteCurrencyAmount = orderPreviewParameters.from === exchangeSymbol.quoteCurrency && isFromAmount || orderPreviewParameters.to === exchangeSymbol.quoteCurrency && !isFromAmount;
+    } else
+      throw new Error("Invalid orderPreviewParameters argument passed");
+    if (!exchangeSymbol)
+      throw new Error(`The ${symbol} Symbol not found`);
+    return {
+      type: orderPreviewParameters.type,
+      amount: orderPreviewParameters.amount,
+      exchangeSymbol,
+      side,
+      isQuoteCurrencyAmount
+    };
   }
   async findOrderBookEntry(symbol, side, orderType, amount, isQuoteCurrencyAmount) {
     if (orderType !== "SolidFillOrKill")
@@ -2088,7 +2103,7 @@ var HttpClient = class {
 // src/clients/helpers.ts
 import BigNumber3 from "bignumber.js";
 var isOrderPreview = (orderBody) => {
-  return typeof orderBody.symbol === "string" && typeof orderBody.side === "string" && orderBody.from !== void 0 && typeof orderBody.from !== "string" && orderBody.to !== void 0 && typeof orderBody.to !== "string";
+  return typeof orderBody.symbol === "string" && typeof orderBody.side === "string" && !!orderBody.from && !!orderBody.to;
 };
 var mapQuoteDtosToQuotes = (quoteDtos) => {
   const quotes = quoteDtos.map((quoteDto) => mapQuoteDtoToQuote(quoteDto));
@@ -2330,7 +2345,7 @@ var RestAtomexClient = class {
         symbols = symbolsOrDirections;
       else {
         const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-        symbols = symbolsOrDirections.map((d) => symbolsHelper_exports.findSymbolAndSide(exchangeSymbols, d.from, d.to)[0]);
+        symbols = symbolsOrDirections.map((d) => symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, d.from, d.to)[0].name);
       }
     }
     const params = { symbols: symbols == null ? void 0 : symbols.join(",") };
@@ -2344,7 +2359,7 @@ var RestAtomexClient = class {
       symbol = symbolOrDirection;
     else {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      [symbol] = symbolsHelper_exports.findSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to);
+      symbol = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
     }
     const params = { symbol };
     const orderBookDto = await this.httpClient.request({ urlPath, params });
@@ -2355,20 +2370,20 @@ var RestAtomexClient = class {
     const authToken = this.getRequiredAuthToken(accountAddress);
     let symbol = void 0;
     let side = void 0;
-    if (newOrderRequest.orderBody.symbol && newOrderRequest.orderBody.side)
-      [symbol, side] = [newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side];
-    else if (typeof newOrderRequest.orderBody.from === "string" && typeof newOrderRequest.orderBody.to === "string") {
-      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      [symbol, side] = symbolsHelper_exports.findSymbolAndSide(exchangeSymbols, newOrderRequest.orderBody.from, newOrderRequest.orderBody.to);
-    } else
-      throw new Error("Invalid newOrderRequest argument passed");
     let amountBigNumber;
     let priceBigNumber;
     if (isOrderPreview(newOrderRequest.orderBody)) {
-      amountBigNumber = newOrderRequest.orderBody.from.amount;
-      priceBigNumber = newOrderRequest.orderBody.from.price;
+      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
+      const exchangeSymbolAndSide = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, newOrderRequest.orderBody.from.currencyId, newOrderRequest.orderBody.to.currencyId);
+      const exchangeSymbol = exchangeSymbolAndSide[0];
+      symbol = exchangeSymbol.name;
+      side = exchangeSymbolAndSide[1];
+      const directionName = exchangeSymbol.quoteCurrency === newOrderRequest.orderBody.from.currencyId ? "from" : "to";
+      amountBigNumber = newOrderRequest.orderBody[directionName].amount;
+      priceBigNumber = newOrderRequest.orderBody[directionName].price;
     } else {
-      amountBigNumber = newOrderRequest.orderBody.fromAmount;
+      [symbol, side] = [newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side];
+      amountBigNumber = newOrderRequest.orderBody.amount;
       priceBigNumber = newOrderRequest.orderBody.price;
     }
     const payload = {
@@ -2408,7 +2423,9 @@ var RestAtomexClient = class {
       [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
     else if (cancelOrderRequest.from && cancelOrderRequest.to) {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      [symbol, side] = symbolsHelper_exports.findSymbolAndSide(exchangeSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+      const exchangeSymbolAndSide = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+      symbol = exchangeSymbolAndSide[0].name;
+      side = exchangeSymbolAndSide[1];
     } else
       throw new Error("Invalid cancelOrderRequest argument passed");
     const params = { symbol, side };
@@ -2431,7 +2448,9 @@ var RestAtomexClient = class {
       [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
     else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      [symbol, side] = symbolsHelper_exports.findSymbolAndSide(exchangeSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      const exchangeSymbolAndSide = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      symbol = exchangeSymbolAndSide[0].name;
+      side = exchangeSymbolAndSide[1];
       if (cancelAllOrdersRequest.cancelAllDirections)
         side = "All";
     } else
