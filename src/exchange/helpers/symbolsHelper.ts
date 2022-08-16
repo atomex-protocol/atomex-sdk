@@ -36,7 +36,7 @@ export const convertSymbolToFromToCurrenciesPair = (
     preparedQuoteCurrencyAmount = converters.toFixedBigNumber(
       preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice),
       symbol.decimals.quoteCurrency,
-      BigNumber.ROUND_CEIL
+      BigNumber.ROUND_HALF_CEIL
     );
   }
 
