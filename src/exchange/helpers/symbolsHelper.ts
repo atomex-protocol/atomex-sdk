@@ -63,11 +63,11 @@ export const convertSymbolToFromToCurrenciesPair = (
     : [quoteCurrency, baseCurrency];
 };
 
-export const findSymbolAndSide = (
+export const findExchangeSymbolAndSide = (
   symbols: ReadonlyMap<ExchangeSymbol['name'], ExchangeSymbol> | readonly ExchangeSymbol[],
   from: Currency['id'],
   to: Currency['id']
-): readonly [symbol: string, side: Side] => {
+): readonly [exchangeSymbol: ExchangeSymbol, side: Side] => {
   const sellSideSymbolName = `${from}/${to}`;
   const buySideSymbolName = `${to}/${from}`;
   let symbol: ExchangeSymbol | undefined;
@@ -98,5 +98,5 @@ export const findSymbolAndSide = (
   if (!symbol)
     throw new Error(`Invalid pair: ${from}/${to}`);
 
-  return [symbol.name, side];
+  return [symbol, side];
 };

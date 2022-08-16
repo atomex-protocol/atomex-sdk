@@ -9,7 +9,6 @@ export { default as validWsSwapUpdatedTestCases } from './validWsSwapUpdatedTest
 export { default as validAddOrderTestCases } from './validAddOrderTestCases';
 export { default as validCancelOrderWithDirectionsTestCases } from './validCancelOrderWithDirectionsTestCases';
 export { default as validCancelAllOrdersWithDirectionsTestCases } from './validCancelAllOrdersWithDirectionsTestCases';
-export { default as validAddOrderWithDirectionsTestCases } from './validAddOrderWithDirectionsTestCases';
 export { default as validOrderBookWithDirectionsTestCases } from './validOrderBookWithDirectionsTestCases';
 export { default as validWsTopOfBookUpdatedTestCases } from './validWsTopOfBookUpdatedTestCases';
 export { default as validWsOrderBookUpdatedTestCases } from './validWsOrderBookUpdatedTestCases';
