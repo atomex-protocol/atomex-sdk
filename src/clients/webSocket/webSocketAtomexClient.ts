@@ -28,6 +28,7 @@ export class WebSocketAtomexClient implements AtomexClient {
   readonly events: AtomexClient['events'] = {
     swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
+    orderBookSnapshot: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
@@ -171,6 +172,7 @@ export class WebSocketAtomexClient implements AtomexClient {
   protected onOrderBookSnapshotReceived(orderBookDto: OrderBookDto) {
     const orderBook = mapOrderBookDtoToOrderBook(orderBookDto);
     this.orderBookProvider.setOrderBook(orderBook.symbol, orderBook);
+    (this.events.orderBookSnapshot as ToEventEmitter<typeof this.events.orderBookSnapshot>).emit(orderBook);
   }
 
   protected onOrderBookEntriesReceived(entryDtos: WebSocketOrderBookEntryDto[]) {

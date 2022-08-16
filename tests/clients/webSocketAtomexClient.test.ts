@@ -185,11 +185,13 @@ describe('WebSocket Atomex Client', () => {
     const onOrderUpdatedCallback = jest.fn();
     const onSwapUpdatedCallback = jest.fn();
     const onTopOfBookUpdatedCallback = jest.fn();
+    const onOrderBookSnapshotCallback = jest.fn();
     const onOrderBookUpdatedCallback = jest.fn();
     client.events.orderUpdated.addListener(onOrderUpdatedCallback);
     client.events.swapUpdated.addListener(onSwapUpdatedCallback);
     client.events.topOfBookUpdated.addListener(onTopOfBookUpdatedCallback);
     client.events.orderBookUpdated.addListener(onOrderBookUpdatedCallback);
+    client.events.orderBookSnapshot.addListener(onOrderBookSnapshotCallback);
     authorizationManager.emitAuthorizedEvent(testAuthToken);
 
     await exchangeWsServer.connected;
@@ -200,6 +202,7 @@ describe('WebSocket Atomex Client', () => {
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(0);
+    expect(onOrderBookSnapshotCallback).toHaveBeenCalledTimes(snapshotDtos.length);
     expect(onOrderBookUpdatedCallback).toHaveBeenCalledTimes(entryDtos.length);
     expect(onOrderBookUpdatedCallback).toHaveBeenLastCalledWith(expectedOrderBook);
   });

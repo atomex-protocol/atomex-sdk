@@ -16,6 +16,7 @@ export class TestAtomexClient implements AtomexClient {
   readonly events: AtomexClient['events'] = {
     swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
+    orderBookSnapshot: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };

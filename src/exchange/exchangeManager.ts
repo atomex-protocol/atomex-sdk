@@ -22,6 +22,7 @@ export interface ExchangeManagerOptions {
 export class ExchangeManager implements AtomexService {
   readonly events: ExchangeServiceEvents = {
     orderUpdated: new EventEmitter(),
+    orderBookSnapshot: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
@@ -183,18 +184,24 @@ export class ExchangeManager implements AtomexService {
 
   protected attachEvents() {
     this.exchangeService.events.orderUpdated.addListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.events.orderBookSnapshot.addListener(this.handleExchangeServiceOrderBookSnapshot);
     this.exchangeService.events.orderBookUpdated.addListener(this.handleExchangeServiceOrderBookUpdated);
     this.exchangeService.events.topOfBookUpdated.addListener(this.handleExchangeServiceTopOfBookUpdated);
   }
 
   protected detachEvents() {
     this.exchangeService.events.orderUpdated.removeListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.events.orderBookSnapshot.removeListener(this.handleExchangeServiceOrderBookSnapshot);
     this.exchangeService.events.orderBookUpdated.removeListener(this.handleExchangeServiceOrderBookUpdated);
     this.exchangeService.events.topOfBookUpdated.removeListener(this.handleExchangeServiceTopOfBookUpdated);
   }
 
   protected handleExchangeServiceOrderUpdated = (updatedOrder: Order) => {
     (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(updatedOrder);
+  };
+
+  protected handleExchangeServiceOrderBookSnapshot = async (orderBook: OrderBook) => {
+    (this.events.orderBookSnapshot as ToEventEmitter<typeof this.events.orderBookSnapshot>).emit(orderBook);
   };
 
   protected handleExchangeServiceOrderBookUpdated = async (updatedOrderBook: OrderBook) => {
