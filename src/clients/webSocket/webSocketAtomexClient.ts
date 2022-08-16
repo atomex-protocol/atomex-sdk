@@ -179,7 +179,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     const updatedOrderBooks = mapWebSocketOrderBookEntryDtoToOrderBooks(entryDtos, this.orderBookProvider);
     for (const updatedOrderBook of updatedOrderBooks) {
       this.orderBookProvider.setOrderBook(updatedOrderBook.symbol, updatedOrderBook);
-      (this.events.orderBookUpdated as ToDeferredEventEmitter<string, typeof this.events.orderBookUpdated>).emitDeferred(updatedOrderBook.symbol, updatedOrderBook);
+      (this.events.orderBookUpdated as ToDeferredEventEmitter<string, typeof this.events.orderBookUpdated>).emit(updatedOrderBook.symbol, updatedOrderBook);
     }
   }
 }

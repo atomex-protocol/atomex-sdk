@@ -1,25 +1,39 @@
 import { EventEmitter, PublicEventEmitter } from './eventEmitter';
 
-export class DeferredEventEmitter<K, T extends readonly unknown[]> extends EventEmitter<T> {
-  private readonly watchersMap: Map<K, ReturnType<typeof setTimeout>> = new Map();
+export class DeferredEventEmitter<K, T extends readonly unknown[]> implements PublicEventEmitter<T> {
+  private readonly watcherIdsMap: Map<K, ReturnType<typeof setTimeout>> = new Map();
+  private readonly internalEmitter = new EventEmitter<T>();
 
   constructor(
     private readonly latencyMs: number = 1000
-  ) {
-    super();
+  ) { }
+
+  addListener(listener: (...args: T) => void) {
+    this.internalEmitter.addListener(listener);
+    return this;
   }
 
-  emitDeferred(key: K, ...args: T) {
-    const oldWatcherId = this.watchersMap.get(key);
+  removeListener(listener: (...args: T) => void) {
+    this.internalEmitter.removeListener(listener);
+    return this;
+  }
+
+  removeAllListeners() {
+    this.internalEmitter.removeAllListeners();
+    return this;
+  }
+
+  emit(key: K, ...args: T) {
+    const oldWatcherId = this.watcherIdsMap.get(key);
     if (oldWatcherId)
       clearTimeout(oldWatcherId);
 
     const watcherId = setTimeout(() => {
-      this.watchersMap.delete(key);
-      super.emit(...args);
+      this.watcherIdsMap.delete(key);
+      this.internalEmitter.emit(...args);
     }, this.latencyMs);
 
-    this.watchersMap.set(key, watcherId);
+    this.watcherIdsMap.set(key, watcherId);
   }
 }
 
