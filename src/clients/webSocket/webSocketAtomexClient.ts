@@ -1,7 +1,7 @@
 import type { AuthorizationManager } from '../../authorization/index';
 import type { Transaction } from '../../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../../common/index';
-import { EventEmitter, type ToEventEmitter } from '../../core';
+import { DeferredEventEmitter, EventEmitter, ToDeferredEventEmitter, type ToEventEmitter } from '../../core';
 import type {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
   OrdersSelector, CancelOrderRequest,
@@ -29,7 +29,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
     orderBookSnapshot: new EventEmitter(),
-    orderBookUpdated: new EventEmitter(),
+    orderBookUpdated: new DeferredEventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
 
@@ -179,7 +179,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     const updatedOrderBooks = mapWebSocketOrderBookEntryDtoToOrderBooks(entryDtos, this.orderBookProvider);
     for (const updatedOrderBook of updatedOrderBooks) {
       this.orderBookProvider.setOrderBook(updatedOrderBook.symbol, updatedOrderBook);
-      (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(updatedOrderBook);
+      (this.events.orderBookUpdated as ToDeferredEventEmitter<string, typeof this.events.orderBookUpdated>).emitDeferred(updatedOrderBook.symbol, updatedOrderBook);
     }
   }
 }

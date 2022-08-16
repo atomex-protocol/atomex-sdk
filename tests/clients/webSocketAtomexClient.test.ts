@@ -5,7 +5,7 @@ import type { AuthToken } from '../../src/authorization/index';
 import { WebSocketAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
 import { InMemoryOrderBookProvider } from '../../src/exchange/index';
-import { TestCurrenciesProvider, TestAuthorizationManager, TestExchangeSymbolsProvider } from '../testHelpers/index';
+import { TestCurrenciesProvider, TestAuthorizationManager, TestExchangeSymbolsProvider, wait } from '../testHelpers/index';
 import {
   validWsOrderBookUpdatedTestCases, validWsOrderUpdatedTestCases,
   validWsSwapUpdatedTestCases, validWsTopOfBookUpdatedTestCases
@@ -181,7 +181,7 @@ describe('WebSocket Atomex Client', () => {
     expect(onTopOfBookUpdatedCallback).toHaveBeenCalledWith(expectedQuotes);
   });
 
-  test.each(validWsOrderBookUpdatedTestCases)('emits orderBookUpdated event with correct data (%s)', async (_, [snapshotDtos, entryDtos, expectedOrderBook]) => {
+  test.each(validWsOrderBookUpdatedTestCases)('emits orderBookUpdated event with correct data (%s)', async (_, [snapshotDtos, entryDtos, expectedOrderBooks]) => {
     const onOrderUpdatedCallback = jest.fn();
     const onSwapUpdatedCallback = jest.fn();
     const onTopOfBookUpdatedCallback = jest.fn();
@@ -199,12 +199,16 @@ describe('WebSocket Atomex Client', () => {
     snapshotDtos.forEach(snapshot => exchangeWsServer.send(snapshot));
     entryDtos.forEach(entries => exchangeWsServer.send(entries));
 
+    await wait(2000);
+
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onOrderBookSnapshotCallback).toHaveBeenCalledTimes(snapshotDtos.length);
-    expect(onOrderBookUpdatedCallback).toHaveBeenCalledTimes(entryDtos.length);
-    expect(onOrderBookUpdatedCallback).toHaveBeenLastCalledWith(expectedOrderBook);
+    expect(onOrderBookUpdatedCallback).toHaveBeenCalledTimes(expectedOrderBooks.length);
+    for (let i = 0; i < expectedOrderBooks.length; i++) {
+      expect(onOrderBookUpdatedCallback).toHaveBeenNthCalledWith(i + 1, expectedOrderBooks[i]);
+    }
   });
 
   test('creates connection for every unique user', async () => {
