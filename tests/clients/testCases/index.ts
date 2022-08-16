@@ -11,4 +11,5 @@ export { default as validCancelOrderWithDirectionsTestCases } from './validCance
 export { default as validCancelAllOrdersWithDirectionsTestCases } from './validCancelAllOrdersWithDirectionsTestCases';
 export { default as validOrderBookWithDirectionsTestCases } from './validOrderBookWithDirectionsTestCases';
 export { default as validWsTopOfBookUpdatedTestCases } from './validWsTopOfBookUpdatedTestCases';
+export { default as validWsOrderBookSnapshotTestCases } from './validWsOrderBookSnapshotTestCases';
 export { default as validWsOrderBookUpdatedTestCases } from './validWsOrderBookUpdatedTestCases';

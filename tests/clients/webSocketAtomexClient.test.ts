@@ -7,6 +7,7 @@ import type { AtomexNetwork } from '../../src/common/index';
 import { InMemoryOrderBookProvider } from '../../src/exchange/index';
 import { TestCurrenciesProvider, TestAuthorizationManager, TestExchangeSymbolsProvider, wait } from '../testHelpers/index';
 import {
+  validWsOrderBookSnapshotTestCases,
   validWsOrderBookUpdatedTestCases, validWsOrderUpdatedTestCases,
   validWsSwapUpdatedTestCases, validWsTopOfBookUpdatedTestCases
 } from './testCases/index';
@@ -120,10 +121,12 @@ describe('WebSocket Atomex Client', () => {
     const onOrderUpdatedCallback = jest.fn();
     const onSwapUpdatedCallback = jest.fn();
     const onTopOfBookUpdatedCallback = jest.fn();
+    const onOrderBookSnapshotCallback = jest.fn();
     const onOrderBookUpdatedCallback = jest.fn();
     client.events.orderUpdated.addListener(onOrderUpdatedCallback);
     client.events.swapUpdated.addListener(onSwapUpdatedCallback);
     client.events.topOfBookUpdated.addListener(onTopOfBookUpdatedCallback);
+    client.events.orderBookSnapshot.addListener(onOrderBookSnapshotCallback);
     client.events.orderBookUpdated.addListener(onOrderBookUpdatedCallback);
     authorizationManager.emitAuthorizedEvent(testAuthToken);
     await exchangeWsServer.connected;
@@ -132,6 +135,7 @@ describe('WebSocket Atomex Client', () => {
 
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(0);
+    expect(onOrderBookSnapshotCallback).toHaveBeenCalledTimes(0);
     expect(onOrderBookUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(1);
     expect(onOrderUpdatedCallback).toHaveBeenCalledWith(expectedOrder);
@@ -141,10 +145,12 @@ describe('WebSocket Atomex Client', () => {
     const onOrderUpdatedCallback = jest.fn();
     const onSwapUpdatedCallback = jest.fn();
     const onTopOfBookUpdatedCallback = jest.fn();
+    const onOrderBookSnapshotCallback = jest.fn();
     const onOrderBookUpdatedCallback = jest.fn();
     client.events.orderUpdated.addListener(onOrderUpdatedCallback);
     client.events.swapUpdated.addListener(onSwapUpdatedCallback);
     client.events.topOfBookUpdated.addListener(onTopOfBookUpdatedCallback);
+    client.events.orderBookSnapshot.addListener(onOrderBookSnapshotCallback);
     client.events.orderBookUpdated.addListener(onOrderBookUpdatedCallback);
     authorizationManager.emitAuthorizedEvent(testAuthToken);
 
@@ -154,6 +160,7 @@ describe('WebSocket Atomex Client', () => {
 
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(0);
+    expect(onOrderBookSnapshotCallback).toHaveBeenCalledTimes(0);
     expect(onOrderBookUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(1);
     expect(onSwapUpdatedCallback).toHaveBeenCalledWith(expectedSwap);
@@ -163,10 +170,12 @@ describe('WebSocket Atomex Client', () => {
     const onOrderUpdatedCallback = jest.fn();
     const onSwapUpdatedCallback = jest.fn();
     const onTopOfBookUpdatedCallback = jest.fn();
+    const onOrderBookSnapshotCallback = jest.fn();
     const onOrderBookUpdatedCallback = jest.fn();
     client.events.orderUpdated.addListener(onOrderUpdatedCallback);
     client.events.swapUpdated.addListener(onSwapUpdatedCallback);
     client.events.topOfBookUpdated.addListener(onTopOfBookUpdatedCallback);
+    client.events.orderBookSnapshot.addListener(onOrderBookSnapshotCallback);
     client.events.orderBookUpdated.addListener(onOrderBookUpdatedCallback);
     authorizationManager.emitAuthorizedEvent(testAuthToken);
 
@@ -176,9 +185,37 @@ describe('WebSocket Atomex Client', () => {
 
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
+    expect(onOrderBookSnapshotCallback).toHaveBeenCalledTimes(0);
     expect(onOrderBookUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(1);
     expect(onTopOfBookUpdatedCallback).toHaveBeenCalledWith(expectedQuotes);
+  });
+
+  test.each(validWsOrderBookSnapshotTestCases)('emits orderBookSnapshot event with correct data (%s)', async (_, [snapshotDtos, expectedOrderBooks]) => {
+    const onOrderUpdatedCallback = jest.fn();
+    const onSwapUpdatedCallback = jest.fn();
+    const onTopOfBookUpdatedCallback = jest.fn();
+    const onOrderBookSnapshotCallback = jest.fn();
+    const onOrderBookUpdatedCallback = jest.fn();
+    client.events.orderUpdated.addListener(onOrderUpdatedCallback);
+    client.events.swapUpdated.addListener(onSwapUpdatedCallback);
+    client.events.topOfBookUpdated.addListener(onTopOfBookUpdatedCallback);
+    client.events.orderBookUpdated.addListener(onOrderBookUpdatedCallback);
+    client.events.orderBookSnapshot.addListener(onOrderBookSnapshotCallback);
+    authorizationManager.emitAuthorizedEvent(testAuthToken);
+
+    await exchangeWsServer.connected;
+
+    snapshotDtos.forEach(snapshot => exchangeWsServer.send(snapshot));
+
+    expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
+    expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);
+    expect(onTopOfBookUpdatedCallback).toHaveBeenCalledTimes(0);
+    expect(onOrderBookUpdatedCallback).toHaveBeenCalledTimes(0);
+    expect(onOrderBookSnapshotCallback).toHaveBeenCalledTimes(snapshotDtos.length);
+    for (let i = 0; i < expectedOrderBooks.length; i++) {
+      expect(onOrderBookSnapshotCallback).toHaveBeenNthCalledWith(i + 1, expectedOrderBooks[i]);
+    }
   });
 
   test.each(validWsOrderBookUpdatedTestCases)('emits orderBookUpdated event with correct data (%s)', async (_, [snapshotDtos, entryDtos, expectedOrderBooks]) => {
