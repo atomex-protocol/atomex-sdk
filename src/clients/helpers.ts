@@ -2,10 +2,10 @@ import BigNumber from 'bignumber.js';
 
 import type { Transaction } from '../blockchain/models/index';
 import type { CurrenciesProvider } from '../common/index';
-import { ExchangeSymbol, ExchangeSymbolsProvider, NewOrderRequest, Order, OrderBook, OrderPreview, Quote, symbolsHelper } from '../exchange/index';
+import { ExchangeSymbol, ExchangeSymbolsProvider, NewOrderRequest, Order, OrderBook, OrderBookEntry, OrderBookProvider, OrderPreview, Quote, symbolsHelper } from '../exchange/index';
 import type { Swap, SwapParticipantTrade } from '../swaps/index';
 import type {
-  OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto,
+  OrderBookDto, OrderBookEntryDto, OrderDto, QuoteDto, SwapDto, SymbolDto,
   TradeDto, TransactionDto, WebSocketOrderBookEntryDto, WebSocketOrderDataDto
 } from './dtos';
 
@@ -72,36 +72,52 @@ export const mapOrderBookDtoToOrderBook = (orderBookDto: OrderBookDto): OrderBoo
     symbol: orderBookDto.symbol,
     quoteCurrency,
     baseCurrency,
-    entries: orderBookDto.entries.map(orderBookEntryDto => ({
-      side: orderBookEntryDto.side,
-      price: new BigNumber(orderBookEntryDto.price),
-      qtyProfile: orderBookEntryDto.qtyProfile
-    }))
+    entries: orderBookDto.entries.map(orderBookEntryDto => mapOrderBookEntryDtoToOrderBookEntry(orderBookEntryDto))
   };
 
   return orderBook;
 };
 
-export const mapWebSocketOrderBookEntryDtoToOrderBook = (orderBookEntryDtos: WebSocketOrderBookEntryDto[]): OrderBook => {
-  const firstOrderBookEntry = orderBookEntryDtos[0];
-  if (!firstOrderBookEntry)
-    throw new Error('Unexpected dto');
-
-  const [quoteCurrency, baseCurrency] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(firstOrderBookEntry.symbol);
-
-  const orderBook: OrderBook = {
-    updateId: firstOrderBookEntry.updateId,
-    symbol: firstOrderBookEntry.symbol,
-    quoteCurrency,
-    baseCurrency,
-    entries: orderBookEntryDtos.map(orderBookEntryDto => ({
-      side: orderBookEntryDto.side,
-      price: new BigNumber(orderBookEntryDto.price),
-      qtyProfile: orderBookEntryDto.qtyProfile
-    }))
+export const mapOrderBookEntryDtoToOrderBookEntry = (entryDto: OrderBookEntryDto): OrderBookEntry => {
+  const entry: OrderBookEntry = {
+    side: entryDto.side,
+    price: new BigNumber(entryDto.price),
+    qtyProfile: entryDto.qtyProfile
   };
 
-  return orderBook;
+  return entry;
+};
+
+export const mapWebSocketOrderBookEntryDtoToOrderBooks = (
+  orderBookEntryDtos: WebSocketOrderBookEntryDto[],
+  orderBookProvider: OrderBookProvider
+): OrderBook[] => {
+  const updatedOrderBooks: Map<OrderBook['symbol'], OrderBook> = new Map();
+
+  for (const entryDto of orderBookEntryDtos) {
+    const orderBook = updatedOrderBooks.get(entryDto.symbol) || orderBookProvider.getOrderBook(entryDto.symbol);
+    if (!orderBook)
+      continue;
+
+    const entry = mapOrderBookEntryDtoToOrderBookEntry(entryDto);
+    const storedEntry = orderBook.entries.find(e => e.side === entry.side && e.price.isEqualTo(entry.price));
+
+    const updatedEntries = entryDto.qtyProfile.length
+      ? storedEntry
+        ? orderBook.entries.map(e => e === storedEntry ? { ...e, qtyProfile: entry.qtyProfile } : e)
+        : [...orderBook.entries, entry]
+      : orderBook.entries.filter(e => e !== storedEntry);
+
+    const updatedOrderBook: OrderBook = {
+      ...orderBook,
+      updateId: entryDto.updateId,
+      entries: updatedEntries
+    };
+
+    updatedOrderBooks.set(updatedOrderBook.symbol, updatedOrderBook);
+  }
+
+  return Array.from(updatedOrderBooks.values());
 };
 
 export const mapOrderDtoToOrder = (orderDto: OrderDto, exchangeSymbolsProvider: ExchangeSymbolsProvider): Order => {

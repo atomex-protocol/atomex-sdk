@@ -1,5 +1,5 @@
+import type { ExchangeSymbol } from '../models/exchangeSymbol';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider';
-import type { ExchangeSymbol } from './models/exchangeSymbol';
 
 export class InMemoryExchangeSymbolsProvider implements ManagedExchangeSymbolsProvider {
   private symbolsMap: Map<ExchangeSymbol['name'], ExchangeSymbol> = new Map();

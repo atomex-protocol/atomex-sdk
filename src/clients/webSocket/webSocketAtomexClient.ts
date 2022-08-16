@@ -1,16 +1,16 @@
 import type { AuthorizationManager } from '../../authorization/index';
 import type { Transaction } from '../../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../../common/index';
-import { EventEmitter, type ToEventEmitter } from '../../core';
+import { DeferredEventEmitter, EventEmitter, ToDeferredEventEmitter, type ToEventEmitter } from '../../core';
 import type {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
   OrdersSelector, CancelOrderRequest,
-  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider
+  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider, ManagedOrderBookProvider
 } from '../../exchange/index';
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
-import type { WebSocketResponseDto } from '../dtos';
-import { mapQuoteDtosToQuotes, mapSwapDtoToSwap, mapWebSocketOrderBookEntryDtoToOrderBook, mapWebSocketOrderDtoToOrder } from '../helpers';
+import type { OrderBookDto, WebSocketOrderBookEntryDto, WebSocketResponseDto } from '../dtos';
+import { mapOrderBookDtoToOrderBook, mapQuoteDtosToQuotes, mapSwapDtoToSwap, mapWebSocketOrderBookEntryDtoToOrderBooks, mapWebSocketOrderDtoToOrder } from '../helpers';
 import { ExchangeWebSocketClient } from './exchangeWebSocketClient';
 import { MarketDataWebSocketClient } from './marketDataWebSocketClient';
 
@@ -19,6 +19,7 @@ export interface WebSocketAtomexClientOptions {
   authorizationManager: AuthorizationManager;
   currenciesProvider: CurrenciesProvider;
   exchangeSymbolsProvider: ExchangeSymbolsProvider;
+  orderBookProvider: ManagedOrderBookProvider;
   webSocketApiBaseUrl: string;
 }
 
@@ -27,7 +28,8 @@ export class WebSocketAtomexClient implements AtomexClient {
   readonly events: AtomexClient['events'] = {
     swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
-    orderBookUpdated: new EventEmitter(),
+    orderBookSnapshot: new EventEmitter(),
+    orderBookUpdated: new DeferredEventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
 
@@ -37,6 +39,7 @@ export class WebSocketAtomexClient implements AtomexClient {
   protected readonly webSocketApiBaseUrl: string;
   protected readonly marketDataWebSocketClient: MarketDataWebSocketClient;
   protected readonly exchangeWebSocketClient: ExchangeWebSocketClient;
+  protected readonly orderBookProvider: ManagedOrderBookProvider;
 
   private _isStarted = false;
 
@@ -45,6 +48,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     this.authorizationManager = options.authorizationManager;
     this.currenciesProvider = options.currenciesProvider;
     this.exchangeSymbolsProvider = options.exchangeSymbolsProvider;
+    this.orderBookProvider = options.orderBookProvider;
     this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
 
     this.exchangeWebSocketClient = new ExchangeWebSocketClient(this.webSocketApiBaseUrl, this.authorizationManager);
@@ -138,20 +142,44 @@ export class WebSocketAtomexClient implements AtomexClient {
   protected readonly onSocketMessageReceived = (message: WebSocketResponseDto) => {
     switch (message.event) {
       case 'order':
-        (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(mapWebSocketOrderDtoToOrder(message.data, this.exchangeSymbolsProvider));
+        (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(
+          mapWebSocketOrderDtoToOrder(message.data, this.exchangeSymbolsProvider)
+        );
         break;
 
       case 'swap':
-        (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(mapSwapDtoToSwap(message.data, this.exchangeSymbolsProvider));
+        (this.events.swapUpdated as ToEventEmitter<typeof this.events.swapUpdated>).emit(
+          mapSwapDtoToSwap(message.data, this.exchangeSymbolsProvider)
+        );
         break;
 
       case 'topOfBook':
-        (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(mapQuoteDtosToQuotes(message.data));
+        (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(
+          mapQuoteDtosToQuotes(message.data)
+        );
+        break;
+
+      case 'snapshot':
+        this.onOrderBookSnapshotReceived(message.data);
         break;
 
       case 'entries':
-        (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(mapWebSocketOrderBookEntryDtoToOrderBook(message.data));
+        this.onOrderBookEntriesReceived(message.data);
         break;
     }
   };
+
+  protected onOrderBookSnapshotReceived(orderBookDto: OrderBookDto) {
+    const orderBook = mapOrderBookDtoToOrderBook(orderBookDto);
+    this.orderBookProvider.setOrderBook(orderBook.symbol, orderBook);
+    (this.events.orderBookSnapshot as ToEventEmitter<typeof this.events.orderBookSnapshot>).emit(orderBook);
+  }
+
+  protected onOrderBookEntriesReceived(entryDtos: WebSocketOrderBookEntryDto[]) {
+    const updatedOrderBooks = mapWebSocketOrderBookEntryDtoToOrderBooks(entryDtos, this.orderBookProvider);
+    for (const updatedOrderBook of updatedOrderBooks) {
+      this.orderBookProvider.setOrderBook(updatedOrderBook.symbol, updatedOrderBook);
+      (this.events.orderBookUpdated as ToDeferredEventEmitter<string, typeof this.events.orderBookUpdated>).emit(updatedOrderBook.symbol, updatedOrderBook);
+    }
+  }
 }

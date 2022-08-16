@@ -24,6 +24,7 @@ export class MixedApiAtomexClient implements AtomexClient {
 
     this.events = {
       swapUpdated: this.webSocketAtomexClient.events.swapUpdated,
+      orderBookSnapshot: this.webSocketAtomexClient.events.orderBookSnapshot,
       orderBookUpdated: this.webSocketAtomexClient.events.orderBookUpdated,
       orderUpdated: this.webSocketAtomexClient.events.orderUpdated,
       topOfBookUpdated: this.webSocketAtomexClient.events.topOfBookUpdated

@@ -4,28 +4,39 @@ import { nanoid } from 'nanoid';
 import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
 import { EventEmitter, type ToEventEmitter } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
-import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider';
+import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider/index';
 import { symbolsHelper } from './helpers/index';
 import type {
   CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol,
   OrderPreviewParameters as OrderPreviewParameters,
   NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, PreparedPreviewParameters
 } from './models/index';
+import type { ManagedOrderBookProvider } from './orderBookProvider';
+
+export interface ExchangeManagerOptions {
+  exchangeService: ExchangeService;
+  symbolsProvider: ManagedExchangeSymbolsProvider;
+  orderBookProvider: ManagedOrderBookProvider;
+}
 
 export class ExchangeManager implements AtomexService {
   readonly events: ExchangeServiceEvents = {
     orderUpdated: new EventEmitter(),
+    orderBookSnapshot: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
 
-  private _isStarted = false;
-  private _orderBookCache: Map<OrderBook['symbol'], OrderBook> = new Map();
+  protected readonly exchangeService: ExchangeService;
+  protected readonly symbolsProvider: ManagedExchangeSymbolsProvider;
+  protected readonly orderBookProvider: ManagedOrderBookProvider;
 
-  constructor(
-    protected readonly exchangeService: ExchangeService,
-    protected readonly symbolsProvider: ManagedExchangeSymbolsProvider
-  ) {
+  private _isStarted = false;
+
+  constructor(options: ExchangeManagerOptions) {
+    this.exchangeService = options.exchangeService;
+    this.symbolsProvider = options.symbolsProvider;
+    this.orderBookProvider = options.orderBookProvider;
   }
 
   get isStarted() {
@@ -118,7 +129,7 @@ export class ExchangeManager implements AtomexService {
 
     const orderBook = await this.exchangeService.getOrderBook(symbol);
     if (orderBook)
-      this._orderBookCache.set(symbol, orderBook);
+      this.orderBookProvider.setOrderBook(symbol, orderBook);
 
     return orderBook;
   }
@@ -173,12 +184,14 @@ export class ExchangeManager implements AtomexService {
 
   protected attachEvents() {
     this.exchangeService.events.orderUpdated.addListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.events.orderBookSnapshot.addListener(this.handleExchangeServiceOrderBookSnapshot);
     this.exchangeService.events.orderBookUpdated.addListener(this.handleExchangeServiceOrderBookUpdated);
     this.exchangeService.events.topOfBookUpdated.addListener(this.handleExchangeServiceTopOfBookUpdated);
   }
 
   protected detachEvents() {
     this.exchangeService.events.orderUpdated.removeListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.events.orderBookSnapshot.removeListener(this.handleExchangeServiceOrderBookSnapshot);
     this.exchangeService.events.orderBookUpdated.removeListener(this.handleExchangeServiceOrderBookUpdated);
     this.exchangeService.events.topOfBookUpdated.removeListener(this.handleExchangeServiceTopOfBookUpdated);
   }
@@ -187,17 +200,12 @@ export class ExchangeManager implements AtomexService {
     (this.events.orderUpdated as ToEventEmitter<typeof this.events.orderUpdated>).emit(updatedOrder);
   };
 
-  protected handleExchangeServiceOrderBookUpdated = (orderBookUpdates: OrderBook) => {
-    // TODO: temporary
-    this.getOrderBook(orderBookUpdates.symbol)
-      .then(updatedOrderBook => {
-        if (!updatedOrderBook)
-          return;
+  protected handleExchangeServiceOrderBookSnapshot = async (orderBook: OrderBook) => {
+    (this.events.orderBookSnapshot as ToEventEmitter<typeof this.events.orderBookSnapshot>).emit(orderBook);
+  };
 
-        this._orderBookCache.set(updatedOrderBook.symbol, updatedOrderBook);
-        (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(updatedOrderBook);
-      })
-      .catch(error => console.error(error));
+  protected handleExchangeServiceOrderBookUpdated = async (updatedOrderBook: OrderBook) => {
+    (this.events.orderBookUpdated as ToEventEmitter<typeof this.events.orderBookUpdated>).emit(updatedOrderBook);
   };
 
   protected handleExchangeServiceTopOfBookUpdated = (updatedQuotes: readonly Quote[]) => {
@@ -259,8 +267,8 @@ export class ExchangeManager implements AtomexService {
     }
   }
 
-  protected getCachedOrderBook(symbol: string) {
-    const cachedOrderBook = this._orderBookCache.get(symbol);
+  protected getCachedOrderBook(symbol: string): Promise<OrderBook | undefined> {
+    const cachedOrderBook = this.orderBookProvider.getOrderBook(symbol);
 
     return cachedOrderBook ? Promise.resolve(cachedOrderBook) : this.getOrderBook(symbol);
   }

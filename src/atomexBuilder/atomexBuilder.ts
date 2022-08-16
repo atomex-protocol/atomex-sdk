@@ -4,7 +4,7 @@ import type { AuthorizationManager } from '../authorization/index';
 import { AtomexBlockchainProvider, WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
 import { createDefaultEthereumBlockchainOptions } from '../ethereum/index';
-import { ExchangeManager, InMemoryExchangeSymbolsProvider } from '../exchange/index';
+import { ExchangeManager, InMemoryExchangeSymbolsProvider, InMemoryOrderBookProvider } from '../exchange/index';
 import { SwapManager } from '../swaps/swapManager';
 import { createDefaultTezosBlockchainOptions } from '../tezos/index';
 import type { AtomexBuilderOptions } from './atomexBuilderOptions';
@@ -49,6 +49,7 @@ export class AtomexBuilder {
     this.controlledAtomexContext.providers.blockchainProvider = blockchainProvider;
     this.controlledAtomexContext.providers.currenciesProvider = blockchainProvider;
     this.controlledAtomexContext.providers.exchangeSymbolsProvider = this.createExchangeSymbolsProvider();
+    this.controlledAtomexContext.providers.orderBookProvider = this.createOrderBookProvider();
     this.controlledAtomexContext.managers.walletsManager = this.createWalletsManager();
     this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
     const atomexClient = this.createDefaultExchangeService();
@@ -74,6 +75,10 @@ export class AtomexBuilder {
     return new InMemoryExchangeSymbolsProvider();
   }
 
+  protected createOrderBookProvider() {
+    return new InMemoryOrderBookProvider();
+  }
+
   protected createAuthorizationManager() {
     const defaultAuthorizationManagerOptions = config[this.atomexContext.atomexNetwork].authorization;
 
@@ -97,7 +102,11 @@ export class AtomexBuilder {
   protected createExchangeManager() {
     return this.customExchangeManagerFactory
       ? this.customExchangeManagerFactory(this.atomexContext, this.options)
-      : new ExchangeManager(this.atomexContext.services.exchangeService, this.atomexContext.providers.exchangeSymbolsProvider);
+      : new ExchangeManager({
+        exchangeService: this.atomexContext.services.exchangeService,
+        symbolsProvider: this.atomexContext.providers.exchangeSymbolsProvider,
+        orderBookProvider: this.atomexContext.providers.orderBookProvider
+      });
   }
 
   protected createSwapManager() {
