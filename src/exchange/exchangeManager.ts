@@ -230,7 +230,8 @@ export class ExchangeManager implements AtomexService {
         ? orderPreviewParameters.isFromAmount
         : true;
       if (exchangeSymbol)
-        isQuoteCurrencyAmount = orderPreviewParameters.from === exchangeSymbol.quoteCurrency && isFromAmount;
+        isQuoteCurrencyAmount = (orderPreviewParameters.from === exchangeSymbol.quoteCurrency && isFromAmount)
+          || (orderPreviewParameters.to === exchangeSymbol.quoteCurrency && !isFromAmount);
     }
     else
       throw new Error('Invalid orderPreviewParameters argument passed');
