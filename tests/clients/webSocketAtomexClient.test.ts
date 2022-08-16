@@ -199,7 +199,7 @@ describe('WebSocket Atomex Client', () => {
     snapshotDtos.forEach(snapshot => exchangeWsServer.send(snapshot));
     entryDtos.forEach(entries => exchangeWsServer.send(entries));
 
-    await wait(2000);
+    await wait(1500);
 
     expect(onSwapUpdatedCallback).toHaveBeenCalledTimes(0);
     expect(onOrderUpdatedCallback).toHaveBeenCalledTimes(0);

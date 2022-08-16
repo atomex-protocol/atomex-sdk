@@ -15,6 +15,7 @@ export class DeferredEventEmitter<K, T extends readonly unknown[]> extends Event
       clearTimeout(oldWatcherId);
 
     const watcherId = setTimeout(() => {
+      this.watchersMap.delete(key);
       super.emit(...args);
     }, this.latencyMs);
 
