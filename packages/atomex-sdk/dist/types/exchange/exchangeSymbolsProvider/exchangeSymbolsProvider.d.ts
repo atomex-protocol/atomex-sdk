@@ -1,4 +1,4 @@
-import type { ExchangeSymbol } from './models/index';
+import type { ExchangeSymbol } from '../models/index';
 export interface ExchangeSymbolsProvider {
     getSymbol(name: string): ExchangeSymbol | undefined;
     getSymbols(): readonly ExchangeSymbol[];

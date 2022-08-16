@@ -1,15 +1,21 @@
 import type { BigNumber } from 'bignumber.js';
 import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
-import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider';
+import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider/index';
 import type { CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol, OrderPreviewParameters as OrderPreviewParameters, NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, PreparedPreviewParameters } from './models/index';
+import type { ManagedOrderBookProvider } from './orderBookProvider';
+export interface ExchangeManagerOptions {
+    exchangeService: ExchangeService;
+    symbolsProvider: ManagedExchangeSymbolsProvider;
+    orderBookProvider: ManagedOrderBookProvider;
+}
 export declare class ExchangeManager implements AtomexService {
+    readonly events: ExchangeServiceEvents;
     protected readonly exchangeService: ExchangeService;
     protected readonly symbolsProvider: ManagedExchangeSymbolsProvider;
-    readonly events: ExchangeServiceEvents;
+    protected readonly orderBookProvider: ManagedOrderBookProvider;
     private _isStarted;
-    private _orderBookCache;
-    constructor(exchangeService: ExchangeService, symbolsProvider: ManagedExchangeSymbolsProvider);
+    constructor(options: ExchangeManagerOptions);
     get isStarted(): boolean;
     start(): Promise<void>;
     stop(): void;
@@ -29,7 +35,8 @@ export declare class ExchangeManager implements AtomexService {
     protected attachEvents(): void;
     protected detachEvents(): void;
     protected handleExchangeServiceOrderUpdated: (updatedOrder: Order) => void;
-    protected handleExchangeServiceOrderBookUpdated: (orderBookUpdates: OrderBook) => void;
+    protected handleExchangeServiceOrderBookSnapshot: (orderBook: OrderBook) => Promise<void>;
+    protected handleExchangeServiceOrderBookUpdated: (updatedOrderBook: OrderBook) => Promise<void>;
     protected handleExchangeServiceTopOfBookUpdated: (updatedQuotes: readonly Quote[]) => void;
     protected getPreparedOrderPreviewParameters(orderPreviewParameters: OrderPreviewParameters): PreparedPreviewParameters;
     protected findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isQuoteCurrencyAmount: boolean): Promise<import("./models/orderBook").OrderBookEntry | undefined>;

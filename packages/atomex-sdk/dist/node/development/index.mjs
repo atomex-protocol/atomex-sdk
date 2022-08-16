@@ -164,6 +164,7 @@ var AtomexContextProvidersSection = class {
   _blockchainProvider;
   _currenciesProvider;
   _exchangeSymbolsProvider;
+  _orderBookProvider;
   get blockchainProvider() {
     if (!this._blockchainProvider)
       throw new AtomexComponentNotResolvedError("providers.blockchainProvider");
@@ -187,6 +188,14 @@ var AtomexContextProvidersSection = class {
   }
   set exchangeSymbolsProvider(exchangeSymbolsProvider) {
     this._exchangeSymbolsProvider = exchangeSymbolsProvider;
+  }
+  get orderBookProvider() {
+    if (!this._orderBookProvider)
+      throw new AtomexComponentNotResolvedError("providers.orderBookProvider");
+    return this._orderBookProvider;
+  }
+  set orderBookProvider(orderBookProvider) {
+    this._orderBookProvider = orderBookProvider;
   }
 };
 var AtomexComponentNotResolvedError = class extends Error {
@@ -1138,19 +1147,54 @@ var EventEmitter = class {
   }
 };
 
+// src/core/deferredEventEmitter.ts
+var DeferredEventEmitter = class {
+  constructor(latencyMs = 1e3) {
+    this.latencyMs = latencyMs;
+  }
+  watcherIdsMap = /* @__PURE__ */ new Map();
+  internalEmitter = new EventEmitter();
+  addListener(listener) {
+    this.internalEmitter.addListener(listener);
+    return this;
+  }
+  removeListener(listener) {
+    this.internalEmitter.removeListener(listener);
+    return this;
+  }
+  removeAllListeners() {
+    this.internalEmitter.removeAllListeners();
+    return this;
+  }
+  emit(key, ...args) {
+    const oldWatcherId = this.watcherIdsMap.get(key);
+    if (oldWatcherId)
+      clearTimeout(oldWatcherId);
+    const watcherId = setTimeout(() => {
+      this.watcherIdsMap.delete(key);
+      this.internalEmitter.emit(...args);
+    }, this.latencyMs);
+    this.watcherIdsMap.set(key, watcherId);
+  }
+};
+
 // src/exchange/exchangeManager.ts
 var ExchangeManager = class {
-  constructor(exchangeService, symbolsProvider) {
-    this.exchangeService = exchangeService;
-    this.symbolsProvider = symbolsProvider;
-  }
   events = {
     orderUpdated: new EventEmitter(),
+    orderBookSnapshot: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
+  exchangeService;
+  symbolsProvider;
+  orderBookProvider;
   _isStarted = false;
-  _orderBookCache = /* @__PURE__ */ new Map();
+  constructor(options) {
+    this.exchangeService = options.exchangeService;
+    this.symbolsProvider = options.symbolsProvider;
+    this.orderBookProvider = options.orderBookProvider;
+  }
   get isStarted() {
     return this._isStarted;
   }
@@ -1216,7 +1260,7 @@ var ExchangeManager = class {
       throw new Error("Invalid Symbol");
     const orderBook = await this.exchangeService.getOrderBook(symbol);
     if (orderBook)
-      this._orderBookCache.set(symbol, orderBook);
+      this.orderBookProvider.setOrderBook(symbol, orderBook);
     return orderBook;
   }
   addOrder(accountAddress, newOrderRequest) {
@@ -1250,24 +1294,24 @@ var ExchangeManager = class {
   }
   attachEvents() {
     this.exchangeService.events.orderUpdated.addListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.events.orderBookSnapshot.addListener(this.handleExchangeServiceOrderBookSnapshot);
     this.exchangeService.events.orderBookUpdated.addListener(this.handleExchangeServiceOrderBookUpdated);
     this.exchangeService.events.topOfBookUpdated.addListener(this.handleExchangeServiceTopOfBookUpdated);
   }
   detachEvents() {
     this.exchangeService.events.orderUpdated.removeListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.events.orderBookSnapshot.removeListener(this.handleExchangeServiceOrderBookSnapshot);
     this.exchangeService.events.orderBookUpdated.removeListener(this.handleExchangeServiceOrderBookUpdated);
     this.exchangeService.events.topOfBookUpdated.removeListener(this.handleExchangeServiceTopOfBookUpdated);
   }
   handleExchangeServiceOrderUpdated = (updatedOrder) => {
     this.events.orderUpdated.emit(updatedOrder);
   };
-  handleExchangeServiceOrderBookUpdated = (orderBookUpdates) => {
-    this.getOrderBook(orderBookUpdates.symbol).then((updatedOrderBook) => {
-      if (!updatedOrderBook)
-        return;
-      this._orderBookCache.set(updatedOrderBook.symbol, updatedOrderBook);
-      this.events.orderBookUpdated.emit(updatedOrderBook);
-    }).catch((error) => console.error(error));
+  handleExchangeServiceOrderBookSnapshot = async (orderBook) => {
+    this.events.orderBookSnapshot.emit(orderBook);
+  };
+  handleExchangeServiceOrderBookUpdated = async (updatedOrderBook) => {
+    this.events.orderBookUpdated.emit(updatedOrderBook);
   };
   handleExchangeServiceTopOfBookUpdated = (updatedQuotes) => {
     this.events.topOfBookUpdated.emit(updatedQuotes);
@@ -1315,12 +1359,12 @@ var ExchangeManager = class {
     }
   }
   getCachedOrderBook(symbol) {
-    const cachedOrderBook = this._orderBookCache.get(symbol);
+    const cachedOrderBook = this.orderBookProvider.getOrderBook(symbol);
     return cachedOrderBook ? Promise.resolve(cachedOrderBook) : this.getOrderBook(symbol);
   }
 };
 
-// src/exchange/inMemoryExchangeSymbolsProvider.ts
+// src/exchange/exchangeSymbolsProvider/inMemoryExchangeSymbolsProvider.ts
 var InMemoryExchangeSymbolsProvider = class {
   symbolsMap = /* @__PURE__ */ new Map();
   symbolsCollectionCache = [];
@@ -1342,6 +1386,17 @@ var InMemoryExchangeSymbolsProvider = class {
     for (const symbol of symbolsCollection)
       symbolsMap.set(symbol.name, symbol);
     return symbolsMap;
+  }
+};
+
+// src/exchange/orderBookProvider/inMemoryOrderBookProvider.ts
+var InMemoryOrderBookProvider = class {
+  orderBookMap = /* @__PURE__ */ new Map();
+  getOrderBook(symbol) {
+    return this.orderBookMap.get(symbol);
+  }
+  setOrderBook(symbol, orderBook) {
+    this.orderBookMap.set(symbol, orderBook);
   }
 };
 
@@ -2129,31 +2184,35 @@ var mapOrderBookDtoToOrderBook = (orderBookDto) => {
     symbol: orderBookDto.symbol,
     quoteCurrency,
     baseCurrency,
-    entries: orderBookDto.entries.map((orderBookEntryDto) => ({
-      side: orderBookEntryDto.side,
-      price: new BigNumber3(orderBookEntryDto.price),
-      qtyProfile: orderBookEntryDto.qtyProfile
-    }))
+    entries: orderBookDto.entries.map((orderBookEntryDto) => mapOrderBookEntryDtoToOrderBookEntry(orderBookEntryDto))
   };
   return orderBook;
 };
-var mapWebSocketOrderBookEntryDtoToOrderBook = (orderBookEntryDtos) => {
-  const firstOrderBookEntry = orderBookEntryDtos[0];
-  if (!firstOrderBookEntry)
-    throw new Error("Unexpected dto");
-  const [quoteCurrency, baseCurrency] = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(firstOrderBookEntry.symbol);
-  const orderBook = {
-    updateId: firstOrderBookEntry.updateId,
-    symbol: firstOrderBookEntry.symbol,
-    quoteCurrency,
-    baseCurrency,
-    entries: orderBookEntryDtos.map((orderBookEntryDto) => ({
-      side: orderBookEntryDto.side,
-      price: new BigNumber3(orderBookEntryDto.price),
-      qtyProfile: orderBookEntryDto.qtyProfile
-    }))
+var mapOrderBookEntryDtoToOrderBookEntry = (entryDto) => {
+  const entry = {
+    side: entryDto.side,
+    price: new BigNumber3(entryDto.price),
+    qtyProfile: entryDto.qtyProfile
   };
-  return orderBook;
+  return entry;
+};
+var mapWebSocketOrderBookEntryDtoToOrderBooks = (orderBookEntryDtos, orderBookProvider) => {
+  const updatedOrderBooks = /* @__PURE__ */ new Map();
+  for (const entryDto of orderBookEntryDtos) {
+    const orderBook = updatedOrderBooks.get(entryDto.symbol) || orderBookProvider.getOrderBook(entryDto.symbol);
+    if (!orderBook)
+      continue;
+    const entry = mapOrderBookEntryDtoToOrderBookEntry(entryDto);
+    const storedEntry = orderBook.entries.find((e) => e.side === entry.side && e.price.isEqualTo(entry.price));
+    const updatedEntries = entryDto.qtyProfile.length ? storedEntry ? orderBook.entries.map((e) => e === storedEntry ? { ...e, qtyProfile: entry.qtyProfile } : e) : [...orderBook.entries, entry] : orderBook.entries.filter((e) => e !== storedEntry);
+    const updatedOrderBook = {
+      ...orderBook,
+      updateId: entryDto.updateId,
+      entries: updatedEntries
+    };
+    updatedOrderBooks.set(updatedOrderBook.symbol, updatedOrderBook);
+  }
+  return Array.from(updatedOrderBooks.values());
 };
 var mapOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
   var _a;
@@ -2267,6 +2326,7 @@ var RestAtomexClient = class {
   events = {
     swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
+    orderBookSnapshot: new EventEmitter(),
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
@@ -2682,7 +2742,8 @@ var WebSocketAtomexClient = class {
   events = {
     swapUpdated: new EventEmitter(),
     orderUpdated: new EventEmitter(),
-    orderBookUpdated: new EventEmitter(),
+    orderBookSnapshot: new EventEmitter(),
+    orderBookUpdated: new DeferredEventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
   authorizationManager;
@@ -2691,12 +2752,14 @@ var WebSocketAtomexClient = class {
   webSocketApiBaseUrl;
   marketDataWebSocketClient;
   exchangeWebSocketClient;
+  orderBookProvider;
   _isStarted = false;
   constructor(options) {
     this.atomexNetwork = options.atomexNetwork;
     this.authorizationManager = options.authorizationManager;
     this.currenciesProvider = options.currenciesProvider;
     this.exchangeSymbolsProvider = options.exchangeSymbolsProvider;
+    this.orderBookProvider = options.orderBookProvider;
     this.webSocketApiBaseUrl = options.webSocketApiBaseUrl;
     this.exchangeWebSocketClient = new ExchangeWebSocketClient(this.webSocketApiBaseUrl, this.authorizationManager);
     this.marketDataWebSocketClient = new MarketDataWebSocketClient(this.webSocketApiBaseUrl);
@@ -2768,11 +2831,26 @@ var WebSocketAtomexClient = class {
       case "topOfBook":
         this.events.topOfBookUpdated.emit(mapQuoteDtosToQuotes(message.data));
         break;
+      case "snapshot":
+        this.onOrderBookSnapshotReceived(message.data);
+        break;
       case "entries":
-        this.events.orderBookUpdated.emit(mapWebSocketOrderBookEntryDtoToOrderBook(message.data));
+        this.onOrderBookEntriesReceived(message.data);
         break;
     }
   };
+  onOrderBookSnapshotReceived(orderBookDto) {
+    const orderBook = mapOrderBookDtoToOrderBook(orderBookDto);
+    this.orderBookProvider.setOrderBook(orderBook.symbol, orderBook);
+    this.events.orderBookSnapshot.emit(orderBook);
+  }
+  onOrderBookEntriesReceived(entryDtos) {
+    const updatedOrderBooks = mapWebSocketOrderBookEntryDtoToOrderBooks(entryDtos, this.orderBookProvider);
+    for (const updatedOrderBook of updatedOrderBooks) {
+      this.orderBookProvider.setOrderBook(updatedOrderBook.symbol, updatedOrderBook);
+      this.events.orderBookUpdated.emit(updatedOrderBook.symbol, updatedOrderBook);
+    }
+  }
 };
 
 // src/clients/mixedAtomexClient.ts
@@ -2785,6 +2863,7 @@ var MixedApiAtomexClient = class {
     atomexUtils_exports.ensureNetworksAreSame(this, webSocketAtomexClient);
     this.events = {
       swapUpdated: this.webSocketAtomexClient.events.swapUpdated,
+      orderBookSnapshot: this.webSocketAtomexClient.events.orderBookSnapshot,
       orderBookUpdated: this.webSocketAtomexClient.events.orderBookUpdated,
       orderUpdated: this.webSocketAtomexClient.events.orderUpdated,
       topOfBookUpdated: this.webSocketAtomexClient.events.topOfBookUpdated
@@ -2859,6 +2938,7 @@ var createDefaultExchangeService = (atomexContext, options) => {
     authorizationManager: atomexContext.managers.authorizationManager,
     currenciesProvider: atomexContext.providers.currenciesProvider,
     exchangeSymbolsProvider: atomexContext.providers.exchangeSymbolsProvider,
+    orderBookProvider: atomexContext.providers.orderBookProvider,
     webSocketApiBaseUrl: options.webSocketApiBaseUrl
   }));
 };
@@ -3276,6 +3356,7 @@ var AtomexBuilder = class {
     this.controlledAtomexContext.providers.blockchainProvider = blockchainProvider;
     this.controlledAtomexContext.providers.currenciesProvider = blockchainProvider;
     this.controlledAtomexContext.providers.exchangeSymbolsProvider = this.createExchangeSymbolsProvider();
+    this.controlledAtomexContext.providers.orderBookProvider = this.createOrderBookProvider();
     this.controlledAtomexContext.managers.walletsManager = this.createWalletsManager();
     this.controlledAtomexContext.managers.authorizationManager = this.createAuthorizationManager();
     const atomexClient = this.createDefaultExchangeService();
@@ -3298,6 +3379,9 @@ var AtomexBuilder = class {
   createExchangeSymbolsProvider() {
     return new InMemoryExchangeSymbolsProvider();
   }
+  createOrderBookProvider() {
+    return new InMemoryOrderBookProvider();
+  }
   createAuthorizationManager() {
     const defaultAuthorizationManagerOptions = config[this.atomexContext.atomexNetwork].authorization;
     return this.customAuthorizationManagerFactory ? this.customAuthorizationManagerFactory(this.atomexContext, defaultAuthorizationManagerOptions, this.options) : createDefaultAuthorizationManager(this.atomexContext, defaultAuthorizationManagerOptions, this.options);
@@ -3310,7 +3394,11 @@ var AtomexBuilder = class {
     return createDefaultExchangeService(this.atomexContext, defaultExchangeManagerOptions);
   }
   createExchangeManager() {
-    return this.customExchangeManagerFactory ? this.customExchangeManagerFactory(this.atomexContext, this.options) : new ExchangeManager(this.atomexContext.services.exchangeService, this.atomexContext.providers.exchangeSymbolsProvider);
+    return this.customExchangeManagerFactory ? this.customExchangeManagerFactory(this.atomexContext, this.options) : new ExchangeManager({
+      exchangeService: this.atomexContext.services.exchangeService,
+      symbolsProvider: this.atomexContext.providers.exchangeSymbolsProvider,
+      orderBookProvider: this.atomexContext.providers.orderBookProvider
+    });
   }
   createSwapManager() {
     return new SwapManager(this.atomexContext.services.swapService);

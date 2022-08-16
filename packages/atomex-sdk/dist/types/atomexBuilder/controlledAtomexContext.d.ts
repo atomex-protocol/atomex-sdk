@@ -2,7 +2,7 @@ import type { AuthorizationManager } from '../authorization/index';
 import type { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
 import type { WalletsManager } from '../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
-import type { ExchangeManager, ExchangeService, ExchangeSymbolsProvider } from '../exchange/index';
+import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
 export interface ControlledAtomexContext {
     readonly id: number;
@@ -32,7 +32,9 @@ interface ControlledAtomexContextProvidersSection {
     set blockchainProvider(value: AtomexBlockchainProvider);
     get currenciesProvider(): CurrenciesProvider;
     set currenciesProvider(value: CurrenciesProvider);
-    get exchangeSymbolsProvider(): ExchangeSymbolsProvider;
-    set exchangeSymbolsProvider(value: ExchangeSymbolsProvider);
+    get exchangeSymbolsProvider(): ManagedExchangeSymbolsProvider;
+    set exchangeSymbolsProvider(value: ManagedExchangeSymbolsProvider);
+    get orderBookProvider(): ManagedOrderBookProvider;
+    set orderBookProvider(value: ManagedOrderBookProvider);
 }
 export {};

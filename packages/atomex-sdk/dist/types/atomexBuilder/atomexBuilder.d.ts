@@ -3,7 +3,7 @@ import type { AtomexBlockchainOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
 import { WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
-import { ExchangeManager, InMemoryExchangeSymbolsProvider } from '../exchange/index';
+import { ExchangeManager, InMemoryExchangeSymbolsProvider, InMemoryOrderBookProvider } from '../exchange/index';
 import { SwapManager } from '../swaps/swapManager';
 import type { AtomexBuilderOptions } from './atomexBuilderOptions';
 import { AuthorizationManagerDefaultComponentOptions } from './atomexComponents/index';
@@ -21,6 +21,7 @@ export declare class AtomexBuilder {
     useExchangeManager(customExchangeManagerFactory: NonNullable<AtomexBuilder['customExchangeManagerFactory']>): AtomexBuilder;
     build(): Atomex;
     protected createExchangeSymbolsProvider(): InMemoryExchangeSymbolsProvider;
+    protected createOrderBookProvider(): InMemoryOrderBookProvider;
     protected createAuthorizationManager(): AuthorizationManager;
     protected createWalletsManager(): WalletsManager;
     protected createDefaultExchangeService(): import("..").MixedApiAtomexClient;

@@ -1,10 +1,10 @@
 import type { AuthorizationManager } from '../../authorization/index';
 import type { Transaction } from '../../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../../common/index';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider } from '../../exchange/index';
+import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider, ManagedOrderBookProvider } from '../../exchange/index';
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
-import type { WebSocketResponseDto } from '../dtos';
+import type { OrderBookDto, WebSocketOrderBookEntryDto, WebSocketResponseDto } from '../dtos';
 import { ExchangeWebSocketClient } from './exchangeWebSocketClient';
 import { MarketDataWebSocketClient } from './marketDataWebSocketClient';
 export interface WebSocketAtomexClientOptions {
@@ -12,6 +12,7 @@ export interface WebSocketAtomexClientOptions {
     authorizationManager: AuthorizationManager;
     currenciesProvider: CurrenciesProvider;
     exchangeSymbolsProvider: ExchangeSymbolsProvider;
+    orderBookProvider: ManagedOrderBookProvider;
     webSocketApiBaseUrl: string;
 }
 export declare class WebSocketAtomexClient implements AtomexClient {
@@ -23,6 +24,7 @@ export declare class WebSocketAtomexClient implements AtomexClient {
     protected readonly webSocketApiBaseUrl: string;
     protected readonly marketDataWebSocketClient: MarketDataWebSocketClient;
     protected readonly exchangeWebSocketClient: ExchangeWebSocketClient;
+    protected readonly orderBookProvider: ManagedOrderBookProvider;
     private _isStarted;
     constructor(options: WebSocketAtomexClientOptions);
     get isStarted(): boolean;
@@ -44,4 +46,6 @@ export declare class WebSocketAtomexClient implements AtomexClient {
     getSwaps(accountAddress: string, selector?: SwapsSelector): Promise<Swap[]>;
     getSwaps(accountAddresses: string[], selector?: SwapsSelector): Promise<Swap[]>;
     protected readonly onSocketMessageReceived: (message: WebSocketResponseDto) => void;
+    protected onOrderBookSnapshotReceived(orderBookDto: OrderBookDto): void;
+    protected onOrderBookEntriesReceived(entryDtos: WebSocketOrderBookEntryDto[]): void;
 }

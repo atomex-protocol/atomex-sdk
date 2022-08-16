@@ -122,8 +122,12 @@ export interface WebSocketTopOfBookResponseDto extends WebSocketResponseBaseDto 
     event: 'topOfBook';
     data: QuoteDto[];
 }
-export interface WebSocketOrderBookResponseDto extends WebSocketResponseBaseDto {
+export interface WebSocketOrderBookSnapshotResponseDto extends WebSocketResponseBaseDto {
+    event: 'snapshot';
+    data: OrderBookDto;
+}
+export interface WebSocketOrderBookEntriesResponseDto extends WebSocketResponseBaseDto {
     event: 'entries';
     data: WebSocketOrderBookEntryDto[];
 }
-export declare type WebSocketResponseDto = WebSocketOrderResponseDto | WebSocketSwapResponseDto | WebSocketTopOfBookResponseDto | WebSocketOrderBookResponseDto;
+export declare type WebSocketResponseDto = WebSocketOrderResponseDto | WebSocketSwapResponseDto | WebSocketTopOfBookResponseDto | WebSocketOrderBookSnapshotResponseDto | WebSocketOrderBookEntriesResponseDto;
