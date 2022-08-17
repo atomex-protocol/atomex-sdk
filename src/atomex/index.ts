@@ -4,6 +4,6 @@ export { SwapOperationCompleteStage } from './models/index';
 
 export type {
   NewSwapRequest,
-  AtomexOptions, AtomexBlockchainNetworkOptions, AtomexBlockchainOptions, AtomexCurrencyOptions,
+  AtomexOptions, AtomexBlockchainNetworkOptions, AtomexCurrencyOptions,
   AtomexManagers, AtomexServices,
 } from './models/index';

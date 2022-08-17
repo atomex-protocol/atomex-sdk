@@ -11,7 +11,7 @@ import type { AtomexContext } from '../atomexContext';
 export interface AtomexOptions {
   atomexContext: AtomexContext;
   managers: AtomexManagers;
-  blockchains?: Record<string, AtomexBlockchainOptions>;
+  blockchains?: Record<string, AtomexBlockchainNetworkOptions>;
 }
 
 export interface AtomexManagers {
@@ -23,11 +23,6 @@ export interface AtomexManagers {
 
 export interface AtomexServices {
   exchangeService: ExchangeService;
-}
-
-export interface AtomexBlockchainOptions {
-  mainnet: AtomexBlockchainNetworkOptions;
-  testnet?: AtomexBlockchainNetworkOptions;
 }
 
 export interface AtomexBlockchainNetworkOptions {

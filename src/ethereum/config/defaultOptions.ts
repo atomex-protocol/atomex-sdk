@@ -1,4 +1,4 @@
-import type { AtomexContext, AtomexBlockchainOptions, AtomexCurrencyOptions } from '../../atomex/index';
+import type { AtomexBlockchainNetworkOptions, AtomexContext, AtomexCurrencyOptions } from '../../atomex/index';
 import { Web3BlockchainToolkitProvider } from '../../evm/index';
 import { ERC20EthereumWeb3AtomexProtocolV1, EthereumWeb3AtomexProtocolV1 } from '../atomexProtocol/index';
 import { EthereumBalancesProvider } from '../balancesProviders/index';
@@ -62,7 +62,7 @@ const createCurrencyOptions = (
   return result;
 };
 
-export const createDefaultEthereumBlockchainOptions = (atomexContext: AtomexContext): AtomexBlockchainOptions => {
+export const createDefaultEthereumBlockchainOptions = (atomexContext: AtomexContext): AtomexBlockchainNetworkOptions => {
   const blockchain = 'ethereum';
   const mainnetRpcUrl = 'https://mainnet.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/';
   const testNetRpcUrl = 'https://goerli.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/';
@@ -70,24 +70,23 @@ export const createDefaultEthereumBlockchainOptions = (atomexContext: AtomexCont
   const balancesProvider = new EthereumBalancesProvider();
   const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
 
-  const ethereumOptions: AtomexBlockchainOptions = {
-    mainnet: {
+  const ethereumOptions: AtomexBlockchainNetworkOptions = atomexContext.atomexNetwork === 'mainnet'
+    ? {
       rpcUrl: mainnetRpcUrl,
       currencies: ethereumMainnetCurrencies,
       currencyOptions: createCurrencyOptions(atomexContext, ethereumMainnetCurrencies, mainnetEthereumWeb3AtomexProtocolV1Options),
       blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, mainnetRpcUrl),
       balancesProvider,
       swapTransactionsProvider,
-    },
-    testnet: {
+    }
+    : {
       rpcUrl: testNetRpcUrl,
       currencies: ethereumTestnetCurrencies,
       currencyOptions: createCurrencyOptions(atomexContext, ethereumTestnetCurrencies, testnetEthereumWeb3AtomexProtocolV1Options),
       blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, testNetRpcUrl),
       balancesProvider,
       swapTransactionsProvider,
-    }
-  };
+    };
 
   return ethereumOptions;
 };
