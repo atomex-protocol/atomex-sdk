@@ -30,7 +30,9 @@ export class EthereumHelpers extends Helpers {
   private _contract: Contract;
   private _timeBetweenBlocks: number;
   private _functions: Map<string, Function>;
-  private _gasLimit: number;
+  private _initiateGasLimitWithoutReward: number;
+  private _initiateGasLimitWithReward: number;
+  private _redeemGasLimit: number;
 
   constructor(
     atomex: Atomex,
@@ -38,13 +40,17 @@ export class EthereumHelpers extends Helpers {
     jsonInterface: AbiItem[],
     contractAddress: string,
     timeBetweenBlocks: number,
-    gasLimit: number,
+    initiateGasLimitWithoutReward: number,
+    initiateGasLimitWithReward: number,
+    redeemGasLimit: number,
   ) {
     super(atomex);
     this._web3 = web3;
     this._contract = this.createContract(jsonInterface, contractAddress);
     this._timeBetweenBlocks = timeBetweenBlocks;
-    this._gasLimit = gasLimit;
+    this._initiateGasLimitWithoutReward = initiateGasLimitWithoutReward;
+    this._initiateGasLimitWithReward = initiateGasLimitWithReward;
+    this._redeemGasLimit = redeemGasLimit;
     this._functions = new Map<string, Function>();
     this.initializeFunctions(jsonInterface);
   }
@@ -92,7 +98,9 @@ export class EthereumHelpers extends Helpers {
       config.currencies.ETH.contracts.abi as AbiItem[],
       config.currencies.ETH.contracts[network].address,
       networkSettings.blockTime,
-      config.currencies.ETH.contracts[network].gasLimit,
+      config.currencies.ETH.contracts[network].initiateGasLimitWithoutReward,
+      config.currencies.ETH.contracts[network].initiateGasLimitWithReward,
+      config.currencies.ETH.contracts[network].redeemGasLimit,
     );
   }
 
@@ -314,30 +322,17 @@ export class EthereumHelpers extends Helpers {
     return vrs.r.padStart(64, '0') + vrs.s.padStart(64, '0');
   }
 
-  async estimateInitiateFees(source: string): Promise<number> {
-    const dummyTx = {
-      receivingAddress: '0x0000000000000000000000000000000000000000',
-      secretHash:
-        '0000000000000000000000000000000000000000000000000000000000000000',
-      refundTimestamp: 2147483647,
-      rewardForRedeem: new BigNumber(0),
-      netAmount: new BigNumber(0),
-    };
-    const txData = this.buildInitiateTransaction(dummyTx);
+  async estimateInitiateFees(_source: string): Promise<number> {
     const gasPrice = await this._web3.eth.getGasPrice();
-    const gasEstimate = await this._web3.eth.estimateGas({
-      from: source,
-      to: txData.contractAddr,
-      data: txData.data,
-      value: txData.amount?.toString(10),
-    });
-    const fee = parseInt(gasPrice) * gasEstimate;
+    const fee = parseInt(gasPrice) * this._initiateGasLimitWithReward * 1.2;
+
     return fee;
   }
 
   async estimateRedeemFees(_recipient: string): Promise<RedeemFees> {
     const gasPrice = await this._web3.eth.getGasPrice();
-    const fee = parseInt(gasPrice) * this._gasLimit;
+    const fee = parseInt(gasPrice) * this._redeemGasLimit;
+
     return {
       totalCost: fee,
       rewardForRedeem: 2 * fee,

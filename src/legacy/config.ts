@@ -53,11 +53,15 @@ export default {
       contracts: {
         mainnet: {
           address: '0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df',
-          gasLimit: 200000
+          initiateGasLimitWithoutReward: 200000,
+          initiateGasLimitWithReward: 210000,
+          redeemGasLimit: 140000
         },
         testnet: {
           address: '0x512fe6B803bA327DCeFBF2Cec7De333f761B0f2b',
-          gasLimit: 170000
+          initiateGasLimitWithoutReward: 200000,
+          initiateGasLimitWithReward: 210000,
+          redeemGasLimit: 140000
         },
         abi: [
           {
