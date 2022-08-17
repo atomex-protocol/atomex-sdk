@@ -29,7 +29,7 @@ export const convertSymbolToFromToCurrenciesPair = (
     preparedBaseCurrencyAmount = converters.toFixedBigNumber(
       preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount),
       symbol.decimals.baseCurrency,
-      isBuySide ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL
+      isBuySide ? BigNumber.ROUND_CEIL : BigNumber.ROUND_FLOOR
     );
   }
   else {

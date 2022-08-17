@@ -112,7 +112,7 @@ const validGetOrderPreviewTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
-          amount: new BigNumber('0.038947563'),
+          amount: new BigNumber('0.038947562'),
           price: new BigNumber('911.067096447')
         }
       },
@@ -138,7 +138,7 @@ const validGetOrderPreviewTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
-          amount: new BigNumber('0.038947563'),
+          amount: new BigNumber('0.038947562'),
           price: new BigNumber('911.067096447')
         }
       },
@@ -164,7 +164,7 @@ const validGetOrderPreviewTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
-          amount: new BigNumber('0.062699506'),
+          amount: new BigNumber('0.062699505'),
           price: new BigNumber('911.067096447')
         }
       },
