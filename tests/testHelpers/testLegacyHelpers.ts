@@ -15,7 +15,9 @@ export const createEthereumHelpers = (
   config.currencies.ETH.contracts.abi as AbiItem[],
   config.currencies.ETH.contracts[network].address,
   config.blockchains.ethereum.rpc[network].blockTime,
-  config.currencies.ETH.contracts[network].gasLimit
+  config.currencies.ETH.contracts[network].initiateGasLimitWithoutReward,
+  config.currencies.ETH.contracts[network].initiateGasLimitWithReward,
+  config.currencies.ETH.contracts[network].redeemGasLimit
 ));
 
 export const createTezoselpers = (
