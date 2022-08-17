@@ -18,7 +18,7 @@ export interface SwapPreview {
 }
 
 interface SwapPreviewData {
-  readonly address: string;
+  readonly address?: string;
   readonly currencyId: Currency['id'];
   readonly actual: SwapPreviewCurrencyData;
   readonly available: SwapPreviewCurrencyData;

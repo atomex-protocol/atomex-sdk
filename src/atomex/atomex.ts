@@ -83,6 +83,14 @@ export class Atomex implements AtomexService {
       throw new Error('Swap tracking is not implemented yet');
 
     const swapPreview = newSwapRequestOrSwapId.swapPreview;
+    if (!swapPreview.errors.length)
+      throw new Error('Swap preview has errors');
+
+    const fromAddress = swapPreview.to.address;
+    if (!fromAddress)
+      throw new Error('Swap preview has not the "from" address');
+
+
     const quoteCurrencyId = symbolsHelper.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol)[0];
     const directionName: 'from' | 'to' = quoteCurrencyId === swapPreview.from.currencyId ? 'from' : 'to';
 
@@ -109,15 +117,15 @@ export class Atomex implements AtomexService {
         // TODO
       ]
     };
-    const orderId = await this.exchangeManager.addOrder(swapPreview.from.address, newOrderRequest);
-    const order = await this.exchangeManager.getOrder(swapPreview.from.address, orderId);
+    const orderId = await this.exchangeManager.addOrder(fromAddress, newOrderRequest);
+    const order = await this.exchangeManager.getOrder(fromAddress, orderId);
     if (!order)
       throw new Error(`The ${orderId} order not found`);
 
     if (order.status !== 'Filled')
       throw new Error(`The ${orderId} order is not filled`);
 
-    const swaps = await Promise.all(order.swapIds.map(swapId => this.swapManager.getSwap(swapId, swapPreview.from.address)));
+    const swaps = await Promise.all(order.swapIds.map(swapId => this.swapManager.getSwap(swapId, fromAddress)));
     if (!swaps.length)
       throw new Error('Swaps not found');
     if (swaps.some(swap => !swap))
