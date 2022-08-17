@@ -1,5 +1,3 @@
-import type { DeepRequired } from '../../core/index';
-
 type QueryParams = { [key: string]: string | number | boolean | null | undefined };
 type Payload = { [key: string]: unknown };
 
@@ -16,7 +14,10 @@ export class HttpClient {
     protected readonly baseUrl: string
   ) { }
 
-  async request<T>(options: RequestOptions): Promise<T | undefined> {
+  async request<T>(options: RequestOptions): Promise<T | undefined>;
+  async request<T>(options: RequestOptions, returnUndefinedOn404: true): Promise<T | undefined>;
+  async request<T>(options: RequestOptions, returnUndefinedOn404: false): Promise<T>;
+  async request<T>(options: RequestOptions, returnUndefinedOn404 = true): Promise<T | undefined> {
     const url = new URL(options.urlPath, this.baseUrl);
 
     if (options.params)
@@ -28,7 +29,7 @@ export class HttpClient {
       body: options.payload ? JSON.stringify(options.payload) : undefined
     });
 
-    if (response.status === 404)
+    if (returnUndefinedOn404 && response.status === 404)
       return undefined;
 
     if (!response.ok) {
@@ -39,7 +40,7 @@ export class HttpClient {
     return await response.json();
   }
 
-  private setSearchParams(url: URL, params: DeepRequired<RequestOptions['params']>) {
+  private setSearchParams(url: URL, params: RequestOptions['params']) {
     for (const key in params) {
       const value = params[key];
       if (value !== null && value !== undefined)

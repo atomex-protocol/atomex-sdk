@@ -1,6 +1,6 @@
 import type { AtomexBlockchainNetworkOptions, AtomexContext, AtomexCurrencyOptions } from '../../atomex/index';
 import { FA12TezosTaquitoAtomexProtocolV1, FA2TezosTaquitoAtomexProtocolV1, TezosTaquitoAtomexProtocolV1 } from '../atomexProtocol';
-import { TezosBalancesProvider } from '../balancesProviders/index';
+import { TzktBalancesProvider } from '../balancesProviders/index';
 import { TaquitoBlockchainToolkitProvider } from '../blockchainToolkitProviders/index';
 import type { TezosCurrency } from '../models';
 import { TezosSwapTransactionsProvider } from '../swapTransactionsProviders/index';
@@ -73,7 +73,6 @@ const createCurrencyOptions = (
 export const createDefaultTezosBlockchainOptions = (atomexContext: AtomexContext): AtomexBlockchainNetworkOptions => {
   const mainnetRpcUrl = 'https://rpc.tzkt.io/mainnet/';
   const testNetRpcUrl = 'https://rpc.tzkt.io/ithacanet/';
-  const balancesProvider = new TezosBalancesProvider();
   const swapTransactionsProvider = new TezosSwapTransactionsProvider();
 
   const tezosOptions: AtomexBlockchainNetworkOptions = atomexContext.atomexNetwork === 'mainnet'
@@ -82,7 +81,7 @@ export const createDefaultTezosBlockchainOptions = (atomexContext: AtomexContext
       currencies: tezosMainnetCurrencies,
       currencyOptions: createCurrencyOptions(atomexContext, tezosMainnetCurrencies, mainnetTezosTaquitoAtomexProtocolV1Options),
       blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(mainnetRpcUrl),
-      balancesProvider,
+      balancesProvider: new TzktBalancesProvider('https://api.mainnet.tzkt.io/'),
       swapTransactionsProvider,
     }
     : {
@@ -90,7 +89,7 @@ export const createDefaultTezosBlockchainOptions = (atomexContext: AtomexContext
       currencies: tezosTestnetCurrencies,
       currencyOptions: createCurrencyOptions(atomexContext, tezosTestnetCurrencies, testnetTezosTaquitoAtomexProtocolV1Options),
       blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(testNetRpcUrl),
-      balancesProvider,
+      balancesProvider: new TzktBalancesProvider('https://api.ghostnet.tzkt.io/'),
       swapTransactionsProvider,
     };
 

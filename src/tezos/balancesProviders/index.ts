@@ -1,1 +1,1 @@
-export { TezosBalancesProvider } from './tezosBalancesProvider';
+export { TzktBalancesProvider } from './tzktBalancesProvider';
