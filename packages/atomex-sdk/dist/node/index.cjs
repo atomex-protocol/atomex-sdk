@@ -1103,14 +1103,15 @@ var getQuoteBaseCurrenciesBySymbol = (symbol) => {
 var convertSymbolToFromToCurrenciesPair = (symbol, side, currencyAmount, quoteCurrencyPrice, isQuoteCurrencyAmount = true) => {
   const preparedQuoteCurrencyPrice = converters_exports.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, import_bignumber2.default.ROUND_FLOOR);
   const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
+  const isBuySide = side === "Buy";
   let preparedQuoteCurrencyAmount;
   let preparedBaseCurrencyAmount;
   if (isQuoteCurrencyAmount) {
     preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, import_bignumber2.default.ROUND_FLOOR);
-    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, import_bignumber2.default.ROUND_FLOOR);
+    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, isBuySide ? import_bignumber2.default.ROUND_CEIL : import_bignumber2.default.ROUND_FLOOR);
   } else {
     preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, import_bignumber2.default.ROUND_FLOOR);
-    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice), symbol.decimals.quoteCurrency, import_bignumber2.default.ROUND_CEIL);
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice), symbol.decimals.quoteCurrency, isBuySide ? import_bignumber2.default.ROUND_FLOOR : import_bignumber2.default.ROUND_CEIL);
   }
   const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(new import_bignumber2.default(1).div(preparedQuoteCurrencyPrice), symbol.decimals.price, import_bignumber2.default.ROUND_FLOOR);
   const quoteCurrency = {
@@ -1123,7 +1124,7 @@ var convertSymbolToFromToCurrenciesPair = (symbol, side, currencyAmount, quoteCu
     amount: preparedBaseCurrencyAmount,
     price: preparedBaseCurrencyPrice
   };
-  return side === "Buy" ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
+  return isBuySide ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
 };
 var findExchangeSymbolAndSide = (symbols, from, to) => {
   const sellSideSymbolName = `${from}/${to}`;
