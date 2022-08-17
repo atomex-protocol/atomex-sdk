@@ -10,8 +10,6 @@ export interface RequestOptions {
 }
 
 export class HttpClient {
-  private static readonly defaultUndefinedResponseStatuses = [404];
-
   constructor(
     protected readonly baseUrl: string
   ) { }
