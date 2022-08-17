@@ -60,7 +60,7 @@ export default {
         testnet: {
           address: '0x512fe6B803bA327DCeFBF2Cec7De333f761B0f2b',
           initiateGasLimitWithoutReward: 200000,
-          initiateGasLimitWithReward: 200000,
+          initiateGasLimitWithReward: 210000,
           redeemGasLimit: 140000
         },
         abi: [
