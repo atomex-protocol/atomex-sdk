@@ -1,6 +1,6 @@
 import type { AtomexBlockchainNetworkOptions, AtomexContext, AtomexCurrencyOptions } from '../../atomex/index';
 import { FA12TezosTaquitoAtomexProtocolV1, FA2TezosTaquitoAtomexProtocolV1, TezosTaquitoAtomexProtocolV1 } from '../atomexProtocol';
-import { TezosBalancesProvider } from '../balancesProviders/index';
+import { TzktBalancesProvider } from '../balancesProviders/index';
 import { TaquitoBlockchainToolkitProvider } from '../blockchainToolkitProviders/index';
 import type { TezosCurrency } from '../models';
 import { TezosSwapTransactionsProvider } from '../swapTransactionsProviders/index';
@@ -81,7 +81,7 @@ export const createDefaultTezosBlockchainOptions = (atomexContext: AtomexContext
       currencies: tezosMainnetCurrencies,
       currencyOptions: createCurrencyOptions(atomexContext, tezosMainnetCurrencies, mainnetTezosTaquitoAtomexProtocolV1Options),
       blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(mainnetRpcUrl),
-      balancesProvider: new TezosBalancesProvider('https://api.mainnet.tzkt.io/'),
+      balancesProvider: new TzktBalancesProvider('https://api.mainnet.tzkt.io/'),
       swapTransactionsProvider,
     }
     : {
@@ -89,7 +89,7 @@ export const createDefaultTezosBlockchainOptions = (atomexContext: AtomexContext
       currencies: tezosTestnetCurrencies,
       currencyOptions: createCurrencyOptions(atomexContext, tezosTestnetCurrencies, testnetTezosTaquitoAtomexProtocolV1Options),
       blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(testNetRpcUrl),
-      balancesProvider: new TezosBalancesProvider('https://api.ghostnet.tzkt.io/'),
+      balancesProvider: new TzktBalancesProvider('https://api.ghostnet.tzkt.io/'),
       swapTransactionsProvider,
     };
 

@@ -4,6 +4,7 @@ import type { AuthorizationManager } from '../../authorization/index';
 import type { Transaction } from '../../blockchain/index';
 import type { AtomexNetwork, CancelAllSide, CurrenciesProvider, Side } from '../../common/index';
 import { EventEmitter } from '../../core';
+import { HttpClient } from '../../core/index';
 import {
   Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
   OrdersSelector, CancelOrderRequest,
@@ -17,7 +18,6 @@ import {
   mapOrderBookDtoToOrderBook, mapOrderDtosToOrders, mapOrderDtoToOrder,
   mapQuoteDtosToQuotes, mapSwapDtosToSwaps, mapSwapDtoToSwap, mapSymbolDtosToSymbols
 } from '../helpers';
-import { HttpClient } from './httpClient';
 
 export interface RestAtomexClientOptions {
   atomexNetwork: AtomexNetwork;
