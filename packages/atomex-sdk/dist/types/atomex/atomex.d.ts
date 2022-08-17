@@ -4,7 +4,7 @@ import type { AtomexService, Currency } from '../common/index';
 import type { ExchangeManager } from '../exchange/exchangeManager';
 import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
-import { SwapOperationCompleteStage, AtomexBlockchainOptions, AtomexOptions, NewSwapRequest } from './models/index';
+import { SwapOperationCompleteStage, AtomexOptions, NewSwapRequest, AtomexBlockchainNetworkOptions } from './models/index';
 export declare class Atomex implements AtomexService {
     readonly options: AtomexOptions;
     readonly authorization: AuthorizationManager;
@@ -18,7 +18,7 @@ export declare class Atomex implements AtomexService {
     get isStarted(): boolean;
     start(): Promise<void>;
     stop(): void;
-    addBlockchain(factoryMethod: (context: AtomexContext) => [blockchain: string, options: AtomexBlockchainOptions]): void;
+    addBlockchain(factoryMethod: (context: AtomexContext) => [blockchain: string, options: AtomexBlockchainNetworkOptions]): void;
     getCurrency(currencyId: Currency['id']): Currency | undefined;
     swap(newSwapRequest: NewSwapRequest, completeStage?: SwapOperationCompleteStage): Promise<Swap | readonly Swap[]>;
     swap(swapId: Swap['id'], completeStage?: SwapOperationCompleteStage): Promise<Swap | readonly Swap[]>;

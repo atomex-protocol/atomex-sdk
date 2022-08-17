@@ -1,2 +1,2 @@
-import type { AtomexContext, AtomexBlockchainOptions } from '../../atomex/index';
-export declare const createDefaultEthereumBlockchainOptions: (atomexContext: AtomexContext) => AtomexBlockchainOptions;
+import type { AtomexBlockchainNetworkOptions, AtomexContext } from '../../atomex/index';
+export declare const createDefaultEthereumBlockchainOptions: (atomexContext: AtomexContext) => AtomexBlockchainNetworkOptions;

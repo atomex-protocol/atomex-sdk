@@ -52,9 +52,7 @@ var Atomex = class {
   }
   addBlockchain(factoryMethod) {
     const [blockchain, blockchainOptions] = factoryMethod(this.atomexContext);
-    const networkOptions = this.atomexNetwork == "mainnet" ? blockchainOptions.mainnet : blockchainOptions.testnet;
-    if (networkOptions)
-      this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, networkOptions);
+    this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, blockchainOptions);
   }
   getCurrency(currencyId) {
     return this.atomexContext.providers.currenciesProvider.getCurrency(currencyId);
@@ -1014,23 +1012,20 @@ var createDefaultEthereumBlockchainOptions = (atomexContext) => {
   const testNetRpcUrl = "https://goerli.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/";
   const balancesProvider = new EthereumBalancesProvider();
   const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
-  const ethereumOptions = {
-    mainnet: {
-      rpcUrl: mainnetRpcUrl,
-      currencies: ethereumMainnetCurrencies,
-      currencyOptions: createCurrencyOptions(atomexContext, ethereumMainnetCurrencies, mainnetEthereumWeb3AtomexProtocolV1Options),
-      blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, mainnetRpcUrl),
-      balancesProvider,
-      swapTransactionsProvider
-    },
-    testnet: {
-      rpcUrl: testNetRpcUrl,
-      currencies: ethereumTestnetCurrencies,
-      currencyOptions: createCurrencyOptions(atomexContext, ethereumTestnetCurrencies, testnetEthereumWeb3AtomexProtocolV1Options),
-      blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, testNetRpcUrl),
-      balancesProvider,
-      swapTransactionsProvider
-    }
+  const ethereumOptions = atomexContext.atomexNetwork === "mainnet" ? {
+    rpcUrl: mainnetRpcUrl,
+    currencies: ethereumMainnetCurrencies,
+    currencyOptions: createCurrencyOptions(atomexContext, ethereumMainnetCurrencies, mainnetEthereumWeb3AtomexProtocolV1Options),
+    blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, mainnetRpcUrl),
+    balancesProvider,
+    swapTransactionsProvider
+  } : {
+    rpcUrl: testNetRpcUrl,
+    currencies: ethereumTestnetCurrencies,
+    currencyOptions: createCurrencyOptions(atomexContext, ethereumTestnetCurrencies, testnetEthereumWeb3AtomexProtocolV1Options),
+    blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, testNetRpcUrl),
+    balancesProvider,
+    swapTransactionsProvider
   };
   return ethereumOptions;
 };
@@ -2075,23 +2070,20 @@ var createDefaultTezosBlockchainOptions = (atomexContext) => {
   const testNetRpcUrl = "https://rpc.tzkt.io/ithacanet/";
   const balancesProvider = new TezosBalancesProvider();
   const swapTransactionsProvider = new TezosSwapTransactionsProvider();
-  const tezosOptions = {
-    mainnet: {
-      rpcUrl: mainnetRpcUrl,
-      currencies: tezosMainnetCurrencies,
-      currencyOptions: createCurrencyOptions2(atomexContext, tezosMainnetCurrencies, mainnetTezosTaquitoAtomexProtocolV1Options),
-      blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(mainnetRpcUrl),
-      balancesProvider,
-      swapTransactionsProvider
-    },
-    testnet: {
-      rpcUrl: testNetRpcUrl,
-      currencies: tezosTestnetCurrencies,
-      currencyOptions: createCurrencyOptions2(atomexContext, tezosTestnetCurrencies, testnetTezosTaquitoAtomexProtocolV1Options),
-      blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(testNetRpcUrl),
-      balancesProvider,
-      swapTransactionsProvider
-    }
+  const tezosOptions = atomexContext.atomexNetwork === "mainnet" ? {
+    rpcUrl: mainnetRpcUrl,
+    currencies: tezosMainnetCurrencies,
+    currencyOptions: createCurrencyOptions2(atomexContext, tezosMainnetCurrencies, mainnetTezosTaquitoAtomexProtocolV1Options),
+    blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(mainnetRpcUrl),
+    balancesProvider,
+    swapTransactionsProvider
+  } : {
+    rpcUrl: testNetRpcUrl,
+    currencies: tezosTestnetCurrencies,
+    currencyOptions: createCurrencyOptions2(atomexContext, tezosTestnetCurrencies, testnetTezosTaquitoAtomexProtocolV1Options),
+    blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(testNetRpcUrl),
+    balancesProvider,
+    swapTransactionsProvider
   };
   return tezosOptions;
 };
