@@ -5,7 +5,8 @@ import type { AuthToken } from '../../src/authorization/index';
 import { WebSocketAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
 import { InMemoryOrderBookProvider } from '../../src/exchange/index';
-import { TestCurrenciesProvider, TestAuthorizationManager, TestExchangeSymbolsProvider, wait } from '../testHelpers/index';
+import { wait } from '../../src/utils/index';
+import { TestCurrenciesProvider, TestAuthorizationManager, TestExchangeSymbolsProvider } from '../testHelpers/index';
 import {
   validWsOrderBookSnapshotTestCases,
   validWsOrderBookUpdatedTestCases, validWsOrderUpdatedTestCases,
