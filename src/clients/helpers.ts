@@ -2,17 +2,12 @@ import BigNumber from 'bignumber.js';
 
 import type { Transaction } from '../blockchain/models/index';
 import type { CurrenciesProvider } from '../common/index';
-import { ExchangeSymbol, ExchangeSymbolsProvider, NewOrderRequest, Order, OrderBook, OrderBookEntry, OrderBookProvider, OrderPreview, Quote, symbolsHelper } from '../exchange/index';
+import { ExchangeSymbol, ExchangeSymbolsProvider, Order, OrderBook, OrderBookEntry, OrderBookProvider, Quote, symbolsHelper } from '../exchange/index';
 import type { Swap, SwapParticipantTrade } from '../swaps/index';
 import type {
   OrderBookDto, OrderBookEntryDto, OrderDto, QuoteDto, SwapDto, SymbolDto,
   TradeDto, TransactionDto, WebSocketOrderBookEntryDto, WebSocketOrderDataDto
 } from './dtos';
-
-export const isOrderPreview = (orderBody: NewOrderRequest['orderBody']): orderBody is OrderPreview => {
-  return typeof orderBody.symbol === 'string' && typeof orderBody.side === 'string'
-    && !!(orderBody as OrderPreview).from && !!(orderBody as OrderPreview).to;
-};
 
 export const mapQuoteDtosToQuotes = (quoteDtos: QuoteDto[]): Quote[] => {
   const quotes: Quote[] = quoteDtos.map(quoteDto => mapQuoteDtoToQuote(quoteDto));

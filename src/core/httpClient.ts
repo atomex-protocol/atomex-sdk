@@ -1,5 +1,6 @@
 type QueryParams = { [key: string]: string | number | boolean | null | undefined };
-type Payload = { [key: string]: unknown };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Payload = { [key: string]: any };
 
 export interface RequestOptions {
   urlPath: string;

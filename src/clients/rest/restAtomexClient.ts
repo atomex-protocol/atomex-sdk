@@ -6,15 +6,14 @@ import type { AtomexNetwork, CancelAllSide, CurrenciesProvider, Side } from '../
 import { EventEmitter } from '../../core';
 import { HttpClient } from '../../core/index';
 import {
-  Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
-  OrdersSelector, CancelOrderRequest,
-  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, symbolsHelper, ExchangeSymbolsProvider
+  exchangeGuards,
+  Order, OrderBook, Quote, ExchangeSymbol, OrdersSelector, CancelOrderRequest,
+  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, symbolsHelper, ExchangeSymbolsProvider, FilledNewOrderRequest
 } from '../../exchange/index';
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
-import type { CreatedOrderDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from '../dtos';
+import type { CreatedOrderDto, NewOrderRequestDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from '../dtos';
 import {
-  isOrderPreview,
   mapOrderBookDtoToOrderBook, mapOrderDtosToOrders, mapOrderDtoToOrder,
   mapQuoteDtosToQuotes, mapSwapDtosToSwaps, mapSwapDtoToSwap, mapSymbolDtosToSymbols
 } from '../helpers';
@@ -146,7 +145,7 @@ export class RestAtomexClient implements AtomexClient {
     return orderBookDto ? mapOrderBookDtoToOrderBook(orderBookDto) : undefined;
   }
 
-  async addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
+  async addOrder(accountAddress: string, newOrderRequest: FilledNewOrderRequest): Promise<number> {
     const urlPath = '/v1/Orders';
     const authToken = this.getRequiredAuthToken(accountAddress);
     let symbol: string | undefined = undefined;
@@ -154,18 +153,13 @@ export class RestAtomexClient implements AtomexClient {
     let amountBigNumber: BigNumber;
     let priceBigNumber: BigNumber;
 
-    if (isOrderPreview(newOrderRequest.orderBody)) {
-      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      const exchangeSymbolAndSide = symbolsHelper.findExchangeSymbolAndSide(
-        exchangeSymbols,
-        newOrderRequest.orderBody.from.currencyId,
-        newOrderRequest.orderBody.to.currencyId
-      );
-      const exchangeSymbol = exchangeSymbolAndSide[0];
-      symbol = exchangeSymbol.name;
-      side = exchangeSymbolAndSide[1];
+    if (exchangeGuards.isOrderPreview(newOrderRequest.orderBody)) {
+      symbol = newOrderRequest.orderBody.symbol;
+      side = newOrderRequest.orderBody.side;
 
-      const directionName: 'from' | 'to' = exchangeSymbol.quoteCurrency === newOrderRequest.orderBody.from.currencyId ? 'from' : 'to';
+      const quoteCurrencyId = symbolsHelper.getQuoteBaseCurrenciesBySymbol(symbol)[0];
+      const directionName: 'from' | 'to' = quoteCurrencyId === newOrderRequest.orderBody.from.currencyId ? 'from' : 'to';
+
       amountBigNumber = newOrderRequest.orderBody[directionName].amount;
       priceBigNumber = newOrderRequest.orderBody[directionName].price;
     }
@@ -176,7 +170,7 @@ export class RestAtomexClient implements AtomexClient {
     }
 
     // TODO: move to the mapper
-    const payload = {
+    const payload: NewOrderRequestDto = {
       clientOrderId: newOrderRequest.clientOrderId,
       symbol,
       side,

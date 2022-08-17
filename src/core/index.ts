@@ -5,6 +5,7 @@ export { HttpClient, type RequestOptions } from './httpClient';
 export type { Result, SuccessResult, ErrorResult } from './result';
 export type { PublicEventEmitter, ToEventEmitter, ToEventEmitters } from './eventEmitter';
 export type { ToDeferredEventEmitter, ToDeferredEventEmitters } from './deferredEventEmitter';
+export type { Mutable } from './mutable';
 export type { DeepReadonly } from './deepReadonly';
 export type { DeepRequired } from './deepRequired';
 export type { DeepPartial } from './deepPartial';

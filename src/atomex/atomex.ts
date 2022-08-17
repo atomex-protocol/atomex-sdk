@@ -1,12 +1,14 @@
+import BigNumber from 'bignumber.js';
+
 import type { AuthorizationManager } from '../authorization/index';
 import type { WalletsManager } from '../blockchain/index';
 import type { AtomexService, Currency } from '../common/index';
-import type { ExchangeManager } from '../exchange/exchangeManager';
+import { NewOrderRequest, ExchangeManager, symbolsHelper } from '../exchange/index';
 import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
 import {
-  SwapOperationCompleteStage, AtomexOptions,
-  NewSwapRequest, AtomexBlockchainNetworkOptions
+  NewSwapRequest, SwapOperationCompleteStage, AtomexOptions,
+  AtomexBlockchainNetworkOptions, SwapPreview, SwapPreviewParameters
 } from './models/index';
 
 export class Atomex implements AtomexService {
@@ -70,21 +72,52 @@ export class Atomex implements AtomexService {
     return this.atomexContext.providers.currenciesProvider.getCurrency(currencyId);
   }
 
+  async getSwapPreview(_swapPreviewParameters: SwapPreviewParameters): Promise<SwapPreview> {
+    throw new Error('Not implemented');
+  }
+
   async swap(newSwapRequest: NewSwapRequest, completeStage?: SwapOperationCompleteStage): Promise<Swap | readonly Swap[]>;
   async swap(swapId: Swap['id'], completeStage?: SwapOperationCompleteStage): Promise<Swap | readonly Swap[]>;
   async swap(newSwapRequestOrSwapId: NewSwapRequest | Swap['id'], _completeStage = SwapOperationCompleteStage.All): Promise<Swap | readonly Swap[]> {
     if (typeof newSwapRequestOrSwapId === 'number')
       throw new Error('Swap tracking is not implemented yet');
 
-    const orderId = await this.exchangeManager.addOrder(newSwapRequestOrSwapId.accountAddress, newSwapRequestOrSwapId);
-    const order = await this.exchangeManager.getOrder(newSwapRequestOrSwapId.accountAddress, orderId);
+    const swapPreview = newSwapRequestOrSwapId.swapPreview;
+    const quoteCurrencyId = symbolsHelper.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol)[0];
+    const directionName: 'from' | 'to' = quoteCurrencyId === swapPreview.from.currencyId ? 'from' : 'to';
+
+    const rewardForRedeem = swapPreview.fees.success.find(fee => fee.name == 'rewardForRedeem')?.estimated;
+    const newOrderRequest: NewOrderRequest = {
+      orderBody: {
+        type: swapPreview.type,
+        symbol: swapPreview.symbol,
+        side: swapPreview.side,
+        amount: swapPreview[directionName].actual.amount,
+        price: swapPreview[directionName].actual.price
+      },
+      requisites: {
+        secretHash: null,
+        receivingAddress: swapPreview.to.address,
+        refundAddress: newSwapRequestOrSwapId.refundAddress || null,
+        rewardForRedeem: rewardForRedeem || new BigNumber(0),
+        // TODO: from config
+        lockTime: 18000,
+        baseCurrencyContract: '',
+        quoteCurrencyContract: ''
+      },
+      proofsOfFunds: [
+        // TODO
+      ]
+    };
+    const orderId = await this.exchangeManager.addOrder(swapPreview.from.address, newOrderRequest);
+    const order = await this.exchangeManager.getOrder(swapPreview.from.address, orderId);
     if (!order)
       throw new Error(`The ${orderId} order not found`);
 
     if (order.status !== 'Filled')
       throw new Error(`The ${orderId} order is not filled`);
 
-    const swaps = await Promise.all(order.swapIds.map(swapId => this.swapManager.getSwap(swapId, newSwapRequestOrSwapId.accountAddress)));
+    const swaps = await Promise.all(order.swapIds.map(swapId => this.swapManager.getSwap(swapId, swapPreview.from.address)));
     if (!swaps.length)
       throw new Error('Swaps not found');
     if (swaps.some(swap => !swap))

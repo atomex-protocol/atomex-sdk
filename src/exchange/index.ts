@@ -1,6 +1,6 @@
 export * from './models/index';
 
-export { symbolsHelper } from './helpers';
+export { exchangeGuards, symbolsHelper } from './helpers';
 export { ExchangeManager, type ExchangeManagerOptions } from './exchangeManager';
 export { InMemoryExchangeSymbolsProvider } from './exchangeSymbolsProvider/index';
 export { InMemoryOrderBookProvider } from './orderBookProvider/index';

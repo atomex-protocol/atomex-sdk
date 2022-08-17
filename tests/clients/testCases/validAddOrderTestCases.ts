@@ -1,12 +1,27 @@
 import BigNumber from 'bignumber.js';
 
-import type { CreatedOrderDto, } from '../../../src/clients/dtos';
-import type { NewOrderRequest } from '../../../src/exchange/index';
+import type { CreatedOrderDto, NewOrderRequestDto, } from '../../../src/clients/dtos';
+import type { FilledNewOrderRequest } from '../../../src/exchange/index';
+
+const emptyRequisites: FilledNewOrderRequest['requisites'] = {
+  baseCurrencyContract: '',
+  receivingAddress: '',
+  lockTime: 0,
+  quoteCurrencyContract: '',
+  refundAddress: '',
+  rewardForRedeem: new BigNumber(0),
+  secretHash: ''
+};
+
+const emptyRequisitesDto: NewOrderRequestDto['requisites'] = {
+  ...emptyRequisites,
+  rewardForRedeem: emptyRequisites.rewardForRedeem.toNumber(),
+};
 
 const validAddOrderTestCases: ReadonlyArray<readonly [
   message: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  testValue: readonly [request: NewOrderRequest, createOrderDto: CreatedOrderDto, expectedPayload: any, expectedOrderId: number]
+  testValue: readonly [request: FilledNewOrderRequest, createOrderDto: CreatedOrderDto, expectedPayload: any, expectedOrderId: number]
 ]> = [
     [
       'Simple buy order',
@@ -20,6 +35,8 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
             symbol: 'XTZ/ETH',
           },
           clientOrderId: 'client-order-id',
+          proofsOfFunds: [],
+          requisites: emptyRequisites
         },
         {
           orderId: 777
@@ -30,31 +47,35 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
           symbol: 'XTZ/ETH',
           clientOrderId: 'client-order-id',
           side: 'Buy',
-          type: 'FillOrKill'
+          type: 'FillOrKill',
+          proofsOfFunds: [],
+          requisites: emptyRequisitesDto
         },
         777
       ]
     ],
     [
-      'Simple buy order',
+      'Simple buy order (via order preview)',
       [
         {
           orderBody: {
             type: 'FillOrKill',
             from: {
-              currencyId: 'XTZ',
-              amount: new BigNumber(30),
-              price: new BigNumber(0.001107006),
-            },
-            to: {
               currencyId: 'ETH',
               amount: new BigNumber(0.03321018),
               price: new BigNumber(903.337470618)
+            },
+            to: {
+              currencyId: 'XTZ',
+              amount: new BigNumber(30),
+              price: new BigNumber(0.001107006),
             },
             side: 'Buy',
             symbol: 'XTZ/ETH',
           },
           clientOrderId: 'client-order-id',
+          proofsOfFunds: [],
+          requisites: emptyRequisites
         },
         {
           orderId: 8473
@@ -64,8 +85,10 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
           price: 0.001107006,
           symbol: 'XTZ/ETH',
           clientOrderId: 'client-order-id',
-          side: 'Sell',
-          type: 'FillOrKill'
+          side: 'Buy',
+          type: 'FillOrKill',
+          proofsOfFunds: [],
+          requisites: emptyRequisitesDto
         },
         8473
       ]
@@ -82,6 +105,8 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
             symbol: 'XTZ/ETH',
           },
           clientOrderId: 'client-order-id',
+          proofsOfFunds: [],
+          requisites: emptyRequisites
         },
         {
           orderId: 123
@@ -92,7 +117,9 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
           symbol: 'XTZ/ETH',
           clientOrderId: 'client-order-id',
           side: 'Sell',
-          type: 'FillOrKill'
+          type: 'FillOrKill',
+          proofsOfFunds: [],
+          requisites: emptyRequisitesDto
         },
         123
       ]
@@ -117,6 +144,8 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
             symbol: 'XTZ/ETH',
           },
           clientOrderId: 'client-order-id',
+          proofsOfFunds: [],
+          requisites: emptyRequisites
         },
         {
           orderId: 12345
@@ -127,7 +156,9 @@ const validAddOrderTestCases: ReadonlyArray<readonly [
           symbol: 'XTZ/ETH',
           clientOrderId: 'client-order-id',
           side: 'Buy',
-          type: 'FillOrKill'
+          type: 'FillOrKill',
+          proofsOfFunds: [],
+          requisites: emptyRequisitesDto
         },
         12345
       ]

@@ -9,7 +9,7 @@ import { symbolsHelper } from './helpers/index';
 import type {
   CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol,
   OrderPreviewParameters as OrderPreviewParameters,
-  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, PreparedPreviewParameters
+  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, PreparedPreviewParameters, FilledNewOrderRequest
 } from './models/index';
 import type { ManagedOrderBookProvider } from './orderBookProvider';
 
@@ -135,8 +135,16 @@ export class ExchangeManager implements AtomexService {
   }
 
   addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
-    const clientOrderId = newOrderRequest.clientOrderId || nanoid(17);
-    return this.exchangeService.addOrder(accountAddress, { ...newOrderRequest, clientOrderId });
+    const filledNewOrderRequest: FilledNewOrderRequest = {
+      clientOrderId: newOrderRequest.clientOrderId || nanoid(17),
+      orderBody: newOrderRequest.orderBody,
+      requisites: newOrderRequest.requisites,
+      proofsOfFunds: newOrderRequest.proofsOfFunds ? newOrderRequest.proofsOfFunds : [
+        // TODO
+      ]
+    };
+
+    return this.exchangeService.addOrder(accountAddress, filledNewOrderRequest);
   }
 
   cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean> {
