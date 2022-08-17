@@ -1227,6 +1227,45 @@ var DeferredEventEmitter = class {
   }
 };
 
+// src/core/httpClient.ts
+var HttpClient = class {
+  constructor(baseUrl) {
+    this.baseUrl = baseUrl;
+  }
+  async request(options, returnUndefinedOn404 = true) {
+    const url = new URL(options.urlPath, this.baseUrl);
+    if (options.params)
+      this.setSearchParams(url, options.params);
+    const response = await fetch(url.toString(), {
+      headers: this.createHeaders(options),
+      method: options.method || "GET",
+      body: options.payload ? JSON.stringify(options.payload) : void 0
+    });
+    if (returnUndefinedOn404 && response.status === 404)
+      return void 0;
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw Error(errorBody);
+    }
+    return await response.json();
+  }
+  setSearchParams(url, params) {
+    for (const key in params) {
+      const value = params[key];
+      if (value !== null && value !== void 0)
+        url.searchParams.set(key, String(value));
+    }
+  }
+  createHeaders(options) {
+    const headers = {};
+    if (options.authToken)
+      headers["Authorization"] = `Bearer ${options.authToken}`;
+    if (options.method === "POST" && options.payload)
+      headers["Content-Type"] = "application/json";
+    return headers;
+  }
+};
+
 // src/exchange/exchangeManager.ts
 var ExchangeManager = class {
   events = {
@@ -1498,6 +1537,11 @@ var import_taquito = require("@taquito/taquito");
 
 // src/tezos/utils/index.ts
 var import_utils8 = require("@taquito/utils");
+
+// src/tezos/utils/guards.ts
+var isTezosCurrency = (currency) => {
+  return currency.blockchain === "tezos";
+};
 
 // src/tezos/utils/signing.ts
 var signing_exports = {};
@@ -1849,10 +1893,41 @@ var FA2TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   }
 };
 
-// src/tezos/balancesProviders/tezosBalancesProvider.ts
-var TezosBalancesProvider = class {
-  getBalance(_address, _currency) {
-    throw new Error("Method not implemented.");
+// src/tezos/balancesProviders/tzktBalancesProvider.ts
+var TzktBalancesProvider = class {
+  httpClient;
+  constructor(baseUrl) {
+    this.httpClient = new HttpClient(baseUrl);
+  }
+  async getBalance(address, currency) {
+    if (!isTezosCurrency(currency))
+      throw new Error("Not tezos blockchain currency provided");
+    switch (currency.type) {
+      case "native":
+        return await this.getNativeTokenBalance(address, currency);
+      case "fa1.2":
+      case "fa2":
+        return await this.getTokenBalance(address, currency);
+    }
+  }
+  async getNativeTokenBalance(address, currency) {
+    const urlPath = `/v1/accounts/${address}/balance`;
+    const balance = await this.httpClient.request({ urlPath }, false);
+    return numberToTokensAmount(balance, currency.decimals);
+  }
+  async getTokenBalance(address, currency) {
+    const urlPath = "/v1/tokens/balances";
+    const params = {
+      "account": address,
+      "token.contract": currency.contractAddress,
+      "token.tokenId": currency.type === "fa1.2" ? 0 : currency.tokenId,
+      "select": "balance"
+    };
+    const balances = await this.httpClient.request({ urlPath, params }, false);
+    const balance = balances[0];
+    if (balance === void 0)
+      throw new Error("Invalid response");
+    return numberToTokensAmount(balance, currency.decimals);
   }
 };
 
@@ -2121,63 +2196,23 @@ var createCurrencyOptions2 = (atomexContext, currencies, atomexProtocolOptions) 
 var createDefaultTezosBlockchainOptions = (atomexContext) => {
   const mainnetRpcUrl = "https://rpc.tzkt.io/mainnet/";
   const testNetRpcUrl = "https://rpc.tzkt.io/ithacanet/";
-  const balancesProvider = new TezosBalancesProvider();
   const swapTransactionsProvider = new TezosSwapTransactionsProvider();
   const tezosOptions = atomexContext.atomexNetwork === "mainnet" ? {
     rpcUrl: mainnetRpcUrl,
     currencies: tezosMainnetCurrencies,
     currencyOptions: createCurrencyOptions2(atomexContext, tezosMainnetCurrencies, mainnetTezosTaquitoAtomexProtocolV1Options),
     blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(mainnetRpcUrl),
-    balancesProvider,
+    balancesProvider: new TzktBalancesProvider("https://api.mainnet.tzkt.io/"),
     swapTransactionsProvider
   } : {
     rpcUrl: testNetRpcUrl,
     currencies: tezosTestnetCurrencies,
     currencyOptions: createCurrencyOptions2(atomexContext, tezosTestnetCurrencies, testnetTezosTaquitoAtomexProtocolV1Options),
     blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(testNetRpcUrl),
-    balancesProvider,
+    balancesProvider: new TzktBalancesProvider("https://api.ghostnet.tzkt.io/"),
     swapTransactionsProvider
   };
   return tezosOptions;
-};
-
-// src/clients/rest/httpClient.ts
-var HttpClient = class {
-  constructor(baseUrl) {
-    this.baseUrl = baseUrl;
-  }
-  async request(options) {
-    const url = new URL(options.urlPath, this.baseUrl);
-    if (options.params)
-      this.setSearchParams(url, options.params);
-    const response = await fetch(url.toString(), {
-      headers: this.createHeaders(options),
-      method: options.method || "GET",
-      body: options.payload ? JSON.stringify(options.payload) : void 0
-    });
-    if (response.status === 404)
-      return void 0;
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw Error(errorBody);
-    }
-    return await response.json();
-  }
-  setSearchParams(url, params) {
-    for (const key in params) {
-      const value = params[key];
-      if (value !== null && value !== void 0)
-        url.searchParams.set(key, String(value));
-    }
-  }
-  createHeaders(options) {
-    const headers = {};
-    if (options.authToken)
-      headers["Authorization"] = `Bearer ${options.authToken}`;
-    if (options.method === "POST" && options.payload)
-      headers["Content-Type"] = "application/json";
-    return headers;
-  }
 };
 
 // src/clients/helpers.ts
@@ -4848,7 +4883,7 @@ var EthereumHelpers = class extends Helpers {
 var import_michelson_encoder = require("@taquito/michelson-encoder");
 var import_rpc = require("@taquito/rpc");
 var import_taquito5 = require("@taquito/taquito");
-var import_utils15 = require("@taquito/utils");
+var import_utils16 = require("@taquito/utils");
 var import_bignumber5 = __toESM(require("bignumber.js"));
 var formatTimestamp = (timestamp) => {
   return new Date(timestamp * 1e3).toISOString().slice(0, -5) + "Z";
@@ -5045,11 +5080,11 @@ var TezosHelpers = class extends Helpers {
     const curve = pubKey.substring(0, 2);
     switch (curve) {
       case "ed":
-        return Buffer.from((0, import_utils15.b58cdecode)(pubKey, import_utils15.prefix["edpk"])).toString("hex");
+        return Buffer.from((0, import_utils16.b58cdecode)(pubKey, import_utils16.prefix["edpk"])).toString("hex");
       case "p2":
-        return Buffer.from((0, import_utils15.b58cdecode)(pubKey, import_utils15.prefix["p2pk"])).toString("hex");
+        return Buffer.from((0, import_utils16.b58cdecode)(pubKey, import_utils16.prefix["p2pk"])).toString("hex");
       case "sp":
-        return Buffer.from((0, import_utils15.b58cdecode)(pubKey, import_utils15.prefix["sppk"])).toString("hex");
+        return Buffer.from((0, import_utils16.b58cdecode)(pubKey, import_utils16.prefix["sppk"])).toString("hex");
       default:
         throw new Error("Unsupported Public Key Type");
     }
@@ -5057,8 +5092,8 @@ var TezosHelpers = class extends Helpers {
   encodeSignature(signature) {
     var _a;
     const pref = signature.startsWith("sig") ? signature.substring(0, 3) : signature.substring(0, 5);
-    if (Object.prototype.hasOwnProperty.call(import_utils15.prefix, pref)) {
-      return Buffer.from((0, import_utils15.b58cdecode)(signature, (_a = Object.getOwnPropertyDescriptor(import_utils15.prefix, pref)) == null ? void 0 : _a.value)).toString("hex");
+    if (Object.prototype.hasOwnProperty.call(import_utils16.prefix, pref)) {
+      return Buffer.from((0, import_utils16.b58cdecode)(signature, (_a = Object.getOwnPropertyDescriptor(import_utils16.prefix, pref)) == null ? void 0 : _a.value)).toString("hex");
     }
     throw new Error("Unsupported Signature Type");
   }
@@ -5118,7 +5153,7 @@ var TezosHelpers = class extends Helpers {
     };
   }
   isValidAddress(address) {
-    return (0, import_utils15.validateAddress)(address) == import_utils15.ValidationResult.VALID;
+    return (0, import_utils16.validateAddress)(address) == import_utils16.ValidationResult.VALID;
   }
   getBlock(blockId) {
     return this._tezos.rpc.getBlock({ block: blockId.toString() });

@@ -1,5 +1,6 @@
 export { EventEmitter } from './eventEmitter';
 export { DeferredEventEmitter } from './deferredEventEmitter';
+export { HttpClient, type RequestOptions } from './httpClient';
 export type { Result, SuccessResult, ErrorResult } from './result';
 export type { PublicEventEmitter, ToEventEmitter, ToEventEmitters } from './eventEmitter';
 export type { ToDeferredEventEmitter, ToDeferredEventEmitters } from './deferredEventEmitter';
