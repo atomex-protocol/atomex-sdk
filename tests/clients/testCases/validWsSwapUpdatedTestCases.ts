@@ -109,7 +109,7 @@ const validWsSwapUpdatedTestCases: ReadonlyArray<readonly [
           },
           from: {
             currencyId: 'ETH',
-            amount: new BigNumber(0.009999999),
+            amount: new BigNumber(0.01),
             price: new BigNumber(920.085936026)
           },
           to: {

@@ -19,6 +19,7 @@ export const convertSymbolToFromToCurrenciesPair = (
 ): readonly [from: SymbolCurrency, to: SymbolCurrency] => {
   const preparedQuoteCurrencyPrice = converters.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber.ROUND_FLOOR);
   const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
+  const isBuySide = side === 'Buy';
 
   let preparedQuoteCurrencyAmount: BigNumber;
   let preparedBaseCurrencyAmount: BigNumber;
@@ -28,7 +29,7 @@ export const convertSymbolToFromToCurrenciesPair = (
     preparedBaseCurrencyAmount = converters.toFixedBigNumber(
       preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount),
       symbol.decimals.baseCurrency,
-      BigNumber.ROUND_FLOOR
+      isBuySide ? BigNumber.ROUND_CEIL : BigNumber.ROUND_FLOOR
     );
   }
   else {
@@ -36,7 +37,7 @@ export const convertSymbolToFromToCurrenciesPair = (
     preparedQuoteCurrencyAmount = converters.toFixedBigNumber(
       preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice),
       symbol.decimals.quoteCurrency,
-      BigNumber.ROUND_CEIL
+      isBuySide ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL
     );
   }
 
@@ -58,7 +59,7 @@ export const convertSymbolToFromToCurrenciesPair = (
     price: preparedBaseCurrencyPrice,
   };
 
-  return side === 'Buy'
+  return isBuySide
     ? [baseCurrency, quoteCurrency]
     : [quoteCurrency, baseCurrency];
 };
