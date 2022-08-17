@@ -5,8 +5,8 @@ import type { ExchangeManager } from '../exchange/exchangeManager';
 import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
 import {
-  SwapOperationCompleteStage, AtomexBlockchainOptions,
-  AtomexOptions, NewSwapRequest
+  SwapOperationCompleteStage, AtomexOptions,
+  NewSwapRequest, AtomexBlockchainNetworkOptions
 } from './models/index';
 
 export class Atomex implements AtomexService {
@@ -61,12 +61,9 @@ export class Atomex implements AtomexService {
     this._isStarted = false;
   }
 
-  addBlockchain(factoryMethod: (context: AtomexContext) => [blockchain: string, options: AtomexBlockchainOptions]) {
+  addBlockchain(factoryMethod: (context: AtomexContext) => [blockchain: string, options: AtomexBlockchainNetworkOptions]) {
     const [blockchain, blockchainOptions] = factoryMethod(this.atomexContext);
-    const networkOptions = this.atomexNetwork == 'mainnet' ? blockchainOptions.mainnet : blockchainOptions.testnet;
-
-    if (networkOptions)
-      this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, networkOptions);
+    this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, blockchainOptions);
   }
 
   getCurrency(currencyId: Currency['id']) {

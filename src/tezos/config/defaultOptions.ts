@@ -1,4 +1,4 @@
-import type { AtomexContext, AtomexBlockchainOptions, AtomexCurrencyOptions } from '../../atomex/index';
+import type { AtomexBlockchainNetworkOptions, AtomexContext, AtomexCurrencyOptions } from '../../atomex/index';
 import { FA12TezosTaquitoAtomexProtocolV1, FA2TezosTaquitoAtomexProtocolV1, TezosTaquitoAtomexProtocolV1 } from '../atomexProtocol';
 import { TezosBalancesProvider } from '../balancesProviders/index';
 import { TaquitoBlockchainToolkitProvider } from '../blockchainToolkitProviders/index';
@@ -70,30 +70,29 @@ const createCurrencyOptions = (
   return result;
 };
 
-export const createDefaultTezosBlockchainOptions = (atomexContext: AtomexContext): AtomexBlockchainOptions => {
+export const createDefaultTezosBlockchainOptions = (atomexContext: AtomexContext): AtomexBlockchainNetworkOptions => {
   const mainnetRpcUrl = 'https://rpc.tzkt.io/mainnet/';
   const testNetRpcUrl = 'https://rpc.tzkt.io/ithacanet/';
   const balancesProvider = new TezosBalancesProvider();
   const swapTransactionsProvider = new TezosSwapTransactionsProvider();
 
-  const tezosOptions: AtomexBlockchainOptions = {
-    mainnet: {
+  const tezosOptions: AtomexBlockchainNetworkOptions = atomexContext.atomexNetwork === 'mainnet'
+    ? {
       rpcUrl: mainnetRpcUrl,
       currencies: tezosMainnetCurrencies,
       currencyOptions: createCurrencyOptions(atomexContext, tezosMainnetCurrencies, mainnetTezosTaquitoAtomexProtocolV1Options),
       blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(mainnetRpcUrl),
       balancesProvider,
       swapTransactionsProvider,
-    },
-    testnet: {
+    }
+    : {
       rpcUrl: testNetRpcUrl,
       currencies: tezosTestnetCurrencies,
       currencyOptions: createCurrencyOptions(atomexContext, tezosTestnetCurrencies, testnetTezosTaquitoAtomexProtocolV1Options),
       blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(testNetRpcUrl),
       balancesProvider,
       swapTransactionsProvider,
-    }
-  };
+    };
 
   return tezosOptions;
 };

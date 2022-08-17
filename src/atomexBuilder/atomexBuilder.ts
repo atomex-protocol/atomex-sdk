@@ -1,5 +1,5 @@
 import { Atomex, AtomexContext } from '../atomex/index';
-import type { AtomexBlockchainOptions } from '../atomex/models/index';
+import type { AtomexBlockchainNetworkOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
 import { AtomexBlockchainProvider, WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
@@ -113,7 +113,7 @@ export class AtomexBuilder {
     return new SwapManager(this.atomexContext.services.swapService);
   }
 
-  protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainOptions> {
+  protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainNetworkOptions> {
     return {
       tezos: createDefaultTezosBlockchainOptions(this.atomexContext),
       ethereum: createDefaultEthereumBlockchainOptions(this.atomexContext)
