@@ -53,11 +53,15 @@ declare const _default: {
             contracts: {
                 mainnet: {
                     address: string;
-                    gasLimit: number;
+                    initiateGasLimitWithoutReward: number;
+                    initiateGasLimitWithReward: number;
+                    redeemGasLimit: number;
                 };
                 testnet: {
                     address: string;
-                    gasLimit: number;
+                    initiateGasLimitWithoutReward: number;
+                    initiateGasLimitWithReward: number;
+                    redeemGasLimit: number;
                 };
                 abi: ({
                     anonymous: boolean;

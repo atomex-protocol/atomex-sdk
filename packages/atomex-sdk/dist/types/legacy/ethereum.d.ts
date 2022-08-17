@@ -17,8 +17,10 @@ export declare class EthereumHelpers extends Helpers {
     private _contract;
     private _timeBetweenBlocks;
     private _functions;
-    private _gasLimit;
-    constructor(atomex: Atomex, web3: Web3, jsonInterface: AbiItem[], contractAddress: string, timeBetweenBlocks: number, gasLimit: number);
+    private _initiateGasLimitWithoutReward;
+    private _initiateGasLimitWithReward;
+    private _redeemGasLimit;
+    constructor(atomex: Atomex, web3: Web3, jsonInterface: AbiItem[], contractAddress: string, timeBetweenBlocks: number, initiateGasLimitWithoutReward: number, initiateGasLimitWithReward: number, redeemGasLimit: number);
     private initializeFunctions;
     /**
      * Connects to the supported ethereum chain
@@ -54,7 +56,7 @@ export declare class EthereumHelpers extends Helpers {
     recoverPublicKey(msg: string, signature: string): string;
     encodePublicKey(pubKey: string): string;
     encodeSignature(signature: string): string;
-    estimateInitiateFees(source: string): Promise<number>;
+    estimateInitiateFees(_source: string): Promise<number>;
     estimateRedeemFees(_recipient: string): Promise<RedeemFees>;
     isValidAddress(address: string): boolean;
     private getTransaction;

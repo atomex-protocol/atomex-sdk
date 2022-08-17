@@ -3510,11 +3510,15 @@ var config_default = {
       contracts: {
         mainnet: {
           address: "0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df",
-          gasLimit: 2e5
+          initiateGasLimitWithoutReward: 2e5,
+          initiateGasLimitWithReward: 21e4,
+          redeemGasLimit: 14e4
         },
         testnet: {
           address: "0x512fe6B803bA327DCeFBF2Cec7De333f761B0f2b",
-          gasLimit: 17e4
+          initiateGasLimitWithoutReward: 2e5,
+          initiateGasLimitWithReward: 21e4,
+          redeemGasLimit: 14e4
         },
         abi: [
           {
@@ -4613,17 +4617,21 @@ var now = () => Math.round(Date.now() / 1e3);
 
 // src/legacy/ethereum.ts
 var EthereumHelpers = class extends Helpers {
-  constructor(atomex, web3, jsonInterface, contractAddress, timeBetweenBlocks, gasLimit) {
+  constructor(atomex, web3, jsonInterface, contractAddress, timeBetweenBlocks, initiateGasLimitWithoutReward, initiateGasLimitWithReward, redeemGasLimit) {
     super(atomex);
     __publicField(this, "_web3");
     __publicField(this, "_contract");
     __publicField(this, "_timeBetweenBlocks");
     __publicField(this, "_functions");
-    __publicField(this, "_gasLimit");
+    __publicField(this, "_initiateGasLimitWithoutReward");
+    __publicField(this, "_initiateGasLimitWithReward");
+    __publicField(this, "_redeemGasLimit");
     this._web3 = web3;
     this._contract = this.createContract(jsonInterface, contractAddress);
     this._timeBetweenBlocks = timeBetweenBlocks;
-    this._gasLimit = gasLimit;
+    this._initiateGasLimitWithoutReward = initiateGasLimitWithoutReward;
+    this._initiateGasLimitWithReward = initiateGasLimitWithReward;
+    this._redeemGasLimit = redeemGasLimit;
     this._functions = /* @__PURE__ */ new Map();
     this.initializeFunctions(jsonInterface);
   }
@@ -4647,7 +4655,7 @@ var EthereumHelpers = class extends Helpers {
     if (networkSettings.chainID !== chainID) {
       throw new Error(`Wrong chain ID: expected ${networkSettings.chainID}, actual ${chainID}`);
     }
-    return new EthereumHelpers(newAtomex, web3, config_default.currencies.ETH.contracts.abi, config_default.currencies.ETH.contracts[network].address, networkSettings.blockTime, config_default.currencies.ETH.contracts[network].gasLimit);
+    return new EthereumHelpers(newAtomex, web3, config_default.currencies.ETH.contracts.abi, config_default.currencies.ETH.contracts[network].address, networkSettings.blockTime, config_default.currencies.ETH.contracts[network].initiateGasLimitWithoutReward, config_default.currencies.ETH.contracts[network].initiateGasLimitWithReward, config_default.currencies.ETH.contracts[network].redeemGasLimit);
   }
   getAuthMessage(message, _address) {
     const nowMillis = Date.now();
@@ -4782,29 +4790,14 @@ var EthereumHelpers = class extends Helpers {
     const vrs = this.getVRS(signature);
     return vrs.r.padStart(64, "0") + vrs.s.padStart(64, "0");
   }
-  async estimateInitiateFees(source) {
-    var _a;
-    const dummyTx = {
-      receivingAddress: "0x0000000000000000000000000000000000000000",
-      secretHash: "0000000000000000000000000000000000000000000000000000000000000000",
-      refundTimestamp: 2147483647,
-      rewardForRedeem: new BigNumber4(0),
-      netAmount: new BigNumber4(0)
-    };
-    const txData = this.buildInitiateTransaction(dummyTx);
+  async estimateInitiateFees(_source) {
     const gasPrice = await this._web3.eth.getGasPrice();
-    const gasEstimate = await this._web3.eth.estimateGas({
-      from: source,
-      to: txData.contractAddr,
-      data: txData.data,
-      value: (_a = txData.amount) == null ? void 0 : _a.toString(10)
-    });
-    const fee = parseInt(gasPrice) * gasEstimate;
+    const fee = parseInt(gasPrice) * this._initiateGasLimitWithReward * 1.2;
     return fee;
   }
   async estimateRedeemFees(_recipient) {
     const gasPrice = await this._web3.eth.getGasPrice();
-    const fee = parseInt(gasPrice) * this._gasLimit;
+    const fee = parseInt(gasPrice) * this._redeemGasLimit;
     return {
       totalCost: fee,
       rewardForRedeem: 2 * fee
