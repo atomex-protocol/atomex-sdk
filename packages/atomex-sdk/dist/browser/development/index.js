@@ -471,6 +471,13 @@ import Web3 from "web3";
 
 // src/ethereum/utils/index.ts
 import { ec as EC } from "elliptic";
+
+// src/ethereum/utils/guards.ts
+var isEthereumCurrency = (currency) => {
+  return currency.blockchain === "ethereum";
+};
+
+// src/ethereum/utils/index.ts
 var secp256k1Curve = null;
 var getSecp256k1Curve = () => {
   if (!secp256k1Curve)
@@ -573,6 +580,262 @@ var Web3BlockchainToolkitProvider = class {
   }
 };
 
+// src/evm/balancesProviders/web3BalancesProvider.ts
+import BigNumber2 from "bignumber.js";
+
+// src/evm/abi/erc20abi.ts
+var erc20Abi = [
+  {
+    constant: true,
+    inputs: [],
+    name: "name",
+    outputs: [
+      {
+        name: "",
+        type: "string"
+      }
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    constant: false,
+    inputs: [
+      {
+        name: "_spender",
+        type: "address"
+      },
+      {
+        name: "_value",
+        type: "uint256"
+      }
+    ],
+    name: "approve",
+    outputs: [
+      {
+        name: "",
+        type: "bool"
+      }
+    ],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "totalSupply",
+    outputs: [
+      {
+        name: "",
+        type: "uint256"
+      }
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    constant: false,
+    inputs: [
+      {
+        name: "_from",
+        type: "address"
+      },
+      {
+        name: "_to",
+        type: "address"
+      },
+      {
+        name: "_value",
+        type: "uint256"
+      }
+    ],
+    name: "transferFrom",
+    outputs: [
+      {
+        name: "",
+        type: "bool"
+      }
+    ],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "decimals",
+    outputs: [
+      {
+        name: "",
+        type: "uint8"
+      }
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    constant: true,
+    inputs: [
+      {
+        name: "_owner",
+        type: "address"
+      }
+    ],
+    name: "balanceOf",
+    outputs: [
+      {
+        name: "balance",
+        type: "uint256"
+      }
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "symbol",
+    outputs: [
+      {
+        name: "",
+        type: "string"
+      }
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    constant: false,
+    inputs: [
+      {
+        name: "_to",
+        type: "address"
+      },
+      {
+        name: "_value",
+        type: "uint256"
+      }
+    ],
+    name: "transfer",
+    outputs: [
+      {
+        name: "",
+        type: "bool"
+      }
+    ],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    constant: true,
+    inputs: [
+      {
+        name: "_owner",
+        type: "address"
+      },
+      {
+        name: "_spender",
+        type: "address"
+      }
+    ],
+    name: "allowance",
+    outputs: [
+      {
+        name: "",
+        type: "uint256"
+      }
+    ],
+    payable: false,
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    payable: true,
+    stateMutability: "payable",
+    type: "fallback"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        name: "owner",
+        type: "address"
+      },
+      {
+        indexed: true,
+        name: "spender",
+        type: "address"
+      },
+      {
+        indexed: false,
+        name: "value",
+        type: "uint256"
+      }
+    ],
+    name: "Approval",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        name: "from",
+        type: "address"
+      },
+      {
+        indexed: true,
+        name: "to",
+        type: "address"
+      },
+      {
+        indexed: false,
+        name: "value",
+        type: "uint256"
+      }
+    ],
+    name: "Transfer",
+    type: "event"
+  }
+];
+
+// src/evm/balancesProviders/web3BalancesProvider.ts
+var Web3BalancesProvider = class {
+  constructor(blockchainProvider) {
+    this.blockchainProvider = blockchainProvider;
+  }
+  async getBalance(address, currency) {
+    if (!isEthereumCurrency(currency))
+      throw new Error("Not ethereum blockchain currency provided");
+    const toolkit = await this.blockchainProvider.getReadonlyToolkit("web3");
+    if (!toolkit)
+      throw new Error("Readonly web3 toolkit not found");
+    switch (currency.type) {
+      case "native":
+        return await this.getNativeTokenBalance(address, currency, toolkit);
+      case "erc-20":
+        return await this.getTokenBalance(address, currency, toolkit);
+    }
+  }
+  async getNativeTokenBalance(address, currency, toolkit) {
+    const balance = await toolkit.eth.getBalance(address);
+    return numberToTokensAmount(new BigNumber2(balance), currency.decimals);
+  }
+  async getTokenBalance(address, currency, toolkit) {
+    const contract = new toolkit.eth.Contract(erc20Abi, currency.contractAddress);
+    const balance = await contract.methods.balanceOf(address).call();
+    return numberToTokensAmount(new BigNumber2(balance), currency.decimals);
+  }
+};
+
 // src/ethereum/atomexProtocol/ethereumWeb3AtomexProtocolV1.ts
 var EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
   constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
@@ -630,13 +893,6 @@ var ERC20EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
     throw new Error("Method not implemented.");
   }
   getEstimatedRefundFees(_params) {
-    throw new Error("Method not implemented.");
-  }
-};
-
-// src/ethereum/balancesProviders/ethereumBalancesProvider.ts
-var EthereumBalancesProvider = class {
-  getBalance(_address, _currency) {
     throw new Error("Method not implemented.");
   }
 };
@@ -1029,9 +1285,9 @@ var createCurrencyOptions = (atomexContext, currencies, atomexProtocolOptions) =
 };
 var createDefaultEthereumBlockchainOptions = (atomexContext) => {
   const blockchain = "ethereum";
-  const mainnetRpcUrl = "https://mainnet.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/";
-  const testNetRpcUrl = "https://goerli.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/";
-  const balancesProvider = new EthereumBalancesProvider();
+  const mainnetRpcUrl = "https://mainnet.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf";
+  const testNetRpcUrl = "https://goerli.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf";
+  const balancesProvider = new Web3BalancesProvider(atomexContext.providers.blockchainProvider);
   const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
   const ethereumOptions = atomexContext.atomexNetwork === "mainnet" ? {
     rpcUrl: mainnetRpcUrl,
@@ -1058,25 +1314,25 @@ __export(symbolsHelper_exports, {
   findExchangeSymbolAndSide: () => findExchangeSymbolAndSide,
   getQuoteBaseCurrenciesBySymbol: () => getQuoteBaseCurrenciesBySymbol
 });
-import BigNumber2 from "bignumber.js";
+import BigNumber3 from "bignumber.js";
 var getQuoteBaseCurrenciesBySymbol = (symbol) => {
   const [quoteCurrency = "", baseCurrency = ""] = symbol.split("/");
   return [quoteCurrency, baseCurrency];
 };
 var convertSymbolToFromToCurrenciesPair = (symbol, side, currencyAmount, quoteCurrencyPrice, isQuoteCurrencyAmount = true) => {
-  const preparedQuoteCurrencyPrice = converters_exports.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber2.ROUND_FLOOR);
+  const preparedQuoteCurrencyPrice = converters_exports.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber3.ROUND_FLOOR);
   const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
   const isBuySide = side === "Buy";
   let preparedQuoteCurrencyAmount;
   let preparedBaseCurrencyAmount;
   if (isQuoteCurrencyAmount) {
-    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber2.ROUND_FLOOR);
-    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, isBuySide ? BigNumber2.ROUND_CEIL : BigNumber2.ROUND_FLOOR);
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber3.ROUND_FLOOR);
+    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, isBuySide ? BigNumber3.ROUND_CEIL : BigNumber3.ROUND_FLOOR);
   } else {
-    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber2.ROUND_FLOOR);
-    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice), symbol.decimals.quoteCurrency, isBuySide ? BigNumber2.ROUND_FLOOR : BigNumber2.ROUND_CEIL);
+    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber3.ROUND_FLOOR);
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice), symbol.decimals.quoteCurrency, isBuySide ? BigNumber3.ROUND_FLOOR : BigNumber3.ROUND_CEIL);
   }
-  const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(new BigNumber2(1).div(preparedQuoteCurrencyPrice), symbol.decimals.price, BigNumber2.ROUND_FLOOR);
+  const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(new BigNumber3(1).div(preparedQuoteCurrencyPrice), symbol.decimals.price, BigNumber3.ROUND_FLOOR);
   const quoteCurrency = {
     currencyId: quoteCurrencyId,
     amount: preparedQuoteCurrencyAmount,
@@ -2186,7 +2442,7 @@ var createDefaultTezosBlockchainOptions = (atomexContext) => {
 };
 
 // src/clients/helpers.ts
-import BigNumber3 from "bignumber.js";
+import BigNumber4 from "bignumber.js";
 var isOrderPreview = (orderBody) => {
   return typeof orderBody.symbol === "string" && typeof orderBody.side === "string" && !!orderBody.from && !!orderBody.to;
 };
@@ -2197,8 +2453,8 @@ var mapQuoteDtosToQuotes = (quoteDtos) => {
 var mapQuoteDtoToQuote = (quoteDto) => {
   const [quoteCurrency, baseCurrency] = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(quoteDto.symbol);
   const quote = {
-    ask: new BigNumber3(quoteDto.ask),
-    bid: new BigNumber3(quoteDto.bid),
+    ask: new BigNumber4(quoteDto.ask),
+    bid: new BigNumber4(quoteDto.bid),
     symbol: quoteDto.symbol,
     timeStamp: new Date(quoteDto.timeStamp),
     quoteCurrency,
@@ -2217,7 +2473,7 @@ var mapSymbolDtoToSymbol = (symbolDto, currenciesProvider, defaultDecimals = 9) 
     name: symbolDto.name,
     baseCurrency,
     quoteCurrency,
-    minimumQty: new BigNumber3(symbolDto.minimumQty),
+    minimumQty: new BigNumber4(symbolDto.minimumQty),
     decimals: {
       baseCurrency: preparedBaseCurrencyDecimals,
       quoteCurrency: preparedQuoteCurrencyDecimals,
@@ -2242,7 +2498,7 @@ var mapOrderBookDtoToOrderBook = (orderBookDto) => {
 var mapOrderBookEntryDtoToOrderBookEntry = (entryDto) => {
   const entry = {
     side: entryDto.side,
-    price: new BigNumber3(entryDto.price),
+    price: new BigNumber4(entryDto.price),
     qtyProfile: entryDto.qtyProfile
   };
   return entry;
@@ -2277,7 +2533,7 @@ var mapOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
     clientOrderId: orderDto.clientOrderId,
     side: orderDto.side,
     symbol: orderDto.symbol,
-    leaveQty: new BigNumber3(orderDto.leaveQty),
+    leaveQty: new BigNumber4(orderDto.leaveQty),
     timeStamp: new Date(orderDto.timeStamp),
     type: orderDto.type,
     status: orderDto.status,
@@ -2311,8 +2567,8 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
     from,
     to,
     trade: {
-      qty: new BigNumber3(swapDto.qty),
-      price: new BigNumber3(swapDto.price),
+      qty: new BigNumber4(swapDto.qty),
+      price: new BigNumber4(swapDto.price),
       side: swapDto.side,
       symbol: swapDto.symbol
     },
@@ -2321,7 +2577,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
       status: swapDto.counterParty.status,
       transactions: mapTransactionDtosToTransactions(swapDto.counterParty.transactions),
       requisites: __spreadProps(__spreadValues({}, swapDto.counterParty.requisites), {
-        rewardForRedeem: new BigNumber3(swapDto.counterParty.requisites.rewardForRedeem)
+        rewardForRedeem: new BigNumber4(swapDto.counterParty.requisites.rewardForRedeem)
       }),
       trades: mapTradeDtosToTrades(swapDto.counterParty.trades)
     },
@@ -2329,7 +2585,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
       status: swapDto.user.status,
       transactions: mapTransactionDtosToTransactions(swapDto.user.transactions),
       requisites: __spreadProps(__spreadValues({}, swapDto.user.requisites), {
-        rewardForRedeem: new BigNumber3(swapDto.user.requisites.rewardForRedeem)
+        rewardForRedeem: new BigNumber4(swapDto.user.requisites.rewardForRedeem)
       }),
       trades: mapTradeDtosToTrades(swapDto.user.trades)
     }
@@ -2339,8 +2595,8 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
 var mapTradeDtosToTrades = (tradeDtos) => {
   const trades = tradeDtos.map((tradeDto) => ({
     orderId: tradeDto.orderId,
-    price: new BigNumber3(tradeDto.price),
-    qty: new BigNumber3(tradeDto.qty)
+    price: new BigNumber4(tradeDto.price),
+    qty: new BigNumber4(tradeDto.qty)
   }));
   return trades;
 };
@@ -2357,7 +2613,7 @@ var mapWebSocketOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
     clientOrderId: orderDto.clientOrderId,
     side: orderDto.side,
     status: orderDto.status,
-    leaveQty: new BigNumber3(orderDto.leaveQty),
+    leaveQty: new BigNumber4(orderDto.leaveQty),
     swapIds: orderDto.swaps,
     symbol: orderDto.symbol,
     type: orderDto.type,
@@ -4616,7 +4872,7 @@ var Atomex2 = class {
 };
 
 // src/legacy/ethereum.ts
-import BigNumber4 from "bignumber.js";
+import BigNumber5 from "bignumber.js";
 import elliptic from "elliptic";
 import Web33 from "web3";
 
@@ -4735,14 +4991,14 @@ var EthereumHelpers = class extends Helpers {
       secretHash: params["_hashedSecret"].slice(2),
       receivingAddress: params["_participant"],
       refundTimestamp: parseInt(params["_refundTimestamp"]),
-      rewardForRedeem: new BigNumber4(this._web3.utils.toBN(params["_payoff"]).toString()),
-      netAmount: new BigNumber4(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
+      rewardForRedeem: new BigNumber5(this._web3.utils.toBN(params["_payoff"]).toString()),
+      netAmount: new BigNumber5(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
     };
   }
   async validateInitiateTransaction(_blockHeight, txId, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
     var _a;
-    amount = new BigNumber4(amount);
-    payoff = new BigNumber4(payoff);
+    amount = new BigNumber5(amount);
+    payoff = new BigNumber5(payoff);
     const netAmount = amount.minus(payoff);
     const transaction = await this.getTransaction(txId);
     try {
@@ -4856,7 +5112,7 @@ import {
   validateAddress,
   ValidationResult
 } from "@taquito/utils";
-import BigNumber5 from "bignumber.js";
+import BigNumber6 from "bignumber.js";
 var formatTimestamp = (timestamp) => {
   return new Date(timestamp * 1e3).toISOString().slice(0, -5) + "Z";
 };
@@ -4986,8 +5242,8 @@ var TezosHelpers = class extends Helpers {
       secretHash: initiateParams["settings"]["hashed_secret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["settings"]["refund_time"]),
-      netAmount: new BigNumber5(content.amount).minus(initiateParams["settings"]["payoff"]),
-      rewardForRedeem: new BigNumber5(initiateParams["settings"]["payoff"])
+      netAmount: new BigNumber6(content.amount).minus(initiateParams["settings"]["payoff"]),
+      rewardForRedeem: new BigNumber6(initiateParams["settings"]["payoff"])
     };
   }
   findContractCall(block, txID) {
@@ -5003,8 +5259,8 @@ var TezosHelpers = class extends Helpers {
     return contents;
   }
   async validateInitiateTransaction(blockHeight, txID, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
-    amount = new BigNumber5(amount);
-    payoff = new BigNumber5(payoff);
+    amount = new BigNumber6(amount);
+    payoff = new BigNumber6(payoff);
     const netAmount = amount.minus(payoff);
     const block = await this.getBlock(blockHeight);
     try {
@@ -5077,8 +5333,8 @@ var TezosHelpers = class extends Helpers {
       receivingAddress: "tz1Q2prWCrDGFDuGTe7axdt4z9e3QkCqdhmD",
       secretHash: "169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b",
       refundTimestamp: 2147483647,
-      rewardForRedeem: new BigNumber5(0),
-      netAmount: new BigNumber5(100)
+      rewardForRedeem: new BigNumber6(0),
+      netAmount: new BigNumber6(100)
     };
     const tx = this.buildInitiateTransaction(dummyTx);
     const header = await this._tezos.rpc.getBlockHeader();
@@ -5134,7 +5390,7 @@ var TezosHelpers = class extends Helpers {
 
 // src/legacy/fa12.ts
 import { TezosToolkit as TezosToolkit6 } from "@taquito/taquito";
-import BigNumber6 from "bignumber.js";
+import BigNumber7 from "bignumber.js";
 var FA12Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
@@ -5171,15 +5427,15 @@ var FA12Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: new BigNumber6(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
-      rewardForRedeem: new BigNumber6(initiateParams["payoffAmount"])
+      netAmount: new BigNumber7(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new BigNumber7(initiateParams["payoffAmount"])
     };
   }
 };
 
 // src/legacy/fa2.ts
 import { TezosToolkit as TezosToolkit7 } from "@taquito/taquito";
-import BigNumber7 from "bignumber.js";
+import BigNumber8 from "bignumber.js";
 var FA2Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
@@ -5207,8 +5463,8 @@ var FA2Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: new BigNumber7(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
-      rewardForRedeem: new BigNumber7(initiateParams["payoffAmount"])
+      netAmount: new BigNumber8(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new BigNumber8(initiateParams["payoffAmount"])
     };
   }
   getInitiateParams(entrypoint, params) {

@@ -1,1 +1,0 @@
-export { EthereumBalancesProvider } from './ethereumBalancesProvider';
