@@ -28,8 +28,8 @@ export class FA12TezosTaquitoAtomexProtocolV1 extends TaquitoAtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  getEstimatedInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
-    throw new Error('Method not implemented.');
+  getEstimatedInitiateFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
+    return super.getEstimatedInitiateFees(params);
   }
 
   redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction> {
@@ -40,15 +40,15 @@ export class FA12TezosTaquitoAtomexProtocolV1 extends TaquitoAtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  getEstimatedRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
-    throw new Error('Method not implemented.');
+  getEstimatedRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
+    return super.getEstimatedRedeemFees(params);
   }
 
   refund(_params: AtomexProtocolV1RefundParameters): Promise<Transaction> {
     throw new Error('Method not implemented.');
   }
 
-  getEstimatedRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
-    throw new Error('Method not implemented.');
+  getEstimatedRefundFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
+    return super.getEstimatedRefundFees(params);
   }
 }
