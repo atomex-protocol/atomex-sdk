@@ -6,7 +6,7 @@ import type { Currency } from '../../common/index';
 import type { ERC20EthereumCurrency, NativeEthereumCurrency } from '../../ethereum/models';
 import { isEthereumCurrency } from '../../ethereum/utils/index';
 import { numberToTokensAmount } from '../../utils/converters';
-import { erc20Abi } from '../models/index';
+import { erc20Abi } from '../abi/index';
 
 export class Web3BalancesProvider implements BalancesProvider {
   constructor(
