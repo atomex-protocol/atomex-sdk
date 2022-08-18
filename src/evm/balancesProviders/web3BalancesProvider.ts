@@ -1,4 +1,4 @@
-import type BigNumber from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 import type Web3 from 'web3';
 
 import type { AtomexBlockchainProvider, BalancesProvider } from '../../blockchain/index';
@@ -33,13 +33,13 @@ export class Web3BalancesProvider implements BalancesProvider {
   private async getNativeTokenBalance(address: string, currency: NativeEthereumCurrency, toolkit: Web3): Promise<BigNumber> {
     const balance = await toolkit.eth.getBalance(address);
 
-    return numberToTokensAmount(+balance, currency.decimals);
+    return numberToTokensAmount(new BigNumber(balance), currency.decimals);
   }
 
   private async getTokenBalance(address: string, currency: ERC20EthereumCurrency, toolkit: Web3): Promise<BigNumber> {
-    const contract = await new toolkit.eth.Contract(erc20Abi, currency.contractAddress);
+    const contract = new toolkit.eth.Contract(erc20Abi, currency.contractAddress);
     const balance = await contract.methods.balanceOf(address).call() as string;
 
-    return numberToTokensAmount(+balance, currency.decimals);
+    return numberToTokensAmount(new BigNumber(balance), currency.decimals);
   }
 }
