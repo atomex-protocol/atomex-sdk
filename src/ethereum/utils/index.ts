@@ -4,6 +4,8 @@ import { Buffer } from '../../native';
 import { converters } from '../../utils';
 import { uint8ArrayToHexString } from '../../utils/converters';
 
+export { isEthereumCurrency } from './guards';
+
 let secp256k1Curve: EC | null = null;
 const getSecp256k1Curve = () => {
   if (!secp256k1Curve)

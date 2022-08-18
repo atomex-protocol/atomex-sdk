@@ -1,7 +1,6 @@
 import type { AtomexBlockchainNetworkOptions, AtomexContext, AtomexCurrencyOptions } from '../../atomex/index';
-import { Web3BlockchainToolkitProvider } from '../../evm/index';
+import { Web3BlockchainToolkitProvider, Web3BalancesProvider } from '../../evm/index';
 import { ERC20EthereumWeb3AtomexProtocolV1, EthereumWeb3AtomexProtocolV1 } from '../atomexProtocol/index';
-import { EthereumBalancesProvider } from '../balancesProviders/index';
 import type { EthereumCurrency } from '../models';
 import { EthereumSwapTransactionsProvider } from '../swapTransactionsProviders/index';
 import { mainnetEthereumWeb3AtomexProtocolV1Options, testnetEthereumWeb3AtomexProtocolV1Options } from './atomexProtocol';
@@ -64,10 +63,10 @@ const createCurrencyOptions = (
 
 export const createDefaultEthereumBlockchainOptions = (atomexContext: AtomexContext): AtomexBlockchainNetworkOptions => {
   const blockchain = 'ethereum';
-  const mainnetRpcUrl = 'https://mainnet.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/';
-  const testNetRpcUrl = 'https://goerli.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf/';
+  const mainnetRpcUrl = 'https://mainnet.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf';
+  const testNetRpcUrl = 'https://goerli.infura.io/v3/df01d4ef450640a2a48d9af4c2078eaf';
 
-  const balancesProvider = new EthereumBalancesProvider();
+  const balancesProvider = new Web3BalancesProvider(atomexContext.providers.blockchainProvider);
   const swapTransactionsProvider = new EthereumSwapTransactionsProvider();
 
   const ethereumOptions: AtomexBlockchainNetworkOptions = atomexContext.atomexNetwork === 'mainnet'
