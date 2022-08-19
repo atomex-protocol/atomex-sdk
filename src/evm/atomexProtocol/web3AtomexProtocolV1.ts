@@ -4,7 +4,7 @@ import type Web3 from 'web3';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
-  BlockchainWallet, Transaction, WalletsManager
+  BlockchainWallet, FeesInfo, Transaction, WalletsManager
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
@@ -28,17 +28,17 @@ export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
 
   abstract initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
 
-  abstract getEstimatedInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber>;
+  abstract getInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
 
   abstract redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
 
   abstract getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<BigNumber>;
 
-  abstract getEstimatedRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber>;
+  abstract getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
 
   abstract refund(_params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
 
-  abstract getEstimatedRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber>;
+  abstract getRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
 
   protected async getReadonlyWeb3(): Promise<Web3> {
     const toolkit = await this.atomexBlockchainProvider.getReadonlyToolkit<Web3>('web3', this.blockchain);

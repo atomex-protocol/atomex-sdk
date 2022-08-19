@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 
 import type {
   AtomexBlockchainProvider,
-  AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
+  AtomexProtocolV1, FeesInfo, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
   BlockchainWallet, Transaction, WalletsManager
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
@@ -29,28 +29,31 @@ export abstract class TaquitoAtomexProtocolV1 implements AtomexProtocolV1 {
 
   abstract initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
 
-  getEstimatedInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
-    const fee = new BigNumber(this.atomexProtocolOptions.initiateOperation.fee).div(mutezInTez);
+  getInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+    const estimated = new BigNumber(this.atomexProtocolOptions.initiateOperation.fee).div(mutezInTez);
+    const result: FeesInfo = { estimated, max: estimated };
 
-    return Promise.resolve(fee);
+    return Promise.resolve(result);
   }
 
   abstract redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
 
   abstract getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<BigNumber>;
 
-  getEstimatedRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
-    const fee = new BigNumber(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
+  getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+    const estimated = new BigNumber(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
+    const result: FeesInfo = { estimated, max: estimated };
 
-    return Promise.resolve(fee);
+    return Promise.resolve(result);
   }
 
   abstract refund(_params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
 
-  getEstimatedRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
-    const fee = new BigNumber(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
+  getRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+    const estimated = new BigNumber(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
+    const result: FeesInfo = { estimated, max: estimated };
 
-    return Promise.resolve(fee);
+    return Promise.resolve(result);
   }
 
   protected async getReadonlyTezosToolkit(): Promise<TezosToolkit> {
