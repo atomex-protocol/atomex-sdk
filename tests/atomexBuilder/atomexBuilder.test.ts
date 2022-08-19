@@ -2,13 +2,12 @@ import type { FetchMock } from 'jest-fetch-mock';
 import WS from 'jest-websocket-mock';
 
 import { AtomexBuilder } from '../../src/atomexBuilder/atomexBuilder';
+import { config } from '../../src/atomexBuilder/atomexConfig';
 import type { ExchangeSymbol } from '../../src/exchange/index';
 import { createDefaultMainnetAtomex, createDefaultTestnetAtomex } from '../../src/index';
 
 describe('Atomex Builder', () => {
   const fetchMock = fetch as FetchMock;
-  const mainnetApiUrl = 'wss://ws.api.atomex.me';
-  const testnetApiUrl = 'wss://ws.api.test.atomex.me';
   const exchangeSymbols: readonly ExchangeSymbol[] = [];
 
   let mainnetMarketDataWebServer: WS;
@@ -24,8 +23,8 @@ describe('Atomex Builder', () => {
   beforeEach(() => {
     fetchMock.mockOnce(JSON.stringify(exchangeSymbols));
 
-    mainnetMarketDataWebServer = createMarketDataWebServer(mainnetApiUrl);
-    testnetMarketDataWebServer = createMarketDataWebServer(testnetApiUrl);
+    mainnetMarketDataWebServer = createMarketDataWebServer(config.mainnet.exchange.webSocketApiBaseUrl);
+    testnetMarketDataWebServer = createMarketDataWebServer(config.testnet.exchange.webSocketApiBaseUrl);
   });
 
   afterEach(() => {
