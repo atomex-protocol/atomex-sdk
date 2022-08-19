@@ -9,10 +9,10 @@ export declare class ERC20EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtoco
     constructor(atomexNetwork: AtomexNetwork, atomexProtocolOptions: DeepReadonly<ERC20EthereumWeb3AtomexProtocolV1Options>, atomexBlockchainProvider: AtomexBlockchainProvider, walletsManager: WalletsManager);
     get currencyId(): string;
     initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
-    getInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
+    getInitiateFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
     redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
     getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<BigNumber>;
-    getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
+    getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
     refund(_params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
-    getRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
+    getRefundFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
 }
