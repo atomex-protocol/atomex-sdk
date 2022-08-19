@@ -5,8 +5,8 @@ import type { OrderType } from '../../exchange/index';
 
 export interface SwapPreview {
   readonly type: OrderType;
-  readonly from: SwapPreviewData;
-  readonly to: SwapPreviewData;
+  readonly from: SwapPreviewDirectionData;
+  readonly to: SwapPreviewDirectionData;
   readonly symbol: string;
   readonly side: Side;
   readonly fees: {
@@ -17,7 +17,7 @@ export interface SwapPreview {
   readonly warnings: readonly SwapPreviewWarning[];
 }
 
-interface SwapPreviewData {
+interface SwapPreviewDirectionData {
   readonly address?: string;
   readonly currencyId: Currency['id'];
   readonly actual: SwapPreviewCurrencyData;

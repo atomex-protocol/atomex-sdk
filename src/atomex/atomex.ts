@@ -83,13 +83,12 @@ export class Atomex implements AtomexService {
       throw new Error('Swap tracking is not implemented yet');
 
     const swapPreview = newSwapRequestOrSwapId.swapPreview;
-    if (!swapPreview.errors.length)
+    if (swapPreview.errors.length)
       throw new Error('Swap preview has errors');
 
     const fromAddress = swapPreview.to.address;
     if (!fromAddress)
-      throw new Error('Swap preview has not the "from" address');
-
+      throw new Error('Swap preview doesn\'t have the "from" address');
 
     const quoteCurrencyId = symbolsHelper.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol)[0];
     const directionName: 'from' | 'to' = quoteCurrencyId === swapPreview.from.currencyId ? 'from' : 'to';

@@ -23,9 +23,9 @@ export interface NewOrderRequest {
 }
 
 export interface FilledNewOrderRequest {
-  clientOrderId: string;
-  orderBody: OrderBody | OrderPreview;
-  requisites: Mutable<SwapParticipantRequisites>;
-  proofsOfFunds: ProofOfFunds[];
+  readonly clientOrderId: string;
+  readonly orderBody: OrderBody | OrderPreview;
+  readonly requisites: Mutable<SwapParticipantRequisites>;
+  readonly proofsOfFunds: ProofOfFunds[];
 }
 
