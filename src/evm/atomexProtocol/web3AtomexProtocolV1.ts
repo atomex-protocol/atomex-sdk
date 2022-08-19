@@ -1,6 +1,5 @@
 import BigNumber from 'bignumber.js';
 import type Web3 from 'web3';
-import type { Unit } from 'web3-utils';
 
 import type {
   AtomexBlockchainProvider,
