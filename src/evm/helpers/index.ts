@@ -1,1 +1,1 @@
-export * as web3Helper from './web3Helper';
+export { Web3Helper } from './web3Helper';
