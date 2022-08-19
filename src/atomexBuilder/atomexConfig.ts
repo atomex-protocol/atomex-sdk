@@ -25,7 +25,7 @@ const atomexMainnetConfig: AtomexConfigNetworkSection = {
   },
   exchange: {
     apiBaseUrl: atomexApiBaseUrl,
-    webSocketApiBaseUrl: 'wss://ws.api.atomex.me'
+    webSocketApiBaseUrl: 'wss://api.atomex.me'
   }
 };
 
