@@ -3,7 +3,7 @@ import type BigNumber from 'bignumber.js';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
-  Transaction, WalletsManager
+  FeesInfo, Transaction, WalletsManager
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
@@ -24,7 +24,7 @@ export class EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  async getEstimatedInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
+  async getInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
     throw new Error('Method not implemented.');
   }
 
@@ -36,7 +36,7 @@ export class EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  getEstimatedRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
+  getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
     throw new Error('Method not implemented.');
   }
 
@@ -44,7 +44,7 @@ export class EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  getEstimatedRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<BigNumber> {
+  getRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
     throw new Error('Method not implemented.');
   }
 }
