@@ -825,7 +825,7 @@ var EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
   initiate(_params) {
     throw new Error("Method not implemented.");
   }
-  async getEstimatedInitiateFees(_params) {
+  async getInitiateFees(_params) {
     throw new Error("Method not implemented.");
   }
   redeem(_params) {
@@ -834,13 +834,13 @@ var EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
   getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedRedeemFees(_params) {
+  getRedeemFees(_params) {
     throw new Error("Method not implemented.");
   }
   refund(_params) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedRefundFees(_params) {
+  getRefundFees(_params) {
     throw new Error("Method not implemented.");
   }
 };
@@ -857,7 +857,7 @@ var ERC20EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
   initiate(_params) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedInitiateFees(_params) {
+  getInitiateFees(_params) {
     throw new Error("Method not implemented.");
   }
   redeem(_params) {
@@ -866,13 +866,13 @@ var ERC20EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
   getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedRedeemFees(_params) {
+  getRedeemFees(_params) {
     throw new Error("Method not implemented.");
   }
   refund(_params) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedRefundFees(_params) {
+  getRefundFees(_params) {
     throw new Error("Method not implemented.");
   }
 };
@@ -1740,6 +1740,7 @@ import { TezosToolkit } from "@taquito/taquito";
 
 // src/tezos/utils/index.ts
 import { b58cdecode as b58cdecode2, prefix as prefix2, validatePkAndExtractPrefix } from "@taquito/utils";
+import BigNumber4 from "bignumber.js";
 
 // src/tezos/utils/guards.ts
 var isTezosCurrency = (currency) => {
@@ -1789,6 +1790,7 @@ var decodeSignature = (signature) => {
 };
 
 // src/tezos/utils/index.ts
+var mutezInTez = new BigNumber4(1e6);
 var decodePublicKey = (publicKey) => {
   const keyPrefix = validatePkAndExtractPrefix(publicKey);
   const decodedKeyBytes = b58cdecode2(publicKey, prefix2[keyPrefix]);
@@ -1974,6 +1976,7 @@ var TaquitoBlockchainWallet = class {
 };
 
 // src/tezos/atomexProtocol/taquitoAtomexProtocolV1.ts
+import BigNumber5 from "bignumber.js";
 var TaquitoAtomexProtocolV1 = class {
   constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
     this.blockchain = blockchain;
@@ -1985,6 +1988,21 @@ var TaquitoAtomexProtocolV1 = class {
   version = 1;
   get currencyId() {
     return this.atomexProtocolOptions.currencyId;
+  }
+  getInitiateFees(_params) {
+    const estimated = new BigNumber5(this.atomexProtocolOptions.initiateOperation.fee).div(mutezInTez);
+    const result = { estimated, max: estimated };
+    return Promise.resolve(result);
+  }
+  getRedeemFees(_params) {
+    const estimated = new BigNumber5(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
+    const result = { estimated, max: estimated };
+    return Promise.resolve(result);
+  }
+  getRefundFees(_params) {
+    const estimated = new BigNumber5(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
+    const result = { estimated, max: estimated };
+    return Promise.resolve(result);
   }
   async getReadonlyTezosToolkit() {
     const toolkit = await this.atomexBlockchainProvider.getReadonlyToolkit("taquito", this.blockchain);
@@ -2012,8 +2030,8 @@ var TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   initiate(_params) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedInitiateFees(_params) {
-    throw new Error("Method not implemented.");
+  getInitiateFees(params) {
+    return super.getInitiateFees(params);
   }
   redeem(_params) {
     throw new Error("Method not implemented.");
@@ -2021,14 +2039,14 @@ var TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedRedeemFees(_params) {
-    throw new Error("Method not implemented.");
+  getRedeemFees(params) {
+    return super.getRedeemFees(params);
   }
   refund(_params) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedRefundFees(_params) {
-    throw new Error("Method not implemented.");
+  getRefundFees(params) {
+    return super.getRefundFees(params);
   }
 };
 
@@ -2044,8 +2062,8 @@ var FA12TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   initiate(_params) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedInitiateFees(_params) {
-    throw new Error("Method not implemented.");
+  getInitiateFees(params) {
+    return super.getInitiateFees(params);
   }
   redeem(_params) {
     throw new Error("Method not implemented.");
@@ -2053,14 +2071,14 @@ var FA12TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedRedeemFees(_params) {
-    throw new Error("Method not implemented.");
+  getRedeemFees(params) {
+    return super.getRedeemFees(params);
   }
   refund(_params) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedRefundFees(_params) {
-    throw new Error("Method not implemented.");
+  getRefundFees(params) {
+    return super.getRefundFees(params);
   }
 };
 
@@ -2076,8 +2094,8 @@ var FA2TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   initiate(_params) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedInitiateFees(_params) {
-    throw new Error("Method not implemented.");
+  getInitiateFees(params) {
+    return super.getInitiateFees(params);
   }
   redeem(_params) {
     throw new Error("Method not implemented.");
@@ -2085,14 +2103,14 @@ var FA2TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedRedeemFees(_params) {
-    throw new Error("Method not implemented.");
+  getRedeemFees(params) {
+    return super.getRedeemFees(params);
   }
   refund(_params) {
     throw new Error("Method not implemented.");
   }
-  getEstimatedRefundFees(_params) {
-    throw new Error("Method not implemented.");
+  getRefundFees(params) {
+    return super.getRefundFees(params);
   }
 };
 
@@ -2419,7 +2437,7 @@ var createDefaultTezosBlockchainOptions = (atomexContext) => {
 };
 
 // src/clients/helpers.ts
-import BigNumber4 from "bignumber.js";
+import BigNumber6 from "bignumber.js";
 var isOrderPreview = (orderBody) => {
   return typeof orderBody.symbol === "string" && typeof orderBody.side === "string" && !!orderBody.from && !!orderBody.to;
 };
@@ -2430,8 +2448,8 @@ var mapQuoteDtosToQuotes = (quoteDtos) => {
 var mapQuoteDtoToQuote = (quoteDto) => {
   const [quoteCurrency, baseCurrency] = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(quoteDto.symbol);
   const quote = {
-    ask: new BigNumber4(quoteDto.ask),
-    bid: new BigNumber4(quoteDto.bid),
+    ask: new BigNumber6(quoteDto.ask),
+    bid: new BigNumber6(quoteDto.bid),
     symbol: quoteDto.symbol,
     timeStamp: new Date(quoteDto.timeStamp),
     quoteCurrency,
@@ -2450,7 +2468,7 @@ var mapSymbolDtoToSymbol = (symbolDto, currenciesProvider, defaultDecimals = 9) 
     name: symbolDto.name,
     baseCurrency,
     quoteCurrency,
-    minimumQty: new BigNumber4(symbolDto.minimumQty),
+    minimumQty: new BigNumber6(symbolDto.minimumQty),
     decimals: {
       baseCurrency: preparedBaseCurrencyDecimals,
       quoteCurrency: preparedQuoteCurrencyDecimals,
@@ -2475,7 +2493,7 @@ var mapOrderBookDtoToOrderBook = (orderBookDto) => {
 var mapOrderBookEntryDtoToOrderBookEntry = (entryDto) => {
   const entry = {
     side: entryDto.side,
-    price: new BigNumber4(entryDto.price),
+    price: new BigNumber6(entryDto.price),
     qtyProfile: entryDto.qtyProfile
   };
   return entry;
@@ -2511,7 +2529,7 @@ var mapOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
     clientOrderId: orderDto.clientOrderId,
     side: orderDto.side,
     symbol: orderDto.symbol,
-    leaveQty: new BigNumber4(orderDto.leaveQty),
+    leaveQty: new BigNumber6(orderDto.leaveQty),
     timeStamp: new Date(orderDto.timeStamp),
     type: orderDto.type,
     status: orderDto.status,
@@ -2545,8 +2563,8 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
     from,
     to,
     trade: {
-      qty: new BigNumber4(swapDto.qty),
-      price: new BigNumber4(swapDto.price),
+      qty: new BigNumber6(swapDto.qty),
+      price: new BigNumber6(swapDto.price),
       side: swapDto.side,
       symbol: swapDto.symbol
     },
@@ -2556,7 +2574,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
       transactions: mapTransactionDtosToTransactions(swapDto.counterParty.transactions),
       requisites: {
         ...swapDto.counterParty.requisites,
-        rewardForRedeem: new BigNumber4(swapDto.counterParty.requisites.rewardForRedeem)
+        rewardForRedeem: new BigNumber6(swapDto.counterParty.requisites.rewardForRedeem)
       },
       trades: mapTradeDtosToTrades(swapDto.counterParty.trades)
     },
@@ -2565,7 +2583,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
       transactions: mapTransactionDtosToTransactions(swapDto.user.transactions),
       requisites: {
         ...swapDto.user.requisites,
-        rewardForRedeem: new BigNumber4(swapDto.user.requisites.rewardForRedeem)
+        rewardForRedeem: new BigNumber6(swapDto.user.requisites.rewardForRedeem)
       },
       trades: mapTradeDtosToTrades(swapDto.user.trades)
     }
@@ -2575,8 +2593,8 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
 var mapTradeDtosToTrades = (tradeDtos) => {
   const trades = tradeDtos.map((tradeDto) => ({
     orderId: tradeDto.orderId,
-    price: new BigNumber4(tradeDto.price),
-    qty: new BigNumber4(tradeDto.qty)
+    price: new BigNumber6(tradeDto.price),
+    qty: new BigNumber6(tradeDto.qty)
   }));
   return trades;
 };
@@ -2593,7 +2611,7 @@ var mapWebSocketOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
     clientOrderId: orderDto.clientOrderId,
     side: orderDto.side,
     status: orderDto.status,
-    leaveQty: new BigNumber4(orderDto.leaveQty),
+    leaveQty: new BigNumber6(orderDto.leaveQty),
     swapIds: orderDto.swaps,
     symbol: orderDto.symbol,
     type: orderDto.type,
@@ -4854,7 +4872,7 @@ var Atomex2 = class {
 };
 
 // src/legacy/ethereum.ts
-import BigNumber5 from "bignumber.js";
+import BigNumber7 from "bignumber.js";
 import elliptic from "elliptic";
 import Web33 from "web3";
 
@@ -4973,14 +4991,14 @@ var EthereumHelpers = class extends Helpers {
       secretHash: params["_hashedSecret"].slice(2),
       receivingAddress: params["_participant"],
       refundTimestamp: parseInt(params["_refundTimestamp"]),
-      rewardForRedeem: new BigNumber5(this._web3.utils.toBN(params["_payoff"]).toString()),
-      netAmount: new BigNumber5(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
+      rewardForRedeem: new BigNumber7(this._web3.utils.toBN(params["_payoff"]).toString()),
+      netAmount: new BigNumber7(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
     };
   }
   async validateInitiateTransaction(_blockHeight, txId, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
     var _a;
-    amount = new BigNumber5(amount);
-    payoff = new BigNumber5(payoff);
+    amount = new BigNumber7(amount);
+    payoff = new BigNumber7(payoff);
     const netAmount = amount.minus(payoff);
     const transaction = await this.getTransaction(txId);
     try {
@@ -5094,7 +5112,7 @@ import {
   validateAddress,
   ValidationResult
 } from "@taquito/utils";
-import BigNumber6 from "bignumber.js";
+import BigNumber8 from "bignumber.js";
 var formatTimestamp = (timestamp) => {
   return new Date(timestamp * 1e3).toISOString().slice(0, -5) + "Z";
 };
@@ -5224,8 +5242,8 @@ var TezosHelpers = class extends Helpers {
       secretHash: initiateParams["settings"]["hashed_secret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["settings"]["refund_time"]),
-      netAmount: new BigNumber6(content.amount).minus(initiateParams["settings"]["payoff"]),
-      rewardForRedeem: new BigNumber6(initiateParams["settings"]["payoff"])
+      netAmount: new BigNumber8(content.amount).minus(initiateParams["settings"]["payoff"]),
+      rewardForRedeem: new BigNumber8(initiateParams["settings"]["payoff"])
     };
   }
   findContractCall(block, txID) {
@@ -5241,8 +5259,8 @@ var TezosHelpers = class extends Helpers {
     return contents;
   }
   async validateInitiateTransaction(blockHeight, txID, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
-    amount = new BigNumber6(amount);
-    payoff = new BigNumber6(payoff);
+    amount = new BigNumber8(amount);
+    payoff = new BigNumber8(payoff);
     const netAmount = amount.minus(payoff);
     const block = await this.getBlock(blockHeight);
     try {
@@ -5315,8 +5333,8 @@ var TezosHelpers = class extends Helpers {
       receivingAddress: "tz1Q2prWCrDGFDuGTe7axdt4z9e3QkCqdhmD",
       secretHash: "169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b",
       refundTimestamp: 2147483647,
-      rewardForRedeem: new BigNumber6(0),
-      netAmount: new BigNumber6(100)
+      rewardForRedeem: new BigNumber8(0),
+      netAmount: new BigNumber8(100)
     };
     const tx = this.buildInitiateTransaction(dummyTx);
     const header = await this._tezos.rpc.getBlockHeader();
@@ -5372,7 +5390,7 @@ var TezosHelpers = class extends Helpers {
 
 // src/legacy/fa12.ts
 import { TezosToolkit as TezosToolkit6 } from "@taquito/taquito";
-import BigNumber7 from "bignumber.js";
+import BigNumber9 from "bignumber.js";
 var FA12Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
@@ -5409,15 +5427,15 @@ var FA12Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: new BigNumber7(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
-      rewardForRedeem: new BigNumber7(initiateParams["payoffAmount"])
+      netAmount: new BigNumber9(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new BigNumber9(initiateParams["payoffAmount"])
     };
   }
 };
 
 // src/legacy/fa2.ts
 import { TezosToolkit as TezosToolkit7 } from "@taquito/taquito";
-import BigNumber8 from "bignumber.js";
+import BigNumber10 from "bignumber.js";
 var FA2Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
@@ -5445,8 +5463,8 @@ var FA2Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: new BigNumber8(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
-      rewardForRedeem: new BigNumber8(initiateParams["payoffAmount"])
+      netAmount: new BigNumber10(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new BigNumber10(initiateParams["payoffAmount"])
     };
   }
   getInitiateParams(entrypoint, params) {
