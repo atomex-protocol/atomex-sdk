@@ -8,7 +8,7 @@ import type {
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
-import { Web3Helper } from '../helpers';
+import { web3Helper } from '../helpers';
 import type { Web3AtomexProtocolV1Options } from '../models/index';
 
 export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
@@ -31,14 +31,14 @@ export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
   abstract initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
 
   async getInitiateFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
-    const web3Helper = await this.createWeb3Helper();
-    const gasPriceInWei = await web3Helper.getGasPriceInWei();
+    const toolkit = await this.getReadonlyWeb3();
+    const gasPriceInWei = await web3Helper.getGasPriceInWei(toolkit);
     const gasLimitOptions = this.atomexProtocolOptions.initiateOperation.gasLimit;
     const hasRewardForRedeem = params.rewardForRedeem?.isGreaterThan(0);
     const gasLimit = new BigNumber(hasRewardForRedeem ? gasLimitOptions.withReward : gasLimitOptions.withoutReward);
 
     const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolV1.maxNetworkFeeMultiplier);
-    const estimated = web3Helper.convertFromWei(estimatedWei, 'ether');
+    const estimated = web3Helper.convertFromWei(toolkit, estimatedWei, 'ether');
     const result: FeesInfo = { estimated, max: estimated };
 
     return Promise.resolve(result);
@@ -49,12 +49,12 @@ export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
   abstract getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<BigNumber>;
 
   async getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
-    const web3Helper = await this.createWeb3Helper();
-    const gasPriceInWei = await web3Helper.getGasPriceInWei();
+    const toolkit = await this.getReadonlyWeb3();
+    const gasPriceInWei = await web3Helper.getGasPriceInWei(toolkit);
     const gasLimit = this.atomexProtocolOptions.redeemOperation.gasLimit;
 
     const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolV1.maxNetworkFeeMultiplier);
-    const estimated = web3Helper.convertFromWei(estimatedWei, 'ether');
+    const estimated = web3Helper.convertFromWei(toolkit, estimatedWei, 'ether');
     const result: FeesInfo = { estimated, max: estimated };
 
     return Promise.resolve(result);
@@ -63,21 +63,15 @@ export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
   abstract refund(_params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
 
   async getRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
-    const web3Helper = await this.createWeb3Helper();
-    const gasPriceInWei = await web3Helper.getGasPriceInWei();
+    const toolkit = await this.getReadonlyWeb3();
+    const gasPriceInWei = await web3Helper.getGasPriceInWei(toolkit);
     const gasLimit = this.atomexProtocolOptions.refundOperation.gasLimit;
 
     const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolV1.maxNetworkFeeMultiplier);
-    const estimated = web3Helper.convertFromWei(estimatedWei, 'ether');
+    const estimated = web3Helper.convertFromWei(toolkit, estimatedWei, 'ether');
     const result: FeesInfo = { estimated, max: estimated };
 
     return Promise.resolve(result);
-  }
-
-  protected async createWeb3Helper(): Promise<Web3Helper> {
-    const toolkit = await this.getReadonlyWeb3();
-
-    return new Web3Helper(toolkit);
   }
 
   protected async getReadonlyWeb3(): Promise<Web3> {

@@ -2,21 +2,15 @@ import BigNumber from 'bignumber.js';
 import type Web3 from 'web3';
 import type { Unit } from 'web3-utils';
 
-export class Web3Helper {
-  constructor(
-    private readonly toolkit: Web3
-  ) { }
+export const getGasPriceInWei = async (toolkit: Web3): Promise<BigNumber> => {
+  const gasPrice = await toolkit.eth.getGasPrice();
 
-  async getGasPriceInWei(): Promise<BigNumber> {
-    const gasPrice = await this.toolkit.eth.getGasPrice();
+  return new BigNumber(gasPrice);
+};
 
-    return new BigNumber(gasPrice);
-  }
+export const convertFromWei = (toolkit: Web3, value: BigNumber | string, unit: Unit): BigNumber => {
+  const stringValue = typeof value === 'string' ? value : value.toString(10);
+  const result = toolkit.utils.fromWei(stringValue, unit);
 
-  convertFromWei(value: BigNumber | string, unit: Unit): BigNumber {
-    const stringValue = typeof value === 'string' ? value : value.toString(10);
-    const result = this.toolkit.utils.fromWei(stringValue, unit);
-
-    return new BigNumber(result);
-  }
-}
+  return new BigNumber(result);
+};
