@@ -14,7 +14,7 @@ export class Web3Helper {
   }
 
   convertFromWei(value: BigNumber | string, unit: Unit): BigNumber {
-    const stringValue = typeof value === 'string' ? value : value.toString();
+    const stringValue = typeof value === 'string' ? value : value.toString(10);
     const result = this.toolkit.utils.fromWei(stringValue, unit);
 
     return new BigNumber(result);
