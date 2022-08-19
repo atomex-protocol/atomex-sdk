@@ -28,8 +28,8 @@ export class ERC20EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  getInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
-    throw new Error('Method not implemented.');
+  getInitiateFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+    return super.getInitiateFees(params);
   }
 
   redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction> {
@@ -40,15 +40,15 @@ export class ERC20EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
-    throw new Error('Method not implemented.');
+  getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+    return super.getRedeemFees(params);
   }
 
   refund(_params: AtomexProtocolV1RefundParameters): Promise<Transaction> {
     throw new Error('Method not implemented.');
   }
 
-  getRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
-    throw new Error('Method not implemented.');
+  getRefundFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+    return super.getRefundFees(params);
   }
 }

@@ -1,5 +1,6 @@
-import type BigNumber from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 import type Web3 from 'web3';
+import type { Unit } from 'web3-utils';
 
 import type {
   AtomexBlockchainProvider,
@@ -8,9 +9,12 @@ import type {
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
+import { web3Helper } from '../helpers';
 import type { Web3AtomexProtocolV1Options } from '../models/index';
+import { gweiInEth } from '../utils';
 
 export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
+  protected static maxNetworkFeeMultiplier = new BigNumber(1.2);
   readonly version = 1;
 
   constructor(
@@ -28,17 +32,43 @@ export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
 
   abstract initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
 
-  abstract getInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
+  async getInitiateFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+    const gasPrice = await this.getGasPriceInGwei();
+    const gasLimitOptions = this.atomexProtocolOptions.initiateOperation.gasLimit;
+    const hasRewardForRedeem = params.rewardForRedeem?.isGreaterThan(0);
+    const gasLimit = new BigNumber(hasRewardForRedeem ? gasLimitOptions.withReward : gasLimitOptions.withoutReward);
+
+    const estimated = gasPrice.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolV1.maxNetworkFeeMultiplier).div(gweiInEth);
+    const result: FeesInfo = { estimated, max: estimated };
+
+    return Promise.resolve(result);
+  }
 
   abstract redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
 
   abstract getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<BigNumber>;
 
-  abstract getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
+  async getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+    const gasPrice = await this.getGasPriceInGwei();
+    const gasLimit = this.atomexProtocolOptions.redeemOperation.gasLimit;
+
+    const estimated = gasPrice.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolV1.maxNetworkFeeMultiplier).div(gweiInEth);
+    const result: FeesInfo = { estimated, max: estimated };
+
+    return Promise.resolve(result);
+  }
 
   abstract refund(_params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
 
-  abstract getRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
+  async getRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+    const gasPrice = await this.getGasPriceInGwei();
+    const gasLimit = this.atomexProtocolOptions.refundOperation.gasLimit;
+
+    const estimated = gasPrice.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolV1.maxNetworkFeeMultiplier).div(gweiInEth);
+    const result: FeesInfo = { estimated, max: estimated };
+
+    return Promise.resolve(result);
+  }
 
   protected async getReadonlyWeb3(): Promise<Web3> {
     const toolkit = await this.atomexBlockchainProvider.getReadonlyToolkit<Web3>('web3', this.blockchain);
@@ -54,5 +84,12 @@ export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
       throw new Error(`${this.blockchain} Web3 wallet not found`);
 
     return web3Wallet;
+  }
+
+  protected async getGasPriceInGwei(): Promise<BigNumber> {
+    const toolkit = await this.getReadonlyWeb3();
+    const gasPrice = await web3Helper.getGasPrice(toolkit, 'gwei');
+
+    return gasPrice;
   }
 }
