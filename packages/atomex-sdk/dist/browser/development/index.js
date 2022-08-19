@@ -3606,7 +3606,7 @@ var atomexMainnetConfig = {
   },
   exchange: {
     apiBaseUrl: atomexApiBaseUrl,
-    webSocketApiBaseUrl: "wss://ws.api.atomex.me"
+    webSocketApiBaseUrl: "wss://api.atomex.me"
   }
 };
 var atomexTestApiBaseUrl = "https://api.test.atomex.me";
