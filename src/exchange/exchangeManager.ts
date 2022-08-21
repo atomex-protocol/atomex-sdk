@@ -159,9 +159,7 @@ export class ExchangeManager implements AtomexService {
     if (orderPreviewParameters.type !== 'SolidFillOrKill')
       throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
 
-    const normalizedPreviewParameters = ordersHelper.isNormalizedOrderPreviewParameters(orderPreviewParameters)
-      ? orderPreviewParameters
-      : ordersHelper.normalizeOrderPreviewParameters(orderPreviewParameters, this.symbolsProvider);
+    const normalizedPreviewParameters = this.normalizeOrderPreviewParametersIfNeeded(orderPreviewParameters);
     const orderBookEntry = await this.findOrderBookEntry(
       normalizedPreviewParameters.exchangeSymbol.name,
       normalizedPreviewParameters.side, orderPreviewParameters.type,
@@ -221,6 +219,12 @@ export class ExchangeManager implements AtomexService {
   protected handleExchangeServiceTopOfBookUpdated = (updatedQuotes: readonly Quote[]) => {
     (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(updatedQuotes);
   };
+
+  protected normalizeOrderPreviewParametersIfNeeded(orderPreviewParameters: OrderPreviewParameters | NormalizedOrderPreviewParameters): NormalizedOrderPreviewParameters {
+    return ordersHelper.isNormalizedOrderPreviewParameters(orderPreviewParameters)
+      ? orderPreviewParameters
+      : ordersHelper.normalizeOrderPreviewParameters(orderPreviewParameters, this.symbolsProvider);
+  }
 
   protected async findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isQuoteCurrencyAmount: boolean) {
     if (orderType !== 'SolidFillOrKill')
