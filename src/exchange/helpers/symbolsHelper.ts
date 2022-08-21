@@ -5,12 +5,12 @@ import { converters, guards } from '../../utils/index';
 import type { ExchangeSymbol, SymbolCurrency } from '../models/index';
 
 export const getQuoteBaseCurrenciesBySymbol = (symbol: string): readonly [quoteCurrency: string, baseCurrency: string] => {
-  const [quoteCurrency = '', baseCurrency = ''] = symbol.split('/');
+  const result = symbol.split('/', 2);
 
-  return [quoteCurrency, baseCurrency];
+  return [result[0] || '', result[1] || ''];
 };
 
-export const convertSymbolToFromToCurrenciesPair = (
+export const convertSymbolAndSideToFromAndToSymbolCurrencies = (
   symbol: ExchangeSymbol,
   side: Side,
   currencyAmount: BigNumber.Value,
@@ -64,7 +64,28 @@ export const convertSymbolToFromToCurrenciesPair = (
     : [quoteCurrency, baseCurrency];
 };
 
-export const findExchangeSymbolAndSide = (
+export const convertSymbolAndSideToFromAndToCurrencies = (
+  symbol: ExchangeSymbol | string,
+  side: Side
+): readonly [from: Currency['id'], to: Currency['id']] => {
+  let quoteCurrency: Currency['id'];
+  let baseCurrency: Currency['id'];
+
+  if (typeof symbol === 'string') {
+    const quoteAndBaseCurrencies = getQuoteBaseCurrenciesBySymbol(symbol);
+    quoteCurrency = quoteAndBaseCurrencies[0];
+    baseCurrency = quoteAndBaseCurrencies[1];
+  } else {
+    quoteCurrency = symbol.quoteCurrency;
+    baseCurrency = symbol.baseCurrency;
+  }
+
+  return side === 'Buy'
+    ? [baseCurrency, quoteCurrency]
+    : [quoteCurrency, baseCurrency];
+};
+
+export const convertFromAndToCurrenciesToSymbolAndSide = (
   symbols: ReadonlyMap<ExchangeSymbol['name'], ExchangeSymbol> | readonly ExchangeSymbol[],
   from: Currency['id'],
   to: Currency['id']

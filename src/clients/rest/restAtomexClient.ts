@@ -6,9 +6,9 @@ import type { AtomexNetwork, CancelAllSide, CurrenciesProvider, Side } from '../
 import { EventEmitter } from '../../core';
 import { HttpClient } from '../../core/index';
 import {
-  exchangeGuards,
+  symbolsHelper, ordersHelper,
   Order, OrderBook, Quote, ExchangeSymbol, OrdersSelector, CancelOrderRequest,
-  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, symbolsHelper, ExchangeSymbolsProvider, FilledNewOrderRequest
+  CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider, FilledNewOrderRequest
 } from '../../exchange/index';
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
@@ -115,7 +115,7 @@ export class RestAtomexClient implements AtomexClient {
       else {
         const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
         symbols = (symbolsOrDirections as CurrencyDirection[])
-          .map(d => symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, d.from, d.to)[0].name);
+          .map(d => symbolsHelper.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, d.from, d.to)[0].name);
       }
     }
 
@@ -136,7 +136,7 @@ export class RestAtomexClient implements AtomexClient {
       symbol = symbolOrDirection;
     else {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      symbol = symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
+      symbol = symbolsHelper.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
     }
 
     const params = { symbol };
@@ -153,7 +153,7 @@ export class RestAtomexClient implements AtomexClient {
     let amountBigNumber: BigNumber;
     let priceBigNumber: BigNumber;
 
-    if (exchangeGuards.isOrderPreview(newOrderRequest.orderBody)) {
+    if (ordersHelper.isOrderPreview(newOrderRequest.orderBody)) {
       symbol = newOrderRequest.orderBody.symbol;
       side = newOrderRequest.orderBody.side;
 
@@ -212,7 +212,7 @@ export class RestAtomexClient implements AtomexClient {
       [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
     else if (cancelOrderRequest.from && cancelOrderRequest.to) {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      const exchangeSymbolAndSide = symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+      const exchangeSymbolAndSide = symbolsHelper.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
       symbol = exchangeSymbolAndSide[0].name;
       side = exchangeSymbolAndSide[1];
     }
@@ -245,7 +245,7 @@ export class RestAtomexClient implements AtomexClient {
       [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
     else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      const exchangeSymbolAndSide = symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      const exchangeSymbolAndSide = symbolsHelper.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
       symbol = exchangeSymbolAndSide[0].name;
       side = exchangeSymbolAndSide[1];
 

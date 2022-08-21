@@ -5,11 +5,11 @@ import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../
 import { EventEmitter, type ToEventEmitter } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider/index';
-import { symbolsHelper } from './helpers/index';
+import { ordersHelper, symbolsHelper } from './helpers/index';
 import type {
   CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol,
   OrderPreviewParameters as OrderPreviewParameters,
-  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, PreparedPreviewParameters, FilledNewOrderRequest
+  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, NormalizedOrderPreviewParameters, FilledNewOrderRequest
 } from './models/index';
 import type { ManagedOrderBookProvider } from './orderBookProvider';
 
@@ -121,7 +121,7 @@ export class ExchangeManager implements AtomexService {
       symbol = symbolOrDirection;
     else {
       const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
-      symbol = symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
+      symbol = symbolsHelper.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
     }
 
     if (!symbol)
@@ -155,34 +155,36 @@ export class ExchangeManager implements AtomexService {
     return this.exchangeService.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
   }
 
-  async getOrderPreview(orderPreviewParameters: OrderPreviewParameters): Promise<OrderPreview | undefined> {
+  async getOrderPreview(orderPreviewParameters: OrderPreviewParameters | NormalizedOrderPreviewParameters): Promise<OrderPreview | undefined> {
     if (orderPreviewParameters.type !== 'SolidFillOrKill')
       throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
 
-    const preparedOrderPreviewParameters = this.getPreparedOrderPreviewParameters(orderPreviewParameters);
+    const normalizedPreviewParameters = ordersHelper.isNormalizedOrderPreviewParameters(orderPreviewParameters)
+      ? orderPreviewParameters
+      : ordersHelper.normalizeOrderPreviewParameters(orderPreviewParameters, this.symbolsProvider);
     const orderBookEntry = await this.findOrderBookEntry(
-      preparedOrderPreviewParameters.exchangeSymbol.name,
-      preparedOrderPreviewParameters.side, orderPreviewParameters.type,
-      preparedOrderPreviewParameters.amount,
-      preparedOrderPreviewParameters.isQuoteCurrencyAmount
+      normalizedPreviewParameters.exchangeSymbol.name,
+      normalizedPreviewParameters.side, orderPreviewParameters.type,
+      normalizedPreviewParameters.amount,
+      normalizedPreviewParameters.isQuoteCurrencyAmount
     );
     if (!orderBookEntry)
       return undefined;
 
-    const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(
-      preparedOrderPreviewParameters.exchangeSymbol,
-      preparedOrderPreviewParameters.side,
-      preparedOrderPreviewParameters.amount,
+    const [from, to] = symbolsHelper.convertSymbolAndSideToFromAndToSymbolCurrencies(
+      normalizedPreviewParameters.exchangeSymbol,
+      normalizedPreviewParameters.side,
+      normalizedPreviewParameters.amount,
       orderBookEntry.price,
-      preparedOrderPreviewParameters.isQuoteCurrencyAmount
+      normalizedPreviewParameters.isQuoteCurrencyAmount
     );
 
     return {
       type: orderPreviewParameters.type,
       from,
       to,
-      side: preparedOrderPreviewParameters.side,
-      symbol: preparedOrderPreviewParameters.exchangeSymbol.name,
+      side: normalizedPreviewParameters.side,
+      symbol: normalizedPreviewParameters.exchangeSymbol.name,
     };
   }
 
@@ -219,46 +221,6 @@ export class ExchangeManager implements AtomexService {
   protected handleExchangeServiceTopOfBookUpdated = (updatedQuotes: readonly Quote[]) => {
     (this.events.topOfBookUpdated as ToEventEmitter<typeof this.events.topOfBookUpdated>).emit(updatedQuotes);
   };
-
-  protected getPreparedOrderPreviewParameters(orderPreviewParameters: OrderPreviewParameters): PreparedPreviewParameters {
-    const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
-
-    let symbol: string;
-    let exchangeSymbol: PreparedPreviewParameters['exchangeSymbol'] | undefined;
-    let side: PreparedPreviewParameters['side'];
-    let isQuoteCurrencyAmount: PreparedPreviewParameters['isQuoteCurrencyAmount'] = true;
-
-    if (orderPreviewParameters.symbol && orderPreviewParameters.side) {
-      symbol = orderPreviewParameters.symbol;
-      exchangeSymbol = exchangeSymbols.get(symbol);
-      side = orderPreviewParameters.side;
-      if (orderPreviewParameters.isQuoteCurrencyAmount !== undefined && orderPreviewParameters.isQuoteCurrencyAmount !== null)
-        isQuoteCurrencyAmount = orderPreviewParameters.isQuoteCurrencyAmount;
-    }
-    else if (orderPreviewParameters.from && orderPreviewParameters.to) {
-      [exchangeSymbol, side] = symbolsHelper.findExchangeSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
-      symbol = exchangeSymbol.name;
-      const isFromAmount = (orderPreviewParameters.isFromAmount !== undefined && orderPreviewParameters.isFromAmount !== null)
-        ? orderPreviewParameters.isFromAmount
-        : true;
-      if (exchangeSymbol)
-        isQuoteCurrencyAmount = (orderPreviewParameters.from === exchangeSymbol.quoteCurrency && isFromAmount)
-          || (orderPreviewParameters.to === exchangeSymbol.quoteCurrency && !isFromAmount);
-    }
-    else
-      throw new Error('Invalid orderPreviewParameters argument passed');
-
-    if (!exchangeSymbol)
-      throw new Error(`The ${symbol} Symbol not found`);
-
-    return {
-      type: orderPreviewParameters.type,
-      amount: orderPreviewParameters.amount,
-      exchangeSymbol,
-      side,
-      isQuoteCurrencyAmount
-    };
-  }
 
   protected async findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isQuoteCurrencyAmount: boolean) {
     if (orderType !== 'SolidFillOrKill')

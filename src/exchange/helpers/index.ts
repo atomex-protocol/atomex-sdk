@@ -1,2 +1,2 @@
 export * as symbolsHelper from './symbolsHelper';
-export * as exchangeGuards from './guards';
+export * as ordersHelper from './ordersHelper';

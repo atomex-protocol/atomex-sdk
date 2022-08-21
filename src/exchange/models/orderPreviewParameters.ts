@@ -28,8 +28,11 @@ export type OrderPreviewParameters = OrderPreviewParametersBase & (
     isQuoteCurrencyAmount?: boolean;
   });
 
-export type PreparedPreviewParameters = Readonly<OrderPreviewParametersBase> & {
+export type NormalizedOrderPreviewParameters = Readonly<OrderPreviewParametersBase> & {
   readonly exchangeSymbol: ExchangeSymbol;
   readonly side: Side;
   readonly isQuoteCurrencyAmount: boolean;
+  readonly from: CurrencyDirection['from'];
+  readonly to: CurrencyDirection['to'];
+  readonly isFromAmount: boolean;
 };
