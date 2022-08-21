@@ -9,7 +9,7 @@ import { ordersHelper, symbolsHelper } from './helpers/index';
 import type {
   CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol,
   OrderPreviewParameters as OrderPreviewParameters,
-  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, NormalizedOrderPreviewParameters, FilledNewOrderRequest
+  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, NormalizedOrderPreviewParameters, FilledNewOrderRequest, SymbolLiquidity
 } from './models/index';
 import type { ManagedOrderBookProvider } from './orderBookProvider';
 
@@ -186,7 +186,9 @@ export class ExchangeManager implements AtomexService {
     };
   }
 
-  getMaximumLiquidity(_direction: CurrencyDirection): Promise<BigNumber> {
+  getAvailableLiquidity(symbol: string, orderType: OrderType): Promise<SymbolLiquidity | undefined>;
+  getAvailableLiquidity(direction: CurrencyDirection, orderType: OrderType): Promise<SymbolLiquidity | undefined>;
+  getAvailableLiquidity(_symbolOrDirection: string | CurrencyDirection, _orderType: OrderType): Promise<SymbolLiquidity | undefined> {
     throw new Error('Not implemented');
   }
 

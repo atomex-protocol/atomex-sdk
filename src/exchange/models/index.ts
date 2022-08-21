@@ -4,6 +4,7 @@ export type { OrderType } from './orderType';
 export type { SymbolCurrency } from './symbolCurrency';
 export type { OrderPreview } from './orderPreview';
 export type { OrderPreviewParameters, NormalizedOrderPreviewParameters } from './orderPreviewParameters';
+export type { SymbolLiquidity } from './symbolLiquidity';
 export type { ExchangeSymbol } from './exchangeSymbol';
 export type { NewOrderRequest, FilledNewOrderRequest } from './newOrderRequest';
 export type { CancelOrderRequest } from './cancelOrderRequest';
