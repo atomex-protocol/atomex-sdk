@@ -1,7 +1,7 @@
 import { InMemoryOrderBookProvider } from '../../src/exchange/index';
 import { AtomexNetwork, DataSource, ExchangeManager } from '../../src/index';
 import { TestAtomexClient, TestExchangeSymbolsProvider } from '../testHelpers/index';
-import { validGetOrderPreviewTestCases, validGetSymbolsTestCases } from './testCases/index';
+import { validGetAvailableLiquidityTestCases, validGetOrderPreviewTestCases, validGetSymbolsTestCases } from './testCases/index';
 
 describe('Exchange Manager', () => {
   let atomexNetwork: AtomexNetwork;
@@ -70,6 +70,21 @@ describe('Exchange Manager', () => {
       const orderPreview = await exchangeManager.getOrderPreview(orderPreviewParameters);
 
       expect(orderPreview).toEqual(expectedOrderPreview);
+      expect(testExchangeService.getSymbols).toHaveBeenCalledTimes(1);
+      expect(testExchangeService.getOrderBook).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  test.each(validGetAvailableLiquidityTestCases)(
+    'get available liquidity: %s [%p]',
+    async (_, availableLiquidityParameters, expectedLiquidity, symbols, orderBook) => {
+      testExchangeService.getSymbols.mockResolvedValueOnce(symbols);
+      testExchangeService.getOrderBook.mockResolvedValueOnce(orderBook);
+      await exchangeManager.start();
+
+      const liquidity = await exchangeManager.getAvailableLiquidity(availableLiquidityParameters);
+
+      expect(liquidity).toEqual(expectedLiquidity);
       expect(testExchangeService.getSymbols).toHaveBeenCalledTimes(1);
       expect(testExchangeService.getOrderBook).toHaveBeenCalledTimes(1);
     }

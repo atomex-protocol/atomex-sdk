@@ -1,4 +1,4 @@
-import type { BigNumber } from 'bignumber.js';
+import { BigNumber } from 'bignumber.js';
 import { nanoid } from 'nanoid';
 
 import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
@@ -186,8 +186,62 @@ export class ExchangeManager implements AtomexService {
     };
   }
 
-  getAvailableLiquidity(_parameters: SymbolLiquidityParameters): Promise<SymbolLiquidity | undefined> {
-    throw new Error('Not implemented');
+  async getAvailableLiquidity(parameters: SymbolLiquidityParameters): Promise<SymbolLiquidity | undefined> {
+    if (parameters.type !== 'SolidFillOrKill')
+      throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
+
+    let symbol: string;
+    let side: Side;
+
+    if (parameters.symbol !== undefined) {
+      symbol = parameters.symbol;
+      side = parameters.side;
+    } else {
+      const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
+      const exchangeSymbolAndSide = symbolsHelper.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, parameters.from, parameters.to);
+      symbol = exchangeSymbolAndSide[0].name;
+      side = exchangeSymbolAndSide[1];
+    }
+
+    const orderBook = await this.getOrderBook(symbol);
+    if (!orderBook)
+      return undefined;
+
+    const maxAmount = Math.max(
+      ...orderBook.entries
+        .filter(entry => entry.side != side)
+        .map(entry => Math.max(...entry.qtyProfile)),
+    );
+
+    if (!isFinite(maxAmount) || isNaN(maxAmount) || maxAmount <= 0)
+      return undefined;
+
+    const amount = new BigNumber(maxAmount);
+    const orderPreviewParameters: OrderPreviewParameters = parameters.symbol !== undefined ? {
+      amount,
+      symbol,
+      side,
+      type: parameters.type,
+      isQuoteCurrencyAmount: true
+    } : {
+      amount,
+      type: parameters.type,
+      from: parameters.from,
+      to: parameters.to,
+      isFromAmount: side === 'Sell'
+    };
+
+    const orderPreview = await this.getOrderPreview(orderPreviewParameters);
+    if (!orderPreview)
+      return undefined;
+
+    return {
+      symbol: orderPreview.symbol,
+      type: orderPreview.type,
+      from: orderPreview.from,
+      to: orderPreview.to,
+      side: orderPreview.side,
+    };
   }
 
   protected attachEvents() {
