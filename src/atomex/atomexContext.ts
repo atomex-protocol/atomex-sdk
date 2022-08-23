@@ -1,7 +1,7 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { WalletsManager, AtomexBlockchainProvider } from '../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
-import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider } from '../exchange/index';
+import type { AggregatedRatesProvider, ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
 
 export class AtomexContext {
@@ -111,6 +111,7 @@ class AtomexContextProvidersSection {
   private _currenciesProvider: CurrenciesProvider | undefined;
   private _exchangeSymbolsProvider: ManagedExchangeSymbolsProvider | undefined;
   private _orderBookProvider: ManagedOrderBookProvider | undefined;
+  private _ratesProvider: AggregatedRatesProvider | undefined;
 
   constructor(readonly context: AtomexContext) {
   }
@@ -157,6 +158,17 @@ class AtomexContextProvidersSection {
 
   private set orderBookProvider(orderBookProvider: ManagedOrderBookProvider) {
     this._orderBookProvider = orderBookProvider;
+  }
+
+  get ratesProvider(): AggregatedRatesProvider {
+    if (!this._ratesProvider)
+      throw new AtomexComponentNotResolvedError('providers.ratesProvider');
+
+    return this._ratesProvider;
+  }
+
+  private set ratesProvider(ratesProvider: AggregatedRatesProvider) {
+    this._ratesProvider = ratesProvider;
   }
 }
 
