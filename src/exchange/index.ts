@@ -8,3 +8,8 @@ export { InMemoryOrderBookProvider } from './orderBookProvider/index';
 export type { ExchangeSymbolsProvider, ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider/index';
 export type { OrderBookProvider, ManagedOrderBookProvider } from './orderBookProvider/index';
 export type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
+
+export {
+  type RatesProvider, type AggregatedRatesProvider,
+  BinanceRatesProvider, KrakenRatesProvider, MixedRatesProvider,
+} from './ratesProvider/index';
