@@ -7,7 +7,7 @@ import type { BinanceErrorDto, BinanceRatesDto } from './dtos';
 import { isErrorDto } from './utils';
 
 export class BinanceRatesProvider implements RatesProvider {
-  private static readonly baseUrl = 'https://www.binance.com/api';
+  private static readonly baseUrl = 'https://www.binance.com';
 
   private readonly httpClient: HttpClient;
 
@@ -16,7 +16,7 @@ export class BinanceRatesProvider implements RatesProvider {
   }
 
   async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined> {
-    const urlPath = `/v3/ticker/price?symbol=${baseCurrency}${quoteCurrency}`;
+    const urlPath = `/api/v3/ticker/price?symbol=${baseCurrency}${quoteCurrency}`;
     const responseDto = await this.httpClient.request<BinanceRatesDto | BinanceErrorDto>({ urlPath }, false);
 
     return this.mapRatesDtoToPrice(responseDto);
