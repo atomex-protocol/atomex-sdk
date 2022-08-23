@@ -9,9 +9,9 @@ export class MixedRatesProvider implements AggregatedRatesProvider {
     private readonly providersMap: Map<string, RatesProvider>
   ) { }
 
-  async getPrice(quoteCurrency: Currency['id'], baseCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined> {
+  async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined> {
     const providers = this.getSelectedProviders(provider);
-    const pricePromises = providers.map(p => p.getPrice(quoteCurrency, baseCurrency));
+    const pricePromises = providers.map(p => p.getPrice(baseCurrency, quoteCurrency));
     const pricePromiseResults = await Promise.allSettled(pricePromises);
 
     for (const result of pricePromiseResults)

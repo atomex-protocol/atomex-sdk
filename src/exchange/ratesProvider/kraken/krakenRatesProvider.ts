@@ -14,8 +14,8 @@ export class KrakenRatesProvider implements RatesProvider {
     this.httpClient = new HttpClient(KrakenRatesProvider.baseUrl);
   }
 
-  async getPrice(quoteCurrency: Currency['id'], baseCurrency: Currency['id']): Promise<BigNumber | undefined> {
-    const symbol = `${quoteCurrency}${baseCurrency}`;
+  async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined> {
+    const symbol = `${baseCurrency}${quoteCurrency}`;
     const urlPath = `/0/public/Ticker?pair=${symbol}`;
     const responseDto = await this.httpClient.request<KrakenRatesDto>({ urlPath }, false);
 

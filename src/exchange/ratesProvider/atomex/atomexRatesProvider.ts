@@ -10,7 +10,7 @@ export class AtomexRatesProvider implements RatesProvider {
     private readonly exchangeService: ExchangeService
   ) { }
 
-  async getPrice(quoteCurrency: Currency['id'], baseCurrency: Currency['id']): Promise<BigNumber | undefined> {
+  async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined> {
     const quote = (await this.exchangeService.getTopOfBook([{ from: quoteCurrency, to: baseCurrency }]))?.[0];
 
     return quote ? this.getMiddlePrice(quote) : undefined;

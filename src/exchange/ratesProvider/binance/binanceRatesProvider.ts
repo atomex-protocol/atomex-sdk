@@ -15,8 +15,8 @@ export class BinanceRatesProvider implements RatesProvider {
     this.httpClient = new HttpClient(BinanceRatesProvider.baseUrl);
   }
 
-  async getPrice(quoteCurrency: Currency['id'], baseCurrency: Currency['id']): Promise<BigNumber | undefined> {
-    const urlPath = `/v3/ticker/price?symbol=${quoteCurrency}${baseCurrency}`;
+  async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined> {
+    const urlPath = `/v3/ticker/price?symbol=${baseCurrency}${quoteCurrency}`;
     const responseDto = await this.httpClient.request<BinanceRatesDto | BinanceErrorDto>({ urlPath }, false);
 
     return this.mapRatesDtoToPrice(responseDto);
