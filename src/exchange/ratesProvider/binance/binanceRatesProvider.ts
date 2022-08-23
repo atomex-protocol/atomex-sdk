@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 
+import type { Currency } from '../../../common';
 import { HttpClient } from '../../../core';
 import type { RatesProvider } from '../ratesProvider';
 import type { BinanceErrorDto, BinanceRatesDto } from './dtos';
@@ -14,7 +15,7 @@ export class BinanceRatesProvider implements RatesProvider {
     this.httpClient = new HttpClient(BinanceRatesProvider.baseUrl);
   }
 
-  async getPrice(quoteCurrency: string, baseCurrency: string): Promise<BigNumber | undefined> {
+  async getPrice(quoteCurrency: Currency['id'], baseCurrency: Currency['id']): Promise<BigNumber | undefined> {
     const urlPath = `/v3/ticker/price?symbol=${quoteCurrency}${baseCurrency}`;
     const responseDto = await this.httpClient.request<BinanceRatesDto | BinanceErrorDto>({ urlPath }, false);
 

@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 
+import type { Currency } from '../../../common';
 import { HttpClient } from '../../../core';
 import type { RatesProvider } from '../ratesProvider';
 import type { KrakenRatesDto } from './dtos';
@@ -13,7 +14,7 @@ export class KrakenRatesProvider implements RatesProvider {
     this.httpClient = new HttpClient(KrakenRatesProvider.baseUrl);
   }
 
-  async getPrice(quoteCurrency: string, baseCurrency: string): Promise<BigNumber | undefined> {
+  async getPrice(quoteCurrency: Currency['id'], baseCurrency: Currency['id']): Promise<BigNumber | undefined> {
     const symbol = `${quoteCurrency}${baseCurrency}`;
     const urlPath = `/0/public/Ticker?pair=${symbol}`;
     const responseDto = await this.httpClient.request<KrakenRatesDto>({ urlPath }, false);
