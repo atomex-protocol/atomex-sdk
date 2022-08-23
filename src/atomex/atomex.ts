@@ -1,8 +1,11 @@
+import BigNumber from 'bignumber.js';
+
 import type { AuthorizationManager } from '../authorization/index';
 import type { WalletsManager } from '../blockchain/index';
 import type { AtomexService, Currency } from '../common/index';
 import type { ExchangeManager } from '../exchange/exchangeManager';
 import type { Swap, SwapManager } from '../swaps/index';
+import { toFixedBigNumber } from '../utils/converters';
 import type { AtomexContext } from './atomexContext';
 import {
   SwapOperationCompleteStage, AtomexOptions,
@@ -66,7 +69,7 @@ export class Atomex implements AtomexService {
     this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, blockchainOptions);
   }
 
-  getCurrency(currencyId: Currency['id']) {
+  getCurrency(currencyId: Currency['id']): Currency | undefined {
     return this.atomexContext.providers.currenciesProvider.getCurrency(currencyId);
   }
 
@@ -92,5 +95,17 @@ export class Atomex implements AtomexService {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return swaps.length === 1 ? swaps[0]! : (swaps as readonly Swap[]);
+  }
+
+  async convertCurrency(from: Currency['id'], to: Currency['id'], inAmount: BigNumber.Value): Promise<BigNumber | undefined> {
+    const price = await this.atomexContext.providers.ratesProvider.getAveragePrice(from, to);
+    if (!price)
+      return undefined;
+
+    const inAmountBigNumber = BigNumber.isBigNumber(inAmount) ? inAmount : new BigNumber(inAmount);
+    const outAmount = inAmountBigNumber.multipliedBy(price);
+    const toCurrency = this.getCurrency(to);
+
+    return toCurrency ? toFixedBigNumber(outAmount, toCurrency.decimals) : outAmount;
   }
 }
