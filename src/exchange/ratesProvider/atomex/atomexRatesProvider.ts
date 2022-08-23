@@ -12,9 +12,9 @@ export class AtomexRatesProvider implements RatesProvider {
 
   async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined> {
     const symbol = `${baseCurrency}/${quoteCurrency}`;
-    const quote = (await this.exchangeService.getTopOfBook([symbol]))?.[0];
+    const quote = (await this.exchangeService.getTopOfBook([{ from: baseCurrency, to: quoteCurrency }]))?.[0];
 
-    return quote ? this.getMiddlePrice(quote) : undefined;
+    return quote && quote.symbol == symbol ? this.getMiddlePrice(quote) : undefined;
   }
 
   private getMiddlePrice(quote: Quote): BigNumber {
