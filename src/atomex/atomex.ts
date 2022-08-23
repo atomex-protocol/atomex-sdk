@@ -97,15 +97,15 @@ export class Atomex implements AtomexService {
     return swaps.length === 1 ? swaps[0]! : (swaps as readonly Swap[]);
   }
 
-  async convertCurrency(from: Currency['id'], to: Currency['id'], inAmount: BigNumber.Value): Promise<BigNumber | undefined> {
-    const price = await this.atomexContext.providers.ratesProvider.getAveragePrice(from, to);
+  async convertCurrency(fromAmount: BigNumber.Value, fromCurrency: Currency['id'], toCurrency: Currency['id']): Promise<BigNumber | undefined> {
+    const price = await this.atomexContext.providers.ratesProvider.getAveragePrice(fromCurrency, toCurrency);
     if (!price)
       return undefined;
 
-    const inAmountBigNumber = BigNumber.isBigNumber(inAmount) ? inAmount : new BigNumber(inAmount);
+    const inAmountBigNumber = BigNumber.isBigNumber(fromAmount) ? fromAmount : new BigNumber(fromAmount);
     const outAmount = inAmountBigNumber.multipliedBy(price);
-    const toCurrency = this.getCurrency(to);
+    const toCurrencyInfo = this.getCurrency(toCurrency);
 
-    return toCurrency ? toFixedBigNumber(outAmount, toCurrency.decimals) : outAmount;
+    return toCurrencyInfo ? toFixedBigNumber(outAmount, toCurrencyInfo.decimals) : outAmount;
   }
 }
