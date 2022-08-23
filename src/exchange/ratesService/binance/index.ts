@@ -1,0 +1,1 @@
+export { BinanceRatesService } from './binanceRatesService';

@@ -5,8 +5,8 @@ import { AtomexBlockchainProvider, WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
 import { createDefaultEthereumBlockchainOptions } from '../ethereum/index';
 import {
-  AggregatedRatesProvider, AtomexRatesProvider, BinanceRatesProvider, ExchangeManager, InMemoryExchangeSymbolsProvider,
-  InMemoryOrderBookProvider, KrakenRatesProvider, MixedRatesProvider, RatesProvider
+  AtomexRatesService, BinanceRatesService, ExchangeManager, InMemoryExchangeSymbolsProvider,
+  InMemoryOrderBookProvider, KrakenRatesService, MixedRatesProvider, RatesProvider, RatesService
 } from '../exchange/index';
 import { SwapManager } from '../swaps/swapManager';
 import { createDefaultTezosBlockchainOptions } from '../tezos/index';
@@ -124,11 +124,11 @@ export class AtomexBuilder {
     };
   }
 
-  protected createRatesProvider(): AggregatedRatesProvider {
-    return new MixedRatesProvider(new Map<string, RatesProvider>([
-      ['binance', new BinanceRatesProvider()],
-      ['kraken', new KrakenRatesProvider()],
-      ['atomex', new AtomexRatesProvider(this.atomexContext.services.exchangeService)]
+  protected createRatesProvider(): RatesProvider {
+    return new MixedRatesProvider(new Map<string, RatesService>([
+      ['binance', new BinanceRatesService()],
+      ['kraken', new KrakenRatesService()],
+      ['atomex', new AtomexRatesService(this.atomexContext.services.exchangeService)]
     ]));
   }
 }

@@ -1,1 +1,0 @@
-export { AtomexRatesProvider } from './atomexRatesProvider';

@@ -1,0 +1,1 @@
+export { KrakenRatesService } from './krakenRatesService';

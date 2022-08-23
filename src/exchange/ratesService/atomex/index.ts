@@ -1,0 +1,1 @@
+export { AtomexRatesService } from './atomexRatesService';

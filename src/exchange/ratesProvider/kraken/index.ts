@@ -1,1 +1,0 @@
-export { KrakenRatesProvider } from './krakenRatesProvider';
