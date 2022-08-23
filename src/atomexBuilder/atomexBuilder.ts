@@ -5,7 +5,7 @@ import { AtomexBlockchainProvider, WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
 import { createDefaultEthereumBlockchainOptions } from '../ethereum/index';
 import {
-  AggregatedRatesProvider, BinanceRatesProvider, ExchangeManager, InMemoryExchangeSymbolsProvider,
+  AggregatedRatesProvider, AtomexRatesProvider, BinanceRatesProvider, ExchangeManager, InMemoryExchangeSymbolsProvider,
   InMemoryOrderBookProvider, KrakenRatesProvider, MixedRatesProvider, RatesProvider
 } from '../exchange/index';
 import { SwapManager } from '../swaps/swapManager';
@@ -51,7 +51,6 @@ export class AtomexBuilder {
     const blockchainProvider = new AtomexBlockchainProvider();
     this.controlledAtomexContext.providers.blockchainProvider = blockchainProvider;
     this.controlledAtomexContext.providers.currenciesProvider = blockchainProvider;
-    this.controlledAtomexContext.providers.ratesProvider = this.createRatesProvider();
     this.controlledAtomexContext.providers.exchangeSymbolsProvider = this.createExchangeSymbolsProvider();
     this.controlledAtomexContext.providers.orderBookProvider = this.createOrderBookProvider();
     this.controlledAtomexContext.managers.walletsManager = this.createWalletsManager();
@@ -61,6 +60,7 @@ export class AtomexBuilder {
     this.controlledAtomexContext.services.swapService = atomexClient;
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
     this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
+    this.controlledAtomexContext.providers.ratesProvider = this.createRatesProvider();
     const blockchains = this.createDefaultBlockchainOptions();
 
     return new Atomex({
@@ -128,6 +128,7 @@ export class AtomexBuilder {
     return new MixedRatesProvider(new Map<string, RatesProvider>([
       ['binance', new BinanceRatesProvider()],
       ['kraken', new KrakenRatesProvider()],
+      ['atomex', new AtomexRatesProvider(this.atomexContext.services.exchangeService)]
     ]));
   }
 }

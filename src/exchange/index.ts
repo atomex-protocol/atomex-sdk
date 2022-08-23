@@ -11,5 +11,5 @@ export type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 
 export {
   type RatesProvider, type AggregatedRatesProvider,
-  BinanceRatesProvider, KrakenRatesProvider, MixedRatesProvider,
+  BinanceRatesProvider, KrakenRatesProvider, MixedRatesProvider, AtomexRatesProvider
 } from './ratesProvider/index';
