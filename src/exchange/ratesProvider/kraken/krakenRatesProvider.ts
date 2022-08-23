@@ -19,14 +19,15 @@ export class KrakenRatesProvider implements RatesProvider {
     const urlPath = `/0/public/Ticker?pair=${symbol}`;
     const responseDto = await this.httpClient.request<KrakenRatesDto>({ urlPath }, false);
 
-    return this.mapRatesDtoToPrice(responseDto, symbol);
+    return this.mapRatesDtoToPrice(responseDto);
   }
 
-  private mapRatesDtoToPrice(dto: KrakenRatesDto, symbol: string): BigNumber | undefined {
+  private mapRatesDtoToPrice(dto: KrakenRatesDto): BigNumber | undefined {
     if (dto.error.length)
       return undefined;
 
-    const tickerInfo = dto.result[symbol];
+    const symbol = Object.keys(dto.result)[0];
+    const tickerInfo = symbol ? dto.result[symbol] : undefined;
     if (!tickerInfo)
       return undefined;
 
