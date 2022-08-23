@@ -10,6 +10,21 @@ export class MixedRatesProvider implements AggregatedRatesProvider {
   ) { }
 
   async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined> {
+    let price = await this.getPriceCore(baseCurrency, quoteCurrency, provider);
+    if (!price) {
+      const reversedPrice = await this.getPriceCore(quoteCurrency, baseCurrency, provider);
+      if (reversedPrice)
+        price = reversedPrice.pow(-1);
+    }
+
+    return price;
+  }
+
+  getAvailableProviders(): string[] {
+    return [...this.providersMap.keys()];
+  }
+
+  private async getPriceCore(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined> {
     const providers = this.getSelectedProviders(provider);
     const pricePromises = providers.map(p => p.getPrice(baseCurrency, quoteCurrency));
     const pricePromiseResults = await Promise.allSettled(pricePromises);
@@ -19,10 +34,6 @@ export class MixedRatesProvider implements AggregatedRatesProvider {
         return result.value;
 
     return undefined;
-  }
-
-  getAvailableProviders(): string[] {
-    return [...this.providersMap.keys()];
   }
 
   private getSelectedProviders(provider?: string): RatesProvider[] {

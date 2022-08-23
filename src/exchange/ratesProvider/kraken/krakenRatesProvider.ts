@@ -23,7 +23,7 @@ export class KrakenRatesProvider implements RatesProvider {
   }
 
   private mapRatesDtoToPrice(dto: KrakenRatesDto, symbol: string): BigNumber | undefined {
-    if (dto.error)
+    if (dto.error.length)
       return undefined;
 
     const tickerInfo = dto.result[symbol];
