@@ -1,4 +1,4 @@
-import type BigNumber from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 
 import type { Currency } from '../../../common';
 import type { AggregatedRatesProvider } from '../aggregatedRatesProvider';
@@ -8,6 +8,19 @@ export class MixedRatesProvider implements AggregatedRatesProvider {
   constructor(
     private readonly providersMap: Map<string, RatesProvider>
   ) { }
+
+  async getAveragePrice(baseCurrency: string, quoteCurrency: string): Promise<BigNumber | undefined> {
+    const providers = this.getAvailableProviders();
+    const pricePromises = providers.map(provider => this.getPrice(baseCurrency, quoteCurrency, provider));
+    const pricePromiseResults = await Promise.allSettled(pricePromises);
+
+    const prices: BigNumber[] = [];
+    for (const result of pricePromiseResults)
+      if (result.status === 'fulfilled' && result.value !== undefined)
+        prices.push(result.value);
+
+    return prices.length ? BigNumber.sum(...prices).div(prices.length) : undefined;
+  }
 
   async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined> {
     let price = await this.getPriceCore(baseCurrency, quoteCurrency, provider);
