@@ -32,7 +32,7 @@ export interface NormalizedSwapPreviewParameters {
   readonly amount: BigNumber;
   readonly useWatchTower: boolean;
   readonly from: CurrencyDirection['from'];
-  readonly to: CurrencyDirection['from'];
+  readonly to: CurrencyDirection['to'];
   readonly isFromAmount: boolean;
   readonly exchangeSymbol: ExchangeSymbol;
   readonly side: Side
