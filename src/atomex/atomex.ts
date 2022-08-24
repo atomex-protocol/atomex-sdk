@@ -204,14 +204,22 @@ export class Atomex implements AtomexService {
     if (!fromAddress)
       throw new Error('Swap preview doesn\'t have the "from" address');
 
-    const quoteCurrencyId = symbolsHelper.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol)[0];
-    const directionName: 'from' | 'to' = quoteCurrencyId === swapPreview.from.currencyId ? 'from' : 'to';
+    const [baseCurrencyId, quoteCurrencyId] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol);
+    const baseCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(baseCurrencyId);
+    if (!baseCurrencyInfo)
+      throw new Error(`The "${baseCurrencyId}" currency (base) is unknown`);
+    const quoteCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(quoteCurrencyId);
+    if (!quoteCurrencyInfo)
+      throw new Error(`The "${quoteCurrencyInfo}" currency (quote) is unknown`);
 
-    const [baseCurrency, quoteCurrency] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol);
-    // const baseCurrencyContract = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(baseCurrency)
-    // ?.atomexProtocol?.contract;
-    // const quoteCurrencyContract = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(baseCurrency)
-    // ?.atomexProtocol?.contract;
+    if (baseCurrencyInfo.atomexProtocol.version !== 1)
+      throw new Error(`Unknown version (${baseCurrencyInfo.atomexProtocol.version}) of the Atomex protocol (base)`);
+    if (quoteCurrencyInfo.atomexProtocol.version !== 1)
+      throw new Error(`Unknown version (${quoteCurrencyInfo.atomexProtocol.version}) of the Atomex protocol (quote)`);
+
+    const baseCurrencyAtomexProtocolV1 = baseCurrencyInfo.atomexProtocol as AtomexProtocolV1;
+    const quoteCurrencyAtomexProtocolV1 = quoteCurrencyInfo.atomexProtocol as AtomexProtocolV1;
+    const directionName: 'from' | 'to' = quoteCurrencyId === swapPreview.from.currencyId ? 'from' : 'to';
     const rewardForRedeem = swapPreview.fees.success.find(fee => fee.name == 'rewardForRedeem')?.estimated;
     const newOrderRequest: NewOrderRequest = {
       orderBody: {
@@ -228,13 +236,14 @@ export class Atomex implements AtomexService {
         rewardForRedeem: rewardForRedeem || new BigNumber(0),
         // TODO: from config
         lockTime: 18000,
-        baseCurrencyContract: '',
-        quoteCurrencyContract: ''
+        baseCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
+        quoteCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
       },
       proofsOfFunds: [
         // TODO
       ]
     };
+
     const orderId = await this.exchangeManager.addOrder(fromAddress, newOrderRequest);
     const order = await this.exchangeManager.getOrder(fromAddress, orderId);
     if (!order)

@@ -28,6 +28,10 @@ export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
     return this.atomexProtocolOptions.currencyId;
   }
 
+  get swapContractAddress() {
+    return this.atomexProtocolOptions.swapContractAddress;
+  }
+
   abstract initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
 
   async getInitiateFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {

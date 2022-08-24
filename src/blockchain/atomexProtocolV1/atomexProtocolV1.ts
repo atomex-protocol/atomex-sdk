@@ -6,8 +6,10 @@ import type { AtomexProtocolV1RedeemParameters } from './redeemParameters';
 import type { AtomexProtocolV1RefundParameters } from './refundParameters';
 
 export interface AtomexProtocolV1 extends AtomexProtocol {
+  // TODO: think about options
   readonly version: 1;
   readonly currencyId: Currency['id'];
+  readonly swapContractAddress: string;
 
   initiate(params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
   getInitiateFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;

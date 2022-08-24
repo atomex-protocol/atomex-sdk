@@ -27,6 +27,10 @@ export abstract class TaquitoAtomexProtocolV1 implements AtomexProtocolV1 {
     return this.atomexProtocolOptions.currencyId;
   }
 
+  get swapContractAddress() {
+    return this.atomexProtocolOptions.swapContractAddress;
+  }
+
   abstract initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
 
   getInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
