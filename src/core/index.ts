@@ -9,7 +9,7 @@ export type {
   Result, SuccessResult, ErrorResult, Mutable, DeepReadonly,
   DeepRequired, DeepPartial, DeepMutable, PropsOf,
   OverloadParameters, OverloadReturnType
-} from './typings/index';
+} from './types/index';
 
 export { InMemoryCache } from './cache/index';
 export type { Cache, SetCacheOptions } from './cache/index';
