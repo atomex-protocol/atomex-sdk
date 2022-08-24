@@ -1,5 +1,3 @@
-import type BigNumber from 'bignumber.js';
-
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
@@ -36,7 +34,7 @@ export class FA2TezosTaquitoAtomexProtocolV1 extends TaquitoAtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<BigNumber> {
+  getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<FeesInfo> {
     throw new Error('Method not implemented.');
   }
 

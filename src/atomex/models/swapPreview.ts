@@ -17,7 +17,7 @@ export interface SwapPreview {
   readonly warnings: readonly SwapPreviewWarning[];
 }
 
-interface SwapPreviewDirectionData {
+export interface SwapPreviewDirectionData {
   readonly address?: string;
   readonly currencyId: Currency['id'];
   readonly actual: SwapPreviewCurrencyData;
@@ -25,22 +25,22 @@ interface SwapPreviewDirectionData {
   readonly max?: SwapPreviewCurrencyData;
 }
 
-interface SwapPreviewCurrencyData {
+export interface SwapPreviewCurrencyData {
   readonly amount: BigNumber;
   readonly price: BigNumber;
 }
 
-interface SwapPreviewError<TErrorData = unknown> {
+export interface SwapPreviewError<TErrorData = unknown> {
   readonly id: string
   readonly data: TErrorData;
 }
 
-interface SwapPreviewWarning<TWarningData = unknown> {
+export interface SwapPreviewWarning<TWarningData = unknown> {
   readonly id: string
   readonly data: TWarningData;
 }
 
-interface SwapPreviewFee {
+export interface SwapPreviewFee {
   readonly name: string;
   readonly currencyId: Currency['id'];
   readonly estimated: BigNumber;

@@ -1,7 +1,7 @@
 import type BigNumber from 'bignumber.js';
 
 import type { Side } from '../../common/index';
-import type { CurrencyDirection, OrderType } from '../../exchange/index';
+import type { CurrencyDirection, ExchangeSymbol, OrderType } from '../../exchange/index';
 
 interface SwapPreviewParametersBase {
   type: OrderType;
@@ -26,3 +26,15 @@ export type SwapPreviewParameters = SwapPreviewParametersBase & (
     side: Side;
     isQuoteCurrencyAmount?: boolean;
   });
+
+export interface NormalizedSwapPreviewParameters {
+  readonly type: OrderType;
+  readonly amount: BigNumber;
+  readonly useWatchTower: boolean;
+  readonly from: CurrencyDirection['from'];
+  readonly to: CurrencyDirection['from'];
+  readonly isFromAmount: boolean;
+  readonly exchangeSymbol: ExchangeSymbol;
+  readonly side: Side
+  readonly isQuoteCurrencyAmount: boolean;
+}
