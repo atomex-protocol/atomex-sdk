@@ -187,7 +187,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
       }
     ],
     [
-      'Swap XTZ_USDT -> ETH with default options',
+      'Swap USDT_XTZ -> ETH with default options',
       {
         type: 'SolidFillOrKill',
         amount: new BigNumber(1217.234),

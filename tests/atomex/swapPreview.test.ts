@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import BigNumber from 'bignumber.js';
+
 import type { AtomexContext } from '../../src/atomex';
 import { ethereumTestnetCurrencies } from '../../src/ethereum';
 import { testnetEthereumWeb3AtomexProtocolV1Options } from '../../src/ethereum/config';
-import { Atomex } from '../../src/index';
+import { Atomex, BlockchainWallet } from '../../src/index';
 import { tezosTestnetCurrencies } from '../../src/tezos';
 import { testnetTezosTaquitoAtomexProtocolV1Options } from '../../src/tezos/config/atomexProtocol';
 import { createMockedAtomexContext, createMockedBlockchainOptions, MockAtomexBlockchainNetworkOptions, MockAtomexContext } from '../mocks';
-import { AtomexProtocolV1Fees, swapPreviewWithoutAccountTestCases } from './testCases';
+import { Accounts, AtomexProtocolV1Fees, swapPreviewWithAccountTestCases, swapPreviewWithoutAccountTestCases } from './testCases';
 
 describe('Atomex | Swap Preview', () => {
   let mockedAtomexContext: MockAtomexContext;
@@ -46,7 +48,7 @@ describe('Atomex | Swap Preview', () => {
     atomex.stop();
   });
 
-  test.each(swapPreviewWithoutAccountTestCases)(
+  test.skip.each(swapPreviewWithoutAccountTestCases)(
     'getting swap preview without account: %s\n\tSwap Preview Parameters: %j',
     async (_, swapPreviewParameters, expectedSwapPreview, environment) => {
       mockedAtomexContext.services.exchangeService.getSymbols.mockResolvedValue(environment.symbols);
@@ -65,6 +67,27 @@ describe('Atomex | Swap Preview', () => {
     }
   );
 
+  test.each(swapPreviewWithAccountTestCases)(
+    'getting swap preview with account: %s\n\tSwap Preview Parameters: %j',
+    async (_, swapPreviewParameters, expectedSwapPreview, environment) => {
+      mockedAtomexContext.services.exchangeService.getSymbols.mockResolvedValue(environment.symbols);
+      mockedAtomexContext.services.exchangeService.getOrderBook.mockImplementation(symbol => {
+        if (typeof symbol === 'string')
+          return Promise.resolve(environment.orderBooks.find(ob => ob.symbol === symbol));
+
+        throw new Error('Expected symbol');
+      });
+
+      mockAccounts(environment.accounts);
+      mockAtomexProtocolV1Fees(environment.atomexProtocolFees);
+      await atomex.start();
+
+      const swapPreview = await atomex.getSwapPreview(swapPreviewParameters);
+
+      expect(swapPreview).toEqual(expectedSwapPreview);
+    }
+  );
+
   const getBlockchainNameByCurrencyId = (currencyId: string) => {
     switch (currencyId) {
       case 'ETH':
@@ -74,6 +97,40 @@ describe('Atomex | Swap Preview', () => {
         return 'tezos';
       default:
         throw new Error(`Unknown ${currencyId} currency`);
+    }
+  };
+
+  const mockAccounts = (accounts: Accounts) => {
+    mockedAtomexContext.managers.walletsManager.getWalletMock.mockImplementation(
+      (address, blockchain) => {
+        if (!blockchain)
+          return Promise.resolve(undefined);
+
+        const blockchainAccount: Accounts[keyof Accounts] | undefined = accounts[blockchain as keyof Accounts];
+        const wallet = address
+          ? {
+            getAddress: () => blockchainAccount[address] ? address : undefined,
+            getBlockchain: () => blockchainAccount ? blockchain : undefined,
+          }
+          : {
+            getAddress: () => blockchainAccount
+              ? Object.entries(blockchainAccount)[0]?.[0]
+              : undefined,
+            getBlockchain: () => blockchainAccount ? blockchain : undefined,
+          };
+
+        return Promise.resolve(wallet as any);
+      }
+    );
+
+    for (const entry of Object.entries(accounts)) {
+      const blockchain = entry[0] as keyof typeof accounts;
+      const blockchainAccounts = entry[1] as Accounts[typeof blockchain];
+
+      mockedBlockchainOptions[blockchain].balancesProvider.getBalance
+        .mockImplementation((address, currency) => {
+          return Promise.resolve(blockchainAccounts[address]?.[currency.id] || new BigNumber(0));
+        });
     }
   };
 

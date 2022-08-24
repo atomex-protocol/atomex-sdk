@@ -3,7 +3,8 @@ import BigNumber from 'bignumber.js';
 import type { AuthorizationManager } from '../authorization/index';
 import type { AtomexProtocolV1, CurrencyInfo, FeesInfo, WalletsManager } from '../blockchain/index';
 import type { AtomexService, Currency } from '../common/index';
-import { NewOrderRequest, ExchangeManager, symbolsHelper, OrderPreview } from '../exchange/index';
+import type { Mutable } from '../core';
+import { NewOrderRequest, ExchangeManager, symbolsHelper, OrderPreview, NormalizedOrderPreviewParameters } from '../exchange/index';
 import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
 import { isNormalizedSwapPreviewParameters, normalizeSwapPreviewParameters } from './helpers';
@@ -96,6 +97,9 @@ export class Atomex implements AtomexService {
     if (!availableLiquidity)
       throw new Error(`No available liquidity for the "${normalizedSwapPreviewParameters.exchangeSymbol.name}" symbol`);
 
+    const errors: Mutable<SwapPreview['errors']> = [];
+    const warnings: Mutable<SwapPreview['warnings']> = [];
+
     const actualOrderPreview = await this.exchangeManager.getOrderPreview(normalizedSwapPreviewParameters);
     const fees = await this.calculateSwapPreviewFees(
       fromCurrencyInfo,
@@ -105,55 +109,28 @@ export class Atomex implements AtomexService {
       normalizedSwapPreviewParameters.useWatchTower
     );
 
-    let maxOrderPreview: OrderPreview | undefined;
-    let fromAddress: string | undefined;
-    let toAddress: string | undefined;
-    const fromWallet = await this.atomexContext.managers.walletsManager.getWallet(undefined, fromCurrencyInfo.currency.blockchain);
-    if (fromWallet) {
-      fromAddress = await fromWallet.getAddress();
+    const swapPreviewAccountData = await this.getSwapPreviewAccountData(
+      normalizedSwapPreviewParameters,
+      fromCurrencyInfo,
+      fromNativeCurrencyInfo,
+      toCurrencyInfo,
+      toNativeCurrencyInfo,
+      availableLiquidity.from.amount,
+      fees,
+      errors,
+      warnings
+    );
 
-      const [fromCurrencyBalance, fromNativeCurrencyBalance] = await Promise.all([
-        fromCurrencyInfo.balanceProvider.getBalance(fromAddress),
-        fromNativeCurrencyInfo.balanceProvider.getBalance(fromAddress)
-      ]);
-
-      const successTotalFee = fees.success.reduce(
-        (total, fee) => {
-          return (fee.name === 'payment-fee' || fee.name === 'redeem-fee')
-            ? total.plus(fee.max)
-            : total;
-        }, new BigNumber(0)
-      );
-      const refundTotalFee = fees.refund.reduce(
-        (total, fee) => {
-          return (fee.name === 'payment-fee' || fee.name === 'refund-fee')
-            ? total.plus(fee.max)
-            : total;
-        }, new BigNumber(0)
-      );
-      // TODO: add sum of the in progress swaps
-      const maxAmount = fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id
-        ? BigNumber.max(fromCurrencyBalance.minus(BigNumber.max(successTotalFee, refundTotalFee)), 0)
-        : fromCurrencyBalance;
-
-      maxOrderPreview = await this.exchangeManager.getOrderPreview({
-        type: normalizedSwapPreviewParameters.type,
-        from: normalizedSwapPreviewParameters.from,
-        to: normalizedSwapPreviewParameters.to,
-        amount: maxAmount,
-        isFromAmount: true,
-      });
-    }
-
-    const errors: Array<SwapPreviewError<unknown>> = [];
     if (!actualOrderPreview)
       errors.push({ id: 'not-enough-liquidity' });
+    else if (swapPreviewAccountData.maxOrderPreview && actualOrderPreview.from.amount.isGreaterThan(swapPreviewAccountData.maxOrderPreview.from.amount))
+      errors.push({ id: 'not-enough-funds' });
 
     return {
       type: normalizedSwapPreviewParameters.type,
       from: {
         currencyId: normalizedSwapPreviewParameters.from,
-        address: fromAddress,
+        address: swapPreviewAccountData.fromAddress,
         actual: actualOrderPreview
           ? {
             amount: actualOrderPreview.from.amount,
@@ -167,14 +144,14 @@ export class Atomex implements AtomexService {
           amount: availableLiquidity.from.amount,
           price: availableLiquidity.from.price
         },
-        max: maxOrderPreview && {
-          amount: maxOrderPreview.from.amount,
-          price: maxOrderPreview.from.price
+        max: swapPreviewAccountData.maxOrderPreview && {
+          amount: swapPreviewAccountData.maxOrderPreview.from.amount,
+          price: swapPreviewAccountData.maxOrderPreview.from.price
         }
       },
       to: {
         currencyId: normalizedSwapPreviewParameters.to,
-        address: toAddress,
+        address: swapPreviewAccountData.toAddress,
         actual: actualOrderPreview
           ? {
             amount: actualOrderPreview.to.amount,
@@ -188,16 +165,16 @@ export class Atomex implements AtomexService {
           amount: availableLiquidity.to.amount,
           price: availableLiquidity.to.price
         },
-        max: maxOrderPreview && {
-          amount: maxOrderPreview.to.amount,
-          price: maxOrderPreview.to.price
+        max: swapPreviewAccountData.maxOrderPreview && {
+          amount: swapPreviewAccountData.maxOrderPreview.to.amount,
+          price: swapPreviewAccountData.maxOrderPreview.to.price
         }
       },
       symbol: normalizedSwapPreviewParameters.exchangeSymbol.name,
       side: normalizedSwapPreviewParameters.side,
       fees,
       errors,
-      warnings: []
+      warnings
     };
   }
 
@@ -277,6 +254,107 @@ export class Atomex implements AtomexService {
     return isNormalizedSwapPreviewParameters(swapPreviewParameters)
       ? swapPreviewParameters
       : normalizeSwapPreviewParameters(swapPreviewParameters, this.atomexContext.providers.exchangeSymbolsProvider, true);
+  }
+
+  private async getSwapPreviewAccountData(
+    normalizedSwapPreviewParameters: NormalizedOrderPreviewParameters,
+    fromCurrencyInfo: CurrencyInfo,
+    fromNativeCurrencyInfo: CurrencyInfo,
+    toCurrencyInfo: CurrencyInfo,
+    toNativeCurrencyInfo: CurrencyInfo,
+    fromAvailableAmount: BigNumber,
+    swapPreviewFees: SwapPreview['fees'],
+    errors: Mutable<SwapPreview['errors']>,
+    warnings: Mutable<SwapPreview['warnings']>
+  ): Promise<{ fromAddress?: string; toAddress?: string; maxOrderPreview?: OrderPreview }> {
+    let fromAddress: string | undefined;
+    let toAddress: string | undefined;
+    let maxOrderPreview: OrderPreview | undefined;
+
+    const maxFromNativeCurrencyFee = Atomex.calculateMaxTotalFee(swapPreviewFees, fromNativeCurrencyInfo.currency.id);
+    const maxToNativeCurrencyFee = Atomex.calculateMaxTotalFee(swapPreviewFees, toNativeCurrencyInfo.currency.id);
+
+    const [fromWallet, toWallet] = await Promise.all([
+      this.atomexContext.managers.walletsManager.getWallet(undefined, fromCurrencyInfo.currency.blockchain),
+      this.atomexContext.managers.walletsManager.getWallet(undefined, toCurrencyInfo.currency.blockchain),
+    ]);
+
+    if (fromWallet) {
+      fromAddress = await fromWallet.getAddress();
+      const [fromCurrencyBalance, fromNativeCurrencyBalance] = await Promise.all([
+        fromCurrencyInfo.balanceProvider.getBalance(fromAddress),
+        fromNativeCurrencyInfo.balanceProvider.getBalance(fromAddress)
+      ]);
+
+      if (fromNativeCurrencyBalance.isLessThan(maxFromNativeCurrencyFee)) {
+        errors.push({
+          id: 'not-enough-funds-network-fee',
+          data: { requiredAmount: maxFromNativeCurrencyFee }
+        });
+      }
+
+      maxOrderPreview = await this.getMaxOrderPreview(
+        normalizedSwapPreviewParameters,
+        fromAvailableAmount,
+        fromCurrencyBalance,
+        fromCurrencyInfo,
+        fromNativeCurrencyBalance,
+        fromNativeCurrencyInfo,
+        maxFromNativeCurrencyFee,
+        errors,
+        warnings
+      );
+    }
+
+    if (toWallet) {
+      toAddress = await toWallet.getAddress();
+      const toNativeCurrencyBalance = await toNativeCurrencyInfo.balanceProvider.getBalance(toAddress);
+
+      if (toNativeCurrencyBalance.isLessThan(maxToNativeCurrencyFee))
+        errors.push({
+          id: 'not-enough-funds-network-fee',
+          data: { requiredAmount: maxToNativeCurrencyFee }
+        });
+    }
+
+    return {
+      fromAddress,
+      toAddress,
+      maxOrderPreview
+    };
+  }
+
+  private async getMaxOrderPreview(
+    normalizedSwapPreviewParameters: NormalizedOrderPreviewParameters,
+    fromAvailableAmount: BigNumber,
+    fromCurrencyBalance: BigNumber,
+    fromCurrencyInfo: CurrencyInfo,
+    _fromNativeCurrencyBalance: BigNumber,
+    fromNativeCurrencyInfo: CurrencyInfo,
+    fromNativeCurrencyNetworkFee: BigNumber,
+    errors: Mutable<SwapPreview['errors']>,
+    _warnings: Mutable<SwapPreview['warnings']>
+  ): Promise<OrderPreview | undefined> {
+    // TODO: add sum of the in progress swaps
+    const maxAmount = BigNumber.min(
+      fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id
+        ? fromCurrencyBalance.minus(fromNativeCurrencyNetworkFee)
+        : fromCurrencyBalance,
+      fromAvailableAmount
+    );
+
+    if (maxAmount.isLessThanOrEqualTo(0)) {
+      errors.push({ id: 'not-enough-funds' });
+      return undefined;
+    }
+
+    return this.exchangeManager.getOrderPreview({
+      type: normalizedSwapPreviewParameters.type,
+      from: normalizedSwapPreviewParameters.from,
+      to: normalizedSwapPreviewParameters.to,
+      amount: maxAmount,
+      isFromAmount: true,
+    });
   }
 
   private async calculateSwapPreviewFees(
@@ -401,5 +479,19 @@ export class Atomex implements AtomexService {
       estimated: estimatedInFromCurrency,
       max: maxInFromCurrency
     };
+  }
+
+  private static calculateMaxTotalFee(fees: SwapPreview['fees'], currencyId: Currency['id']) {
+    const successTotalFee = this.calculateTotalFee(fees.success, currencyId);
+    const refundTotalFee = this.calculateTotalFee(fees.refund, currencyId);
+
+    return BigNumber.max(successTotalFee, refundTotalFee);
+  }
+
+  private static calculateTotalFee(fees: readonly SwapPreviewFee[], currencyId: Currency['id']) {
+    return fees.reduce(
+      (total, fee) => fee.currencyId === currencyId && fee.name.endsWith('fee') ? total.plus(fee.max) : total,
+      new BigNumber(0)
+    );
   }
 }
