@@ -34,8 +34,10 @@ export class ERC20EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<FeesInfo> {
-    throw new Error('Method not implemented.');
+  async getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<FeesInfo> {
+    const redeemFees = await this.getInitiateFees({});
+
+    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
   }
 
   getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
