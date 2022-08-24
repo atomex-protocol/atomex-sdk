@@ -75,19 +75,20 @@ describe('InMemoryCache', () => {
 
   test('clears all entries', () => {
     cache = new InMemoryCache({ absoluteExpirationMs: 1000 * 60 * 5 });
-    const key1 = 'key1';
-    const value1 = 'value1';
-    const key2 = 'key2';
-    const value2 = 'value2';
+    const entries: Array<[key: string, value: string]> = [
+      ['key1', 'value1'],
+      ['key2', 'value2']
+    ];
 
-    cache.set(key1, value1);
-    cache.set(key2, value2);
+    entries.forEach(([key, value]) => {
+      cache.set(key, value);
+    });
 
     cache.clear();
 
-    const removedValue1 = cache.get(key1);
-    expect(removedValue1).toBeUndefined();
-    const removedValue2 = cache.get(key2);
-    expect(removedValue2).toBeUndefined();
+    entries.forEach(([key]) => {
+      const removedValue = cache.get(key);
+      expect(removedValue).toBeUndefined();
+    });
   });
 });
