@@ -45,7 +45,7 @@ const createCurrencyOptions = (
       throw new Error(`The ${options.currencyId} currency not found`);
 
     result[currency.id] = {
-      atomexProtocol: new MockAtomexProtocolV1(atomexNetwork, currency.id)
+      atomexProtocol: new MockAtomexProtocolV1(atomexNetwork, options)
     };
   }
 

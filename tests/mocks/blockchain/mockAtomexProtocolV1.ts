@@ -1,8 +1,22 @@
+import type { AtomexProtocolV1Options } from '../../../src/blockchain';
+import type { DeepReadonly } from '../../../src/core';
 import type { AtomexNetwork, AtomexProtocolV1 } from '../../../src/index';
 
 export class MockAtomexProtocolV1 implements AtomexProtocolV1 {
   readonly version = 1;
-  constructor(readonly atomexNetwork: AtomexNetwork, readonly currencyId: string) {
+
+  constructor(
+    readonly atomexNetwork: AtomexNetwork,
+    readonly options: DeepReadonly<AtomexProtocolV1Options>
+  ) {
+  }
+
+  get currencyId() {
+    return this.options.currencyId;
+  }
+
+  get swapContractAddress() {
+    return this.options.swapContractAddress;
   }
 
   initiate = jest.fn<ReturnType<AtomexProtocolV1['initiate']>, Parameters<AtomexProtocolV1['initiate']>>();
