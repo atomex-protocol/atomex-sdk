@@ -22,7 +22,7 @@ describe('InMemoryCache', () => {
 
       await wait(cacheLiveTime / 2);
       cache.get(key);
-      await wait(cacheLiveTime / 2);
+      await wait((cacheLiveTime / 2) + 100);
 
       const cleanedValue = cache.get(key);
       expect(cleanedValue).toBeUndefined();
