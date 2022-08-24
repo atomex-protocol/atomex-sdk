@@ -1,4 +1,5 @@
 import type { AtomexContext } from '../../src/atomex';
+import { CachedBalanceManager } from '../../src/blockchain/balanceManager';
 import { AtomexNetwork, AuthorizationManager } from '../../src/index';
 import { MockExchangeManager, MockSwapManager, MockWalletsManager } from './managers';
 import { MockAtomexClient } from './mockAtomexClient';
@@ -19,6 +20,7 @@ interface MockAtomexContextManagersSection {
   authorizationManager: AtomexContext['managers']['authorizationManager'];
   exchangeManager: MockExchangeManager;
   swapManager: AtomexContext['managers']['swapManager'];
+  balanceManger: AtomexContext['managers']['balanceManager'];
 }
 
 interface MockAtomexContextServicesSection {
@@ -57,6 +59,7 @@ export const createMockedAtomexContext = (atomexNetwork: AtomexNetwork, id = 0):
         symbolsProvider
       }),
       swapManager: new MockSwapManager(mockedAtomexContext),
+      balanceManger: new CachedBalanceManager(blockchainProvider)
     },
     providers: {
       blockchainProvider,

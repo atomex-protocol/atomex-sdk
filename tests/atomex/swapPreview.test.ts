@@ -39,6 +39,7 @@ describe('Atomex | Swap Preview', () => {
         exchangeManager: mockedAtomexContext.managers.exchangeManager,
         swapManager: mockedAtomexContext.managers.swapManager,
         walletsManager: mockedAtomexContext.managers.walletsManager,
+        balanceManager: mockedAtomexContext.managers.balanceManger
       },
       blockchains: mockedBlockchainOptions
     });

@@ -1,6 +1,7 @@
 import BigNumber from 'bignumber.js';
 
 import type { AuthorizationManager } from '../authorization/index';
+import type { BalanceManager } from '../blockchain/balanceManager';
 import type { AtomexProtocolV1, CurrencyInfo, FeesInfo, WalletsManager } from '../blockchain/index';
 import type { AtomexService, Currency } from '../common/index';
 import type { Mutable } from '../core';
@@ -10,12 +11,13 @@ import type { AtomexContext } from './atomexContext';
 import { isNormalizedSwapPreviewParameters, normalizeSwapPreviewParameters } from './helpers';
 import {
   NewSwapRequest, SwapOperationCompleteStage, AtomexOptions,
-  AtomexBlockchainNetworkOptions, SwapPreview, SwapPreviewParameters, NormalizedSwapPreviewParameters, SwapPreviewFee, SwapPreviewError
+  AtomexBlockchainNetworkOptions, SwapPreview, SwapPreviewParameters, NormalizedSwapPreviewParameters, SwapPreviewFee
 } from './models/index';
 
 export class Atomex implements AtomexService {
   readonly authorization: AuthorizationManager;
   readonly exchangeManager: ExchangeManager;
+  readonly balanceManager: BalanceManager;
   readonly swapManager: SwapManager;
   readonly wallets: WalletsManager;
   readonly atomexContext: AtomexContext;
@@ -28,6 +30,7 @@ export class Atomex implements AtomexService {
     this.authorization = options.managers.authorizationManager;
     this.exchangeManager = options.managers.exchangeManager;
     this.swapManager = options.managers.swapManager;
+    this.balanceManager = options.managers.balanceManager;
 
     if (options.blockchains)
       for (const blockchainName of Object.keys(options.blockchains))
@@ -61,6 +64,7 @@ export class Atomex implements AtomexService {
     this.authorization.stop();
     this.exchangeManager.stop();
     this.swapManager.stop();
+    this.balanceManager.dispose();
 
     this._isStarted = false;
   }
@@ -282,9 +286,12 @@ export class Atomex implements AtomexService {
     if (fromWallet) {
       fromAddress = await fromWallet.getAddress();
       const [fromCurrencyBalance, fromNativeCurrencyBalance] = await Promise.all([
-        fromCurrencyInfo.balanceProvider.getBalance(fromAddress),
-        fromNativeCurrencyInfo.balanceProvider.getBalance(fromAddress)
+        this.balanceManager.getBalance(fromAddress, fromCurrencyInfo.currency),
+        this.balanceManager.getBalance(fromAddress, fromNativeCurrencyInfo.currency)
       ]);
+
+      if (!fromCurrencyBalance || !fromNativeCurrencyBalance)
+        throw new Error('Can not get from currency balances');
 
       if (fromNativeCurrencyBalance.isLessThan(maxFromNativeCurrencyFee)) {
         errors.push({
@@ -308,7 +315,9 @@ export class Atomex implements AtomexService {
 
     if (toWallet) {
       toAddress = await toWallet.getAddress();
-      const toNativeCurrencyBalance = await toNativeCurrencyInfo.balanceProvider.getBalance(toAddress);
+      const toNativeCurrencyBalance = await this.balanceManager.getBalance(toAddress, toNativeCurrencyInfo.currency);
+      if (!toNativeCurrencyBalance)
+        throw new Error('Can not get to currency balance');
 
       if (toNativeCurrencyBalance.isLessThan(maxToNativeCurrencyFee))
         errors.push({

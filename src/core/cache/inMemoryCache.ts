@@ -55,6 +55,10 @@ export class InMemoryCache<K = string> implements Cache<K> {
     keys.forEach(key => this.delete(key));
   }
 
+  async dispose(): Promise<void> {
+    this.clear();
+  }
+
   private getTimeoutAndIsSlidingExpiration(options: SetCacheOptions): [timeout: number, isSlidingExpiration: boolean] {
     return options.slidingExpirationMs !== undefined
       ? [options.slidingExpirationMs, true]

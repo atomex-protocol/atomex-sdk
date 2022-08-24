@@ -17,7 +17,7 @@ export class CachedBalanceManager implements BalanceManager {
     });
   }
 
-  async getBalance(address: string, currency: Currency, dataSource: DataSource): Promise<BigNumber | undefined> {
+  async getBalance(address: string, currency: Currency, dataSource = DataSource.All): Promise<BigNumber | undefined> {
     const key = this.getCacheKey(address, currency);
     if ((dataSource & DataSource.Local) === DataSource.Local) {
       const cachedBalance = this.cache.get<BigNumber>(key);
@@ -37,6 +37,10 @@ export class CachedBalanceManager implements BalanceManager {
     }
 
     return undefined;
+  }
+
+  dispose(): Promise<void> {
+    return this.cache.dispose();
   }
 
   private getCacheKey(address: string, currency: Currency) {
