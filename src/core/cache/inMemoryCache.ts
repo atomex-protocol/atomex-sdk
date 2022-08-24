@@ -30,9 +30,7 @@ export class InMemoryCache<K = string> implements Cache<K> {
   }
 
   set(key: K, value: unknown, options = this.defaultCacheOptions): void {
-    const oldEntry = this.cacheMap.get(key);
-    if (oldEntry)
-      clearTimeout(oldEntry.watcherId);
+    this.delete(key);
 
     const [timeout] = this.getTimeoutAndIsSlidingExpiration(options);
     const watcherId = setTimeout(() => {
@@ -41,6 +39,20 @@ export class InMemoryCache<K = string> implements Cache<K> {
 
     const entry: CacheEntry = { value, watcherId, options };
     this.cacheMap.set(key, entry);
+  }
+
+  delete(key: K): void {
+    const oldEntry = this.cacheMap.get(key);
+    if (!oldEntry)
+      return;
+
+    clearTimeout(oldEntry.watcherId);
+    this.cacheMap.delete(key);
+  }
+
+  clear(): void {
+    const keys = [...this.cacheMap.keys()];
+    keys.forEach(key => this.delete(key));
   }
 
   private getTimeoutAndIsSlidingExpiration(options: SetCacheOptions): [timeout: number, isSlidingExpiration: boolean] {

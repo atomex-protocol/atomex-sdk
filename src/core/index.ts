@@ -10,3 +10,6 @@ export type {
   DeepRequired, DeepPartial, DeepMutable, PropsOf,
   OverloadParameters, OverloadReturnType
 } from './typings/index';
+
+export { InMemoryCache } from './cache/index';
+export type { Cache, SetCacheOptions } from './cache/index';
