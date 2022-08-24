@@ -9,5 +9,5 @@ export type { ExchangeSymbolsProvider, ManagedExchangeSymbolsProvider } from './
 export type { OrderBookProvider, ManagedOrderBookProvider } from './orderBookProvider/index';
 export type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 
-export { type RatesProvider, MixedRatesProvider } from './ratesProvider/index';
+export { type PriceManager, MixedPriceManager } from './priceManager/index';
 export { type RatesService, AtomexRatesService, BinanceRatesService, KrakenRatesService } from './ratesService/index';

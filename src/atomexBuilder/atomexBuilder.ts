@@ -6,7 +6,7 @@ import type { DeepReadonly } from '../core/index';
 import { createDefaultEthereumBlockchainOptions } from '../ethereum/index';
 import {
   AtomexRatesService, BinanceRatesService, ExchangeManager, InMemoryExchangeSymbolsProvider,
-  InMemoryOrderBookProvider, KrakenRatesService, MixedRatesProvider, RatesProvider, RatesService
+  InMemoryOrderBookProvider, KrakenRatesService, PriceManager, MixedPriceManager, RatesService
 } from '../exchange/index';
 import { SwapManager } from '../swaps/swapManager';
 import { createDefaultTezosBlockchainOptions } from '../tezos/index';
@@ -60,7 +60,7 @@ export class AtomexBuilder {
     this.controlledAtomexContext.services.swapService = atomexClient;
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
     this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
-    this.controlledAtomexContext.providers.ratesProvider = this.createRatesProvider();
+    this.controlledAtomexContext.managers.priceManager = this.createPriceManager();
     const blockchains = this.createDefaultBlockchainOptions();
 
     return new Atomex({
@@ -124,8 +124,8 @@ export class AtomexBuilder {
     };
   }
 
-  protected createRatesProvider(): RatesProvider {
-    return new MixedRatesProvider(new Map<string, RatesService>([
+  protected createPriceManager(): PriceManager {
+    return new MixedPriceManager(new Map<string, RatesService>([
       ['binance', new BinanceRatesService()],
       ['kraken', new KrakenRatesService()],
       ['atomex', new AtomexRatesService(this.atomexContext.services.exchangeService)]

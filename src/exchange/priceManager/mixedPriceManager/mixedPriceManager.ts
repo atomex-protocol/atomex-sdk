@@ -2,15 +2,15 @@ import BigNumber from 'bignumber.js';
 
 import type { Currency } from '../../../common';
 import type { RatesService } from '../../ratesService/index';
-import type { RatesProvider } from '../ratesProvider';
+import type { PriceManager } from '../priceManager';
 
-export class MixedRatesProvider implements RatesProvider {
+export class MixedPriceManager implements PriceManager {
   constructor(
     private readonly servicesMap: Map<string, RatesService>
   ) { }
 
   async getAveragePrice(baseCurrency: string, quoteCurrency: string): Promise<BigNumber | undefined> {
-    const services = this.getAvailableServices();
+    const services = this.getAvailableProviders();
     const pricePromises = services.map(service => this.getPrice(baseCurrency, quoteCurrency, service));
     const pricePromiseResults = await Promise.allSettled(pricePromises);
 
@@ -33,7 +33,7 @@ export class MixedRatesProvider implements RatesProvider {
     return price;
   }
 
-  getAvailableServices(): string[] {
+  getAvailableProviders(): string[] {
     return [...this.servicesMap.keys()];
   }
 
