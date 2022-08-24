@@ -203,7 +203,7 @@ export class ExchangeManager implements AtomexService {
       side = exchangeSymbolAndSide[1];
     }
 
-    const orderBook = await this.getOrderBook(symbol);
+    const orderBook = await this.getCachedOrderBook(symbol);
     if (!orderBook)
       return undefined;
 
