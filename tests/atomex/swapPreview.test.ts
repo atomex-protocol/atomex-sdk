@@ -48,7 +48,7 @@ describe('Atomex | Swap Preview', () => {
     atomex.stop();
   });
 
-  test.skip.each(swapPreviewWithoutAccountTestCases)(
+  test.each(swapPreviewWithoutAccountTestCases)(
     'getting swap preview without account: %s\n\tSwap Preview Parameters: %j',
     async (_, swapPreviewParameters, expectedSwapPreview, environment) => {
       mockedAtomexContext.services.exchangeService.getSymbols.mockResolvedValue(environment.symbols);
