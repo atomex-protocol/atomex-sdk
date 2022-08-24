@@ -1,0 +1,1 @@
+export { AtomexPriceProvider } from './atomexPriceProvider';

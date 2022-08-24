@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import type { AuthorizationManager } from '../authorization/index';
 import type { WalletsManager } from '../blockchain/index';
 import type { AtomexService, Currency } from '../common/index';
@@ -22,4 +23,5 @@ export declare class Atomex implements AtomexService {
     getCurrency(currencyId: Currency['id']): Currency | undefined;
     swap(newSwapRequest: NewSwapRequest, completeStage?: SwapOperationCompleteStage): Promise<Swap | readonly Swap[]>;
     swap(swapId: Swap['id'], completeStage?: SwapOperationCompleteStage): Promise<Swap | readonly Swap[]>;
+    convertCurrency(fromAmount: BigNumber.Value, fromCurrency: Currency['id'], toCurrency: Currency['id']): Promise<BigNumber | undefined>;
 }

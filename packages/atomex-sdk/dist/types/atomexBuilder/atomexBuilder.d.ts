@@ -3,7 +3,7 @@ import type { AtomexBlockchainNetworkOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
 import { WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
-import { ExchangeManager, InMemoryExchangeSymbolsProvider, InMemoryOrderBookProvider } from '../exchange/index';
+import { ExchangeManager, InMemoryExchangeSymbolsProvider, InMemoryOrderBookProvider, PriceManager } from '../exchange/index';
 import { SwapManager } from '../swaps/swapManager';
 import type { AtomexBuilderOptions } from './atomexBuilderOptions';
 import { AuthorizationManagerDefaultComponentOptions } from './atomexComponents/index';
@@ -28,4 +28,5 @@ export declare class AtomexBuilder {
     protected createExchangeManager(): ExchangeManager;
     protected createSwapManager(): SwapManager;
     protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainNetworkOptions>;
+    protected createPriceManager(): PriceManager;
 }

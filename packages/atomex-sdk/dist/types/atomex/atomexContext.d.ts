@@ -1,7 +1,7 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { WalletsManager, AtomexBlockchainProvider } from '../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
-import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider } from '../exchange/index';
+import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider, PriceManager } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
 export declare class AtomexContext {
     readonly atomexNetwork: AtomexNetwork;
@@ -18,6 +18,7 @@ declare class AtomexContextManagersSection {
     private _authorizationManager;
     private _exchangeManager;
     private _swapManager;
+    private _priceManager;
     constructor(context: AtomexContext);
     get walletsManager(): WalletsManager;
     private set walletsManager(value);
@@ -27,6 +28,8 @@ declare class AtomexContextManagersSection {
     private set exchangeManager(value);
     get swapManager(): SwapManager;
     private set swapManager(value);
+    get priceManager(): PriceManager;
+    private set priceManager(value);
 }
 declare class AtomexContextServicesSection {
     readonly context: AtomexContext;

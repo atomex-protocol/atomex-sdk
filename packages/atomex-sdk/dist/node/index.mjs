@@ -10,6 +10,55 @@ var __publicField = (obj, key, value) => {
 };
 
 // src/atomex/atomex.ts
+import BigNumber2 from "bignumber.js";
+
+// src/utils/converters.ts
+var converters_exports = {};
+__export(converters_exports, {
+  hexStringToObject: () => hexStringToObject,
+  hexStringToString: () => hexStringToString,
+  hexStringToUint8Array: () => hexStringToUint8Array,
+  numberToTokensAmount: () => numberToTokensAmount,
+  objectToHexString: () => objectToHexString,
+  stringToHexString: () => stringToHexString,
+  toFixedBigNumber: () => toFixedBigNumber,
+  tokensAmountToNat: () => tokensAmountToNat,
+  uint8ArrayToHexString: () => uint8ArrayToHexString
+});
+import BigNumber from "bignumber.js";
+
+// src/native/index.node.ts
+import { Buffer as Buffer2 } from "node:buffer";
+
+// src/utils/converters.ts
+var hexStringToUint8Array = (hex) => {
+  var _a;
+  const integers = (_a = hex.match(/[\da-f]{2}/gi)) == null ? void 0 : _a.map((val) => parseInt(val, 16));
+  return new Uint8Array(integers);
+};
+var uint8ArrayToHexString = (value) => Buffer2.from(value).toString("hex");
+var stringToHexString = (value) => Buffer2.from(value, "utf8").toString("hex");
+var hexStringToString = (value) => Buffer2.from(hexStringToUint8Array(value)).toString("utf8");
+var objectToHexString = (value) => stringToHexString(JSON.stringify(value));
+var hexStringToObject = (value) => {
+  try {
+    return JSON.parse(hexStringToString(value));
+  } catch {
+    return null;
+  }
+};
+var tokensAmountToNat = (tokensAmount, decimals) => {
+  return new BigNumber(tokensAmount).multipliedBy(10 ** decimals).integerValue();
+};
+var numberToTokensAmount = (value, decimals) => {
+  return new BigNumber(value).integerValue().div(10 ** decimals);
+};
+var toFixedBigNumber = (value, decimalPlaces, roundingMode) => {
+  value = BigNumber.isBigNumber(value) ? value : new BigNumber(value);
+  return new BigNumber(value.toFixed(decimalPlaces, roundingMode));
+};
+
+// src/atomex/atomex.ts
 var Atomex = class {
   constructor(options) {
     this.options = options;
@@ -73,6 +122,15 @@ var Atomex = class {
       throw new Error("Swap not found");
     return swaps.length === 1 ? swaps[0] : swaps;
   }
+  async convertCurrency(fromAmount, fromCurrency, toCurrency) {
+    const price = await this.atomexContext.managers.priceManager.getAveragePrice({ baseCurrency: fromCurrency, quoteCurrency: toCurrency });
+    if (!price)
+      return void 0;
+    const inAmountBigNumber = BigNumber2.isBigNumber(fromAmount) ? fromAmount : new BigNumber2(fromAmount);
+    const outAmount = inAmountBigNumber.multipliedBy(price);
+    const toCurrencyInfo = this.getCurrency(toCurrency);
+    return toCurrencyInfo ? toFixedBigNumber(outAmount, toCurrencyInfo.decimals) : outAmount;
+  }
 };
 
 // src/atomex/atomexContext.ts
@@ -99,6 +157,7 @@ var AtomexContextManagersSection = class {
   _authorizationManager;
   _exchangeManager;
   _swapManager;
+  _priceManager;
   get walletsManager() {
     if (!this._walletsManager)
       throw new AtomexComponentNotResolvedError("managers.walletsManager");
@@ -130,6 +189,14 @@ var AtomexContextManagersSection = class {
   }
   set swapManager(swapManager) {
     this._swapManager = swapManager;
+  }
+  get priceManager() {
+    if (!this._priceManager)
+      throw new AtomexComponentNotResolvedError("managers.priceManager");
+    return this._priceManager;
+  }
+  set priceManager(priceManager) {
+    this._priceManager = priceManager;
   }
 };
 var AtomexContextServicesSection = class {
@@ -207,52 +274,6 @@ var AtomexComponentNotResolvedError = class extends Error {
   static getMessage(componentName) {
     return `Atomex "${componentName}" component has not resolved yet`;
   }
-};
-
-// src/utils/converters.ts
-var converters_exports = {};
-__export(converters_exports, {
-  hexStringToObject: () => hexStringToObject,
-  hexStringToString: () => hexStringToString,
-  hexStringToUint8Array: () => hexStringToUint8Array,
-  numberToTokensAmount: () => numberToTokensAmount,
-  objectToHexString: () => objectToHexString,
-  stringToHexString: () => stringToHexString,
-  toFixedBigNumber: () => toFixedBigNumber,
-  tokensAmountToNat: () => tokensAmountToNat,
-  uint8ArrayToHexString: () => uint8ArrayToHexString
-});
-import BigNumber from "bignumber.js";
-
-// src/native/index.node.ts
-import { Buffer as Buffer2 } from "node:buffer";
-
-// src/utils/converters.ts
-var hexStringToUint8Array = (hex) => {
-  var _a;
-  const integers = (_a = hex.match(/[\da-f]{2}/gi)) == null ? void 0 : _a.map((val) => parseInt(val, 16));
-  return new Uint8Array(integers);
-};
-var uint8ArrayToHexString = (value) => Buffer2.from(value).toString("hex");
-var stringToHexString = (value) => Buffer2.from(value, "utf8").toString("hex");
-var hexStringToString = (value) => Buffer2.from(hexStringToUint8Array(value)).toString("utf8");
-var objectToHexString = (value) => stringToHexString(JSON.stringify(value));
-var hexStringToObject = (value) => {
-  try {
-    return JSON.parse(hexStringToString(value));
-  } catch {
-    return null;
-  }
-};
-var tokensAmountToNat = (tokensAmount, decimals) => {
-  return new BigNumber(tokensAmount).multipliedBy(10 ** decimals).integerValue();
-};
-var numberToTokensAmount = (value, decimals) => {
-  return new BigNumber(value).integerValue().div(10 ** decimals);
-};
-var toFixedBigNumber = (value, decimalPlaces, roundingMode) => {
-  value = BigNumber.isBigNumber(value) ? value : new BigNumber(value);
-  return new BigNumber(value.toFixed(decimalPlaces, roundingMode));
 };
 
 // src/utils/guards.ts
@@ -420,7 +441,7 @@ var AtomexBlockchainProvider = class {
 };
 
 // src/evm/atomexProtocol/web3AtomexProtocolV1.ts
-import BigNumber3 from "bignumber.js";
+import BigNumber4 from "bignumber.js";
 
 // src/evm/helpers/web3Helper.ts
 var web3Helper_exports = {};
@@ -428,15 +449,15 @@ __export(web3Helper_exports, {
   convertFromWei: () => convertFromWei,
   getGasPriceInWei: () => getGasPriceInWei
 });
-import BigNumber2 from "bignumber.js";
+import BigNumber3 from "bignumber.js";
 var getGasPriceInWei = async (toolkit) => {
   const gasPrice = await toolkit.eth.getGasPrice();
-  return new BigNumber2(gasPrice);
+  return new BigNumber3(gasPrice);
 };
 var convertFromWei = (toolkit, value, unit) => {
   const stringValue = typeof value === "string" ? value : value.toString(10);
   const result = toolkit.utils.fromWei(stringValue, unit);
-  return new BigNumber2(result);
+  return new BigNumber3(result);
 };
 
 // src/evm/atomexProtocol/web3AtomexProtocolV1.ts
@@ -458,7 +479,7 @@ var _Web3AtomexProtocolV1 = class {
     const gasPriceInWei = await web3Helper_exports.getGasPriceInWei(toolkit);
     const gasLimitOptions = this.atomexProtocolOptions.initiateOperation.gasLimit;
     const hasRewardForRedeem = (_a = params.rewardForRedeem) == null ? void 0 : _a.isGreaterThan(0);
-    const gasLimit = new BigNumber3(hasRewardForRedeem ? gasLimitOptions.withReward : gasLimitOptions.withoutReward);
+    const gasLimit = new BigNumber4(hasRewardForRedeem ? gasLimitOptions.withReward : gasLimitOptions.withoutReward);
     const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(_Web3AtomexProtocolV1.maxNetworkFeeMultiplier);
     const estimated = web3Helper_exports.convertFromWei(toolkit, estimatedWei, "ether");
     const result = { estimated, max: estimated };
@@ -496,7 +517,7 @@ var _Web3AtomexProtocolV1 = class {
   }
 };
 var Web3AtomexProtocolV1 = _Web3AtomexProtocolV1;
-__publicField(Web3AtomexProtocolV1, "maxNetworkFeeMultiplier", new BigNumber3(1.2));
+__publicField(Web3AtomexProtocolV1, "maxNetworkFeeMultiplier", new BigNumber4(1.2));
 
 // src/evm/wallets/web3BlockchainWallet.ts
 import Web3 from "web3";
@@ -613,7 +634,7 @@ var Web3BlockchainToolkitProvider = class {
 };
 
 // src/evm/balancesProviders/web3BalancesProvider.ts
-import BigNumber4 from "bignumber.js";
+import BigNumber5 from "bignumber.js";
 
 // src/evm/abi/erc20abi.ts
 var erc20Abi = [
@@ -859,12 +880,12 @@ var Web3BalancesProvider = class {
   }
   async getNativeTokenBalance(address, currency, toolkit) {
     const balance = await toolkit.eth.getBalance(address);
-    return numberToTokensAmount(new BigNumber4(balance), currency.decimals);
+    return numberToTokensAmount(new BigNumber5(balance), currency.decimals);
   }
   async getTokenBalance(address, currency, toolkit) {
     const contract = new toolkit.eth.Contract(erc20Abi, currency.contractAddress);
     const balance = await contract.methods.balanceOf(address).call();
-    return numberToTokensAmount(new BigNumber4(balance), currency.decimals);
+    return numberToTokensAmount(new BigNumber5(balance), currency.decimals);
   }
 };
 
@@ -1345,25 +1366,25 @@ __export(symbolsHelper_exports, {
   findExchangeSymbolAndSide: () => findExchangeSymbolAndSide,
   getQuoteBaseCurrenciesBySymbol: () => getQuoteBaseCurrenciesBySymbol
 });
-import BigNumber5 from "bignumber.js";
+import BigNumber6 from "bignumber.js";
 var getQuoteBaseCurrenciesBySymbol = (symbol) => {
   const [quoteCurrency = "", baseCurrency = ""] = symbol.split("/");
   return [quoteCurrency, baseCurrency];
 };
 var convertSymbolToFromToCurrenciesPair = (symbol, side, currencyAmount, quoteCurrencyPrice, isQuoteCurrencyAmount = true) => {
-  const preparedQuoteCurrencyPrice = converters_exports.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber5.ROUND_FLOOR);
+  const preparedQuoteCurrencyPrice = converters_exports.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber6.ROUND_FLOOR);
   const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
   const isBuySide = side === "Buy";
   let preparedQuoteCurrencyAmount;
   let preparedBaseCurrencyAmount;
   if (isQuoteCurrencyAmount) {
-    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber5.ROUND_FLOOR);
-    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, isBuySide ? BigNumber5.ROUND_CEIL : BigNumber5.ROUND_FLOOR);
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber6.ROUND_FLOOR);
+    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, isBuySide ? BigNumber6.ROUND_CEIL : BigNumber6.ROUND_FLOOR);
   } else {
-    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber5.ROUND_FLOOR);
-    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice), symbol.decimals.quoteCurrency, isBuySide ? BigNumber5.ROUND_FLOOR : BigNumber5.ROUND_CEIL);
+    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber6.ROUND_FLOOR);
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice), symbol.decimals.quoteCurrency, isBuySide ? BigNumber6.ROUND_FLOOR : BigNumber6.ROUND_CEIL);
   }
-  const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(new BigNumber5(1).div(preparedQuoteCurrencyPrice), symbol.decimals.price, BigNumber5.ROUND_FLOOR);
+  const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(new BigNumber6(1).div(preparedQuoteCurrencyPrice), symbol.decimals.price, BigNumber6.ROUND_FLOOR);
   const quoteCurrency = {
     currencyId: quoteCurrencyId,
     amount: preparedQuoteCurrencyAmount,
@@ -1743,6 +1764,143 @@ var InMemoryOrderBookProvider = class {
   }
 };
 
+// src/exchange/priceManager/mixedPriceManager/mixedPriceManager.ts
+import BigNumber7 from "bignumber.js";
+var MixedPriceManager = class {
+  constructor(providersMap) {
+    this.providersMap = providersMap;
+  }
+  async getAveragePrice({ baseCurrency, quoteCurrency, dataSource = 3 /* All */ }) {
+    const providers = this.getAvailableProviders();
+    const pricePromises = providers.map((provider) => this.getPrice({ baseCurrency, quoteCurrency, provider }));
+    const pricePromiseResults = await Promise.allSettled(pricePromises);
+    const prices = [];
+    for (const result of pricePromiseResults)
+      if (result.status === "fulfilled" && result.value !== void 0)
+        prices.push(result.value);
+    return prices.length ? BigNumber7.sum(...prices).div(prices.length) : void 0;
+  }
+  async getPrice({ baseCurrency, quoteCurrency, provider, dataSource = 3 /* All */ }) {
+    let price = await this.getPriceCore(baseCurrency, quoteCurrency, provider);
+    if (!price) {
+      const reversedPrice = await this.getPriceCore(quoteCurrency, baseCurrency, provider);
+      if (reversedPrice)
+        price = reversedPrice.pow(-1);
+    }
+    return price;
+  }
+  getAvailableProviders() {
+    return [...this.providersMap.keys()];
+  }
+  dispose() {
+    throw new Error("Method not implemented.");
+  }
+  async getPriceCore(baseCurrency, quoteCurrency, provider) {
+    const providers = this.getSelectedProviders(provider);
+    const pricePromises = providers.map((provider2) => provider2.getPrice(baseCurrency, quoteCurrency));
+    const pricePromiseResults = await Promise.allSettled(pricePromises);
+    for (const result of pricePromiseResults)
+      if (result.status === "fulfilled" && result.value !== void 0)
+        return result.value;
+    return void 0;
+  }
+  getSelectedProviders(provider) {
+    if (!provider)
+      return [...this.providersMap.values()];
+    const selectedProvider = this.providersMap.get(provider);
+    if (!selectedProvider)
+      throw new Error(`Provider not found for key: ${provider}`);
+    return [selectedProvider];
+  }
+};
+
+// src/exchange/priceProvider/atomex/atomexPriceProvider.ts
+var AtomexPriceProvider = class {
+  constructor(exchangeService) {
+    this.exchangeService = exchangeService;
+  }
+  async getPrice(baseCurrency, quoteCurrency) {
+    var _a;
+    const symbol = `${baseCurrency}/${quoteCurrency}`;
+    const quote = (_a = await this.exchangeService.getTopOfBook([{ from: baseCurrency, to: quoteCurrency }])) == null ? void 0 : _a[0];
+    return quote && quote.symbol == symbol ? this.getMiddlePrice(quote) : void 0;
+  }
+  getMiddlePrice(quote) {
+    return quote.ask.plus(quote.bid).div(2);
+  }
+};
+
+// src/exchange/priceProvider/binance/binancePriceProvider.ts
+import BigNumber8 from "bignumber.js";
+
+// src/exchange/priceProvider/binance/utils.ts
+var isErrorDto = (dto) => {
+  const errorDto = dto;
+  return typeof errorDto.code === "number" && typeof errorDto.msg === "string";
+};
+
+// src/exchange/priceProvider/binance/binancePriceProvider.ts
+var _BinancePriceProvider = class {
+  httpClient;
+  _allSymbols;
+  constructor() {
+    this.httpClient = new HttpClient(_BinancePriceProvider.baseUrl);
+  }
+  async getPrice(baseCurrency, quoteCurrency) {
+    const symbol = `${baseCurrency}${quoteCurrency}`;
+    const allSymbols = await this.getAllSymbols();
+    if (!allSymbols.has(symbol))
+      return void 0;
+    const urlPath = `${_BinancePriceProvider.priceUrlPath}?symbol=${symbol}`;
+    const responseDto = await this.httpClient.request({ urlPath }, false);
+    return this.mapRatesDtoToPrice(responseDto);
+  }
+  mapRatesDtoToPrice(dto) {
+    if (isErrorDto(dto))
+      return void 0;
+    return new BigNumber8(dto.price);
+  }
+  async getAllSymbols() {
+    if (!this._allSymbols)
+      this._allSymbols = new Set(await this.requestAllSymbols());
+    return this._allSymbols;
+  }
+  async requestAllSymbols() {
+    const urlPath = _BinancePriceProvider.priceUrlPath;
+    const responseDto = await this.httpClient.request({ urlPath }, false);
+    return responseDto.map((dto) => dto.symbol);
+  }
+};
+var BinancePriceProvider = _BinancePriceProvider;
+__publicField(BinancePriceProvider, "baseUrl", "https://www.binance.com");
+__publicField(BinancePriceProvider, "priceUrlPath", "/api/v3/ticker/price");
+
+// src/exchange/priceProvider/kraken/krakenPriceProvider.ts
+import BigNumber9 from "bignumber.js";
+var _KrakenPriceProvider = class {
+  httpClient;
+  constructor() {
+    this.httpClient = new HttpClient(_KrakenPriceProvider.baseUrl);
+  }
+  async getPrice(baseCurrency, quoteCurrency) {
+    const symbol = `${baseCurrency}${quoteCurrency}`;
+    const urlPath = `/0/public/Ticker?pair=${symbol}`;
+    const responseDto = await this.httpClient.request({ urlPath }, false);
+    return this.mapRatesDtoToPrice(responseDto);
+  }
+  mapRatesDtoToPrice(dto) {
+    if (dto.error.length)
+      return void 0;
+    const symbol = Object.keys(dto.result)[0];
+    const tickerInfo = symbol ? dto.result[symbol] : void 0;
+    if (!tickerInfo)
+      return void 0;
+    return new BigNumber9(tickerInfo.c[0]);
+  }
+};
+var KrakenPriceProvider = _KrakenPriceProvider;
+__publicField(KrakenPriceProvider, "baseUrl", "https://api.kraken.com");
+
 // src/swaps/swapManager.ts
 var SwapManager = class {
   constructor(swapService) {
@@ -1792,7 +1950,7 @@ import { TezosToolkit } from "@taquito/taquito";
 
 // src/tezos/utils/index.ts
 import { b58cdecode as b58cdecode2, prefix as prefix2, validatePkAndExtractPrefix } from "@taquito/utils";
-import BigNumber6 from "bignumber.js";
+import BigNumber10 from "bignumber.js";
 
 // src/tezos/utils/guards.ts
 var isTezosCurrency = (currency) => {
@@ -1842,7 +2000,7 @@ var decodeSignature = (signature) => {
 };
 
 // src/tezos/utils/index.ts
-var mutezInTez = new BigNumber6(1e6);
+var mutezInTez = new BigNumber10(1e6);
 var decodePublicKey = (publicKey) => {
   const keyPrefix = validatePkAndExtractPrefix(publicKey);
   const decodedKeyBytes = b58cdecode2(publicKey, prefix2[keyPrefix]);
@@ -2028,7 +2186,7 @@ var TaquitoBlockchainWallet = class {
 };
 
 // src/tezos/atomexProtocol/taquitoAtomexProtocolV1.ts
-import BigNumber7 from "bignumber.js";
+import BigNumber11 from "bignumber.js";
 var TaquitoAtomexProtocolV1 = class {
   constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
     this.blockchain = blockchain;
@@ -2042,17 +2200,17 @@ var TaquitoAtomexProtocolV1 = class {
     return this.atomexProtocolOptions.currencyId;
   }
   getInitiateFees(_params) {
-    const estimated = new BigNumber7(this.atomexProtocolOptions.initiateOperation.fee).div(mutezInTez);
+    const estimated = new BigNumber11(this.atomexProtocolOptions.initiateOperation.fee).div(mutezInTez);
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
   }
   getRedeemFees(_params) {
-    const estimated = new BigNumber7(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
+    const estimated = new BigNumber11(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
   }
   getRefundFees(_params) {
-    const estimated = new BigNumber7(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
+    const estimated = new BigNumber11(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
   }
@@ -2489,7 +2647,7 @@ var createDefaultTezosBlockchainOptions = (atomexContext) => {
 };
 
 // src/clients/helpers.ts
-import BigNumber8 from "bignumber.js";
+import BigNumber12 from "bignumber.js";
 var isOrderPreview = (orderBody) => {
   return typeof orderBody.symbol === "string" && typeof orderBody.side === "string" && !!orderBody.from && !!orderBody.to;
 };
@@ -2500,8 +2658,8 @@ var mapQuoteDtosToQuotes = (quoteDtos) => {
 var mapQuoteDtoToQuote = (quoteDto) => {
   const [quoteCurrency, baseCurrency] = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(quoteDto.symbol);
   const quote = {
-    ask: new BigNumber8(quoteDto.ask),
-    bid: new BigNumber8(quoteDto.bid),
+    ask: new BigNumber12(quoteDto.ask),
+    bid: new BigNumber12(quoteDto.bid),
     symbol: quoteDto.symbol,
     timeStamp: new Date(quoteDto.timeStamp),
     quoteCurrency,
@@ -2520,7 +2678,7 @@ var mapSymbolDtoToSymbol = (symbolDto, currenciesProvider, defaultDecimals = 9) 
     name: symbolDto.name,
     baseCurrency,
     quoteCurrency,
-    minimumQty: new BigNumber8(symbolDto.minimumQty),
+    minimumQty: new BigNumber12(symbolDto.minimumQty),
     decimals: {
       baseCurrency: preparedBaseCurrencyDecimals,
       quoteCurrency: preparedQuoteCurrencyDecimals,
@@ -2545,7 +2703,7 @@ var mapOrderBookDtoToOrderBook = (orderBookDto) => {
 var mapOrderBookEntryDtoToOrderBookEntry = (entryDto) => {
   const entry = {
     side: entryDto.side,
-    price: new BigNumber8(entryDto.price),
+    price: new BigNumber12(entryDto.price),
     qtyProfile: entryDto.qtyProfile
   };
   return entry;
@@ -2581,7 +2739,7 @@ var mapOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
     clientOrderId: orderDto.clientOrderId,
     side: orderDto.side,
     symbol: orderDto.symbol,
-    leaveQty: new BigNumber8(orderDto.leaveQty),
+    leaveQty: new BigNumber12(orderDto.leaveQty),
     timeStamp: new Date(orderDto.timeStamp),
     type: orderDto.type,
     status: orderDto.status,
@@ -2615,8 +2773,8 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
     from,
     to,
     trade: {
-      qty: new BigNumber8(swapDto.qty),
-      price: new BigNumber8(swapDto.price),
+      qty: new BigNumber12(swapDto.qty),
+      price: new BigNumber12(swapDto.price),
       side: swapDto.side,
       symbol: swapDto.symbol
     },
@@ -2626,7 +2784,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
       transactions: mapTransactionDtosToTransactions(swapDto.counterParty.transactions),
       requisites: {
         ...swapDto.counterParty.requisites,
-        rewardForRedeem: new BigNumber8(swapDto.counterParty.requisites.rewardForRedeem)
+        rewardForRedeem: new BigNumber12(swapDto.counterParty.requisites.rewardForRedeem)
       },
       trades: mapTradeDtosToTrades(swapDto.counterParty.trades)
     },
@@ -2635,7 +2793,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
       transactions: mapTransactionDtosToTransactions(swapDto.user.transactions),
       requisites: {
         ...swapDto.user.requisites,
-        rewardForRedeem: new BigNumber8(swapDto.user.requisites.rewardForRedeem)
+        rewardForRedeem: new BigNumber12(swapDto.user.requisites.rewardForRedeem)
       },
       trades: mapTradeDtosToTrades(swapDto.user.trades)
     }
@@ -2645,8 +2803,8 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
 var mapTradeDtosToTrades = (tradeDtos) => {
   const trades = tradeDtos.map((tradeDto) => ({
     orderId: tradeDto.orderId,
-    price: new BigNumber8(tradeDto.price),
-    qty: new BigNumber8(tradeDto.qty)
+    price: new BigNumber12(tradeDto.price),
+    qty: new BigNumber12(tradeDto.qty)
   }));
   return trades;
 };
@@ -2663,7 +2821,7 @@ var mapWebSocketOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
     clientOrderId: orderDto.clientOrderId,
     side: orderDto.side,
     status: orderDto.status,
-    leaveQty: new BigNumber8(orderDto.leaveQty),
+    leaveQty: new BigNumber12(orderDto.leaveQty),
     swapIds: orderDto.swaps,
     symbol: orderDto.symbol,
     type: orderDto.type,
@@ -3718,6 +3876,7 @@ var AtomexBuilder = class {
     this.controlledAtomexContext.services.swapService = atomexClient;
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
     this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
+    this.controlledAtomexContext.managers.priceManager = this.createPriceManager();
     const blockchains = this.createDefaultBlockchainOptions();
     return new Atomex({
       atomexContext: this.atomexContext,
@@ -3762,6 +3921,13 @@ var AtomexBuilder = class {
       tezos: createDefaultTezosBlockchainOptions(this.atomexContext),
       ethereum: createDefaultEthereumBlockchainOptions(this.atomexContext)
     };
+  }
+  createPriceManager() {
+    return new MixedPriceManager(/* @__PURE__ */ new Map([
+      ["binance", new BinancePriceProvider()],
+      ["kraken", new KrakenPriceProvider()],
+      ["atomex", new AtomexPriceProvider(this.atomexContext.services.exchangeService)]
+    ]));
   }
 };
 
@@ -4924,7 +5090,7 @@ var Atomex2 = class {
 };
 
 // src/legacy/ethereum.ts
-import BigNumber9 from "bignumber.js";
+import BigNumber13 from "bignumber.js";
 import elliptic from "elliptic";
 import Web33 from "web3";
 
@@ -5043,14 +5209,14 @@ var EthereumHelpers = class extends Helpers {
       secretHash: params["_hashedSecret"].slice(2),
       receivingAddress: params["_participant"],
       refundTimestamp: parseInt(params["_refundTimestamp"]),
-      rewardForRedeem: new BigNumber9(this._web3.utils.toBN(params["_payoff"]).toString()),
-      netAmount: new BigNumber9(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
+      rewardForRedeem: new BigNumber13(this._web3.utils.toBN(params["_payoff"]).toString()),
+      netAmount: new BigNumber13(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
     };
   }
   async validateInitiateTransaction(_blockHeight, txId, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
     var _a;
-    amount = new BigNumber9(amount);
-    payoff = new BigNumber9(payoff);
+    amount = new BigNumber13(amount);
+    payoff = new BigNumber13(payoff);
     const netAmount = amount.minus(payoff);
     const transaction = await this.getTransaction(txId);
     try {
@@ -5164,7 +5330,7 @@ import {
   validateAddress,
   ValidationResult
 } from "@taquito/utils";
-import BigNumber10 from "bignumber.js";
+import BigNumber14 from "bignumber.js";
 var formatTimestamp = (timestamp) => {
   return new Date(timestamp * 1e3).toISOString().slice(0, -5) + "Z";
 };
@@ -5294,8 +5460,8 @@ var TezosHelpers = class extends Helpers {
       secretHash: initiateParams["settings"]["hashed_secret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["settings"]["refund_time"]),
-      netAmount: new BigNumber10(content.amount).minus(initiateParams["settings"]["payoff"]),
-      rewardForRedeem: new BigNumber10(initiateParams["settings"]["payoff"])
+      netAmount: new BigNumber14(content.amount).minus(initiateParams["settings"]["payoff"]),
+      rewardForRedeem: new BigNumber14(initiateParams["settings"]["payoff"])
     };
   }
   findContractCall(block, txID) {
@@ -5311,8 +5477,8 @@ var TezosHelpers = class extends Helpers {
     return contents;
   }
   async validateInitiateTransaction(blockHeight, txID, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
-    amount = new BigNumber10(amount);
-    payoff = new BigNumber10(payoff);
+    amount = new BigNumber14(amount);
+    payoff = new BigNumber14(payoff);
     const netAmount = amount.minus(payoff);
     const block = await this.getBlock(blockHeight);
     try {
@@ -5385,8 +5551,8 @@ var TezosHelpers = class extends Helpers {
       receivingAddress: "tz1Q2prWCrDGFDuGTe7axdt4z9e3QkCqdhmD",
       secretHash: "169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b",
       refundTimestamp: 2147483647,
-      rewardForRedeem: new BigNumber10(0),
-      netAmount: new BigNumber10(100)
+      rewardForRedeem: new BigNumber14(0),
+      netAmount: new BigNumber14(100)
     };
     const tx = this.buildInitiateTransaction(dummyTx);
     const header = await this._tezos.rpc.getBlockHeader();
@@ -5442,7 +5608,7 @@ var TezosHelpers = class extends Helpers {
 
 // src/legacy/fa12.ts
 import { TezosToolkit as TezosToolkit6 } from "@taquito/taquito";
-import BigNumber11 from "bignumber.js";
+import BigNumber15 from "bignumber.js";
 var FA12Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
@@ -5479,15 +5645,15 @@ var FA12Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: new BigNumber11(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
-      rewardForRedeem: new BigNumber11(initiateParams["payoffAmount"])
+      netAmount: new BigNumber15(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new BigNumber15(initiateParams["payoffAmount"])
     };
   }
 };
 
 // src/legacy/fa2.ts
 import { TezosToolkit as TezosToolkit7 } from "@taquito/taquito";
-import BigNumber12 from "bignumber.js";
+import BigNumber16 from "bignumber.js";
 var FA2Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
@@ -5515,8 +5681,8 @@ var FA2Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: new BigNumber12(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
-      rewardForRedeem: new BigNumber12(initiateParams["payoffAmount"])
+      netAmount: new BigNumber16(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new BigNumber16(initiateParams["payoffAmount"])
     };
   }
   getInitiateParams(entrypoint, params) {
