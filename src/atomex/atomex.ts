@@ -268,14 +268,14 @@ export class Atomex implements AtomexService {
   ): Promise<SwapPreview['fees']> {
     const fromAtomexProtocol = (fromCurrencyInfo.atomexProtocol as AtomexProtocolV1);
     const toAtomexProtocol = (toCurrencyInfo.atomexProtocol as AtomexProtocolV1);
-    const [fromInitiateFees, fromRedeemOrRewardForRedeem, fromRefundFees, toInitiateFees, toRedeemFees] = await Promise.all([
+    const [fromInitiateFees, toRedeemOrRewardForRedeem, fromRefundFees, toInitiateFees, fromRedeemFees] = await Promise.all([
       // TODO: fill parameters
       fromAtomexProtocol.getInitiateFees({}),
-      useWatchTower ? fromAtomexProtocol.getRedeemReward(0, 0) : fromAtomexProtocol.getRedeemFees({}),
+      useWatchTower ? toAtomexProtocol.getRedeemReward(0, 0) : toAtomexProtocol.getRedeemFees({}),
       fromAtomexProtocol.getRefundFees({}),
 
       toAtomexProtocol.getInitiateFees({}),
-      toAtomexProtocol.getRedeemFees({}),
+      fromAtomexProtocol.getRedeemFees({}),
     ]);
     // TODO: use mixed rates providers
     const [estimatedMakerFee, maxMakerFee] = await Promise.all([
@@ -283,16 +283,16 @@ export class Atomex implements AtomexService {
         type: 'SolidFillOrKill',
         from: toNativeCurrencyInfo.currency.id,
         to: fromCurrencyInfo.currency.id,
-        amount: toInitiateFees.estimated.plus(toRedeemFees.estimated),
+        amount: toInitiateFees.estimated,
         isFromAmount: true
-      }).then(orderPreview => orderPreview?.to.amount),
+      }).then(orderPreview => orderPreview?.to.amount.plus(fromRedeemFees.estimated)),
       this.exchangeManager.getOrderPreview({
         type: 'SolidFillOrKill',
         from: toNativeCurrencyInfo.currency.id,
         to: fromCurrencyInfo.currency.id,
-        amount: toInitiateFees.max.plus(toRedeemFees.max),
+        amount: toInitiateFees.max,
         isFromAmount: true
-      }).then(orderPreview => orderPreview?.to.amount)
+      }).then(orderPreview => orderPreview?.to.amount.plus(fromRedeemFees.max))
     ]);
     if (!estimatedMakerFee || !maxMakerFee)
       throw new Error('It\'s no possible to calculate maker fee');
@@ -316,9 +316,9 @@ export class Atomex implements AtomexService {
         makerFee,
         {
           name: useWatchTower ? 'redeem-reward' : 'redeem-fee',
-          currencyId: fromNativeCurrencyInfo.currency.id,
-          estimated: fromRedeemOrRewardForRedeem.estimated,
-          max: fromRedeemOrRewardForRedeem.max
+          currencyId: toCurrencyInfo.currency.id,
+          estimated: toRedeemOrRewardForRedeem.estimated,
+          max: toRedeemOrRewardForRedeem.max
         }
       ],
       refund: [

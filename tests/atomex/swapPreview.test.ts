@@ -1,31 +1,35 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import BigNumber from 'bignumber.js';
-
 import type { AtomexContext } from '../../src/atomex';
 import { ethereumTestnetCurrencies } from '../../src/ethereum';
 import { testnetEthereumWeb3AtomexProtocolV1Options } from '../../src/ethereum/config';
 import { Atomex } from '../../src/index';
 import { tezosTestnetCurrencies } from '../../src/tezos';
 import { testnetTezosTaquitoAtomexProtocolV1Options } from '../../src/tezos/config/atomexProtocol';
-import { createMockedAtomexContext, createMockedBlockchainOptions } from '../mocks';
+import { createMockedAtomexContext, createMockedBlockchainOptions, MockAtomexBlockchainNetworkOptions, MockAtomexContext } from '../mocks';
+import { AtomexProtocolV1Fees, swapPreviewWithoutAccountTestCases } from './testCases';
 
 describe('Atomex | Swap Preview', () => {
-  const mockedAtomexContext = createMockedAtomexContext('mainnet');
-  const mockedBlockchainOptions = {
-    ethereum: createMockedBlockchainOptions({
-      currencies: ethereumTestnetCurrencies,
-      atomexProtocolOptions: testnetEthereumWeb3AtomexProtocolV1Options,
-      toolkitId: 'web3'
-    }),
-    tezos: createMockedBlockchainOptions({
-      currencies: tezosTestnetCurrencies,
-      atomexProtocolOptions: testnetTezosTaquitoAtomexProtocolV1Options,
-      toolkitId: 'taquito'
-    }),
+  let mockedAtomexContext: MockAtomexContext;
+  let mockedBlockchainOptions: {
+    ethereum: MockAtomexBlockchainNetworkOptions;
+    tezos: MockAtomexBlockchainNetworkOptions;
   };
   let atomex: Atomex;
 
   beforeEach(() => {
+    mockedAtomexContext = createMockedAtomexContext('mainnet');
+    mockedBlockchainOptions = {
+      ethereum: createMockedBlockchainOptions({
+        currencies: ethereumTestnetCurrencies,
+        atomexProtocolOptions: testnetEthereumWeb3AtomexProtocolV1Options,
+        toolkitId: 'web3'
+      }),
+      tezos: createMockedBlockchainOptions({
+        currencies: tezosTestnetCurrencies,
+        atomexProtocolOptions: testnetTezosTaquitoAtomexProtocolV1Options,
+        toolkitId: 'taquito'
+      }),
+    };
     atomex = new Atomex({
       atomexContext: mockedAtomexContext as unknown as AtomexContext,
       managers: {
@@ -38,80 +42,47 @@ describe('Atomex | Swap Preview', () => {
     });
   });
 
-  test('Simple Swap Preview', async () => {
-    mockedAtomexContext.services.exchangeService.getSymbols.mockResolvedValue([{
-      name: 'XTZ/ETH',
-      baseCurrency: 'ETH',
-      quoteCurrency: 'XTZ',
-      minimumQty: new BigNumber(0.0001),
-      decimals: {
-        baseCurrency: 9,
-        quoteCurrency: 6,
-        price: 9
-      }
-    }]);
-    mockedAtomexContext.services.exchangeService.getOrderBook.mockResolvedValue({
-      updateId: 23970,
-      symbol: 'XTZ/ETH',
-      baseCurrency: 'ETH',
-      quoteCurrency: 'XTZ',
-      entries: [
-        {
-          side: 'Buy',
-          price: new BigNumber(0.000948468),
-          qtyProfile: [
-            300.0
-          ]
-        },
-        {
-          side: 'Sell',
-          price: new BigNumber(0.000977739),
-          qtyProfile: [
-            900.0
-          ]
-        }
-      ]
-    });
-    mockedAtomexContext.managers.exchangeManager.getAvailableLiquidity.mockResolvedValue({
-      type: 'SolidFillOrKill',
-      side: 'Sell',
-      symbol: 'XTZ/ETH',
-      from: {
-        currencyId: 'XTZ',
-        amount: new BigNumber('300.0'),
-        price: new BigNumber('0.000948468')
-      },
-      to: {
-        currencyId: 'ETH',
-        amount: new BigNumber('0.2845404'),
-        price: new BigNumber('1054.331827747')
-      },
-    });
-
-    mockedBlockchainOptions.tezos.currencyOptions['XTZ']!.atomexProtocol.getInitiateFees
-      .mockResolvedValue({ estimated: new BigNumber('0.0743'), max: new BigNumber('0.1') });
-    mockedBlockchainOptions.tezos.currencyOptions['XTZ']!.atomexProtocol.getRedeemFees
-      .mockResolvedValue({ estimated: new BigNumber('0.05'), max: new BigNumber('0.07') });
-    mockedBlockchainOptions.tezos.currencyOptions['XTZ']!.atomexProtocol.getRefundFees
-      .mockResolvedValue({ estimated: new BigNumber('0.05'), max: new BigNumber('0.07') });
-    mockedBlockchainOptions.tezos.currencyOptions['XTZ']!.atomexProtocol.getRedeemReward
-      .mockResolvedValue({ estimated: new BigNumber('2.240568'), max: new BigNumber('2.240568') });
-
-    mockedBlockchainOptions.ethereum.currencyOptions['ETH']!.atomexProtocol.getInitiateFees
-      .mockResolvedValue({ estimated: new BigNumber('0.00189'), max: new BigNumber('0.003') });
-    mockedBlockchainOptions.ethereum.currencyOptions['ETH']!.atomexProtocol.getRedeemFees
-      .mockResolvedValue({ estimated: new BigNumber('0.0015'), max: new BigNumber('0.0027') });
-    mockedBlockchainOptions.ethereum.currencyOptions['ETH']!.atomexProtocol.getRefundFees
-      .mockResolvedValue({ estimated: new BigNumber('0.0013'), max: new BigNumber('0.0027') });
-
-    await atomex.exchangeManager.start();
-
-    const swapPreview = await atomex.getSwapPreview({
-      type: 'SolidFillOrKill',
-      from: 'XTZ',
-      to: 'ETH',
-      amount: new BigNumber('10'),
-    });
-    console.log(swapPreview);
+  afterEach(() => {
+    atomex.stop();
   });
+
+  test.each(swapPreviewWithoutAccountTestCases)(
+    'getting swap preview without account: %s',
+    async (_, swapPreviewParameters, expectedSwapPreview, environment) => {
+      mockedAtomexContext.services.exchangeService.getSymbols.mockResolvedValue(environment.symbols);
+      mockedAtomexContext.services.exchangeService.getOrderBook.mockResolvedValue(environment.orderBook);
+      mockAtomexProtocolV1Fees(environment.atomexProtocolFees);
+      await atomex.start();
+
+      const swapPreview = await atomex.getSwapPreview(swapPreviewParameters);
+
+      expect(swapPreview).toEqual(expectedSwapPreview);
+    }
+  );
+
+  const getBlockchainNameByCurrencyId = (currencyId: string) => {
+    switch (currencyId) {
+      case 'ETH':
+        return 'ethereum';
+      case 'XTZ':
+        return 'tezos';
+      default:
+        throw new Error(`Unknown ${currencyId} currency`);
+    }
+  };
+
+  const mockAtomexProtocolV1Fees = (allFees: AtomexProtocolV1Fees) => {
+    for (const [currencyId, fees] of Object.entries(allFees)) {
+      const blockchainId = getBlockchainNameByCurrencyId(currencyId);
+
+      mockedBlockchainOptions[blockchainId].currencyOptions[currencyId]!.atomexProtocol.getInitiateFees
+        .mockResolvedValue({ ...fees.initiateFees });
+      mockedBlockchainOptions[blockchainId].currencyOptions[currencyId]!.atomexProtocol.getRedeemFees
+        .mockResolvedValue({ ...fees.redeemFees });
+      mockedBlockchainOptions[blockchainId].currencyOptions[currencyId]!.atomexProtocol.getRefundFees
+        .mockResolvedValue({ ...fees.refundFees });
+      mockedBlockchainOptions[blockchainId].currencyOptions[currencyId]!.atomexProtocol.getRedeemReward
+        .mockResolvedValue({ ...fees.redeemReward });
+    }
+  };
 });
