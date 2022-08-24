@@ -3,9 +3,9 @@ import type BigNumber from 'bignumber.js';
 import type { Currency } from '../../../common/index';
 import type { ExchangeService } from '../../exchangeService';
 import type { Quote } from '../../models/index';
-import type { RatesService } from '../ratesService';
+import type { PriceProvider } from '../priceProvider';
 
-export class AtomexRatesService implements RatesService {
+export class AtomexPriceProvider implements PriceProvider {
   constructor(
     private readonly exchangeService: ExchangeService
   ) { }

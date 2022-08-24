@@ -1,17 +1,17 @@
 import BigNumber from 'bignumber.js';
 
 import type { Currency } from '../../../common';
-import type { RatesService } from '../../ratesService/index';
+import type { PriceProvider } from '../../priceProvider/index';
 import type { PriceManager } from '../priceManager';
 
 export class MixedPriceManager implements PriceManager {
   constructor(
-    private readonly servicesMap: Map<string, RatesService>
+    private readonly providersMap: Map<string, PriceProvider>
   ) { }
 
   async getAveragePrice(baseCurrency: string, quoteCurrency: string): Promise<BigNumber | undefined> {
-    const services = this.getAvailableProviders();
-    const pricePromises = services.map(service => this.getPrice(baseCurrency, quoteCurrency, service));
+    const providers = this.getAvailableProviders();
+    const pricePromises = providers.map(provider => this.getPrice(baseCurrency, quoteCurrency, provider));
     const pricePromiseResults = await Promise.allSettled(pricePromises);
 
     const prices: BigNumber[] = [];
@@ -22,10 +22,10 @@ export class MixedPriceManager implements PriceManager {
     return prices.length ? BigNumber.sum(...prices).div(prices.length) : undefined;
   }
 
-  async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], service?: string): Promise<BigNumber | undefined> {
-    let price = await this.getPriceCore(baseCurrency, quoteCurrency, service);
+  async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined> {
+    let price = await this.getPriceCore(baseCurrency, quoteCurrency, provider);
     if (!price) {
-      const reversedPrice = await this.getPriceCore(quoteCurrency, baseCurrency, service);
+      const reversedPrice = await this.getPriceCore(quoteCurrency, baseCurrency, provider);
       if (reversedPrice)
         price = reversedPrice.pow(-1);
     }
@@ -34,12 +34,12 @@ export class MixedPriceManager implements PriceManager {
   }
 
   getAvailableProviders(): string[] {
-    return [...this.servicesMap.keys()];
+    return [...this.providersMap.keys()];
   }
 
-  private async getPriceCore(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], service?: string): Promise<BigNumber | undefined> {
-    const services = this.getSelectedServices(service);
-    const pricePromises = services.map(service => service.getPrice(baseCurrency, quoteCurrency));
+  private async getPriceCore(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined> {
+    const providers = this.getSelectedProviders(provider);
+    const pricePromises = providers.map(provider => provider.getPrice(baseCurrency, quoteCurrency));
     const pricePromiseResults = await Promise.allSettled(pricePromises);
 
     for (const result of pricePromiseResults)
@@ -49,14 +49,14 @@ export class MixedPriceManager implements PriceManager {
     return undefined;
   }
 
-  private getSelectedServices(service?: string): RatesService[] {
-    if (!service)
-      return [...this.servicesMap.values()];
+  private getSelectedProviders(provider?: string): PriceProvider[] {
+    if (!provider)
+      return [...this.providersMap.values()];
 
-    const selectedService = this.servicesMap.get(service);
-    if (!selectedService)
-      throw new Error(`Service not found for key: ${service}`);
+    const selectedProvider = this.providersMap.get(provider);
+    if (!selectedProvider)
+      throw new Error(`Provider not found for key: ${provider}`);
 
-    return [selectedService];
+    return [selectedProvider];
   }
 }

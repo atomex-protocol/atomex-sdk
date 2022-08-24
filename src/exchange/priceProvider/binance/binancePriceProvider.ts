@@ -2,11 +2,11 @@ import BigNumber from 'bignumber.js';
 
 import type { Currency } from '../../../common';
 import { HttpClient } from '../../../core';
-import type { RatesService } from '../ratesService';
+import type { PriceProvider } from '../priceProvider';
 import type { BinanceErrorDto, BinanceRatesDto } from './dtos';
 import { isErrorDto } from './utils';
 
-export class BinanceRatesService implements RatesService {
+export class BinancePriceProvider implements PriceProvider {
   private static readonly baseUrl = 'https://www.binance.com';
   private static readonly priceUrlPath = '/api/v3/ticker/price';
 
@@ -14,7 +14,7 @@ export class BinanceRatesService implements RatesService {
   private _allSymbols: Set<string> | undefined;
 
   constructor() {
-    this.httpClient = new HttpClient(BinanceRatesService.baseUrl);
+    this.httpClient = new HttpClient(BinancePriceProvider.baseUrl);
   }
 
   async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined> {
@@ -23,7 +23,7 @@ export class BinanceRatesService implements RatesService {
     if (!allSymbols.has(symbol))
       return undefined;
 
-    const urlPath = `${BinanceRatesService.priceUrlPath}?symbol=${symbol}`;
+    const urlPath = `${BinancePriceProvider.priceUrlPath}?symbol=${symbol}`;
     const responseDto = await this.httpClient.request<BinanceRatesDto | BinanceErrorDto>({ urlPath }, false);
 
     return this.mapRatesDtoToPrice(responseDto);
@@ -44,7 +44,7 @@ export class BinanceRatesService implements RatesService {
   }
 
   private async requestAllSymbols(): Promise<string[]> {
-    const urlPath = BinanceRatesService.priceUrlPath;
+    const urlPath = BinancePriceProvider.priceUrlPath;
     const responseDto = await this.httpClient.request<BinanceRatesDto[]>({ urlPath }, false);
 
     return responseDto.map(dto => dto.symbol);

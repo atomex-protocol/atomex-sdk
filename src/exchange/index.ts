@@ -10,4 +10,4 @@ export type { OrderBookProvider, ManagedOrderBookProvider } from './orderBookPro
 export type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 
 export { type PriceManager, MixedPriceManager } from './priceManager/index';
-export { type RatesService, AtomexRatesService, BinanceRatesService, KrakenRatesService } from './ratesService/index';
+export { type PriceProvider, AtomexPriceProvider, BinancePriceProvider, KrakenPriceProvider } from './priceProvider/index';
