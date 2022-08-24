@@ -1,5 +1,6 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
+import type { BalanceManager } from '../blockchain/balanceManager';
 import type { WalletsManager } from '../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
 import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider } from '../exchange/index';
@@ -26,6 +27,9 @@ interface ControlledAtomexContextManagersSection {
 
   get swapManager(): SwapManager;
   set swapManager(value: SwapManager);
+
+  get balanceManager(): BalanceManager;
+  set balanceManager(value: BalanceManager);
 }
 
 interface ControlledAtomexContextServicesSection {

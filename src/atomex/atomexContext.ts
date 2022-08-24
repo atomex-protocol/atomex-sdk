@@ -1,4 +1,5 @@
 import type { AuthorizationManager } from '../authorization/index';
+import type { BalanceManager } from '../blockchain/balanceManager';
 import type { WalletsManager, AtomexBlockchainProvider } from '../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
 import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider } from '../exchange/index';
@@ -27,6 +28,7 @@ class AtomexContextManagersSection {
   private _authorizationManager: AuthorizationManager | undefined;
   private _exchangeManager: ExchangeManager | undefined;
   private _swapManager: SwapManager | undefined;
+  private _balanceManager: BalanceManager | undefined;
 
   constructor(readonly context: AtomexContext) {
   }
@@ -73,6 +75,17 @@ class AtomexContextManagersSection {
 
   private set swapManager(swapManager: SwapManager) {
     this._swapManager = swapManager;
+  }
+
+  get balanceManager(): BalanceManager {
+    if (!this._balanceManager)
+      throw new AtomexComponentNotResolvedError('managers.balanceManager');
+
+    return this._balanceManager;
+  }
+
+  private set balanceManager(balanceManager: BalanceManager) {
+    this._balanceManager = balanceManager;
   }
 }
 

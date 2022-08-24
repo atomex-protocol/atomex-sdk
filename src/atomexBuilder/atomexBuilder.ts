@@ -1,6 +1,7 @@
 import { Atomex, AtomexContext } from '../atomex/index';
 import type { AtomexBlockchainNetworkOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
+import { CachedBalanceManager } from '../blockchain/balanceManager';
 import { AtomexBlockchainProvider, WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
 import { createDefaultEthereumBlockchainOptions } from '../ethereum/index';
@@ -57,6 +58,7 @@ export class AtomexBuilder {
     this.controlledAtomexContext.services.swapService = atomexClient;
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
     this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
+    this.controlledAtomexContext.managers.balanceManager = this.createBalanceManager();
     const blockchains = this.createDefaultBlockchainOptions();
 
     return new Atomex({
@@ -111,6 +113,10 @@ export class AtomexBuilder {
 
   protected createSwapManager() {
     return new SwapManager(this.atomexContext.services.swapService);
+  }
+
+  protected createBalanceManager() {
+    return new CachedBalanceManager(this.atomexContext.providers.blockchainProvider);
   }
 
   protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainNetworkOptions> {
