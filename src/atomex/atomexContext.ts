@@ -1,7 +1,7 @@
 import type { AuthorizationManager } from '../authorization/index';
 import type { WalletsManager, AtomexBlockchainProvider } from '../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
-import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider } from '../exchange/index';
+import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider, PriceManager } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
 
 export class AtomexContext {
@@ -27,6 +27,7 @@ class AtomexContextManagersSection {
   private _authorizationManager: AuthorizationManager | undefined;
   private _exchangeManager: ExchangeManager | undefined;
   private _swapManager: SwapManager | undefined;
+  private _priceManager: PriceManager | undefined;
 
   constructor(readonly context: AtomexContext) {
   }
@@ -73,6 +74,17 @@ class AtomexContextManagersSection {
 
   private set swapManager(swapManager: SwapManager) {
     this._swapManager = swapManager;
+  }
+
+  get priceManager(): PriceManager {
+    if (!this._priceManager)
+      throw new AtomexComponentNotResolvedError('managers.priceManager');
+
+    return this._priceManager;
+  }
+
+  private set priceManager(priceManager: PriceManager) {
+    this._priceManager = priceManager;
   }
 }
 

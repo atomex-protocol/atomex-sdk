@@ -4,7 +4,10 @@ import type { AuthorizationManager } from '../authorization/index';
 import { AtomexBlockchainProvider, WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
 import { createDefaultEthereumBlockchainOptions } from '../ethereum/index';
-import { ExchangeManager, InMemoryExchangeSymbolsProvider, InMemoryOrderBookProvider } from '../exchange/index';
+import {
+  AtomexPriceProvider, BinancePriceProvider, ExchangeManager, InMemoryExchangeSymbolsProvider,
+  InMemoryOrderBookProvider, KrakenPriceProvider, PriceManager, MixedPriceManager, PriceProvider
+} from '../exchange/index';
 import { SwapManager } from '../swaps/swapManager';
 import { createDefaultTezosBlockchainOptions } from '../tezos/index';
 import type { AtomexBuilderOptions } from './atomexBuilderOptions';
@@ -57,6 +60,7 @@ export class AtomexBuilder {
     this.controlledAtomexContext.services.swapService = atomexClient;
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
     this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
+    this.controlledAtomexContext.managers.priceManager = this.createPriceManager();
     const blockchains = this.createDefaultBlockchainOptions();
 
     return new Atomex({
@@ -118,5 +122,13 @@ export class AtomexBuilder {
       tezos: createDefaultTezosBlockchainOptions(this.atomexContext),
       ethereum: createDefaultEthereumBlockchainOptions(this.atomexContext)
     };
+  }
+
+  protected createPriceManager(): PriceManager {
+    return new MixedPriceManager(new Map<string, PriceProvider>([
+      ['binance', new BinancePriceProvider()],
+      ['kraken', new KrakenPriceProvider()],
+      ['atomex', new AtomexPriceProvider(this.atomexContext.services.exchangeService)]
+    ]));
   }
 }
