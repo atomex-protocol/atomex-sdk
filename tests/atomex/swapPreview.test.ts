@@ -50,7 +50,12 @@ describe('Atomex | Swap Preview', () => {
     'getting swap preview without account: %s',
     async (_, swapPreviewParameters, expectedSwapPreview, environment) => {
       mockedAtomexContext.services.exchangeService.getSymbols.mockResolvedValue(environment.symbols);
-      mockedAtomexContext.services.exchangeService.getOrderBook.mockResolvedValue(environment.orderBook);
+      mockedAtomexContext.services.exchangeService.getOrderBook.mockImplementation(symbol => {
+        if (typeof symbol === 'string')
+          return Promise.resolve(environment.orderBooks.find(ob => ob.symbol === symbol));
+
+        throw new Error('Expected symbol');
+      });
       mockAtomexProtocolV1Fees(environment.atomexProtocolFees);
       await atomex.start();
 
@@ -65,6 +70,7 @@ describe('Atomex | Swap Preview', () => {
       case 'ETH':
         return 'ethereum';
       case 'XTZ':
+      case 'USDT_XTZ':
         return 'tezos';
       default:
         throw new Error(`Unknown ${currencyId} currency`);

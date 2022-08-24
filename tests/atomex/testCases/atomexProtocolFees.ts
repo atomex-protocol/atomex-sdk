@@ -24,6 +24,12 @@ export const validAtomexProtocolV1Fees = [
       redeemFees: { estimated: new BigNumber('0.05'), max: new BigNumber('0.07') },
       refundFees: { estimated: new BigNumber('0.03'), max: new BigNumber('0.04') },
       redeemReward: { estimated: new BigNumber('0.11'), max: new BigNumber('0.11') },
+    },
+    USDT_XTZ: {
+      initiateFees: { estimated: new BigNumber('0.1043'), max: new BigNumber('0.13') },
+      redeemFees: { estimated: new BigNumber('0.08'), max: new BigNumber('0.1') },
+      refundFees: { estimated: new BigNumber('0.06'), max: new BigNumber('0.07') },
+      redeemReward: { estimated: new BigNumber('0.217'), max: new BigNumber('0.217') },
     }
   } as AtomexProtocolV1Fees
 ] as const;

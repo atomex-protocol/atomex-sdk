@@ -278,23 +278,51 @@ export class Atomex implements AtomexService {
       fromAtomexProtocol.getRedeemFees({}),
     ]);
     // TODO: use mixed rates providers
-    const [estimatedMakerFee, maxMakerFee] = await Promise.all([
+    const [estimatedToInitiateFeesInFromCurrency, maxToInitiateFeesInFromCurrency] = await Promise.all([
       this.exchangeManager.getOrderPreview({
         type: 'SolidFillOrKill',
         from: toNativeCurrencyInfo.currency.id,
         to: fromCurrencyInfo.currency.id,
         amount: toInitiateFees.estimated,
         isFromAmount: true
-      }).then(orderPreview => orderPreview?.to.amount.plus(fromRedeemFees.estimated)),
+      }).then(orderPreview => orderPreview?.to.amount),
+
       this.exchangeManager.getOrderPreview({
         type: 'SolidFillOrKill',
         from: toNativeCurrencyInfo.currency.id,
         to: fromCurrencyInfo.currency.id,
         amount: toInitiateFees.max,
         isFromAmount: true
-      }).then(orderPreview => orderPreview?.to.amount.plus(fromRedeemFees.max))
+      }).then(orderPreview => orderPreview?.to.amount)
     ]);
-    if (!estimatedMakerFee || !maxMakerFee)
+    if (!estimatedToInitiateFeesInFromCurrency || !maxToInitiateFeesInFromCurrency)
+      throw new Error('It\'s no possible to calculate maker fee');
+
+    let estimatedFromRedeemFeesInFromNativeCurrency: BigNumber | undefined;
+    let maxFromRedeemFeesInFromNativeCurrency: BigNumber | undefined;
+    if (fromCurrencyInfo.currency.id !== fromNativeCurrencyInfo.currency.id) {
+      [estimatedFromRedeemFeesInFromNativeCurrency, maxFromRedeemFeesInFromNativeCurrency] = await Promise.all([
+        this.exchangeManager.getOrderPreview({
+          type: 'SolidFillOrKill',
+          from: fromNativeCurrencyInfo.currency.id,
+          to: fromCurrencyInfo.currency.id,
+          amount: fromRedeemFees.estimated,
+          isFromAmount: true
+        }).then(orderPreview => orderPreview?.to.amount),
+        this.exchangeManager.getOrderPreview({
+          type: 'SolidFillOrKill',
+          from: fromNativeCurrencyInfo.currency.id,
+          to: fromCurrencyInfo.currency.id,
+          amount: fromRedeemFees.max,
+          isFromAmount: true
+        }).then(orderPreview => orderPreview?.to.amount)
+      ]);
+    }
+    else {
+      estimatedFromRedeemFeesInFromNativeCurrency = fromRedeemFees.estimated;
+      maxFromRedeemFeesInFromNativeCurrency = fromRedeemFees.max;
+    }
+    if (!estimatedFromRedeemFeesInFromNativeCurrency || !maxFromRedeemFeesInFromNativeCurrency)
       throw new Error('It\'s no possible to calculate maker fee');
 
     const paymentFee: SwapPreviewFee = {
@@ -305,9 +333,9 @@ export class Atomex implements AtomexService {
     };
     const makerFee: SwapPreviewFee = {
       name: 'maker-fee',
-      currencyId: fromNativeCurrencyInfo.currency.id,
-      estimated: estimatedMakerFee,
-      max: maxMakerFee
+      currencyId: fromCurrencyInfo.currency.id,
+      estimated: estimatedToInitiateFeesInFromCurrency.plus(estimatedFromRedeemFeesInFromNativeCurrency),
+      max: maxToInitiateFeesInFromCurrency.plus(maxFromRedeemFeesInFromNativeCurrency)
     };
 
     return {

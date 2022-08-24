@@ -36,4 +36,15 @@ export const validExchangeSymbols: ExchangeSymbol[] = [
       price: 9
     }
   },
+  {
+    name: 'ETH/USDT_XTZ',
+    baseCurrency: 'USDT_XTZ',
+    quoteCurrency: 'ETH',
+    minimumQty: new BigNumber(0.0001),
+    decimals: {
+      baseCurrency: 6,
+      quoteCurrency: 9,
+      price: 9
+    }
+  },
 ];

@@ -26,5 +26,53 @@ export const validOrderBooks = {
         }
       ]
     } as OrderBook
+  ],
+  'ETH/USDT_XTZ': [
+    {
+      updateId: 300,
+      symbol: 'ETH/USDT_XTZ',
+      quoteCurrency: 'ETH',
+      baseCurrency: 'USDT_XTZ',
+      entries: [
+        {
+          side: 'Buy',
+          price: new BigNumber('1603.468672'),
+          qtyProfile: [
+            1.0
+          ]
+        },
+        {
+          side: 'Sell',
+          price: new BigNumber('1631.228580'),
+          qtyProfile: [
+            1.0
+          ]
+        }
+      ]
+    } as OrderBook
+  ],
+  'XTZ/USDT_XTZ': [
+    {
+      updateId: 201,
+      symbol: 'XTZ/USDT_XTZ',
+      baseCurrency: 'USDT_XTZ',
+      quoteCurrency: 'XTZ',
+      entries: [
+        {
+          side: 'Buy',
+          price: new BigNumber('1.543187'),
+          qtyProfile: [
+            100.0
+          ]
+        },
+        {
+          side: 'Sell',
+          price: new BigNumber('1.575071'),
+          qtyProfile: [
+            100.0
+          ]
+        }
+      ]
+    } as OrderBook
   ]
 } as const;

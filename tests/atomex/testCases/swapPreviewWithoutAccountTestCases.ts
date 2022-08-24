@@ -12,7 +12,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
   expectedSwapPreview: SwapPreview,
   environment: {
     symbols: ExchangeSymbol[],
-    orderBook: OrderBook,
+    orderBooks: OrderBook[],
     atomexProtocolFees: AtomexProtocolV1Fees
   }
 ]> = [
@@ -97,7 +97,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
       },
       {
         symbols: validExchangeSymbols,
-        orderBook: validOrderBooks['XTZ/ETH'][0],
+        orderBooks: [validOrderBooks['XTZ/ETH'][0]],
         atomexProtocolFees: validAtomexProtocolV1Fees[0],
       }
     ],
@@ -182,7 +182,183 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
       },
       {
         symbols: validExchangeSymbols,
-        orderBook: validOrderBooks['XTZ/ETH'][0],
+        orderBooks: [validOrderBooks['XTZ/ETH'][0]],
+        atomexProtocolFees: validAtomexProtocolV1Fees[0],
+      }
+    ],
+    [
+      'Swap XTZ_USDT -> ETH with default options',
+      {
+        type: 'SolidFillOrKill',
+        amount: new BigNumber(1217.234),
+        from: 'USDT_XTZ',
+        to: 'ETH'
+      },
+      {
+        type: 'SolidFillOrKill',
+        side: 'Buy',
+        symbol: 'ETH/USDT_XTZ',
+        from: {
+          currencyId: 'USDT_XTZ',
+          actual: {
+            amount: new BigNumber('1217.234'),
+            price: new BigNumber('0.000613034'),
+          },
+          available: {
+            amount: new BigNumber('1631.22858'),
+            price: new BigNumber('0.000613034')
+          }
+        },
+        to: {
+          currencyId: 'ETH',
+          actual: {
+            amount: new BigNumber('0.746206886'),
+            price: new BigNumber('1631.22858'),
+          },
+          available: {
+            amount: new BigNumber('1'),
+            price: new BigNumber('1631.22858')
+          },
+        },
+        fees: {
+          success: [
+            {
+              name: 'payment-fee',
+              currencyId: 'XTZ',
+              estimated: new BigNumber('0.1043'),
+              max: new BigNumber('0.13')
+            },
+            {
+              name: 'maker-fee',
+              currencyId: 'USDT_XTZ',
+              estimated: new BigNumber('8.541664'),
+              max: new BigNumber('14.585536')
+            },
+            {
+              name: 'redeem-reward',
+              currencyId: 'ETH',
+              estimated: new BigNumber('0.0035'),
+              max: new BigNumber('0.0035')
+            }
+          ],
+          refund: [
+            {
+              name: 'payment-fee',
+              currencyId: 'XTZ',
+              estimated: new BigNumber('0.1043'),
+              max: new BigNumber('0.13')
+            },
+            {
+              name: 'maker-fee',
+              currencyId: 'USDT_XTZ',
+              estimated: new BigNumber('8.541664'),
+              max: new BigNumber('14.585536')
+            },
+            {
+              name: 'refund-fee',
+              currencyId: 'XTZ',
+              estimated: new BigNumber('0.06'),
+              max: new BigNumber('0.07')
+            }
+          ]
+        },
+        errors: [],
+        warnings: []
+      },
+      {
+        symbols: validExchangeSymbols,
+        orderBooks: [
+          validOrderBooks['ETH/USDT_XTZ'][0],
+          validOrderBooks['XTZ/USDT_XTZ'][0]
+        ],
+        atomexProtocolFees: validAtomexProtocolV1Fees[0],
+      }
+    ],
+    [
+      'Swap ETH -> XTZ_USDT with default options',
+      {
+        type: 'SolidFillOrKill',
+        amount: new BigNumber(0.425755),
+        from: 'ETH',
+        to: 'USDT_XTZ'
+      },
+      {
+        type: 'SolidFillOrKill',
+        side: 'Sell',
+        symbol: 'ETH/USDT_XTZ',
+        from: {
+          currencyId: 'ETH',
+          actual: {
+            amount: new BigNumber('0.425755'),
+            price: new BigNumber('1603.468672'),
+          },
+          available: {
+            amount: new BigNumber('1'),
+            price: new BigNumber('1603.468672')
+          }
+        },
+        to: {
+          currencyId: 'USDT_XTZ',
+          actual: {
+            amount: new BigNumber('682.684804'),
+            price: new BigNumber('0.000623647'),
+          },
+          available: {
+            amount: new BigNumber('1603.468672'),
+            price: new BigNumber('0.000623647')
+          },
+        },
+        fees: {
+          success: [
+            {
+              name: 'payment-fee',
+              currencyId: 'ETH',
+              estimated: new BigNumber('0.00525'),
+              max: new BigNumber('0.009')
+            },
+            {
+              name: 'maker-fee',
+              currencyId: 'ETH',
+              estimated: new BigNumber('0.002398925'),
+              max: new BigNumber('0.0031233')
+            },
+            {
+              name: 'redeem-reward',
+              currencyId: 'USDT_XTZ',
+              estimated: new BigNumber('0.217'),
+              max: new BigNumber('0.217')
+            }
+          ],
+          refund: [
+            {
+              name: 'payment-fee',
+              currencyId: 'ETH',
+              estimated: new BigNumber('0.00525'),
+              max: new BigNumber('0.009')
+            },
+            {
+              name: 'maker-fee',
+              currencyId: 'ETH',
+              estimated: new BigNumber('0.002398925'),
+              max: new BigNumber('0.0031233')
+            },
+            {
+              name: 'refund-fee',
+              currencyId: 'ETH',
+              estimated: new BigNumber('0.0017'),
+              max: new BigNumber('0.002')
+            }
+          ]
+        },
+        errors: [],
+        warnings: []
+      },
+      {
+        symbols: validExchangeSymbols,
+        orderBooks: [
+          validOrderBooks['ETH/USDT_XTZ'][0],
+          validOrderBooks['XTZ/ETH'][0],
+        ],
         atomexProtocolFees: validAtomexProtocolV1Fees[0],
       }
     ]
