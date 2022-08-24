@@ -9,7 +9,7 @@ import type { AtomexContext } from './atomexContext';
 import { isNormalizedSwapPreviewParameters, normalizeSwapPreviewParameters } from './helpers';
 import {
   NewSwapRequest, SwapOperationCompleteStage, AtomexOptions,
-  AtomexBlockchainNetworkOptions, SwapPreview, SwapPreviewParameters, NormalizedSwapPreviewParameters, SwapPreviewFee
+  AtomexBlockchainNetworkOptions, SwapPreview, SwapPreviewParameters, NormalizedSwapPreviewParameters, SwapPreviewFee, SwapPreviewError
 } from './models/index';
 
 export class Atomex implements AtomexService {
@@ -97,9 +97,6 @@ export class Atomex implements AtomexService {
       throw new Error(`No available liquidity for the "${normalizedSwapPreviewParameters.exchangeSymbol.name}" symbol`);
 
     const actualOrderPreview = await this.exchangeManager.getOrderPreview(normalizedSwapPreviewParameters);
-    if (!actualOrderPreview)
-      throw new Error(`It's no possible to calculate the order preview for the "${normalizedSwapPreviewParameters.exchangeSymbol.name}" symbol`);
-
     const fees = await this.calculateSwapPreviewFees(
       fromCurrencyInfo,
       fromNativeCurrencyInfo,
@@ -148,15 +145,24 @@ export class Atomex implements AtomexService {
       });
     }
 
+    const errors: Array<SwapPreviewError<unknown>> = [];
+    if (!actualOrderPreview)
+      errors.push({ id: 'not-enough-liquidity' });
+
     return {
       type: normalizedSwapPreviewParameters.type,
       from: {
         currencyId: normalizedSwapPreviewParameters.from,
         address: fromAddress,
-        actual: {
-          amount: actualOrderPreview.from.amount,
-          price: actualOrderPreview.from.price,
-        },
+        actual: actualOrderPreview
+          ? {
+            amount: actualOrderPreview.from.amount,
+            price: actualOrderPreview.from.price,
+          }
+          : {
+            amount: normalizedSwapPreviewParameters.isFromAmount ? normalizedSwapPreviewParameters.amount : new BigNumber(0),
+            price: new BigNumber(0)
+          },
         available: {
           amount: availableLiquidity.from.amount,
           price: availableLiquidity.from.price
@@ -169,10 +175,15 @@ export class Atomex implements AtomexService {
       to: {
         currencyId: normalizedSwapPreviewParameters.to,
         address: toAddress,
-        actual: {
-          amount: actualOrderPreview.to.amount,
-          price: actualOrderPreview.to.price,
-        },
+        actual: actualOrderPreview
+          ? {
+            amount: actualOrderPreview.to.amount,
+            price: actualOrderPreview.to.price,
+          }
+          : {
+            amount: !normalizedSwapPreviewParameters.isFromAmount ? normalizedSwapPreviewParameters.amount : new BigNumber(0),
+            price: new BigNumber(0)
+          },
         available: {
           amount: availableLiquidity.to.amount,
           price: availableLiquidity.to.price
@@ -185,7 +196,7 @@ export class Atomex implements AtomexService {
       symbol: normalizedSwapPreviewParameters.exchangeSymbol.name,
       side: normalizedSwapPreviewParameters.side,
       fees,
-      errors: [],
+      errors,
       warnings: []
     };
   }
@@ -307,7 +318,7 @@ export class Atomex implements AtomexService {
         makerFee,
         {
           name: useWatchTower ? 'redeem-reward' : 'redeem-fee',
-          currencyId: toCurrencyInfo.currency.id,
+          currencyId: useWatchTower ? toCurrencyInfo.currency.id : toNativeCurrencyInfo.currency.id,
           estimated: toRedeemOrRewardForRedeem.estimated,
           max: toRedeemOrRewardForRedeem.max
         }

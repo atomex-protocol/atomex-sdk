@@ -32,7 +32,7 @@ export interface SwapPreviewCurrencyData {
 
 export interface SwapPreviewError<TErrorData = unknown> {
   readonly id: string
-  readonly data: TErrorData;
+  readonly data?: TErrorData;
 }
 
 export interface SwapPreviewWarning<TWarningData = unknown> {
