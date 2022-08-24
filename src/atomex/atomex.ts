@@ -98,7 +98,7 @@ export class Atomex implements AtomexService {
   }
 
   async convertCurrency(fromAmount: BigNumber.Value, fromCurrency: Currency['id'], toCurrency: Currency['id']): Promise<BigNumber | undefined> {
-    const price = await this.atomexContext.managers.priceManager.getAveragePrice(fromCurrency, toCurrency);
+    const price = await this.atomexContext.managers.priceManager.getAveragePrice({ baseCurrency: fromCurrency, quoteCurrency: toCurrency });
     if (!price)
       return undefined;
 

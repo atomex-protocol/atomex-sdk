@@ -1,9 +1,22 @@
 import type BigNumber from 'bignumber.js';
 
-import type { Currency } from '../../common';
+import type { Currency, DataSource, Disposable } from '../../common/index';
 
-export interface PriceManager {
-  getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined>;
-  getAveragePrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined>;
+export interface GetPriceParameters {
+  baseCurrency: Currency['id'];
+  quoteCurrency: Currency['id'];
+  provider?: string;
+  dataSource?: DataSource;
+}
+
+export interface GetAveragePriceParameters {
+  baseCurrency: Currency['id'];
+  quoteCurrency: Currency['id'];
+  dataSource?: DataSource;
+}
+
+export interface PriceManager extends Disposable {
+  getPrice(parameters: GetPriceParameters): Promise<BigNumber | undefined>;
+  getAveragePrice(parameters: GetAveragePriceParameters): Promise<BigNumber | undefined>;
   getAvailableProviders(): string[];
 }

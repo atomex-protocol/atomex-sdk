@@ -1,17 +1,17 @@
 import BigNumber from 'bignumber.js';
 
-import type { Currency } from '../../../common';
+import { Currency, DataSource } from '../../../common';
 import type { PriceProvider } from '../../priceProvider/index';
-import type { PriceManager } from '../priceManager';
+import type { GetAveragePriceParameters, GetPriceParameters, PriceManager } from '../priceManager';
 
 export class MixedPriceManager implements PriceManager {
   constructor(
     private readonly providersMap: Map<string, PriceProvider>
   ) { }
 
-  async getAveragePrice(baseCurrency: string, quoteCurrency: string): Promise<BigNumber | undefined> {
+  async getAveragePrice({ baseCurrency, quoteCurrency, dataSource = DataSource.All }: GetAveragePriceParameters): Promise<BigNumber | undefined> {
     const providers = this.getAvailableProviders();
-    const pricePromises = providers.map(provider => this.getPrice(baseCurrency, quoteCurrency, provider));
+    const pricePromises = providers.map(provider => this.getPrice({ baseCurrency, quoteCurrency, provider }));
     const pricePromiseResults = await Promise.allSettled(pricePromises);
 
     const prices: BigNumber[] = [];
@@ -22,7 +22,7 @@ export class MixedPriceManager implements PriceManager {
     return prices.length ? BigNumber.sum(...prices).div(prices.length) : undefined;
   }
 
-  async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined> {
+  async getPrice({ baseCurrency, quoteCurrency, provider, dataSource = DataSource.All }: GetPriceParameters): Promise<BigNumber | undefined> {
     let price = await this.getPriceCore(baseCurrency, quoteCurrency, provider);
     if (!price) {
       const reversedPrice = await this.getPriceCore(quoteCurrency, baseCurrency, provider);
@@ -35,6 +35,10 @@ export class MixedPriceManager implements PriceManager {
 
   getAvailableProviders(): string[] {
     return [...this.providersMap.keys()];
+  }
+
+  dispose(): Promise<void> {
+    throw new Error('Method not implemented.');
   }
 
   private async getPriceCore(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined> {
