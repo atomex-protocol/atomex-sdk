@@ -1,10 +1,8 @@
 import type { AtomexBlockchainNetworkOptions } from '../atomex/models/atomexOptions';
 import type { CurrenciesProvider, Currency } from '../common/index';
 import type { AtomexProtocol } from './atomexProtocol';
-import type { BalancesProvider } from './balancesProvider';
+import { ControlledCurrencyBalancesProvider, CurrencyBalanceProvider, BalancesProvider } from './balanceProvider/index';
 import type { BlockchainToolkitProvider } from './blockchainToolkitProvider';
-import { ControlledCurrencyBalancesProvider } from './controlledCurrencyBalancesProvider';
-import type { CurrencyBalanceProvider } from './currencyBalanceProvider';
 import type { SwapTransactionsProvider } from './swapTransactionProvider';
 
 export interface CurrencyInfo {
