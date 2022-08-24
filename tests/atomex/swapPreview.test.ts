@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js';
 import type { AtomexContext } from '../../src/atomex';
 import { ethereumTestnetCurrencies } from '../../src/ethereum';
 import { testnetEthereumWeb3AtomexProtocolV1Options } from '../../src/ethereum/config';
-import { Atomex, BlockchainWallet } from '../../src/index';
+import { Atomex } from '../../src/index';
 import { tezosTestnetCurrencies } from '../../src/tezos';
 import { testnetTezosTaquitoAtomexProtocolV1Options } from '../../src/tezos/config/atomexProtocol';
 import { createMockedAtomexContext, createMockedBlockchainOptions, MockAtomexBlockchainNetworkOptions, MockAtomexContext } from '../mocks';
