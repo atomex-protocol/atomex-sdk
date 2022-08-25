@@ -18,23 +18,23 @@ const validTopOfBookWithDirectionsTestCases: ReadonlyArray<readonly [
         [
           {
             name: 'ETH/BTC',
-            baseCurrency: 'BTC',
-            quoteCurrency: 'ETH',
+            baseCurrency: 'ETH',
+            quoteCurrency: 'BTC',
             minimumQty: new BigNumber(0.0001),
             decimals: {
-              baseCurrency: 8,
-              quoteCurrency: 9,
+              baseCurrency: 9,
+              quoteCurrency: 8,
               price: 9
             }
           },
           {
             name: 'LTC/BTC',
-            baseCurrency: 'BTC',
-            quoteCurrency: 'LTC',
+            baseCurrency: 'LTC',
+            quoteCurrency: 'BTC',
             minimumQty: new BigNumber(0.0001),
             decimals: {
-              baseCurrency: 8,
-              quoteCurrency: 9,
+              baseCurrency: 9,
+              quoteCurrency: 8,
               price: 9
             }
           }
@@ -63,16 +63,16 @@ const validTopOfBookWithDirectionsTestCases: ReadonlyArray<readonly [
             timeStamp: new Date(1658231388786),
             bid: new BigNumber(0.06976116),
             ask: new BigNumber(0.07041282),
-            quoteCurrency: 'ETH',
-            baseCurrency: 'BTC'
+            baseCurrency: 'ETH',
+            quoteCurrency: 'BTC'
           },
           {
             symbol: 'LTC/BTC',
             timeStamp: new Date(1658315396688),
             bid: new BigNumber(0.00244486),
             ask: new BigNumber(0),
-            quoteCurrency: 'LTC',
-            baseCurrency: 'BTC'
+            baseCurrency: 'LTC',
+            quoteCurrency: 'BTC'
           }
         ],
         'ETH/BTC,LTC/BTC'

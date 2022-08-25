@@ -4,7 +4,7 @@ import type { Currency, Side } from '../../common/index';
 import { converters, guards } from '../../utils/index';
 import type { ExchangeSymbol, SymbolCurrency } from '../models/index';
 
-export const getQuoteBaseCurrenciesBySymbol = (symbol: string): readonly [quoteCurrency: string, baseCurrency: string] => {
+export const getBaseQuoteCurrenciesBySymbol = (symbol: string): readonly [baseCurrency: string, quoteCurrency: string] => {
   const result = symbol.split('/', 2);
 
   return [result[0] || '', result[1] || ''];
@@ -14,44 +14,38 @@ export const convertSymbolAndSideToFromAndToSymbolCurrencies = (
   symbol: ExchangeSymbol,
   side: Side,
   currencyAmount: BigNumber.Value,
-  quoteCurrencyPrice: BigNumber.Value,
-  isQuoteCurrencyAmount = true
+  baseCurrencyPrice: BigNumber.Value,
+  isBaseCurrencyAmount = true
 ): readonly [from: SymbolCurrency, to: SymbolCurrency] => {
-  const preparedQuoteCurrencyPrice = converters.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber.ROUND_FLOOR);
-  const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
+  const preparedBaseCurrencyPrice = converters.toFixedBigNumber(baseCurrencyPrice, symbol.decimals.price, BigNumber.ROUND_FLOOR);
+  const [baseCurrencyId, quoteCurrencyId] = getBaseQuoteCurrenciesBySymbol(symbol.name);
   const isBuySide = side === 'Buy';
 
-  let preparedQuoteCurrencyAmount: BigNumber;
   let preparedBaseCurrencyAmount: BigNumber;
+  let preparedQuoteCurrencyAmount: BigNumber;
 
-  if (isQuoteCurrencyAmount) {
-    preparedQuoteCurrencyAmount = converters.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber.ROUND_FLOOR);
-    preparedBaseCurrencyAmount = converters.toFixedBigNumber(
-      preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount),
-      symbol.decimals.baseCurrency,
+  if (isBaseCurrencyAmount) {
+    preparedBaseCurrencyAmount = converters.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber.ROUND_FLOOR);
+    preparedQuoteCurrencyAmount = converters.toFixedBigNumber(
+      preparedBaseCurrencyPrice.multipliedBy(preparedBaseCurrencyAmount),
+      symbol.decimals.quoteCurrency,
       isBuySide ? BigNumber.ROUND_CEIL : BigNumber.ROUND_FLOOR
     );
   }
   else {
-    preparedBaseCurrencyAmount = converters.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber.ROUND_FLOOR);
-    preparedQuoteCurrencyAmount = converters.toFixedBigNumber(
-      preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice),
-      symbol.decimals.quoteCurrency,
+    preparedQuoteCurrencyAmount = converters.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber.ROUND_FLOOR);
+    preparedBaseCurrencyAmount = converters.toFixedBigNumber(
+      preparedQuoteCurrencyAmount.div(preparedBaseCurrencyPrice),
+      symbol.decimals.baseCurrency,
       isBuySide ? BigNumber.ROUND_FLOOR : BigNumber.ROUND_CEIL
     );
   }
 
-  const preparedBaseCurrencyPrice = converters.toFixedBigNumber(
-    new BigNumber(1).div(preparedQuoteCurrencyPrice),
+  const preparedQuoteCurrencyPrice = converters.toFixedBigNumber(
+    new BigNumber(1).div(preparedBaseCurrencyPrice),
     symbol.decimals.price,
     BigNumber.ROUND_FLOOR
   );
-
-  const quoteCurrency: SymbolCurrency = {
-    currencyId: quoteCurrencyId,
-    amount: preparedQuoteCurrencyAmount,
-    price: preparedQuoteCurrencyPrice,
-  };
 
   const baseCurrency: SymbolCurrency = {
     currencyId: baseCurrencyId,
@@ -59,30 +53,36 @@ export const convertSymbolAndSideToFromAndToSymbolCurrencies = (
     price: preparedBaseCurrencyPrice,
   };
 
+  const quoteCurrency: SymbolCurrency = {
+    currencyId: quoteCurrencyId,
+    amount: preparedQuoteCurrencyAmount,
+    price: preparedQuoteCurrencyPrice,
+  };
+
   return isBuySide
-    ? [baseCurrency, quoteCurrency]
-    : [quoteCurrency, baseCurrency];
+    ? [quoteCurrency, baseCurrency]
+    : [baseCurrency, quoteCurrency];
 };
 
 export const convertSymbolAndSideToFromAndToCurrencies = (
   symbol: ExchangeSymbol | string,
   side: Side
 ): readonly [from: Currency['id'], to: Currency['id']] => {
-  let quoteCurrency: Currency['id'];
   let baseCurrency: Currency['id'];
+  let quoteCurrency: Currency['id'];
 
   if (typeof symbol === 'string') {
-    const quoteAndBaseCurrencies = getQuoteBaseCurrenciesBySymbol(symbol);
-    quoteCurrency = quoteAndBaseCurrencies[0];
-    baseCurrency = quoteAndBaseCurrencies[1];
+    const baseAndQuoteCurrencies = getBaseQuoteCurrenciesBySymbol(symbol);
+    baseCurrency = baseAndQuoteCurrencies[0];
+    quoteCurrency = baseAndQuoteCurrencies[1];
   } else {
-    quoteCurrency = symbol.quoteCurrency;
     baseCurrency = symbol.baseCurrency;
+    quoteCurrency = symbol.quoteCurrency;
   }
 
-  return side === 'Buy'
-    ? [baseCurrency, quoteCurrency]
-    : [quoteCurrency, baseCurrency];
+  return side === 'Sell'
+    ? [quoteCurrency, baseCurrency]
+    : [baseCurrency, quoteCurrency];
 };
 
 export const convertFromAndToCurrenciesToSymbolAndSide = (

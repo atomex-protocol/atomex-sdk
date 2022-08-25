@@ -7,8 +7,8 @@ export const validOrderBooks = {
     {
       updateId: 100,
       symbol: 'XTZ/ETH',
-      quoteCurrency: 'XTZ',
-      baseCurrency: 'ETH',
+      baseCurrency: 'XTZ',
+      quoteCurrency: 'ETH',
       entries: [
         {
           side: 'Buy',
@@ -31,8 +31,8 @@ export const validOrderBooks = {
     {
       updateId: 300,
       symbol: 'ETH/USDT_XTZ',
-      quoteCurrency: 'ETH',
-      baseCurrency: 'USDT_XTZ',
+      baseCurrency: 'ETH',
+      quoteCurrency: 'USDT_XTZ',
       entries: [
         {
           side: 'Buy',
@@ -55,8 +55,8 @@ export const validOrderBooks = {
     {
       updateId: 201,
       symbol: 'XTZ/USDT_XTZ',
-      baseCurrency: 'USDT_XTZ',
-      quoteCurrency: 'XTZ',
+      baseCurrency: 'XTZ',
+      quoteCurrency: 'USDT_XTZ',
       entries: [
         {
           side: 'Buy',

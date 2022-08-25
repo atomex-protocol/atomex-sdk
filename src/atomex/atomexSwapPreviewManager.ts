@@ -390,7 +390,7 @@ export class AtomexSwapPreviewManager {
       isFromAmount: normalizedOrderPreviewParameters.isFromAmount,
       exchangeSymbol: normalizedOrderPreviewParameters.exchangeSymbol,
       side: normalizedOrderPreviewParameters.side,
-      isQuoteCurrencyAmount: normalizedOrderPreviewParameters.isQuoteCurrencyAmount,
+      isBaseCurrencyAmount: normalizedOrderPreviewParameters.isBaseCurrencyAmount,
     };
   }
 

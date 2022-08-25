@@ -164,7 +164,7 @@ export class ExchangeManager implements AtomexService {
       normalizedPreviewParameters.exchangeSymbol.name,
       normalizedPreviewParameters.side, orderPreviewParameters.type,
       normalizedPreviewParameters.amount,
-      normalizedPreviewParameters.isQuoteCurrencyAmount
+      normalizedPreviewParameters.isBaseCurrencyAmount
     );
     if (!orderBookEntry)
       return undefined;
@@ -174,7 +174,7 @@ export class ExchangeManager implements AtomexService {
       normalizedPreviewParameters.side,
       normalizedPreviewParameters.amount,
       orderBookEntry.price,
-      normalizedPreviewParameters.isQuoteCurrencyAmount
+      normalizedPreviewParameters.isBaseCurrencyAmount
     );
 
     return {
@@ -222,7 +222,7 @@ export class ExchangeManager implements AtomexService {
       symbol,
       side,
       type: parameters.type,
-      isQuoteCurrencyAmount: true
+      isBaseCurrencyAmount: true
     } : {
       amount,
       type: parameters.type,
@@ -280,7 +280,7 @@ export class ExchangeManager implements AtomexService {
       : ordersHelper.normalizeOrderPreviewParameters(orderPreviewParameters, this.symbolsProvider);
   }
 
-  protected async findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isQuoteCurrencyAmount: boolean) {
+  protected async findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isBaseCurrencyAmount: boolean) {
     if (orderType !== 'SolidFillOrKill')
       return undefined;
 
@@ -289,7 +289,7 @@ export class ExchangeManager implements AtomexService {
       return undefined;
 
     for (const entry of orderBook.entries) {
-      if (entry.side !== side && (isQuoteCurrencyAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
+      if (entry.side !== side && (isBaseCurrencyAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
         return entry;
       }
     }
