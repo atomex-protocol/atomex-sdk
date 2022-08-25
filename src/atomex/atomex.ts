@@ -103,7 +103,7 @@ export class Atomex implements AtomexService {
     if (!fromAddress)
       throw new Error('Swap preview doesn\'t have the "from" address');
 
-    const [baseCurrencyId, quoteCurrencyId] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol);
+    const [quoteCurrencyId, baseCurrencyId] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol);
     const baseCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(baseCurrencyId);
     if (!baseCurrencyInfo)
       throw new Error(`The "${baseCurrencyId}" currency (base) is unknown`);
@@ -135,8 +135,8 @@ export class Atomex implements AtomexService {
         rewardForRedeem: rewardForRedeem || new BigNumber(0),
         // TODO: from config
         lockTime: 18000,
-        baseCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
-        quoteCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
+        quoteCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
+        baseCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
       },
       proofsOfFunds: [
         // TODO
