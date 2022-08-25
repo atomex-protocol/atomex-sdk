@@ -1,0 +1,1 @@
+export { BinancePriceProvider } from './binancePriceProvider';

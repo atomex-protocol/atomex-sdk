@@ -7,6 +7,7 @@ import type { AtomexService, Currency } from '../common/index';
 import type { Mutable } from '../core';
 import { NewOrderRequest, ExchangeManager, symbolsHelper, OrderPreview, NormalizedOrderPreviewParameters } from '../exchange/index';
 import type { Swap, SwapManager } from '../swaps/index';
+import { toFixedBigNumber } from '../utils/converters';
 import type { AtomexContext } from './atomexContext';
 import { isNormalizedSwapPreviewParameters, normalizeSwapPreviewParameters } from './helpers';
 import {
@@ -74,7 +75,7 @@ export class Atomex implements AtomexService {
     this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, blockchainOptions);
   }
 
-  getCurrency(currencyId: Currency['id']) {
+  getCurrency(currencyId: Currency['id']): Currency | undefined {
     return this.atomexContext.providers.currenciesProvider.getCurrency(currencyId);
   }
 
@@ -252,6 +253,18 @@ export class Atomex implements AtomexService {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return swaps.length === 1 ? swaps[0]! : (swaps as readonly Swap[]);
+  }
+
+  async convertCurrency(fromAmount: BigNumber.Value, fromCurrency: Currency['id'], toCurrency: Currency['id']): Promise<BigNumber | undefined> {
+    const price = await this.atomexContext.managers.priceManager.getAveragePrice({ baseCurrency: fromCurrency, quoteCurrency: toCurrency });
+    if (!price)
+      return undefined;
+
+    const inAmountBigNumber = BigNumber.isBigNumber(fromAmount) ? fromAmount : new BigNumber(fromAmount);
+    const outAmount = inAmountBigNumber.multipliedBy(price);
+    const toCurrencyInfo = this.getCurrency(toCurrency);
+
+    return toCurrencyInfo ? toFixedBigNumber(outAmount, toCurrencyInfo.decimals) : outAmount;
   }
 
   protected normalizeSwapPreviewParametersIfNeeded(swapPreviewParameters: SwapPreviewParameters | NormalizedSwapPreviewParameters): NormalizedSwapPreviewParameters {

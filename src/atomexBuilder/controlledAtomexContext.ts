@@ -3,7 +3,7 @@ import type { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainPro
 import type { BalanceManager } from '../blockchain/balanceManager';
 import type { WalletsManager } from '../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
-import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider } from '../exchange/index';
+import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider, PriceManager } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
 
 export interface ControlledAtomexContext {
@@ -27,6 +27,9 @@ interface ControlledAtomexContextManagersSection {
 
   get swapManager(): SwapManager;
   set swapManager(value: SwapManager);
+
+  get priceManager(): PriceManager;
+  set priceManager(value: PriceManager);
 
   get balanceManager(): BalanceManager;
   set balanceManager(value: BalanceManager);
