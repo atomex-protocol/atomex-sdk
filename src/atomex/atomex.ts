@@ -119,7 +119,7 @@ export class Atomex implements AtomexService {
     const baseCurrencyAtomexProtocolV1 = baseCurrencyInfo.atomexProtocol as AtomexProtocolV1;
     const quoteCurrencyAtomexProtocolV1 = quoteCurrencyInfo.atomexProtocol as AtomexProtocolV1;
     const directionName: 'from' | 'to' = quoteCurrencyId === swapPreview.from.currencyId ? 'from' : 'to';
-    const rewardForRedeem = swapPreview.fees.success.find(fee => fee.name == 'rewardForRedeem')?.estimated;
+    const rewardForRedeem = swapPreview.fees.success.find(fee => fee.name == 'redeem-reward')?.estimated;
     const newOrderRequest: NewOrderRequest = {
       orderBody: {
         type: swapPreview.type,
