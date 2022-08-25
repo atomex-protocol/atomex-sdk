@@ -50,7 +50,7 @@ export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
 
   abstract redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
 
-  abstract getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<FeesInfo>;
+  abstract getRedeemReward(_nativeTokenPriceInUsd: BigNumber, _nativeTokenPriceInCurrency: BigNumber, _redeemFee: BigNumber): Promise<FeesInfo>;
 
   async getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
     const toolkit = await this.getReadonlyWeb3();

@@ -21,6 +21,7 @@ export class Atomex implements AtomexService {
   readonly authorization: AuthorizationManager;
   readonly exchangeManager: ExchangeManager;
   readonly balanceManager: BalanceManager;
+  readonly priceManager: PriceManager;
   readonly swapManager: SwapManager;
   readonly wallets: WalletsManager;
   readonly atomexContext: AtomexContext;
@@ -38,6 +39,7 @@ export class Atomex implements AtomexService {
     this.exchangeManager = options.managers.exchangeManager;
     this.swapManager = options.managers.swapManager;
     this.balanceManager = options.managers.balanceManager;
+    this.priceManager = options.managers.priceManager;
 
     if (options.blockchains)
       for (const blockchainName of Object.keys(options.blockchains))
@@ -159,7 +161,7 @@ export class Atomex implements AtomexService {
   }
 
   async convertCurrency(fromAmount: BigNumber.Value, fromCurrency: Currency['id'], toCurrency: Currency['id']): Promise<BigNumber | undefined> {
-    const price = await this.atomexContext.managers.priceManager.getAveragePrice({ baseCurrency: fromCurrency, quoteCurrency: toCurrency });
+    const price = await this.priceManager.getAveragePrice({ baseCurrency: fromCurrency, quoteCurrency: toCurrency });
     if (!price)
       return undefined;
 

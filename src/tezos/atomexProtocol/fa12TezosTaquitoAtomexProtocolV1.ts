@@ -1,3 +1,6 @@
+import type BigNumber from 'bignumber.js';
+
+import { getRedeemRewardInNativeToken } from '../../blockchain/atomexProtocolV1';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
@@ -34,10 +37,13 @@ export class FA12TezosTaquitoAtomexProtocolV1 extends TaquitoAtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  async getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<FeesInfo> {
-    const redeemFees = await this.getInitiateFees({});
+  async getRedeemReward(nativeTokenPriceInUsd: BigNumber, nativeTokenPriceInCurrency: BigNumber, redeemFee: BigNumber): Promise<FeesInfo> {
+    const inNativeToken = getRedeemRewardInNativeToken(nativeTokenPriceInUsd, redeemFee);
 
-    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
+    return {
+      estimated: inNativeToken.estimated.multipliedBy(nativeTokenPriceInCurrency),
+      max: inNativeToken.max.multipliedBy(nativeTokenPriceInCurrency)
+    };
   }
 
   getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {

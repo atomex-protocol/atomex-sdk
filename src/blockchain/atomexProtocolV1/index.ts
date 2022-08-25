@@ -1,4 +1,5 @@
 export { isAtomexProtocolV1 } from './guards';
+export { getRedeemRewardInNativeToken } from './utlis';
 
 export type { AtomexProtocolV1 } from './atomexProtocolV1';
 export type { AtomexProtocolV1Options } from './options';

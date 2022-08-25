@@ -72,7 +72,8 @@ export class AtomexBuilder {
         authorizationManager: this.atomexContext.managers.authorizationManager,
         exchangeManager: this.atomexContext.managers.exchangeManager,
         swapManager: this.atomexContext.managers.swapManager,
-        balanceManager: this.atomexContext.managers.balanceManager
+        balanceManager: this.atomexContext.managers.balanceManager,
+        priceManager: this.atomexContext.managers.priceManager,
       },
       blockchains
     });
