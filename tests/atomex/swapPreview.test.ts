@@ -38,7 +38,8 @@ describe('Atomex | Swap Preview', () => {
         exchangeManager: mockedAtomexContext.managers.exchangeManager,
         swapManager: mockedAtomexContext.managers.swapManager,
         walletsManager: mockedAtomexContext.managers.walletsManager,
-        balanceManager: mockedAtomexContext.managers.balanceManager
+        balanceManager: mockedAtomexContext.managers.balanceManager,
+        priceManager: mockedAtomexContext.managers.priceManager,
       },
       blockchains: mockedBlockchainOptions
     });
@@ -51,6 +52,7 @@ describe('Atomex | Swap Preview', () => {
   test.each(swapPreviewWithoutAccountTestCases)(
     'getting swap preview without account: %s\n\tSwap Preview Parameters: %j',
     async (_, swapPreviewParameters, expectedSwapPreview, environment) => {
+      mockedAtomexContext.managers.priceManager.getAveragePrice.mockResolvedValue(new BigNumber(1));
       mockedAtomexContext.services.exchangeService.getSymbols.mockResolvedValue(environment.symbols);
       mockedAtomexContext.services.exchangeService.getOrderBook.mockImplementation(symbol => {
         if (typeof symbol === 'string')
@@ -70,6 +72,7 @@ describe('Atomex | Swap Preview', () => {
   test.each(swapPreviewWithAccountTestCases)(
     'getting swap preview with account: %s\n\tSwap Preview Parameters: %j',
     async (_, swapPreviewParameters, expectedSwapPreview, environment) => {
+      mockedAtomexContext.managers.priceManager.getAveragePrice.mockResolvedValue(new BigNumber(1));
       mockedAtomexContext.services.exchangeService.getSymbols.mockResolvedValue(environment.symbols);
       mockedAtomexContext.services.exchangeService.getOrderBook.mockImplementation(symbol => {
         if (typeof symbol === 'string')

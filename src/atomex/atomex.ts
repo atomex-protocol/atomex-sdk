@@ -4,7 +4,7 @@ import type { AuthorizationManager } from '../authorization/index';
 import type { BalanceManager } from '../blockchain/balanceManager';
 import type { AtomexProtocolV1, WalletsManager } from '../blockchain/index';
 import type { AtomexService, Currency } from '../common/index';
-import { NewOrderRequest, ExchangeManager, symbolsHelper } from '../exchange/index';
+import { NewOrderRequest, ExchangeManager, symbolsHelper, PriceManager } from '../exchange/index';
 import type { Swap, SwapManager } from '../swaps/index';
 import { toFixedBigNumber } from '../utils/converters';
 import type { AtomexContext } from './atomexContext';
