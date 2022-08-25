@@ -2,12 +2,14 @@ import BigNumber from 'bignumber.js';
 
 import type { AtomexProtocolV1, CurrencyInfo, FeesInfo } from '../blockchain/index';
 import type { Currency } from '../common/index';
-import type { Mutable } from '../core/index';
+import { Mutable, Cache, InMemoryCache } from '../core/index';
 import { ExchangeSymbolsProvider, ordersHelper, type NormalizedOrderPreviewParameters, type OrderPreview } from '../exchange/index';
 import type { AtomexContext } from './atomexContext';
 import type { NormalizedSwapPreviewParameters, SwapPreview, SwapPreviewFee, SwapPreviewParameters } from './models/index';
 
 export class AtomexSwapPreviewManager {
+  private readonly swapPreviewFeesCache: Cache = new InMemoryCache({ absoluteExpirationMs: 10 * 1000 });
+
   constructor(protected readonly atomexContext: AtomexContext) {
   }
 
@@ -234,6 +236,11 @@ export class AtomexSwapPreviewManager {
     toNativeCurrencyInfo: CurrencyInfo,
     useWatchTower: boolean
   ): Promise<SwapPreview['fees']> {
+    const feesCacheKey = this.getSwapPreviewFeesCacheKey(fromCurrencyInfo, toCurrencyInfo, useWatchTower);
+    const cachedFees = this.swapPreviewFeesCache.get<SwapPreview['fees']>(feesCacheKey);
+    if (cachedFees)
+      return cachedFees;
+
     const fromAtomexProtocol = (fromCurrencyInfo.atomexProtocol as AtomexProtocolV1);
     const toAtomexProtocol = (toCurrencyInfo.atomexProtocol as AtomexProtocolV1);
     const [fromInitiateFees, toRedeemOrRewardForRedeem, fromRefundFees, toInitiateFees, fromRedeemFees] = await Promise.all([
@@ -260,7 +267,7 @@ export class AtomexSwapPreviewManager {
       fromRedeemFees
     );
 
-    return {
+    const swapPreviewFees: SwapPreview['fees'] = {
       success: [
         paymentFee,
         makerFee,
@@ -282,6 +289,9 @@ export class AtomexSwapPreviewManager {
         }
       ]
     };
+    this.swapPreviewFeesCache.set(feesCacheKey, swapPreviewFees);
+
+    return swapPreviewFees;
   }
 
   protected async calculateMakerFees(
@@ -349,6 +359,14 @@ export class AtomexSwapPreviewManager {
       estimated: estimatedInFromCurrency,
       max: maxInFromCurrency
     };
+  }
+
+  private getSwapPreviewFeesCacheKey(
+    fromCurrencyInfo: CurrencyInfo,
+    toCurrencyInfo: CurrencyInfo,
+    useWatchTower: boolean
+  ) {
+    return `${fromCurrencyInfo.currency.id}_${toCurrencyInfo.currency.id}_${useWatchTower}`;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
