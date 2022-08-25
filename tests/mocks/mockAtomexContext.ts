@@ -1,15 +1,11 @@
-import type { AtomexContext } from '../../src/atomex';
-import { CachedBalanceManager } from '../../src/blockchain/balanceManager';
-import { AtomexNetwork, AuthorizationManager } from '../../src/index';
-import { MockExchangeManager, MockSwapManager, MockWalletsManager } from './managers';
+import type { AtomexContext } from '../../src/atomex/index';
+import type { AtomexNetwork } from '../../src/index';
+import { MockAuthorizationManager, MockBalanceManager, MockExchangeManager, MockPriceManager, MockSwapManager, MockWalletsManager } from './managers';
 import { MockAtomexClient } from './mockAtomexClient';
 import { MockBlockchainProvider, MockExchangeSymbolsProvider, MockOrderBookProvider } from './providers';
 import { MockAuthorizationManagerStore } from './stores';
 
-export interface MockAtomexContext {
-  id: number;
-  atomexNetwork: AtomexNetwork;
-
+export interface MockAtomexContext extends AtomexContext {
   managers: MockAtomexContextManagersSection;
   services: MockAtomexContextServicesSection;
   providers: MockAtomexContextProvidersSection;
@@ -17,10 +13,11 @@ export interface MockAtomexContext {
 
 interface MockAtomexContextManagersSection {
   walletsManager: MockWalletsManager;
-  authorizationManager: AtomexContext['managers']['authorizationManager'];
+  authorizationManager: MockAuthorizationManager;
   exchangeManager: MockExchangeManager;
-  swapManager: AtomexContext['managers']['swapManager'];
-  balanceManger: AtomexContext['managers']['balanceManager'];
+  swapManager: MockSwapManager;
+  priceManager: MockPriceManager;
+  balanceManager: MockBalanceManager;
 }
 
 interface MockAtomexContextServicesSection {
@@ -36,7 +33,7 @@ interface MockAtomexContextProvidersSection {
 }
 
 export const createMockedAtomexContext = (atomexNetwork: AtomexNetwork, id = 0): MockAtomexContext => {
-  const mockedAtomexContext = new MockAtomexClient(atomexNetwork);
+  const mockAtomexClient = new MockAtomexClient(atomexNetwork);
   const walletsManager = new MockWalletsManager(atomexNetwork);
   const orderBookProvider = new MockOrderBookProvider();
   const symbolsProvider = new MockExchangeSymbolsProvider();
@@ -47,19 +44,20 @@ export const createMockedAtomexContext = (atomexNetwork: AtomexNetwork, id = 0):
     id,
     managers: {
       walletsManager,
-      authorizationManager: new AuthorizationManager({
+      authorizationManager: new MockAuthorizationManager({
         atomexNetwork,
         walletsManager,
         authorizationBaseUrl: 'https://atomex.authorization.url',
         store: new MockAuthorizationManagerStore()
       }),
       exchangeManager: new MockExchangeManager({
-        exchangeService: mockedAtomexContext,
+        exchangeService: mockAtomexClient,
         orderBookProvider,
         symbolsProvider
       }),
-      swapManager: new MockSwapManager(mockedAtomexContext),
-      balanceManger: new CachedBalanceManager(blockchainProvider)
+      swapManager: new MockSwapManager(mockAtomexClient),
+      balanceManager: new MockBalanceManager(blockchainProvider),
+      priceManager: new MockPriceManager()
     },
     providers: {
       blockchainProvider,
@@ -68,8 +66,8 @@ export const createMockedAtomexContext = (atomexNetwork: AtomexNetwork, id = 0):
       orderBookProvider,
     },
     services: {
-      exchangeService: mockedAtomexContext,
-      swapService: mockedAtomexContext,
+      exchangeService: mockAtomexClient,
+      swapService: mockAtomexClient,
     }
   };
 };

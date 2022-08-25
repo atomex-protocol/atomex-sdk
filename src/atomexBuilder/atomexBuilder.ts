@@ -1,4 +1,4 @@
-import { Atomex, AtomexContext } from '../atomex/index';
+import { Atomex, AtomexContext, DefaultAtomexContext } from '../atomex/index';
 import type { AtomexBlockchainNetworkOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
 import { CachedBalanceManager } from '../blockchain/balanceManager';
@@ -29,7 +29,7 @@ export class AtomexBuilder {
 
   constructor(
     protected readonly options: DeepReadonly<AtomexBuilderOptions>,
-    protected readonly atomexContext: AtomexContext = new AtomexContext(options.atomexNetwork)
+    protected readonly atomexContext: AtomexContext = new DefaultAtomexContext(options.atomexNetwork)
   ) {
   }
 

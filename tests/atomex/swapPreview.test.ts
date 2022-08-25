@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import BigNumber from 'bignumber.js';
 
-import type { AtomexContext } from '../../src/atomex';
 import { ethereumTestnetCurrencies } from '../../src/ethereum';
 import { testnetEthereumWeb3AtomexProtocolV1Options } from '../../src/ethereum/config';
 import { Atomex } from '../../src/index';
@@ -33,13 +32,13 @@ describe('Atomex | Swap Preview', () => {
       }),
     };
     atomex = new Atomex({
-      atomexContext: mockedAtomexContext as unknown as AtomexContext,
+      atomexContext: mockedAtomexContext,
       managers: {
         authorizationManager: mockedAtomexContext.managers.authorizationManager,
         exchangeManager: mockedAtomexContext.managers.exchangeManager,
         swapManager: mockedAtomexContext.managers.swapManager,
         walletsManager: mockedAtomexContext.managers.walletsManager,
-        balanceManager: mockedAtomexContext.managers.balanceManger
+        balanceManager: mockedAtomexContext.managers.balanceManager
       },
       blockchains: mockedBlockchainOptions
     });
@@ -124,15 +123,10 @@ describe('Atomex | Swap Preview', () => {
       }
     );
 
-    for (const entry of Object.entries(accounts)) {
-      const blockchain = entry[0] as keyof typeof accounts;
-      const blockchainAccounts = entry[1] as Accounts[typeof blockchain];
-
-      mockedBlockchainOptions[blockchain].balancesProvider.getBalance
-        .mockImplementation((address, currency) => {
-          return Promise.resolve(blockchainAccounts[address]?.[currency.id] || new BigNumber(0));
-        });
-    }
+    mockedAtomexContext.managers.balanceManager.getBalance
+      .mockImplementation((address, currency) => {
+        return Promise.resolve(accounts[getBlockchainNameByCurrencyId(currency.id)][address]?.[currency.id] || new BigNumber(0));
+      });
   };
 
   const mockAtomexProtocolV1Fees = (allFees: AtomexProtocolV1Fees) => {
