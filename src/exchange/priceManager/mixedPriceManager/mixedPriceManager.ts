@@ -79,8 +79,8 @@ export class MixedPriceManager implements PriceManager {
     return [...this.providersMap.keys()];
   }
 
-  dispose(): Promise<void> {
-    throw new Error('Method not implemented.');
+  async dispose(): Promise<void> {
+    this.cache.clear();
   }
 
   private getCacheKey({ isAverage, baseCurrency, quoteCurrency, provider }: GetCacheKeyParameters) {
