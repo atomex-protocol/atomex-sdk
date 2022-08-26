@@ -12,14 +12,14 @@ export declare type SwapPreviewParameters = SwapPreviewParametersBase & ({
     isFromAmount?: boolean;
     symbol?: never;
     side?: never;
-    isQuoteCurrencyAmount?: never;
+    isBaseCurrencyAmount?: never;
 } | {
     from?: never;
     to?: never;
     isFromAmount?: never;
     symbol: string;
     side: Side;
-    isQuoteCurrencyAmount?: boolean;
+    isBaseCurrencyAmount?: boolean;
 });
 export interface NormalizedSwapPreviewParameters {
     readonly type: OrderType;
@@ -30,6 +30,6 @@ export interface NormalizedSwapPreviewParameters {
     readonly isFromAmount: boolean;
     readonly exchangeSymbol: ExchangeSymbol;
     readonly side: Side;
-    readonly isQuoteCurrencyAmount: boolean;
+    readonly isBaseCurrencyAmount: boolean;
 }
 export {};

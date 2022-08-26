@@ -5,8 +5,8 @@ import type { Currency } from '../../common/index';
  */
 export interface Quote {
     readonly symbol: string;
-    readonly quoteCurrency: Currency['id'];
     readonly baseCurrency: Currency['id'];
+    readonly quoteCurrency: Currency['id'];
     readonly timeStamp: Date;
     readonly bid: BigNumber;
     readonly ask: BigNumber;

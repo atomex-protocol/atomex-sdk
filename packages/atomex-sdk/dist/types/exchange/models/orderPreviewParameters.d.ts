@@ -13,19 +13,19 @@ export declare type OrderPreviewParameters = OrderPreviewParametersBase & ({
     isFromAmount?: boolean;
     symbol?: never;
     side?: never;
-    isQuoteCurrencyAmount?: never;
+    isBaseCurrencyAmount?: never;
 } | {
     from?: never;
     to?: never;
     isFromAmount?: never;
     symbol: string;
     side: Side;
-    isQuoteCurrencyAmount?: boolean;
+    isBaseCurrencyAmount?: boolean;
 });
 export declare type NormalizedOrderPreviewParameters = Readonly<OrderPreviewParametersBase> & {
     readonly exchangeSymbol: ExchangeSymbol;
     readonly side: Side;
-    readonly isQuoteCurrencyAmount: boolean;
+    readonly isBaseCurrencyAmount: boolean;
     readonly from: CurrencyDirection['from'];
     readonly to: CurrencyDirection['to'];
     readonly isFromAmount: boolean;

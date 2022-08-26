@@ -35,7 +35,7 @@ __export(symbolsHelper_exports, {
   convertFromAndToCurrenciesToSymbolAndSide: () => convertFromAndToCurrenciesToSymbolAndSide,
   convertSymbolAndSideToFromAndToCurrencies: () => convertSymbolAndSideToFromAndToCurrencies,
   convertSymbolAndSideToFromAndToSymbolCurrencies: () => convertSymbolAndSideToFromAndToSymbolCurrencies,
-  getQuoteBaseCurrenciesBySymbol: () => getQuoteBaseCurrenciesBySymbol
+  getBaseQuoteCurrenciesBySymbol: () => getBaseQuoteCurrenciesBySymbol
 });
 import BigNumber2 from "bignumber.js";
 
@@ -145,48 +145,48 @@ var wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 var prepareTimeoutDuration = (durationMs) => Math.min(durationMs, 2147483647);
 
 // src/exchange/helpers/symbolsHelper.ts
-var getQuoteBaseCurrenciesBySymbol = (symbol) => {
+var getBaseQuoteCurrenciesBySymbol = (symbol) => {
   const result = symbol.split("/", 2);
   return [result[0] || "", result[1] || ""];
 };
-var convertSymbolAndSideToFromAndToSymbolCurrencies = (symbol, side, currencyAmount, quoteCurrencyPrice, isQuoteCurrencyAmount = true) => {
-  const preparedQuoteCurrencyPrice = converters_exports.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber2.ROUND_FLOOR);
-  const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
+var convertSymbolAndSideToFromAndToSymbolCurrencies = (symbol, side, currencyAmount, baseCurrencyPrice, isBaseCurrencyAmount = true) => {
+  const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(baseCurrencyPrice, symbol.decimals.price, BigNumber2.ROUND_FLOOR);
+  const [baseCurrencyId, quoteCurrencyId] = getBaseQuoteCurrenciesBySymbol(symbol.name);
   const isBuySide = side === "Buy";
-  let preparedQuoteCurrencyAmount;
   let preparedBaseCurrencyAmount;
-  if (isQuoteCurrencyAmount) {
-    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber2.ROUND_FLOOR);
-    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, isBuySide ? BigNumber2.ROUND_CEIL : BigNumber2.ROUND_FLOOR);
-  } else {
+  let preparedQuoteCurrencyAmount;
+  if (isBaseCurrencyAmount) {
     preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber2.ROUND_FLOOR);
-    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice), symbol.decimals.quoteCurrency, isBuySide ? BigNumber2.ROUND_FLOOR : BigNumber2.ROUND_CEIL);
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyPrice.multipliedBy(preparedBaseCurrencyAmount), symbol.decimals.quoteCurrency, isBuySide ? BigNumber2.ROUND_CEIL : BigNumber2.ROUND_FLOOR);
+  } else {
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber2.ROUND_FLOOR);
+    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyAmount.div(preparedBaseCurrencyPrice), symbol.decimals.baseCurrency, isBuySide ? BigNumber2.ROUND_FLOOR : BigNumber2.ROUND_CEIL);
   }
-  const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(new BigNumber2(1).div(preparedQuoteCurrencyPrice), symbol.decimals.price, BigNumber2.ROUND_FLOOR);
-  const quoteCurrency = {
-    currencyId: quoteCurrencyId,
-    amount: preparedQuoteCurrencyAmount,
-    price: preparedQuoteCurrencyPrice
-  };
+  const preparedQuoteCurrencyPrice = converters_exports.toFixedBigNumber(new BigNumber2(1).div(preparedBaseCurrencyPrice), symbol.decimals.price, BigNumber2.ROUND_FLOOR);
   const baseCurrency = {
     currencyId: baseCurrencyId,
     amount: preparedBaseCurrencyAmount,
     price: preparedBaseCurrencyPrice
   };
-  return isBuySide ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
+  const quoteCurrency = {
+    currencyId: quoteCurrencyId,
+    amount: preparedQuoteCurrencyAmount,
+    price: preparedQuoteCurrencyPrice
+  };
+  return isBuySide ? [quoteCurrency, baseCurrency] : [baseCurrency, quoteCurrency];
 };
 var convertSymbolAndSideToFromAndToCurrencies = (symbol, side) => {
-  let quoteCurrency;
   let baseCurrency;
+  let quoteCurrency;
   if (typeof symbol === "string") {
-    const quoteAndBaseCurrencies = getQuoteBaseCurrenciesBySymbol(symbol);
-    quoteCurrency = quoteAndBaseCurrencies[0];
-    baseCurrency = quoteAndBaseCurrencies[1];
+    const baseAndQuoteCurrencies = getBaseQuoteCurrenciesBySymbol(symbol);
+    baseCurrency = baseAndQuoteCurrencies[0];
+    quoteCurrency = baseAndQuoteCurrencies[1];
   } else {
-    quoteCurrency = symbol.quoteCurrency;
     baseCurrency = symbol.baseCurrency;
+    quoteCurrency = symbol.quoteCurrency;
   }
-  return side === "Buy" ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
+  return side === "Sell" ? [quoteCurrency, baseCurrency] : [baseCurrency, quoteCurrency];
 };
 var convertFromAndToCurrenciesToSymbolAndSide = (symbols, from, to) => {
   const sellSideSymbolName = `${from}/${to}`;
@@ -228,14 +228,14 @@ var isOrderPreview = (orderBody) => {
   return typeof orderBody.symbol === "string" && typeof orderBody.side === "string" && !!orderBody.from && !!orderBody.to;
 };
 var isNormalizedOrderPreviewParameters = (orderPreviewParameters) => {
-  return !!(orderPreviewParameters.symbol && orderPreviewParameters.side && orderPreviewParameters.from && orderPreviewParameters.to && typeof orderPreviewParameters.isQuoteCurrencyAmount === "boolean" && typeof orderPreviewParameters.isFromAmount === "boolean");
+  return !!(orderPreviewParameters.symbol && orderPreviewParameters.side && orderPreviewParameters.from && orderPreviewParameters.to && typeof orderPreviewParameters.isBaseCurrencyAmount === "boolean" && typeof orderPreviewParameters.isFromAmount === "boolean");
 };
 var normalizeOrderPreviewParameters = (orderPreviewParameters, exchangeSymbolsProvider) => {
   const exchangeSymbols = exchangeSymbolsProvider.getSymbolsMap();
   let symbol;
   let exchangeSymbol;
   let side;
-  let isQuoteCurrencyAmount = true;
+  let isBaseCurrencyAmount = true;
   let from;
   let to;
   let isFromAmount = true;
@@ -245,17 +245,17 @@ var normalizeOrderPreviewParameters = (orderPreviewParameters, exchangeSymbolsPr
     if (!exchangeSymbol)
       throw new Error(`The ${symbol} Symbol not found`);
     side = orderPreviewParameters.side;
-    if (orderPreviewParameters.isQuoteCurrencyAmount !== void 0 && orderPreviewParameters.isQuoteCurrencyAmount !== null)
-      isQuoteCurrencyAmount = orderPreviewParameters.isQuoteCurrencyAmount;
+    if (orderPreviewParameters.isBaseCurrencyAmount !== void 0 && orderPreviewParameters.isBaseCurrencyAmount !== null)
+      isBaseCurrencyAmount = orderPreviewParameters.isBaseCurrencyAmount;
     [from, to] = convertSymbolAndSideToFromAndToCurrencies(exchangeSymbol, side);
-    isFromAmount = isQuoteCurrencyAmount && from === exchangeSymbol.quoteCurrency || !isQuoteCurrencyAmount && to === exchangeSymbol.quoteCurrency;
+    isFromAmount = isBaseCurrencyAmount && from === exchangeSymbol.baseCurrency || !isBaseCurrencyAmount && to === exchangeSymbol.baseCurrency;
   } else if (orderPreviewParameters.from && orderPreviewParameters.to) {
     from = orderPreviewParameters.from;
     to = orderPreviewParameters.to;
     isFromAmount = orderPreviewParameters.isFromAmount !== void 0 && orderPreviewParameters.isFromAmount !== null ? orderPreviewParameters.isFromAmount : true;
     [exchangeSymbol, side] = convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
     symbol = exchangeSymbol.name;
-    isQuoteCurrencyAmount = isFromAmount && orderPreviewParameters.from === exchangeSymbol.quoteCurrency || !isFromAmount && orderPreviewParameters.to === exchangeSymbol.quoteCurrency;
+    isBaseCurrencyAmount = isFromAmount && orderPreviewParameters.from === exchangeSymbol.baseCurrency || !isFromAmount && orderPreviewParameters.to === exchangeSymbol.baseCurrency;
   } else
     throw new Error("Invalid orderPreviewParameters argument passed");
   return {
@@ -263,7 +263,7 @@ var normalizeOrderPreviewParameters = (orderPreviewParameters, exchangeSymbolsPr
     amount: orderPreviewParameters.amount,
     exchangeSymbol,
     side,
-    isQuoteCurrencyAmount,
+    isBaseCurrencyAmount,
     from,
     to,
     isFromAmount
@@ -552,10 +552,10 @@ var ExchangeManager = class {
     if (orderPreviewParameters.type !== "SolidFillOrKill")
       throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
     const normalizedPreviewParameters = this.normalizeOrderPreviewParametersIfNeeded(orderPreviewParameters);
-    const orderBookEntry = await this.findOrderBookEntry(normalizedPreviewParameters.exchangeSymbol.name, normalizedPreviewParameters.side, orderPreviewParameters.type, normalizedPreviewParameters.amount, normalizedPreviewParameters.isQuoteCurrencyAmount);
+    const orderBookEntry = await this.findOrderBookEntry(normalizedPreviewParameters.exchangeSymbol.name, normalizedPreviewParameters.side, orderPreviewParameters.type, normalizedPreviewParameters.amount, normalizedPreviewParameters.isBaseCurrencyAmount);
     if (!orderBookEntry)
       return void 0;
-    const [from, to] = symbolsHelper_exports.convertSymbolAndSideToFromAndToSymbolCurrencies(normalizedPreviewParameters.exchangeSymbol, normalizedPreviewParameters.side, normalizedPreviewParameters.amount, orderBookEntry.price, normalizedPreviewParameters.isQuoteCurrencyAmount);
+    const [from, to] = symbolsHelper_exports.convertSymbolAndSideToFromAndToSymbolCurrencies(normalizedPreviewParameters.exchangeSymbol, normalizedPreviewParameters.side, normalizedPreviewParameters.amount, orderBookEntry.price, normalizedPreviewParameters.isBaseCurrencyAmount);
     return {
       type: orderPreviewParameters.type,
       from,
@@ -590,7 +590,7 @@ var ExchangeManager = class {
       symbol,
       side,
       type: parameters.type,
-      isQuoteCurrencyAmount: true
+      isBaseCurrencyAmount: true
     } : {
       amount,
       type: parameters.type,
@@ -624,14 +624,14 @@ var ExchangeManager = class {
   normalizeOrderPreviewParametersIfNeeded(orderPreviewParameters) {
     return ordersHelper_exports.isNormalizedOrderPreviewParameters(orderPreviewParameters) ? orderPreviewParameters : ordersHelper_exports.normalizeOrderPreviewParameters(orderPreviewParameters, this.symbolsProvider);
   }
-  async findOrderBookEntry(symbol, side, orderType, amount, isQuoteCurrencyAmount) {
+  async findOrderBookEntry(symbol, side, orderType, amount, isBaseCurrencyAmount) {
     if (orderType !== "SolidFillOrKill")
       return void 0;
     const orderBook = await this.getCachedOrderBook(symbol);
     if (!orderBook)
       return void 0;
     for (const entry of orderBook.entries) {
-      if (entry.side !== side && (isQuoteCurrencyAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
+      if (entry.side !== side && (isBaseCurrencyAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
         return entry;
       }
     }
@@ -1111,7 +1111,7 @@ var AtomexSwapPreviewManager = class {
       isFromAmount: normalizedOrderPreviewParameters.isFromAmount,
       exchangeSymbol: normalizedOrderPreviewParameters.exchangeSymbol,
       side: normalizedOrderPreviewParameters.side,
-      isQuoteCurrencyAmount: normalizedOrderPreviewParameters.isQuoteCurrencyAmount
+      isBaseCurrencyAmount: normalizedOrderPreviewParameters.isBaseCurrencyAmount
     };
   }
   static calculateMaxTotalFee(fees, currencyId) {
@@ -1190,20 +1190,20 @@ var Atomex = class {
     const fromAddress = swapPreview.to.address;
     if (!fromAddress)
       throw new Error(`Swap preview doesn't have the "from" address`);
-    const [quoteCurrencyId, baseCurrencyId] = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol);
+    const [baseCurrencyId, quoteCurrencyId] = symbolsHelper_exports.getBaseQuoteCurrenciesBySymbol(swapPreview.symbol);
     const baseCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(baseCurrencyId);
     if (!baseCurrencyInfo)
       throw new Error(`The "${baseCurrencyId}" currency (base) is unknown`);
     const quoteCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(quoteCurrencyId);
     if (!quoteCurrencyInfo)
-      throw new Error(`The "${quoteCurrencyInfo}" currency (quote) is unknown`);
+      throw new Error(`The "${quoteCurrencyId}" currency (quote) is unknown`);
     if (baseCurrencyInfo.atomexProtocol.version !== 1)
       throw new Error(`Unknown version (${baseCurrencyInfo.atomexProtocol.version}) of the Atomex protocol (base)`);
     if (quoteCurrencyInfo.atomexProtocol.version !== 1)
       throw new Error(`Unknown version (${quoteCurrencyInfo.atomexProtocol.version}) of the Atomex protocol (quote)`);
     const baseCurrencyAtomexProtocolV1 = baseCurrencyInfo.atomexProtocol;
     const quoteCurrencyAtomexProtocolV1 = quoteCurrencyInfo.atomexProtocol;
-    const directionName = quoteCurrencyId === swapPreview.from.currencyId ? "from" : "to";
+    const directionName = baseCurrencyId === swapPreview.from.currencyId ? "from" : "to";
     const rewardForRedeem = (_a = swapPreview.fees.success.find((fee) => fee.name == "redeem-reward")) == null ? void 0 : _a.estimated;
     const newOrderRequest = {
       orderBody: {
@@ -1219,8 +1219,8 @@ var Atomex = class {
         refundAddress: newSwapRequestOrSwapId.refundAddress || null,
         rewardForRedeem: rewardForRedeem || new BigNumber8(0),
         lockTime: 18e3,
-        quoteCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
-        baseCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
+        baseCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
+        quoteCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
       },
       proofsOfFunds: []
     };
@@ -3234,20 +3234,20 @@ var mapQuoteDtosToQuotes = (quoteDtos) => {
   return quotes;
 };
 var mapQuoteDtoToQuote = (quoteDto) => {
-  const [quoteCurrency, baseCurrency] = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(quoteDto.symbol);
+  const [baseCurrency, quoteCurrency] = symbolsHelper_exports.getBaseQuoteCurrenciesBySymbol(quoteDto.symbol);
   const quote = {
     ask: new BigNumber14(quoteDto.ask),
     bid: new BigNumber14(quoteDto.bid),
     symbol: quoteDto.symbol,
     timeStamp: new Date(quoteDto.timeStamp),
-    quoteCurrency,
-    baseCurrency
+    baseCurrency,
+    quoteCurrency
   };
   return quote;
 };
 var mapSymbolDtoToSymbol = (symbolDto, currenciesProvider, defaultDecimals = 9) => {
   var _a, _b;
-  const [quoteCurrency, baseCurrency] = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(symbolDto.name);
+  const [baseCurrency, quoteCurrency] = symbolsHelper_exports.getBaseQuoteCurrenciesBySymbol(symbolDto.name);
   const baseCurrencyDecimals = (_a = currenciesProvider.getCurrency(baseCurrency)) == null ? void 0 : _a.decimals;
   const quoteCurrencyDecimals = (_b = currenciesProvider.getCurrency(quoteCurrency)) == null ? void 0 : _b.decimals;
   const preparedBaseCurrencyDecimals = baseCurrencyDecimals ? Math.min(baseCurrencyDecimals, defaultDecimals) : defaultDecimals;
@@ -3268,12 +3268,12 @@ var mapSymbolDtosToSymbols = (symbolDtos, currenciesProvider, defaultDecimals) =
   return symbolDtos.map((symbolDto) => mapSymbolDtoToSymbol(symbolDto, currenciesProvider, defaultDecimals));
 };
 var mapOrderBookDtoToOrderBook = (orderBookDto) => {
-  const [quoteCurrency, baseCurrency] = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
+  const [baseCurrency, quoteCurrency] = symbolsHelper_exports.getBaseQuoteCurrenciesBySymbol(orderBookDto.symbol);
   const orderBook = {
     updateId: orderBookDto.updateId,
     symbol: orderBookDto.symbol,
-    quoteCurrency,
     baseCurrency,
+    quoteCurrency,
     entries: orderBookDto.entries.map((orderBookEntryDto) => mapOrderBookEntryDtoToOrderBookEntry(orderBookEntryDto))
   };
   return orderBook;
@@ -3503,8 +3503,8 @@ var RestAtomexClient = class {
     if (ordersHelper_exports.isOrderPreview(newOrderRequest.orderBody)) {
       symbol = newOrderRequest.orderBody.symbol;
       side = newOrderRequest.orderBody.side;
-      const quoteCurrencyId = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(symbol)[0];
-      const directionName = quoteCurrencyId === newOrderRequest.orderBody.from.currencyId ? "from" : "to";
+      const baseCurrencyId = symbolsHelper_exports.getBaseQuoteCurrenciesBySymbol(symbol)[0];
+      const directionName = baseCurrencyId === newOrderRequest.orderBody.from.currencyId ? "from" : "to";
       amountBigNumber = newOrderRequest.orderBody[directionName].amount;
       priceBigNumber = newOrderRequest.orderBody[directionName].price;
     } else {
@@ -3523,8 +3523,8 @@ var RestAtomexClient = class {
         refundAddress: newOrderRequest.requisites.refundAddress,
         rewardForRedeem: newOrderRequest.requisites.rewardForRedeem.toNumber(),
         lockTime: newOrderRequest.requisites.lockTime,
-        baseCurrencyContract: newOrderRequest.requisites.baseCurrencyContract,
-        quoteCurrencyContract: newOrderRequest.requisites.quoteCurrencyContract
+        quoteCurrencyContract: newOrderRequest.requisites.quoteCurrencyContract,
+        baseCurrencyContract: newOrderRequest.requisites.baseCurrencyContract
       } : void 0,
       proofsOfFunds: newOrderRequest.proofsOfFunds,
       qty: amountBigNumber.toNumber(),
