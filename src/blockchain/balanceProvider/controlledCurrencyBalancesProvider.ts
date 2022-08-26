@@ -1,6 +1,6 @@
 import type { BigNumber } from 'bignumber.js';
 
-import type { Currency } from '../common/index';
+import type { Currency } from '../../common/index';
 import type { CurrencyBalanceProvider } from './currencyBalanceProvider';
 
 export class ControlledCurrencyBalancesProvider implements CurrencyBalanceProvider {

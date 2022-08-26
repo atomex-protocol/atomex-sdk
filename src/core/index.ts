@@ -1,11 +1,15 @@
-export { EventEmitter } from './eventEmitter';
-export { DeferredEventEmitter } from './deferredEventEmitter';
+export { EventEmitter, DeferredEventEmitter } from './event/index';
 export { HttpClient, type RequestOptions } from './httpClient';
 
-export type { Result, SuccessResult, ErrorResult } from './result';
-export type { PublicEventEmitter, ToEventEmitter, ToEventEmitters } from './eventEmitter';
-export type { ToDeferredEventEmitter, ToDeferredEventEmitters } from './deferredEventEmitter';
-export type { DeepReadonly } from './deepReadonly';
-export type { DeepRequired } from './deepRequired';
-export type { DeepPartial } from './deepPartial';
-export type { DeepMutable } from './deepMutable';
+export type {
+  PublicEventEmitter, ToEventEmitter, ToEventEmitters,
+  ToDeferredEventEmitter, ToDeferredEventEmitters
+} from './event/index';
+export type {
+  Result, SuccessResult, ErrorResult, Mutable, DeepReadonly,
+  DeepRequired, DeepPartial, DeepMutable, PropsOf,
+  OverloadParameters, OverloadReturnType
+} from './types/index';
+
+export { InMemoryCache } from './cache/index';
+export type { Cache, SetCacheOptions } from './cache/index';

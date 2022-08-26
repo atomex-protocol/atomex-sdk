@@ -4,7 +4,8 @@ import type { FetchMock } from 'jest-fetch-mock';
 import type { AuthToken } from '../../src/authorization/index';
 import { RestAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
-import { TestAuthorizationManager, TestCurrenciesProvider, TestExchangeSymbolsProvider } from '../testHelpers/index';
+import { MockExchangeSymbolsProvider } from '../mocks';
+import { TestAuthorizationManager, TestCurrenciesProvider } from '../testHelpers/index';
 import {
   validAddOrderTestCases, validCancelAllOrdersWithDirectionsTestCases,
   validCancelOrderWithDirectionsTestCases,
@@ -47,12 +48,12 @@ describe('Rest Atomex Client', () => {
   const response404 = { code: 404, message: 'not found' };
 
   let client: RestAtomexClient;
-  let exchangeSymbolsProvider: TestExchangeSymbolsProvider;
+  let exchangeSymbolsProvider: MockExchangeSymbolsProvider;
 
   beforeEach(() => {
     fetchMock.resetMocks();
 
-    exchangeSymbolsProvider = new TestExchangeSymbolsProvider();
+    exchangeSymbolsProvider = new MockExchangeSymbolsProvider();
     exchangeSymbolsProvider.setSymbols([
       {
         name: 'ETH/BTC',

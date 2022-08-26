@@ -30,6 +30,10 @@ describe('Atomex Blockchain Provider', () => {
     type: 'native'
   };
 
+  const ethereumNativeCurrencyOptions: AtomexCurrencyOptions = {
+    atomexProtocol: { atomexNetwork: 'mainnet', version: 1 }
+  };
+
   let provider: AtomexBlockchainProvider;
 
   beforeEach(() => {
@@ -54,7 +58,9 @@ describe('Atomex Blockchain Provider', () => {
       blockchainToolkitProvider: new Web3BlockchainToolkitProvider('ethereum', ''),
       swapTransactionsProvider: new EthereumSwapTransactionsProvider(),
       currencies: [ethereumNativeCurrency],
-      currencyOptions: {}
+      currencyOptions: {
+        [ethereumNativeCurrency.id]: ethereumNativeCurrencyOptions
+      }
     };
 
     provider.addBlockchain('tezos', tezosNetworkOptions);
@@ -66,7 +72,7 @@ describe('Atomex Blockchain Provider', () => {
 
     const ethereumCurrencyInfo = provider.getCurrencyInfo(ethereumNativeCurrency.id);
     expect(ethereumCurrencyInfo?.currency).toBe(ethereumNativeCurrency);
-    expect(ethereumCurrencyInfo?.atomexProtocol).toBeUndefined();
+    expect(ethereumCurrencyInfo?.atomexProtocol).toBe(ethereumNativeCurrencyOptions.atomexProtocol);
 
     const btcCurrencyInfo = provider.getCurrencyInfo('BTC');
     expect(btcCurrencyInfo).toBeUndefined();

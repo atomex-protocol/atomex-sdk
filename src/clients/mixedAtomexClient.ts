@@ -1,7 +1,7 @@
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
 import type {
-  Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
+  Order, OrderBook, Quote, ExchangeSymbol, FilledNewOrderRequest,
   OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest,
   SwapsSelector, CurrencyDirection
 } from '../exchange/index';
@@ -81,7 +81,7 @@ export class MixedApiAtomexClient implements AtomexClient {
     return (this.restAtomexClient.getOrderBook as (symbolOrDirection: string | CurrencyDirection) => Promise<OrderBook | undefined>)(symbolOrDirection);
   }
 
-  addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
+  addOrder(accountAddress: string, newOrderRequest: FilledNewOrderRequest): Promise<number> {
     return this.restAtomexClient.addOrder(accountAddress, newOrderRequest);
   }
 

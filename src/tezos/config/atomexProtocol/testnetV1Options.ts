@@ -4,8 +4,8 @@ import { testnetFA2TezosTaquitoAtomexProtocolV1OptionsBase } from './base';
 const testnetNativeTezosTaquitoAtomexProtocolV1Options: TezosTaquitoAtomexProtocolV1Options = {
   atomexProtocolVersion: 1,
   currencyId: 'XTZ',
-  swapContractAddress: 'KT1VG2WtYdSWz5E7chTeAdDPZNy2MpP8pTfL',
-  swapContractBlockId: '513046',
+  swapContractAddress: 'KT1SJMtHZFSPva5AzQEx5btBuQ8BjvXqort3',
+  swapContractBlockId: '320132',
   initiateOperation: {
     fee: 2000,
     gasLimit: 11000,

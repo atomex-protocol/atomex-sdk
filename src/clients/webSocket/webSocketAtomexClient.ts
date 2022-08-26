@@ -3,7 +3,7 @@ import type { Transaction } from '../../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../../common/index';
 import { DeferredEventEmitter, EventEmitter, ToDeferredEventEmitter, type ToEventEmitter } from '../../core';
 import type {
-  Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest,
+  Order, OrderBook, Quote, ExchangeSymbol, FilledNewOrderRequest,
   OrdersSelector, CancelOrderRequest,
   CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider, ManagedOrderBookProvider
 } from '../../exchange/index';
@@ -111,7 +111,7 @@ export class WebSocketAtomexClient implements AtomexClient {
     throw new Error('Method not implemented.');
   }
 
-  addOrder(_accountAddress: string, _newOrderRequest: NewOrderRequest): Promise<number> {
+  addOrder(_accountAddress: string, _newOrderRequest: FilledNewOrderRequest): Promise<number> {
     throw new Error('Method not implemented.');
   }
 

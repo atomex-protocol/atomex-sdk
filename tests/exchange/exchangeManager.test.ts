@@ -1,31 +1,31 @@
-import { InMemoryOrderBookProvider } from '../../src/exchange/index';
 import { AtomexNetwork, DataSource, ExchangeManager } from '../../src/index';
-import { TestAtomexClient, TestExchangeSymbolsProvider } from '../testHelpers/index';
-import { validGetOrderPreviewTestCases, validGetSymbolsTestCases } from './testCases/index';
+import { MockAtomexClient, MockExchangeSymbolsProvider, MockOrderBookProvider } from '../mocks';
+import { validGetAvailableLiquidityTestCases, validGetOrderPreviewTestCases, validGetSymbolsTestCases } from './testCases/index';
 
 describe('Exchange Manager', () => {
-  let atomexNetwork: AtomexNetwork;
+  const atomexNetwork: AtomexNetwork = 'testnet';
+  let exchangeService: MockAtomexClient;
+  let exchangeSymbolsProvider: MockExchangeSymbolsProvider;
+  let orderBookProvider: MockOrderBookProvider;
   let exchangeManager: ExchangeManager;
-  let testExchangeService: TestAtomexClient;
-  let exchangeSymbolsProvider: TestExchangeSymbolsProvider;
 
   beforeEach(() => {
-    testExchangeService = new TestAtomexClient(atomexNetwork);
-    exchangeSymbolsProvider = new TestExchangeSymbolsProvider();
+    exchangeService = new MockAtomexClient(atomexNetwork);
+    exchangeSymbolsProvider = new MockExchangeSymbolsProvider();
+    orderBookProvider = new MockOrderBookProvider();
     exchangeManager = new ExchangeManager({
-      exchangeService: testExchangeService,
+      exchangeService,
       symbolsProvider: exchangeSymbolsProvider,
-      orderBookProvider: new InMemoryOrderBookProvider
+      orderBookProvider
     });
   });
 
   afterEach(() => {
     exchangeManager.stop();
-    testExchangeService.resetAllMocks();
   });
 
   test.each(validGetSymbolsTestCases)('get symbols with the default source: %s', async (_, symbolsUpdates) => {
-    symbolsUpdates.forEach(update => testExchangeService.getSymbols.mockResolvedValueOnce(update));
+    symbolsUpdates.forEach(update => exchangeService.getSymbols.mockResolvedValueOnce(update));
 
     for (let i = 0; i < 1; i++) {
       // eslint-disable-next-line no-await-in-loop
@@ -33,11 +33,11 @@ describe('Exchange Manager', () => {
       expect(symbols).toEqual(symbolsUpdates[0]);
     }
 
-    expect(testExchangeService.getSymbols).toHaveBeenCalledTimes(1);
+    expect(exchangeService.getSymbols).toHaveBeenCalledTimes(1);
   });
 
   test.each(validGetSymbolsTestCases)('get symbols with the remote source: %s', async (_, symbolsUpdates) => {
-    symbolsUpdates.forEach(update => testExchangeService.getSymbols.mockResolvedValueOnce(update));
+    symbolsUpdates.forEach(update => exchangeService.getSymbols.mockResolvedValueOnce(update));
 
     for (let i = 0; i < symbolsUpdates.length; i++) {
       // eslint-disable-next-line no-await-in-loop
@@ -45,11 +45,11 @@ describe('Exchange Manager', () => {
       expect(symbols).toEqual(symbolsUpdates[i]);
     }
 
-    expect(testExchangeService.getSymbols).toHaveBeenCalledTimes(symbolsUpdates.length);
+    expect(exchangeService.getSymbols).toHaveBeenCalledTimes(symbolsUpdates.length);
   });
 
   test.each(validGetSymbolsTestCases)('get symbols with the local source: %s', async (_, symbolsUpdates) => {
-    symbolsUpdates.forEach(_ => testExchangeService.getSymbols.mockRejectedValueOnce(new Error('Should not be called')));
+    symbolsUpdates.forEach(_ => exchangeService.getSymbols.mockRejectedValueOnce(new Error('Should not be called')));
 
     for (let i = 0; i < 10; i++) {
       // eslint-disable-next-line no-await-in-loop
@@ -57,21 +57,36 @@ describe('Exchange Manager', () => {
       expect(symbols).toEqual([]);
     }
 
-    expect(testExchangeService.getSymbols).toHaveBeenCalledTimes(0);
+    expect(exchangeService.getSymbols).toHaveBeenCalledTimes(0);
   });
 
   test.each(validGetOrderPreviewTestCases)(
     'get order preview: %s [%p]',
     async (_, orderPreviewParameters, expectedOrderPreview, symbols, orderBook) => {
-      testExchangeService.getSymbols.mockResolvedValueOnce(symbols);
-      testExchangeService.getOrderBook.mockResolvedValueOnce(orderBook);
+      exchangeService.getSymbols.mockResolvedValueOnce(symbols);
+      exchangeService.getOrderBook.mockResolvedValueOnce(orderBook);
       await exchangeManager.start();
 
       const orderPreview = await exchangeManager.getOrderPreview(orderPreviewParameters);
 
       expect(orderPreview).toEqual(expectedOrderPreview);
-      expect(testExchangeService.getSymbols).toHaveBeenCalledTimes(1);
-      expect(testExchangeService.getOrderBook).toHaveBeenCalledTimes(1);
+      expect(exchangeService.getSymbols).toHaveBeenCalledTimes(1);
+      expect(exchangeService.getOrderBook).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  test.each(validGetAvailableLiquidityTestCases)(
+    'get available liquidity: %s [%p]',
+    async (_, availableLiquidityParameters, expectedLiquidity, symbols, orderBook) => {
+      exchangeService.getSymbols.mockResolvedValueOnce(symbols);
+      exchangeService.getOrderBook.mockResolvedValueOnce(orderBook);
+      await exchangeManager.start();
+
+      const liquidity = await exchangeManager.getAvailableLiquidity(availableLiquidityParameters);
+
+      expect(liquidity).toEqual(expectedLiquidity);
+      expect(exchangeService.getSymbols).toHaveBeenCalledTimes(1);
+      expect(exchangeService.getOrderBook).toHaveBeenCalledTimes(1);
     }
   );
 });

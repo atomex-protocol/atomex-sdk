@@ -2,17 +2,12 @@ import BigNumber from 'bignumber.js';
 
 import type { Transaction } from '../blockchain/models/index';
 import type { CurrenciesProvider } from '../common/index';
-import { ExchangeSymbol, ExchangeSymbolsProvider, NewOrderRequest, Order, OrderBook, OrderBookEntry, OrderBookProvider, OrderPreview, Quote, symbolsHelper } from '../exchange/index';
+import { ExchangeSymbol, ExchangeSymbolsProvider, Order, OrderBook, OrderBookEntry, OrderBookProvider, Quote, symbolsHelper } from '../exchange/index';
 import type { Swap, SwapParticipantTrade } from '../swaps/index';
 import type {
   OrderBookDto, OrderBookEntryDto, OrderDto, QuoteDto, SwapDto, SymbolDto,
   TradeDto, TransactionDto, WebSocketOrderBookEntryDto, WebSocketOrderDataDto
 } from './dtos';
-
-export const isOrderPreview = (orderBody: NewOrderRequest['orderBody']): orderBody is OrderPreview => {
-  return typeof orderBody.symbol === 'string' && typeof orderBody.side === 'string'
-    && !!(orderBody as OrderPreview).from && !!(orderBody as OrderPreview).to;
-};
 
 export const mapQuoteDtosToQuotes = (quoteDtos: QuoteDto[]): Quote[] => {
   const quotes: Quote[] = quoteDtos.map(quoteDto => mapQuoteDtoToQuote(quoteDto));
@@ -125,7 +120,7 @@ export const mapOrderDtoToOrder = (orderDto: OrderDto, exchangeSymbolsProvider: 
   if (!exchangeSymbol)
     throw new Error(`"${orderDto.symbol}" symbol not found`);
 
-  const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(exchangeSymbol, orderDto.side, orderDto.qty, orderDto.price);
+  const [from, to] = symbolsHelper.convertSymbolAndSideToFromAndToSymbolCurrencies(exchangeSymbol, orderDto.side, orderDto.qty, orderDto.price);
 
   return {
     id: orderDto.id,
@@ -164,7 +159,7 @@ export const mapSwapDtoToSwap = (swapDto: SwapDto, exchangeSymbolsProvider: Exch
   if (!exchangeSymbol)
     throw new Error(`"${swapDto.symbol}" symbol not found`);
 
-  const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(exchangeSymbol, swapDto.side, swapDto.qty, swapDto.price);
+  const [from, to] = symbolsHelper.convertSymbolAndSideToFromAndToSymbolCurrencies(exchangeSymbol, swapDto.side, swapDto.qty, swapDto.price);
 
   const swap: Swap = {
     isInitiator: swapDto.isInitiator,
@@ -222,7 +217,7 @@ export const mapWebSocketOrderDtoToOrder = (orderDto: WebSocketOrderDataDto, exc
   if (!exchangeSymbol)
     throw new Error(`"${orderDto.symbol}" symbol not found`);
 
-  const [from, to] = symbolsHelper.convertSymbolToFromToCurrenciesPair(exchangeSymbol, orderDto.side, orderDto.qty, orderDto.price);
+  const [from, to] = symbolsHelper.convertSymbolAndSideToFromAndToSymbolCurrencies(exchangeSymbol, orderDto.side, orderDto.qty, orderDto.price);
 
   const order: Order = {
     id: orderDto.id,

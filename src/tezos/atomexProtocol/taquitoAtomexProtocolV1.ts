@@ -27,6 +27,10 @@ export abstract class TaquitoAtomexProtocolV1 implements AtomexProtocolV1 {
     return this.atomexProtocolOptions.currencyId;
   }
 
+  get swapContractAddress() {
+    return this.atomexProtocolOptions.swapContractAddress;
+  }
+
   abstract initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
 
   getInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
@@ -38,7 +42,7 @@ export abstract class TaquitoAtomexProtocolV1 implements AtomexProtocolV1 {
 
   abstract redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
 
-  abstract getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<BigNumber>;
+  abstract getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<FeesInfo>;
 
   getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
     const estimated = new BigNumber(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);

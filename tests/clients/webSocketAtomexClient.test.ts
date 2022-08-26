@@ -6,7 +6,8 @@ import { WebSocketAtomexClient } from '../../src/clients/index';
 import type { AtomexNetwork } from '../../src/common/index';
 import { InMemoryOrderBookProvider } from '../../src/exchange/index';
 import { wait } from '../../src/utils/index';
-import { TestCurrenciesProvider, TestAuthorizationManager, TestExchangeSymbolsProvider } from '../testHelpers/index';
+import { MockExchangeSymbolsProvider } from '../mocks';
+import { TestCurrenciesProvider, TestAuthorizationManager } from '../testHelpers/index';
 import {
   validWsOrderBookSnapshotTestCases,
   validWsOrderBookUpdatedTestCases, validWsOrderUpdatedTestCases,
@@ -28,7 +29,7 @@ describe('WebSocket Atomex Client', () => {
   let marketDataWsServer: WS;
   let client: WebSocketAtomexClient;
   let authorizationManager: TestAuthorizationManager;
-  let exchangeSymbolsProvider: TestExchangeSymbolsProvider;
+  let exchangeSymbolsProvider: MockExchangeSymbolsProvider;
 
   const exchangeWsServerSelectProtocol = (protocols: string[]) => {
     const [tokenProtocolKey, tokenProtocolValue] = protocols;
@@ -75,7 +76,7 @@ describe('WebSocket Atomex Client', () => {
       return address === testAccountAddress ? testAuthToken : undefined;
     });
 
-    exchangeSymbolsProvider = new TestExchangeSymbolsProvider();
+    exchangeSymbolsProvider = new MockExchangeSymbolsProvider();
     exchangeSymbolsProvider.setSymbols([
       {
         name: 'ETH/BTC',

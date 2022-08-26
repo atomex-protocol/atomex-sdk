@@ -1,54 +1,35 @@
+import type { AtomexContext, AtomexContextManagersSection, AtomexContextProvidersSection, AtomexContextServicesSection } from '../atomex/atomexContext';
 import type { AuthorizationManager } from '../authorization/index';
 import type { AtomexBlockchainProvider } from '../blockchain/atomexBlockchainProvider';
+import type { BalanceManager } from '../blockchain/balanceManager';
 import type { WalletsManager } from '../blockchain/index';
-import type { AtomexNetwork, CurrenciesProvider } from '../common/index';
+import type { CurrenciesProvider } from '../common/index';
 import type { ExchangeManager, ExchangeService, ManagedExchangeSymbolsProvider, ManagedOrderBookProvider, PriceManager } from '../exchange/index';
 import type { SwapManager, SwapService } from '../swaps/index';
 
-export interface ControlledAtomexContext {
-  readonly id: number;
-  readonly atomexNetwork: AtomexNetwork;
-
+export interface ControlledAtomexContext extends AtomexContext {
   readonly managers: ControlledAtomexContextManagersSection;
   readonly services: ControlledAtomexContextServicesSection;
   readonly providers: ControlledAtomexContextProvidersSection;
 }
 
-interface ControlledAtomexContextManagersSection {
-  get walletsManager(): WalletsManager;
+interface ControlledAtomexContextManagersSection extends AtomexContextManagersSection {
   set walletsManager(value: WalletsManager);
-
-  get authorizationManager(): AuthorizationManager;
   set authorizationManager(value: AuthorizationManager);
-
-  get exchangeManager(): ExchangeManager;
   set exchangeManager(value: ExchangeManager);
-
-  get swapManager(): SwapManager;
   set swapManager(value: SwapManager);
-
-  get priceManager(): PriceManager;
   set priceManager(value: PriceManager);
+  set balanceManager(value: BalanceManager);
 }
 
-interface ControlledAtomexContextServicesSection {
-  get exchangeService(): ExchangeService;
+interface ControlledAtomexContextServicesSection extends AtomexContextServicesSection {
   set exchangeService(value: ExchangeService);
-
-  get swapService(): SwapService;
   set swapService(value: SwapService);
 }
 
-interface ControlledAtomexContextProvidersSection {
-  get blockchainProvider(): AtomexBlockchainProvider;
+interface ControlledAtomexContextProvidersSection extends AtomexContextProvidersSection {
   set blockchainProvider(value: AtomexBlockchainProvider);
-
-  get currenciesProvider(): CurrenciesProvider;
   set currenciesProvider(value: CurrenciesProvider);
-
-  get exchangeSymbolsProvider(): ManagedExchangeSymbolsProvider;
   set exchangeSymbolsProvider(value: ManagedExchangeSymbolsProvider);
-
-  get orderBookProvider(): ManagedOrderBookProvider;
   set orderBookProvider(value: ManagedOrderBookProvider);
 }

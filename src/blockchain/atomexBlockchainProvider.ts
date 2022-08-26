@@ -1,15 +1,13 @@
 import type { AtomexBlockchainNetworkOptions } from '../atomex/models/atomexOptions';
 import type { CurrenciesProvider, Currency } from '../common/index';
 import type { AtomexProtocol } from './atomexProtocol';
-import type { BalancesProvider } from './balancesProvider';
+import { ControlledCurrencyBalancesProvider, CurrencyBalanceProvider, BalancesProvider } from './balanceProvider/index';
 import type { BlockchainToolkitProvider } from './blockchainToolkitProvider';
-import { ControlledCurrencyBalancesProvider } from './controlledCurrencyBalancesProvider';
-import type { CurrencyBalanceProvider } from './currencyBalanceProvider';
 import type { SwapTransactionsProvider } from './swapTransactionProvider';
 
 export interface CurrencyInfo {
   currency: Currency;
-  atomexProtocol: AtomexProtocol | undefined;
+  atomexProtocol: AtomexProtocol;
   blockchainToolkitProvider: BlockchainToolkitProvider;
   balanceProvider: CurrencyBalanceProvider;
   swapTransactionsProvider: SwapTransactionsProvider;
@@ -32,9 +30,13 @@ export class AtomexBlockchainProvider implements CurrenciesProvider {
         throw new Error('There is already currency added with the same key');
 
       const currencyOptions = networkOptions.currencyOptions[currency.id];
+      const atomexProtocol = currencyOptions?.atomexProtocol;
+      if (!atomexProtocol)
+        throw new Error(`Atomex protocol is not defined for the "${currency.id}" currency`);
+
       const options: CurrencyInfo = {
         currency,
-        atomexProtocol: currencyOptions?.atomexProtocol,
+        atomexProtocol,
         blockchainToolkitProvider: networkOptions.blockchainToolkitProvider,
         balanceProvider: currencyOptions?.currencyBalanceProvider ?? this.createControlledBalancesProvider(currency, networkOptions.balancesProvider),
         swapTransactionsProvider: currencyOptions?.swapTransactionsProvider ?? networkOptions.swapTransactionsProvider,
@@ -45,10 +47,6 @@ export class AtomexBlockchainProvider implements CurrenciesProvider {
 
   getNetworkOptions(blockchain: string): AtomexBlockchainNetworkOptions | undefined {
     return this.networkOptionsMap.get(blockchain);
-  }
-
-  getCurrency(currencyId: Currency['id']): Currency | undefined {
-    return this.getCurrencyInfo(currencyId)?.currency;
   }
 
   async getReadonlyToolkit<Toolkit = unknown>(toolkitId: string, blockchain?: string): Promise<Toolkit | undefined> {
@@ -65,6 +63,17 @@ export class AtomexBlockchainProvider implements CurrenciesProvider {
     }
 
     return Promise.resolve(undefined);
+  }
+
+  getCurrency(currencyId: Currency['id']): Currency | undefined {
+    return this.getCurrencyInfo(currencyId)?.currency;
+  }
+
+  getNativeCurrencyInfo(blockchain: string): CurrencyInfo | undefined {
+    for (const currencyInfo of this.currencyInfoMap) {
+      if (currencyInfo[1].currency.type === 'native' && currencyInfo[1].currency.blockchain === blockchain)
+        return currencyInfo[1];
+    }
   }
 
   getCurrencyInfo(currencyId: Currency['id']): CurrencyInfo | undefined {

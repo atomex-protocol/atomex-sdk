@@ -15,7 +15,7 @@ export {
 } from './tezos/index';
 export * from './utils';
 
-export type { AtomexOptions, NewSwapRequest } from './atomex/index';
+export type { AtomexOptions, NewSwapRequest, SwapPreview } from './atomex/index';
 export type { AuthToken, AuthorizationManagerOptions } from './authorization/index';
 export type {
   AtomexProtocol, Transaction,

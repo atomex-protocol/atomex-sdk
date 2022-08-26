@@ -7,8 +7,7 @@ export type {
   AtomexProtocolV1, AtomexProtocolV1Options,
   AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters
 } from './atomexProtocolV1/index';
-export type { BalancesProvider } from './balancesProvider';
-export type { CurrencyBalanceProvider } from './currencyBalanceProvider';
+export type { BalancesProvider, CurrencyBalanceProvider } from './balanceProvider/index';
 export type { TransactionsProvider } from './transactionsProvider';
 export type { BlockchainToolkitProvider } from './blockchainToolkitProvider';
 export type { SwapTransactionsProvider } from './swapTransactionProvider';

@@ -49,6 +49,6 @@ export const tezosMainnetCurrencies: TezosCurrency[] = [
 
 export const tezosTestnetCurrencies: TezosCurrency[] = [
   nativeTezosCurrency,
-  ({ ...tzBtcCurrency, contractAddress: 'KT1DM4k79uSx5diQnwqDiF4XeA86aCBxBD35' } as FA12TezosCurrency),
+  // ({ ...tzBtcCurrency, contractAddress: 'KT1DM4k79uSx5diQnwqDiF4XeA86aCBxBD35' } as FA12TezosCurrency),
   ({ ...usdtCurrency, contractAddress: 'KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR' } as FA2TezosCurrency)
 ];

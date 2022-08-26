@@ -1,8 +1,7 @@
-import { InMemoryCurrenciesProvider } from '../../src/common/index';
-import { ethereumMainnetCurrencies } from '../../src/ethereum/index';
-import type { ERC20EthereumCurrency } from '../../src/ethereum/models/index';
-import type { Currency, FA12TezosCurrency } from '../../src/index';
-import { tezosMainnetCurrencies } from '../../src/tezos/index';
+import { Currency, InMemoryCurrenciesProvider } from '../../src/common/index';
+import { ethereumTestnetCurrencies } from '../../src/ethereum/index';
+import type { ERC20EthereumCurrency } from '../../src/ethereum/models';
+import { tezosTestnetCurrencies } from '../../src/tezos/index';
 
 const btcCurrency: Currency = {
   id: 'BTC',
@@ -22,16 +21,6 @@ const ltcCurrency: Currency = {
   decimals: 8,
 };
 
-const kusdCurrency: FA12TezosCurrency = {
-  id: 'KUSD',
-  name: 'Kolibri USD',
-  blockchain: 'tezos',
-  symbol: 'KUSD',
-  type: 'fa1.2',
-  contractAddress: 'KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV',
-  decimals: 18
-};
-
 const usdtCurrency: ERC20EthereumCurrency = {
   id: 'USDT',
   name: 'USDt',
@@ -45,12 +34,11 @@ const usdtCurrency: ERC20EthereumCurrency = {
 export class TestCurrenciesProvider extends InMemoryCurrenciesProvider {
   constructor() {
     super([
-      btcCurrency,
-      ltcCurrency,
-      kusdCurrency,
+      ...ethereumTestnetCurrencies,
       usdtCurrency,
-      ...ethereumMainnetCurrencies,
-      ...tezosMainnetCurrencies,
+      ...tezosTestnetCurrencies,
+      btcCurrency,
+      ltcCurrency
     ]);
   }
 }

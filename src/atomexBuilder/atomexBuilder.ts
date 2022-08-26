@@ -1,6 +1,7 @@
-import { Atomex, AtomexContext } from '../atomex/index';
+import { Atomex, AtomexContext, DefaultAtomexContext } from '../atomex/index';
 import type { AtomexBlockchainNetworkOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
+import { CachedBalanceManager } from '../blockchain/balanceManager';
 import { AtomexBlockchainProvider, WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
 import { createDefaultEthereumBlockchainOptions } from '../ethereum/index';
@@ -28,7 +29,7 @@ export class AtomexBuilder {
 
   constructor(
     protected readonly options: DeepReadonly<AtomexBuilderOptions>,
-    protected readonly atomexContext: AtomexContext = new AtomexContext(options.atomexNetwork)
+    protected readonly atomexContext: AtomexContext = new DefaultAtomexContext(options.atomexNetwork)
   ) {
   }
 
@@ -61,6 +62,7 @@ export class AtomexBuilder {
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
     this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
     this.controlledAtomexContext.managers.priceManager = this.createPriceManager();
+    this.controlledAtomexContext.managers.balanceManager = this.createBalanceManager();
     const blockchains = this.createDefaultBlockchainOptions();
 
     return new Atomex({
@@ -69,7 +71,8 @@ export class AtomexBuilder {
         walletsManager: this.atomexContext.managers.walletsManager,
         authorizationManager: this.atomexContext.managers.authorizationManager,
         exchangeManager: this.atomexContext.managers.exchangeManager,
-        swapManager: this.atomexContext.managers.swapManager
+        swapManager: this.atomexContext.managers.swapManager,
+        balanceManager: this.atomexContext.managers.balanceManager
       },
       blockchains
     });
@@ -115,6 +118,10 @@ export class AtomexBuilder {
 
   protected createSwapManager() {
     return new SwapManager(this.atomexContext.services.swapService);
+  }
+
+  protected createBalanceManager() {
+    return new CachedBalanceManager(this.atomexContext.providers.blockchainProvider);
   }
 
   protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainNetworkOptions> {
