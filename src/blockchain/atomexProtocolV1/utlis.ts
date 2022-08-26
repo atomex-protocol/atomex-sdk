@@ -16,3 +16,12 @@ export const getRedeemRewardInNativeToken = (nativeTokenPriceInUsd: BigNumber, r
 
   return result;
 };
+
+export const getRedeemRewardInToken = (nativeTokenPriceInUsd: BigNumber, nativeTokenPriceInCurrency: BigNumber, redeemFee: BigNumber): FeesInfo => {
+  const inNativeToken = getRedeemRewardInNativeToken(nativeTokenPriceInUsd, redeemFee);
+
+  return {
+    estimated: inNativeToken.estimated.multipliedBy(nativeTokenPriceInCurrency),
+    max: inNativeToken.max.multipliedBy(nativeTokenPriceInCurrency)
+  };
+};
