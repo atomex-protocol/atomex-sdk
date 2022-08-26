@@ -1,8 +1,10 @@
 import type { BigNumber } from 'bignumber.js';
 import type { Side } from '../../common/index';
+import type { Mutable } from '../../core/index';
 import type { SwapParticipantRequisites } from '../../swaps/index';
 import type { OrderPreview } from './orderPreview';
 import type { OrderType } from './orderType';
+import type { ProofOfFunds } from './proofOfFunds';
 interface OrderBody {
     type: OrderType;
     price: BigNumber;
@@ -11,19 +13,15 @@ interface OrderBody {
     side: Side;
 }
 export interface NewOrderRequest {
-    orderBody: OrderPreview | OrderBody;
     clientOrderId?: string;
+    orderBody: OrderBody | OrderPreview;
+    requisites: Mutable<SwapParticipantRequisites>;
     proofsOfFunds?: ProofOfFunds[];
-    requisites?: SwapParticipantRequisites;
 }
-export interface ProofOfFunds {
-    address: string;
-    currency: string;
-    timeStamp: number;
-    message: string;
-    publicKey: string;
-    signature: string;
-    algorithm: Algorithm;
+export interface FilledNewOrderRequest {
+    readonly clientOrderId: string;
+    readonly orderBody: OrderBody | OrderPreview;
+    readonly requisites: Mutable<SwapParticipantRequisites>;
+    readonly proofsOfFunds: ProofOfFunds[];
 }
-export declare type Algorithm = 'Ed25519' | 'Ed25519:Blake2b' | 'Sha256WithEcdsa:Secp256k1' | 'Blake2bWithEcdsa:Secp256k1' | 'Blake2bWithEcdsa:Secp256r1' | 'Keccak256WithEcdsa:Geth2940' | 'Sha256WithEcdsa:BtcMsg';
 export {};

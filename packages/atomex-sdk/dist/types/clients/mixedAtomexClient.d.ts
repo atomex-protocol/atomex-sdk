@@ -1,6 +1,6 @@
 import type { Transaction } from '../blockchain/index';
 import type { AtomexNetwork } from '../common/index';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection } from '../exchange/index';
+import type { Order, OrderBook, Quote, ExchangeSymbol, FilledNewOrderRequest, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection } from '../exchange/index';
 import type { Swap } from '../swaps/index';
 import type { AtomexClient } from './atomexClient';
 export declare class MixedApiAtomexClient implements AtomexClient {
@@ -20,7 +20,7 @@ export declare class MixedApiAtomexClient implements AtomexClient {
     getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
     getOrderBook(symbol: string): Promise<OrderBook | undefined>;
     getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
-    addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
+    addOrder(accountAddress: string, newOrderRequest: FilledNewOrderRequest): Promise<number>;
     cancelOrder(accountAddress: string, cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
     cancelAllOrders(accountAddress: string, cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
     getSwapTransactions(swap: Swap): Promise<readonly Transaction[]>;

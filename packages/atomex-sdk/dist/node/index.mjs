@@ -10,6 +10,16 @@ var __publicField = (obj, key, value) => {
 };
 
 // src/atomex/atomex.ts
+import BigNumber8 from "bignumber.js";
+
+// src/exchange/helpers/symbolsHelper.ts
+var symbolsHelper_exports = {};
+__export(symbolsHelper_exports, {
+  convertFromAndToCurrenciesToSymbolAndSide: () => convertFromAndToCurrenciesToSymbolAndSide,
+  convertSymbolAndSideToFromAndToCurrencies: () => convertSymbolAndSideToFromAndToCurrencies,
+  convertSymbolAndSideToFromAndToSymbolCurrencies: () => convertSymbolAndSideToFromAndToSymbolCurrencies,
+  getQuoteBaseCurrenciesBySymbol: () => getQuoteBaseCurrenciesBySymbol
+});
 import BigNumber2 from "bignumber.js";
 
 // src/utils/converters.ts
@@ -56,224 +66,6 @@ var numberToTokensAmount = (value, decimals) => {
 var toFixedBigNumber = (value, decimalPlaces, roundingMode) => {
   value = BigNumber.isBigNumber(value) ? value : new BigNumber(value);
   return new BigNumber(value.toFixed(decimalPlaces, roundingMode));
-};
-
-// src/atomex/atomex.ts
-var Atomex = class {
-  constructor(options) {
-    this.options = options;
-    this.atomexContext = options.atomexContext;
-    this.wallets = options.managers.walletsManager;
-    this.authorization = options.managers.authorizationManager;
-    this.exchangeManager = options.managers.exchangeManager;
-    this.swapManager = options.managers.swapManager;
-    if (options.blockchains)
-      for (const blockchainName of Object.keys(options.blockchains))
-        this.addBlockchain((_context) => [blockchainName, options.blockchains[blockchainName]]);
-  }
-  authorization;
-  exchangeManager;
-  swapManager;
-  wallets;
-  atomexContext;
-  _isStarted = false;
-  get atomexNetwork() {
-    return this.atomexContext.atomexNetwork;
-  }
-  get isStarted() {
-    return this._isStarted;
-  }
-  async start() {
-    if (this.isStarted)
-      return;
-    await this.authorization.start();
-    await this.exchangeManager.start();
-    await this.swapManager.start();
-    this._isStarted = true;
-  }
-  stop() {
-    if (!this.isStarted)
-      return;
-    this.authorization.stop();
-    this.exchangeManager.stop();
-    this.swapManager.stop();
-    this._isStarted = false;
-  }
-  addBlockchain(factoryMethod) {
-    const [blockchain, blockchainOptions] = factoryMethod(this.atomexContext);
-    this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, blockchainOptions);
-  }
-  getCurrency(currencyId) {
-    return this.atomexContext.providers.currenciesProvider.getCurrency(currencyId);
-  }
-  async swap(newSwapRequestOrSwapId, _completeStage = 15 /* All */) {
-    if (typeof newSwapRequestOrSwapId === "number")
-      throw new Error("Swap tracking is not implemented yet");
-    const orderId = await this.exchangeManager.addOrder(newSwapRequestOrSwapId.accountAddress, newSwapRequestOrSwapId);
-    const order = await this.exchangeManager.getOrder(newSwapRequestOrSwapId.accountAddress, orderId);
-    if (!order)
-      throw new Error(`The ${orderId} order not found`);
-    if (order.status !== "Filled")
-      throw new Error(`The ${orderId} order is not filled`);
-    const swaps = await Promise.all(order.swapIds.map((swapId) => this.swapManager.getSwap(swapId, newSwapRequestOrSwapId.accountAddress)));
-    if (!swaps.length)
-      throw new Error("Swaps not found");
-    if (swaps.some((swap) => !swap))
-      throw new Error("Swap not found");
-    return swaps.length === 1 ? swaps[0] : swaps;
-  }
-  async convertCurrency(fromAmount, fromCurrency, toCurrency) {
-    const price = await this.atomexContext.managers.priceManager.getAveragePrice({ baseCurrency: fromCurrency, quoteCurrency: toCurrency });
-    if (!price)
-      return void 0;
-    const inAmountBigNumber = BigNumber2.isBigNumber(fromAmount) ? fromAmount : new BigNumber2(fromAmount);
-    const outAmount = inAmountBigNumber.multipliedBy(price);
-    const toCurrencyInfo = this.getCurrency(toCurrency);
-    return toCurrencyInfo ? toFixedBigNumber(outAmount, toCurrencyInfo.decimals) : outAmount;
-  }
-};
-
-// src/atomex/atomexContext.ts
-var _AtomexContext = class {
-  constructor(atomexNetwork) {
-    this.atomexNetwork = atomexNetwork;
-    this.id = _AtomexContext.idCounter++;
-    this.managers = new AtomexContextManagersSection(this);
-    this.services = new AtomexContextServicesSection(this);
-    this.providers = new AtomexContextProvidersSection(this);
-  }
-  id;
-  managers;
-  services;
-  providers;
-};
-var AtomexContext = _AtomexContext;
-__publicField(AtomexContext, "idCounter", 0);
-var AtomexContextManagersSection = class {
-  constructor(context) {
-    this.context = context;
-  }
-  _walletsManager;
-  _authorizationManager;
-  _exchangeManager;
-  _swapManager;
-  _priceManager;
-  get walletsManager() {
-    if (!this._walletsManager)
-      throw new AtomexComponentNotResolvedError("managers.walletsManager");
-    return this._walletsManager;
-  }
-  set walletsManager(walletsManager) {
-    this._walletsManager = walletsManager;
-  }
-  get authorizationManager() {
-    if (!this._authorizationManager)
-      throw new AtomexComponentNotResolvedError("managers.authorizationManager");
-    return this._authorizationManager;
-  }
-  set authorizationManager(authorizationManager) {
-    this._authorizationManager = authorizationManager;
-  }
-  get exchangeManager() {
-    if (!this._exchangeManager)
-      throw new AtomexComponentNotResolvedError("managers.exchangeManager");
-    return this._exchangeManager;
-  }
-  set exchangeManager(exchangeManager) {
-    this._exchangeManager = exchangeManager;
-  }
-  get swapManager() {
-    if (!this._swapManager)
-      throw new AtomexComponentNotResolvedError("managers.swapManager");
-    return this._swapManager;
-  }
-  set swapManager(swapManager) {
-    this._swapManager = swapManager;
-  }
-  get priceManager() {
-    if (!this._priceManager)
-      throw new AtomexComponentNotResolvedError("managers.priceManager");
-    return this._priceManager;
-  }
-  set priceManager(priceManager) {
-    this._priceManager = priceManager;
-  }
-};
-var AtomexContextServicesSection = class {
-  constructor(context) {
-    this.context = context;
-  }
-  _exchangeService;
-  _swapService;
-  get exchangeService() {
-    if (!this._exchangeService)
-      throw new AtomexComponentNotResolvedError("services.exchangeService");
-    return this._exchangeService;
-  }
-  set exchangeService(exchangeService) {
-    this._exchangeService = exchangeService;
-  }
-  get swapService() {
-    if (!this._swapService)
-      throw new AtomexComponentNotResolvedError("services.swapService");
-    return this._swapService;
-  }
-  set swapService(swapService) {
-    this._swapService = swapService;
-  }
-};
-var AtomexContextProvidersSection = class {
-  constructor(context) {
-    this.context = context;
-  }
-  _blockchainProvider;
-  _currenciesProvider;
-  _exchangeSymbolsProvider;
-  _orderBookProvider;
-  get blockchainProvider() {
-    if (!this._blockchainProvider)
-      throw new AtomexComponentNotResolvedError("providers.blockchainProvider");
-    return this._blockchainProvider;
-  }
-  set blockchainProvider(blockchainProvider) {
-    this._blockchainProvider = blockchainProvider;
-  }
-  get currenciesProvider() {
-    if (!this._currenciesProvider)
-      throw new AtomexComponentNotResolvedError("providers.currenciesProvider");
-    return this._currenciesProvider;
-  }
-  set currenciesProvider(currenciesProvider) {
-    this._currenciesProvider = currenciesProvider;
-  }
-  get exchangeSymbolsProvider() {
-    if (!this._exchangeSymbolsProvider)
-      throw new AtomexComponentNotResolvedError("providers.exchangeSymbolsProvider");
-    return this._exchangeSymbolsProvider;
-  }
-  set exchangeSymbolsProvider(exchangeSymbolsProvider) {
-    this._exchangeSymbolsProvider = exchangeSymbolsProvider;
-  }
-  get orderBookProvider() {
-    if (!this._orderBookProvider)
-      throw new AtomexComponentNotResolvedError("providers.orderBookProvider");
-    return this._orderBookProvider;
-  }
-  set orderBookProvider(orderBookProvider) {
-    this._orderBookProvider = orderBookProvider;
-  }
-};
-var AtomexComponentNotResolvedError = class extends Error {
-  name;
-  componentName;
-  constructor(componentName) {
-    super(AtomexComponentNotResolvedError.getMessage(componentName));
-    this.componentName = componentName;
-    this.name = this.constructor.name;
-  }
-  static getMessage(componentName) {
-    return `Atomex "${componentName}" component has not resolved yet`;
-  }
 };
 
 // src/utils/guards.ts
@@ -335,6 +127,1295 @@ var padEnd = (string, maxLength, fillString = " ") => String.prototype.padEnd !=
 var wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 var prepareTimeoutDuration = (durationMs) => Math.min(durationMs, 2147483647);
 
+// src/exchange/helpers/symbolsHelper.ts
+var getQuoteBaseCurrenciesBySymbol = (symbol) => {
+  const result = symbol.split("/", 2);
+  return [result[0] || "", result[1] || ""];
+};
+var convertSymbolAndSideToFromAndToSymbolCurrencies = (symbol, side, currencyAmount, quoteCurrencyPrice, isQuoteCurrencyAmount = true) => {
+  const preparedQuoteCurrencyPrice = converters_exports.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber2.ROUND_FLOOR);
+  const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
+  const isBuySide = side === "Buy";
+  let preparedQuoteCurrencyAmount;
+  let preparedBaseCurrencyAmount;
+  if (isQuoteCurrencyAmount) {
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber2.ROUND_FLOOR);
+    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, isBuySide ? BigNumber2.ROUND_CEIL : BigNumber2.ROUND_FLOOR);
+  } else {
+    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber2.ROUND_FLOOR);
+    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice), symbol.decimals.quoteCurrency, isBuySide ? BigNumber2.ROUND_FLOOR : BigNumber2.ROUND_CEIL);
+  }
+  const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(new BigNumber2(1).div(preparedQuoteCurrencyPrice), symbol.decimals.price, BigNumber2.ROUND_FLOOR);
+  const quoteCurrency = {
+    currencyId: quoteCurrencyId,
+    amount: preparedQuoteCurrencyAmount,
+    price: preparedQuoteCurrencyPrice
+  };
+  const baseCurrency = {
+    currencyId: baseCurrencyId,
+    amount: preparedBaseCurrencyAmount,
+    price: preparedBaseCurrencyPrice
+  };
+  return isBuySide ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
+};
+var convertSymbolAndSideToFromAndToCurrencies = (symbol, side) => {
+  let quoteCurrency;
+  let baseCurrency;
+  if (typeof symbol === "string") {
+    const quoteAndBaseCurrencies = getQuoteBaseCurrenciesBySymbol(symbol);
+    quoteCurrency = quoteAndBaseCurrencies[0];
+    baseCurrency = quoteAndBaseCurrencies[1];
+  } else {
+    quoteCurrency = symbol.quoteCurrency;
+    baseCurrency = symbol.baseCurrency;
+  }
+  return side === "Buy" ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
+};
+var convertFromAndToCurrenciesToSymbolAndSide = (symbols, from, to) => {
+  const sellSideSymbolName = `${from}/${to}`;
+  const buySideSymbolName = `${to}/${from}`;
+  let symbol;
+  let side = "Sell";
+  if (guards_exports.isReadonlyArray(symbols)) {
+    for (const s of symbols) {
+      if (s.name === sellSideSymbolName) {
+        symbol = s;
+        break;
+      }
+      if (s.name === buySideSymbolName) {
+        symbol = s;
+        side = "Buy";
+        break;
+      }
+    }
+  } else {
+    symbol = symbols.get(sellSideSymbolName);
+    if (!symbol) {
+      side = "Buy";
+      symbol = symbols.get(buySideSymbolName);
+    }
+  }
+  if (!symbol)
+    throw new Error(`Invalid pair: ${from}/${to}`);
+  return [symbol, side];
+};
+
+// src/exchange/helpers/ordersHelper.ts
+var ordersHelper_exports = {};
+__export(ordersHelper_exports, {
+  isNormalizedOrderPreviewParameters: () => isNormalizedOrderPreviewParameters,
+  isOrderPreview: () => isOrderPreview,
+  normalizeOrderPreviewParameters: () => normalizeOrderPreviewParameters
+});
+var isOrderPreview = (orderBody) => {
+  return typeof orderBody.symbol === "string" && typeof orderBody.side === "string" && !!orderBody.from && !!orderBody.to;
+};
+var isNormalizedOrderPreviewParameters = (orderPreviewParameters) => {
+  return !!(orderPreviewParameters.symbol && orderPreviewParameters.side && orderPreviewParameters.from && orderPreviewParameters.to && typeof orderPreviewParameters.isQuoteCurrencyAmount === "boolean" && typeof orderPreviewParameters.isFromAmount === "boolean");
+};
+var normalizeOrderPreviewParameters = (orderPreviewParameters, exchangeSymbolsProvider) => {
+  const exchangeSymbols = exchangeSymbolsProvider.getSymbolsMap();
+  let symbol;
+  let exchangeSymbol;
+  let side;
+  let isQuoteCurrencyAmount = true;
+  let from;
+  let to;
+  let isFromAmount = true;
+  if (orderPreviewParameters.symbol && orderPreviewParameters.side) {
+    symbol = orderPreviewParameters.symbol;
+    exchangeSymbol = exchangeSymbols.get(symbol);
+    if (!exchangeSymbol)
+      throw new Error(`The ${symbol} Symbol not found`);
+    side = orderPreviewParameters.side;
+    if (orderPreviewParameters.isQuoteCurrencyAmount !== void 0 && orderPreviewParameters.isQuoteCurrencyAmount !== null)
+      isQuoteCurrencyAmount = orderPreviewParameters.isQuoteCurrencyAmount;
+    [from, to] = convertSymbolAndSideToFromAndToCurrencies(exchangeSymbol, side);
+    isFromAmount = isQuoteCurrencyAmount && from === exchangeSymbol.quoteCurrency || !isQuoteCurrencyAmount && to === exchangeSymbol.quoteCurrency;
+  } else if (orderPreviewParameters.from && orderPreviewParameters.to) {
+    from = orderPreviewParameters.from;
+    to = orderPreviewParameters.to;
+    isFromAmount = orderPreviewParameters.isFromAmount !== void 0 && orderPreviewParameters.isFromAmount !== null ? orderPreviewParameters.isFromAmount : true;
+    [exchangeSymbol, side] = convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
+    symbol = exchangeSymbol.name;
+    isQuoteCurrencyAmount = isFromAmount && orderPreviewParameters.from === exchangeSymbol.quoteCurrency || !isFromAmount && orderPreviewParameters.to === exchangeSymbol.quoteCurrency;
+  } else
+    throw new Error("Invalid orderPreviewParameters argument passed");
+  return {
+    type: orderPreviewParameters.type,
+    amount: orderPreviewParameters.amount,
+    exchangeSymbol,
+    side,
+    isQuoteCurrencyAmount,
+    from,
+    to,
+    isFromAmount
+  };
+};
+
+// src/exchange/exchangeManager.ts
+import { BigNumber as BigNumber3 } from "bignumber.js";
+import { nanoid } from "nanoid";
+
+// src/common/models/dataSource.ts
+var DataSource = /* @__PURE__ */ ((DataSource2) => {
+  DataSource2[DataSource2["Local"] = 1] = "Local";
+  DataSource2[DataSource2["Remote"] = 2] = "Remote";
+  DataSource2[DataSource2["All"] = 3] = "All";
+  return DataSource2;
+})(DataSource || {});
+
+// src/common/models/importantDataReceivingMode.ts
+var ImportantDataReceivingMode = /* @__PURE__ */ ((ImportantDataReceivingMode2) => {
+  ImportantDataReceivingMode2[ImportantDataReceivingMode2["Local"] = 0] = "Local";
+  ImportantDataReceivingMode2[ImportantDataReceivingMode2["Remote"] = 1] = "Remote";
+  ImportantDataReceivingMode2[ImportantDataReceivingMode2["SafeMerged"] = 2] = "SafeMerged";
+  return ImportantDataReceivingMode2;
+})(ImportantDataReceivingMode || {});
+
+// src/core/event/eventEmitter.ts
+var EventEmitter = class {
+  listeners = /* @__PURE__ */ new Set();
+  addListener(listener) {
+    this.listeners.add(listener);
+    return this;
+  }
+  removeListener(listener) {
+    if (this.listeners.has(listener))
+      this.listeners.delete(listener);
+    return this;
+  }
+  removeAllListeners() {
+    this.listeners = /* @__PURE__ */ new Set();
+    return this;
+  }
+  emit(...args) {
+    if (!this.listeners.size)
+      return;
+    if (this.listeners.size === 1) {
+      this.listeners.values().next().value(...args);
+    } else {
+      [...this.listeners].forEach((listener) => listener(...args));
+    }
+  }
+};
+
+// src/core/event/deferredEventEmitter.ts
+var DeferredEventEmitter = class {
+  constructor(latencyMs = 1e3) {
+    this.latencyMs = latencyMs;
+  }
+  watcherIdsMap = /* @__PURE__ */ new Map();
+  internalEmitter = new EventEmitter();
+  addListener(listener) {
+    this.internalEmitter.addListener(listener);
+    return this;
+  }
+  removeListener(listener) {
+    this.internalEmitter.removeListener(listener);
+    return this;
+  }
+  removeAllListeners() {
+    this.internalEmitter.removeAllListeners();
+    return this;
+  }
+  emit(key, ...args) {
+    const oldWatcherId = this.watcherIdsMap.get(key);
+    if (oldWatcherId)
+      clearTimeout(oldWatcherId);
+    const watcherId = setTimeout(() => {
+      this.watcherIdsMap.delete(key);
+      this.internalEmitter.emit(...args);
+    }, this.latencyMs);
+    this.watcherIdsMap.set(key, watcherId);
+  }
+};
+
+// src/core/httpClient.ts
+var HttpClient = class {
+  constructor(baseUrl) {
+    this.baseUrl = baseUrl;
+  }
+  async request(options, returnUndefinedOn404 = true) {
+    const url = new URL(options.urlPath, this.baseUrl);
+    if (options.params)
+      this.setSearchParams(url, options.params);
+    const response = await fetch(url.toString(), {
+      headers: this.createHeaders(options),
+      method: options.method || "GET",
+      body: options.payload ? JSON.stringify(options.payload) : void 0
+    });
+    if (returnUndefinedOn404 && response.status === 404)
+      return void 0;
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw Error(errorBody);
+    }
+    return await response.json();
+  }
+  setSearchParams(url, params) {
+    for (const key in params) {
+      const value = params[key];
+      if (value !== null && value !== void 0)
+        url.searchParams.set(key, String(value));
+    }
+  }
+  createHeaders(options) {
+    const headers = {};
+    if (options.authToken)
+      headers["Authorization"] = `Bearer ${options.authToken}`;
+    if (options.method === "POST" && options.payload)
+      headers["Content-Type"] = "application/json";
+    return headers;
+  }
+};
+
+// src/core/cache/inMemoryCache.ts
+var _InMemoryCache = class {
+  constructor(defaultCacheOptions = _InMemoryCache.defaultCacheOptions) {
+    this.defaultCacheOptions = defaultCacheOptions;
+  }
+  cacheMap = /* @__PURE__ */ new Map();
+  get(key) {
+    const entry = this.cacheMap.get(key);
+    if (!entry)
+      return void 0;
+    const isSlidingExpiration = this.getTimeoutAndIsSlidingExpiration(entry.options)[1];
+    if (isSlidingExpiration)
+      this.set(key, entry.value, entry.options);
+    return entry.value;
+  }
+  set(key, value, options = this.defaultCacheOptions) {
+    this.delete(key);
+    const [timeout] = this.getTimeoutAndIsSlidingExpiration(options);
+    const watcherId = setTimeout(() => {
+      this.cacheMap.delete(key);
+    }, timeout);
+    const entry = { value, watcherId, options };
+    this.cacheMap.set(key, entry);
+  }
+  delete(key) {
+    const oldEntry = this.cacheMap.get(key);
+    if (!oldEntry)
+      return;
+    clearTimeout(oldEntry.watcherId);
+    this.cacheMap.delete(key);
+  }
+  clear() {
+    const keys = [...this.cacheMap.keys()];
+    keys.forEach((key) => this.delete(key));
+  }
+  async dispose() {
+    this.clear();
+  }
+  getTimeoutAndIsSlidingExpiration(options) {
+    return options.slidingExpirationMs !== void 0 ? [options.slidingExpirationMs, true] : [options.absoluteExpirationMs, false];
+  }
+};
+var InMemoryCache = _InMemoryCache;
+__publicField(InMemoryCache, "defaultCacheOptions", {
+  absoluteExpirationMs: 1e3 * 60 * 30
+});
+
+// src/exchange/exchangeManager.ts
+var ExchangeManager = class {
+  events = {
+    orderUpdated: new EventEmitter(),
+    orderBookSnapshot: new EventEmitter(),
+    orderBookUpdated: new EventEmitter(),
+    topOfBookUpdated: new EventEmitter()
+  };
+  exchangeService;
+  symbolsProvider;
+  orderBookProvider;
+  _isStarted = false;
+  constructor(options) {
+    this.exchangeService = options.exchangeService;
+    this.symbolsProvider = options.symbolsProvider;
+    this.orderBookProvider = options.orderBookProvider;
+  }
+  get isStarted() {
+    return this._isStarted;
+  }
+  async start() {
+    if (this.isStarted)
+      return;
+    this.attachEvents();
+    await this.exchangeService.start();
+    await this.getSymbols();
+    this._isStarted = true;
+  }
+  stop() {
+    if (!this._isStarted)
+      return;
+    this.detachEvents();
+    this.exchangeService.stop();
+    this._isStarted = false;
+  }
+  getOrder(accountAddress, orderId, _mode = 2 /* SafeMerged */) {
+    return this.exchangeService.getOrder(accountAddress, orderId);
+  }
+  getOrders(accountAddress, selector, _mode = 2 /* SafeMerged */) {
+    return this.exchangeService.getOrders(accountAddress, selector);
+  }
+  async getSymbol(name, dataSource = 3 /* All */) {
+    if ((dataSource & 1 /* Local */) === 1 /* Local */) {
+      const symbol = this.symbolsProvider.getSymbol(name);
+      if (symbol)
+        return symbol;
+    }
+    if ((dataSource & 2 /* Remote */) === 2 /* Remote */) {
+      const symbols = await this.exchangeService.getSymbols();
+      this.symbolsProvider.setSymbols(symbols);
+      return this.symbolsProvider.getSymbol(name);
+    }
+    return void 0;
+  }
+  async getSymbols(dataSource = 3 /* All */) {
+    if ((dataSource & 1 /* Local */) === 1 /* Local */) {
+      const symbols = this.symbolsProvider.getSymbols();
+      if (symbols.length > 0)
+        return symbols;
+    }
+    if ((dataSource & 2 /* Remote */) === 2 /* Remote */) {
+      const symbols = await this.exchangeService.getSymbols();
+      this.symbolsProvider.setSymbols(symbols);
+      return symbols;
+    }
+    return [];
+  }
+  getTopOfBook(symbolsOrDirections) {
+    return this.exchangeService.getTopOfBook(symbolsOrDirections);
+  }
+  async getOrderBook(symbolOrDirection) {
+    let symbol;
+    if (typeof symbolOrDirection === "string")
+      symbol = symbolOrDirection;
+    else {
+      const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
+      symbol = symbolsHelper_exports.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
+    }
+    if (!symbol)
+      throw new Error("Invalid Symbol");
+    const orderBook = await this.exchangeService.getOrderBook(symbol);
+    if (orderBook)
+      this.orderBookProvider.setOrderBook(symbol, orderBook);
+    return orderBook;
+  }
+  addOrder(accountAddress, newOrderRequest) {
+    const filledNewOrderRequest = {
+      clientOrderId: newOrderRequest.clientOrderId || nanoid(17),
+      orderBody: newOrderRequest.orderBody,
+      requisites: newOrderRequest.requisites,
+      proofsOfFunds: newOrderRequest.proofsOfFunds ? newOrderRequest.proofsOfFunds : []
+    };
+    return this.exchangeService.addOrder(accountAddress, filledNewOrderRequest);
+  }
+  cancelOrder(accountAddress, cancelOrderRequest) {
+    return this.exchangeService.cancelOrder(accountAddress, cancelOrderRequest);
+  }
+  cancelAllOrders(accountAddress, cancelAllOrdersRequest) {
+    return this.exchangeService.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
+  }
+  async getOrderPreview(orderPreviewParameters) {
+    if (orderPreviewParameters.type !== "SolidFillOrKill")
+      throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
+    const normalizedPreviewParameters = this.normalizeOrderPreviewParametersIfNeeded(orderPreviewParameters);
+    const orderBookEntry = await this.findOrderBookEntry(normalizedPreviewParameters.exchangeSymbol.name, normalizedPreviewParameters.side, orderPreviewParameters.type, normalizedPreviewParameters.amount, normalizedPreviewParameters.isQuoteCurrencyAmount);
+    if (!orderBookEntry)
+      return void 0;
+    const [from, to] = symbolsHelper_exports.convertSymbolAndSideToFromAndToSymbolCurrencies(normalizedPreviewParameters.exchangeSymbol, normalizedPreviewParameters.side, normalizedPreviewParameters.amount, orderBookEntry.price, normalizedPreviewParameters.isQuoteCurrencyAmount);
+    return {
+      type: orderPreviewParameters.type,
+      from,
+      to,
+      side: normalizedPreviewParameters.side,
+      symbol: normalizedPreviewParameters.exchangeSymbol.name
+    };
+  }
+  async getAvailableLiquidity(parameters) {
+    if (parameters.type !== "SolidFillOrKill")
+      throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
+    let symbol;
+    let side;
+    if (parameters.symbol !== void 0) {
+      symbol = parameters.symbol;
+      side = parameters.side;
+    } else {
+      const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
+      const exchangeSymbolAndSide = symbolsHelper_exports.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, parameters.from, parameters.to);
+      symbol = exchangeSymbolAndSide[0].name;
+      side = exchangeSymbolAndSide[1];
+    }
+    const orderBook = await this.getCachedOrderBook(symbol);
+    if (!orderBook)
+      return void 0;
+    const maxAmount = Math.max(...orderBook.entries.filter((entry) => entry.side != side).map((entry) => Math.max(...entry.qtyProfile)));
+    if (!isFinite(maxAmount) || isNaN(maxAmount) || maxAmount <= 0)
+      return void 0;
+    const amount = new BigNumber3(maxAmount);
+    const orderPreviewParameters = parameters.symbol !== void 0 ? {
+      amount,
+      symbol,
+      side,
+      type: parameters.type,
+      isQuoteCurrencyAmount: true
+    } : {
+      amount,
+      type: parameters.type,
+      from: parameters.from,
+      to: parameters.to,
+      isFromAmount: side === "Sell"
+    };
+    const orderPreview = await this.getOrderPreview(orderPreviewParameters);
+    if (!orderPreview)
+      return void 0;
+    return {
+      symbol: orderPreview.symbol,
+      type: orderPreview.type,
+      from: orderPreview.from,
+      to: orderPreview.to,
+      side: orderPreview.side
+    };
+  }
+  attachEvents() {
+    this.exchangeService.events.orderUpdated.addListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.events.orderBookSnapshot.addListener(this.handleExchangeServiceOrderBookSnapshot);
+    this.exchangeService.events.orderBookUpdated.addListener(this.handleExchangeServiceOrderBookUpdated);
+    this.exchangeService.events.topOfBookUpdated.addListener(this.handleExchangeServiceTopOfBookUpdated);
+  }
+  detachEvents() {
+    this.exchangeService.events.orderUpdated.removeListener(this.handleExchangeServiceOrderUpdated);
+    this.exchangeService.events.orderBookSnapshot.removeListener(this.handleExchangeServiceOrderBookSnapshot);
+    this.exchangeService.events.orderBookUpdated.removeListener(this.handleExchangeServiceOrderBookUpdated);
+    this.exchangeService.events.topOfBookUpdated.removeListener(this.handleExchangeServiceTopOfBookUpdated);
+  }
+  handleExchangeServiceOrderUpdated = (updatedOrder) => {
+    this.events.orderUpdated.emit(updatedOrder);
+  };
+  handleExchangeServiceOrderBookSnapshot = async (orderBook) => {
+    this.events.orderBookSnapshot.emit(orderBook);
+  };
+  handleExchangeServiceOrderBookUpdated = async (updatedOrderBook) => {
+    this.events.orderBookUpdated.emit(updatedOrderBook);
+  };
+  handleExchangeServiceTopOfBookUpdated = (updatedQuotes) => {
+    this.events.topOfBookUpdated.emit(updatedQuotes);
+  };
+  normalizeOrderPreviewParametersIfNeeded(orderPreviewParameters) {
+    return ordersHelper_exports.isNormalizedOrderPreviewParameters(orderPreviewParameters) ? orderPreviewParameters : ordersHelper_exports.normalizeOrderPreviewParameters(orderPreviewParameters, this.symbolsProvider);
+  }
+  async findOrderBookEntry(symbol, side, orderType, amount, isQuoteCurrencyAmount) {
+    if (orderType !== "SolidFillOrKill")
+      return void 0;
+    const orderBook = await this.getCachedOrderBook(symbol);
+    if (!orderBook)
+      return void 0;
+    for (const entry of orderBook.entries) {
+      if (entry.side !== side && (isQuoteCurrencyAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
+        return entry;
+      }
+    }
+  }
+  getCachedOrderBook(symbol) {
+    const cachedOrderBook = this.orderBookProvider.getOrderBook(symbol);
+    return cachedOrderBook ? Promise.resolve(cachedOrderBook) : this.getOrderBook(symbol);
+  }
+};
+
+// src/exchange/exchangeSymbolsProvider/inMemoryExchangeSymbolsProvider.ts
+var InMemoryExchangeSymbolsProvider = class {
+  symbolsMap = /* @__PURE__ */ new Map();
+  symbolsCollectionCache = [];
+  getSymbol(name) {
+    return this.symbolsMap.get(name);
+  }
+  getSymbols() {
+    return this.symbolsCollectionCache;
+  }
+  getSymbolsMap() {
+    return this.symbolsMap;
+  }
+  setSymbols(exchangeSymbols) {
+    this.symbolsCollectionCache = exchangeSymbols;
+    this.symbolsMap = this.mapSymbolsCollectionToMap(exchangeSymbols);
+  }
+  mapSymbolsCollectionToMap(symbolsCollection) {
+    const symbolsMap = /* @__PURE__ */ new Map();
+    for (const symbol of symbolsCollection)
+      symbolsMap.set(symbol.name, symbol);
+    return symbolsMap;
+  }
+};
+
+// src/exchange/orderBookProvider/inMemoryOrderBookProvider.ts
+var InMemoryOrderBookProvider = class {
+  orderBookMap = /* @__PURE__ */ new Map();
+  getOrderBook(symbol) {
+    return this.orderBookMap.get(symbol);
+  }
+  setOrderBook(symbol, orderBook) {
+    this.orderBookMap.set(symbol, orderBook);
+  }
+};
+
+// src/exchange/priceManager/mixedPriceManager/mixedPriceManager.ts
+import BigNumber4 from "bignumber.js";
+var _MixedPriceManager = class {
+  constructor(providersMap) {
+    this.providersMap = providersMap;
+    this.cache = new InMemoryCache({ absoluteExpirationMs: _MixedPriceManager.cacheExpirationTime });
+  }
+  cache;
+  async getAveragePrice({ baseCurrency, quoteCurrency, dataSource = 3 /* All */ }) {
+    const key = this.getCacheKey({ isAverage: true, baseCurrency, quoteCurrency });
+    if ((dataSource & 1 /* Local */) === 1 /* Local */) {
+      const cachedAveragePrice = this.cache.get(key);
+      if (cachedAveragePrice)
+        return cachedAveragePrice;
+    }
+    if ((dataSource & 2 /* Remote */) === 2 /* Remote */) {
+      const providers = this.getAvailableProviders();
+      const pricePromises = providers.map((provider) => this.getPrice({ baseCurrency, quoteCurrency, provider }));
+      const pricePromiseResults = await Promise.allSettled(pricePromises);
+      const prices = [];
+      for (const result of pricePromiseResults)
+        if (result.status === "fulfilled" && result.value !== void 0)
+          prices.push(result.value);
+      if (prices.length) {
+        const averagePrice = BigNumber4.sum(...prices).div(prices.length);
+        this.cache.set(key, averagePrice);
+        return averagePrice;
+      }
+    }
+    return void 0;
+  }
+  async getPrice({ baseCurrency, quoteCurrency, provider, dataSource = 3 /* All */ }) {
+    const key = this.getCacheKey({ isAverage: false, baseCurrency, quoteCurrency, provider });
+    if ((dataSource & 1 /* Local */) === 1 /* Local */) {
+      const cachedPrice = this.cache.get(key);
+      if (cachedPrice)
+        return cachedPrice;
+    }
+    if ((dataSource & 2 /* Remote */) === 2 /* Remote */) {
+      let price = await this.getPriceCore(baseCurrency, quoteCurrency, provider);
+      if (!price) {
+        const reversedPrice = await this.getPriceCore(quoteCurrency, baseCurrency, provider);
+        if (reversedPrice)
+          price = reversedPrice.pow(-1);
+      }
+      if (price) {
+        this.cache.set(key, price);
+        return price;
+      }
+    }
+    return void 0;
+  }
+  getAvailableProviders() {
+    return [...this.providersMap.keys()];
+  }
+  async dispose() {
+    this.cache.clear();
+  }
+  getCacheKey({ isAverage, baseCurrency, quoteCurrency, provider }) {
+    const prefix4 = isAverage ? "average" : "actual";
+    const postfix = provider ? provider : "";
+    return `${prefix4}_${baseCurrency}_${quoteCurrency}_${postfix}`;
+  }
+  async getPriceCore(baseCurrency, quoteCurrency, provider) {
+    const providers = this.getSelectedProviders(provider);
+    const pricePromises = providers.map((provider2) => provider2.getPrice(baseCurrency, quoteCurrency));
+    const pricePromiseResults = await Promise.allSettled(pricePromises);
+    for (const result of pricePromiseResults)
+      if (result.status === "fulfilled" && result.value !== void 0)
+        return result.value;
+    return void 0;
+  }
+  getSelectedProviders(provider) {
+    if (!provider)
+      return [...this.providersMap.values()];
+    const selectedProvider = this.providersMap.get(provider);
+    if (!selectedProvider)
+      throw new Error(`Provider not found for key: ${provider}`);
+    return [selectedProvider];
+  }
+};
+var MixedPriceManager = _MixedPriceManager;
+__publicField(MixedPriceManager, "cacheExpirationTime", 1e3 * 60 * 1);
+
+// src/exchange/priceProvider/atomex/atomexPriceProvider.ts
+var AtomexPriceProvider = class {
+  constructor(exchangeService) {
+    this.exchangeService = exchangeService;
+  }
+  async getPrice(baseCurrency, quoteCurrency) {
+    var _a;
+    const symbol = `${baseCurrency}/${quoteCurrency}`;
+    const quote = (_a = await this.exchangeService.getTopOfBook([{ from: baseCurrency, to: quoteCurrency }])) == null ? void 0 : _a[0];
+    return quote && quote.symbol == symbol ? this.getMiddlePrice(quote) : void 0;
+  }
+  getMiddlePrice(quote) {
+    return quote.ask.plus(quote.bid).div(2);
+  }
+};
+
+// src/exchange/priceProvider/binance/binancePriceProvider.ts
+import BigNumber5 from "bignumber.js";
+
+// src/exchange/priceProvider/binance/utils.ts
+var isErrorDto = (dto) => {
+  const errorDto = dto;
+  return typeof errorDto.code === "number" && typeof errorDto.msg === "string";
+};
+
+// src/exchange/priceProvider/binance/binancePriceProvider.ts
+var _BinancePriceProvider = class {
+  httpClient;
+  _allSymbols;
+  constructor() {
+    this.httpClient = new HttpClient(_BinancePriceProvider.baseUrl);
+  }
+  async getPrice(baseCurrency, quoteCurrency) {
+    const symbol = `${baseCurrency}${quoteCurrency}`;
+    const allSymbols = await this.getAllSymbols();
+    if (!allSymbols.has(symbol))
+      return void 0;
+    const urlPath = `${_BinancePriceProvider.priceUrlPath}?symbol=${symbol}`;
+    const responseDto = await this.httpClient.request({ urlPath }, false);
+    return this.mapRatesDtoToPrice(responseDto);
+  }
+  mapRatesDtoToPrice(dto) {
+    if (isErrorDto(dto))
+      return void 0;
+    return new BigNumber5(dto.price);
+  }
+  async getAllSymbols() {
+    if (!this._allSymbols)
+      this._allSymbols = new Set(await this.requestAllSymbols());
+    return this._allSymbols;
+  }
+  async requestAllSymbols() {
+    const urlPath = _BinancePriceProvider.priceUrlPath;
+    const responseDto = await this.httpClient.request({ urlPath }, false);
+    return responseDto.map((dto) => dto.symbol);
+  }
+};
+var BinancePriceProvider = _BinancePriceProvider;
+__publicField(BinancePriceProvider, "baseUrl", "https://www.binance.com");
+__publicField(BinancePriceProvider, "priceUrlPath", "/api/v3/ticker/price");
+
+// src/exchange/priceProvider/kraken/krakenPriceProvider.ts
+import BigNumber6 from "bignumber.js";
+var _KrakenPriceProvider = class {
+  httpClient;
+  constructor() {
+    this.httpClient = new HttpClient(_KrakenPriceProvider.baseUrl);
+  }
+  async getPrice(baseCurrency, quoteCurrency) {
+    const symbol = `${baseCurrency}${quoteCurrency}`;
+    const urlPath = `/0/public/Ticker?pair=${symbol}`;
+    const responseDto = await this.httpClient.request({ urlPath }, false);
+    return this.mapRatesDtoToPrice(responseDto);
+  }
+  mapRatesDtoToPrice(dto) {
+    if (dto.error.length)
+      return void 0;
+    const symbol = Object.keys(dto.result)[0];
+    const tickerInfo = symbol ? dto.result[symbol] : void 0;
+    if (!tickerInfo)
+      return void 0;
+    return new BigNumber6(tickerInfo.c[0]);
+  }
+};
+var KrakenPriceProvider = _KrakenPriceProvider;
+__publicField(KrakenPriceProvider, "baseUrl", "https://api.kraken.com");
+
+// src/atomex/atomexSwapPreviewManager.ts
+import BigNumber7 from "bignumber.js";
+var AtomexSwapPreviewManager = class {
+  constructor(atomexContext) {
+    this.atomexContext = atomexContext;
+  }
+  swapPreviewFeesCache = new InMemoryCache({ absoluteExpirationMs: 10 * 1e3 });
+  async getSwapPreview(swapPreviewParameters) {
+    const normalizedSwapPreviewParameters = this.normalizeSwapPreviewParametersIfNeeded(swapPreviewParameters);
+    const fromCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(normalizedSwapPreviewParameters.from);
+    if (!fromCurrencyInfo)
+      throw new Error(`The "${normalizedSwapPreviewParameters.from}" currency (from) is unknown`);
+    const toCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(normalizedSwapPreviewParameters.to);
+    if (!toCurrencyInfo)
+      throw new Error(`The "${normalizedSwapPreviewParameters.to}" currency (to) is unknown`);
+    const fromNativeCurrencyInfo = this.atomexContext.providers.blockchainProvider.getNativeCurrencyInfo(fromCurrencyInfo.currency.blockchain);
+    if (!fromNativeCurrencyInfo)
+      throw new Error(`The "${fromCurrencyInfo.currency.id}" currency is a currency of unknown blockchain: ${fromCurrencyInfo.currency.blockchain}`);
+    const toNativeCurrencyInfo = this.atomexContext.providers.blockchainProvider.getNativeCurrencyInfo(toCurrencyInfo.currency.blockchain);
+    if (!toNativeCurrencyInfo)
+      throw new Error(`The "${toCurrencyInfo.currency.id}" currency is a currency of unknown blockchain: ${toCurrencyInfo.currency.blockchain}`);
+    const availableLiquidity = await this.atomexContext.managers.exchangeManager.getAvailableLiquidity({
+      type: normalizedSwapPreviewParameters.type,
+      symbol: normalizedSwapPreviewParameters.exchangeSymbol.name,
+      side: normalizedSwapPreviewParameters.side
+    });
+    if (!availableLiquidity)
+      throw new Error(`No available liquidity for the "${normalizedSwapPreviewParameters.exchangeSymbol.name}" symbol`);
+    const errors = [];
+    const warnings = [];
+    const actualOrderPreview = await this.atomexContext.managers.exchangeManager.getOrderPreview(normalizedSwapPreviewParameters);
+    const fees = await this.calculateSwapPreviewFees(fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo, normalizedSwapPreviewParameters.useWatchTower);
+    const swapPreviewAccountData = await this.getSwapPreviewAccountData(normalizedSwapPreviewParameters, fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo, availableLiquidity.from.amount, fees, errors, warnings);
+    if (!actualOrderPreview)
+      errors.push({ id: "not-enough-liquidity" });
+    else if (swapPreviewAccountData.maxOrderPreview && actualOrderPreview.from.amount.isGreaterThan(swapPreviewAccountData.maxOrderPreview.from.amount))
+      errors.push({ id: "not-enough-funds" });
+    return {
+      type: normalizedSwapPreviewParameters.type,
+      from: {
+        currencyId: normalizedSwapPreviewParameters.from,
+        address: swapPreviewAccountData.fromAddress,
+        actual: actualOrderPreview ? {
+          amount: actualOrderPreview.from.amount,
+          price: actualOrderPreview.from.price
+        } : {
+          amount: normalizedSwapPreviewParameters.isFromAmount ? normalizedSwapPreviewParameters.amount : new BigNumber7(0),
+          price: new BigNumber7(0)
+        },
+        available: {
+          amount: availableLiquidity.from.amount,
+          price: availableLiquidity.from.price
+        },
+        max: swapPreviewAccountData.maxOrderPreview && {
+          amount: swapPreviewAccountData.maxOrderPreview.from.amount,
+          price: swapPreviewAccountData.maxOrderPreview.from.price
+        }
+      },
+      to: {
+        currencyId: normalizedSwapPreviewParameters.to,
+        address: swapPreviewAccountData.toAddress,
+        actual: actualOrderPreview ? {
+          amount: actualOrderPreview.to.amount,
+          price: actualOrderPreview.to.price
+        } : {
+          amount: !normalizedSwapPreviewParameters.isFromAmount ? normalizedSwapPreviewParameters.amount : new BigNumber7(0),
+          price: new BigNumber7(0)
+        },
+        available: {
+          amount: availableLiquidity.to.amount,
+          price: availableLiquidity.to.price
+        },
+        max: swapPreviewAccountData.maxOrderPreview && {
+          amount: swapPreviewAccountData.maxOrderPreview.to.amount,
+          price: swapPreviewAccountData.maxOrderPreview.to.price
+        }
+      },
+      symbol: normalizedSwapPreviewParameters.exchangeSymbol.name,
+      side: normalizedSwapPreviewParameters.side,
+      fees,
+      errors,
+      warnings
+    };
+  }
+  normalizeSwapPreviewParametersIfNeeded(swapPreviewParameters) {
+    return AtomexSwapPreviewManager.isNormalizedSwapPreviewParameters(swapPreviewParameters) ? swapPreviewParameters : AtomexSwapPreviewManager.normalizeSwapPreviewParameters(swapPreviewParameters, this.atomexContext.providers.exchangeSymbolsProvider, true);
+  }
+  async getSwapPreviewAccountData(normalizedSwapPreviewParameters, fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo, fromAvailableAmount, swapPreviewFees, errors, warnings) {
+    let fromAddress;
+    let toAddress;
+    let maxOrderPreview;
+    const maxFromNativeCurrencyFee = AtomexSwapPreviewManager.calculateMaxTotalFee(swapPreviewFees, fromNativeCurrencyInfo.currency.id);
+    const maxToNativeCurrencyFee = AtomexSwapPreviewManager.calculateMaxTotalFee(swapPreviewFees, toNativeCurrencyInfo.currency.id);
+    const [fromWallet, toWallet] = await Promise.all([
+      this.atomexContext.managers.walletsManager.getWallet(void 0, fromCurrencyInfo.currency.blockchain),
+      this.atomexContext.managers.walletsManager.getWallet(void 0, toCurrencyInfo.currency.blockchain)
+    ]);
+    if (fromWallet) {
+      fromAddress = await fromWallet.getAddress();
+      const [fromCurrencyBalance, fromNativeCurrencyBalance] = await Promise.all([
+        this.atomexContext.managers.balanceManager.getBalance(fromAddress, fromCurrencyInfo.currency),
+        this.atomexContext.managers.balanceManager.getBalance(fromAddress, fromNativeCurrencyInfo.currency)
+      ]);
+      if (!fromCurrencyBalance || !fromNativeCurrencyBalance)
+        throw new Error("Can not get from currency balances");
+      if (fromNativeCurrencyBalance.isLessThan(maxFromNativeCurrencyFee)) {
+        errors.push({
+          id: "not-enough-funds-network-fee",
+          data: { requiredAmount: maxFromNativeCurrencyFee }
+        });
+      }
+      maxOrderPreview = await this.getMaxOrderPreview(normalizedSwapPreviewParameters, fromAvailableAmount, fromCurrencyBalance, fromCurrencyInfo, fromNativeCurrencyBalance, fromNativeCurrencyInfo, maxFromNativeCurrencyFee, errors, warnings);
+    }
+    if (toWallet) {
+      toAddress = await toWallet.getAddress();
+      const toNativeCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(toAddress, toNativeCurrencyInfo.currency);
+      if (!toNativeCurrencyBalance)
+        throw new Error("Can not get to currency balance");
+      if (toNativeCurrencyBalance.isLessThan(maxToNativeCurrencyFee))
+        errors.push({
+          id: "not-enough-funds-network-fee",
+          data: { requiredAmount: maxToNativeCurrencyFee }
+        });
+    }
+    return {
+      fromAddress,
+      toAddress,
+      maxOrderPreview
+    };
+  }
+  async getMaxOrderPreview(normalizedSwapPreviewParameters, fromAvailableAmount, fromCurrencyBalance, fromCurrencyInfo, _fromNativeCurrencyBalance, fromNativeCurrencyInfo, fromNativeCurrencyNetworkFee, errors, _warnings) {
+    const maxAmount = BigNumber7.min(fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id ? fromCurrencyBalance.minus(fromNativeCurrencyNetworkFee) : fromCurrencyBalance, fromAvailableAmount);
+    if (maxAmount.isLessThanOrEqualTo(0)) {
+      errors.push({ id: "not-enough-funds" });
+      return void 0;
+    }
+    return this.atomexContext.managers.exchangeManager.getOrderPreview({
+      type: normalizedSwapPreviewParameters.type,
+      from: normalizedSwapPreviewParameters.from,
+      to: normalizedSwapPreviewParameters.to,
+      amount: maxAmount,
+      isFromAmount: true
+    });
+  }
+  async calculateSwapPreviewFees(fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo, useWatchTower) {
+    const feesCacheKey = this.getSwapPreviewFeesCacheKey(fromCurrencyInfo, toCurrencyInfo, useWatchTower);
+    const cachedFees = this.swapPreviewFeesCache.get(feesCacheKey);
+    if (cachedFees)
+      return cachedFees;
+    const fromAtomexProtocol = fromCurrencyInfo.atomexProtocol;
+    const toAtomexProtocol = toCurrencyInfo.atomexProtocol;
+    const [fromInitiateFees, toRedeemOrRewardForRedeem, fromRefundFees, toInitiateFees, fromRedeemFees] = await Promise.all([
+      fromAtomexProtocol.getInitiateFees({}),
+      useWatchTower ? toAtomexProtocol.getRedeemReward(0, 0) : toAtomexProtocol.getRedeemFees({}),
+      fromAtomexProtocol.getRefundFees({}),
+      toAtomexProtocol.getInitiateFees({}),
+      fromAtomexProtocol.getRedeemFees({})
+    ]);
+    const paymentFee = {
+      name: "payment-fee",
+      currencyId: fromNativeCurrencyInfo.currency.id,
+      estimated: fromInitiateFees.estimated,
+      max: fromInitiateFees.max
+    };
+    const makerFee = await this.calculateMakerFees(fromCurrencyInfo.currency.id, fromNativeCurrencyInfo.currency.id, toNativeCurrencyInfo.currency.id, toInitiateFees, fromRedeemFees);
+    const swapPreviewFees = {
+      success: [
+        paymentFee,
+        makerFee,
+        {
+          name: useWatchTower ? "redeem-reward" : "redeem-fee",
+          currencyId: useWatchTower ? toCurrencyInfo.currency.id : toNativeCurrencyInfo.currency.id,
+          estimated: toRedeemOrRewardForRedeem.estimated,
+          max: toRedeemOrRewardForRedeem.max
+        }
+      ],
+      refund: [
+        paymentFee,
+        makerFee,
+        {
+          name: "refund-fee",
+          currencyId: fromNativeCurrencyInfo.currency.id,
+          estimated: fromRefundFees.estimated,
+          max: fromRefundFees.max
+        }
+      ]
+    };
+    this.swapPreviewFeesCache.set(feesCacheKey, swapPreviewFees);
+    return swapPreviewFees;
+  }
+  async calculateMakerFees(fromCurrencyId, fromNativeCurrencyId, toNativeCurrencyId, toInitiateFees, fromRedeemFees) {
+    const toInitiateFeeConversationPromise = this.convertFeesToFromCurrency(toInitiateFees, toNativeCurrencyId, fromCurrencyId);
+    const fromRedeemFeeConversationPromise = fromCurrencyId !== fromNativeCurrencyId ? this.convertFeesToFromCurrency(fromRedeemFees, fromNativeCurrencyId, fromCurrencyId) : void 0;
+    let estimatedToInitiateFeesInFromCurrency;
+    let maxToInitiateFeesInFromCurrency;
+    let estimatedFromRedeemFeesInFromCurrency;
+    let maxFromRedeemFeesInFromCurrency;
+    if (fromRedeemFeeConversationPromise) {
+      const conversationResult = await Promise.all([toInitiateFeeConversationPromise, fromRedeemFeeConversationPromise]);
+      estimatedToInitiateFeesInFromCurrency = conversationResult[0].estimated;
+      maxToInitiateFeesInFromCurrency = conversationResult[0].max;
+      estimatedFromRedeemFeesInFromCurrency = conversationResult[1].estimated;
+      maxFromRedeemFeesInFromCurrency = conversationResult[1].max;
+    } else {
+      const conversationResult = await toInitiateFeeConversationPromise;
+      estimatedToInitiateFeesInFromCurrency = conversationResult.estimated;
+      maxToInitiateFeesInFromCurrency = conversationResult.max;
+      estimatedFromRedeemFeesInFromCurrency = fromRedeemFees.estimated;
+      maxFromRedeemFeesInFromCurrency = fromRedeemFees.max;
+    }
+    return {
+      name: "maker-fee",
+      currencyId: fromCurrencyId,
+      estimated: estimatedToInitiateFeesInFromCurrency.plus(estimatedFromRedeemFeesInFromCurrency),
+      max: maxToInitiateFeesInFromCurrency.plus(maxFromRedeemFeesInFromCurrency)
+    };
+  }
+  async convertFeesToFromCurrency(fees, from, to) {
+    const [estimatedInFromCurrency, maxInFromCurrency] = await Promise.all([
+      this.atomexContext.managers.exchangeManager.getOrderPreview({
+        type: "SolidFillOrKill",
+        from,
+        to,
+        amount: fees.estimated,
+        isFromAmount: true
+      }).then((orderPreview) => orderPreview == null ? void 0 : orderPreview.to.amount),
+      this.atomexContext.managers.exchangeManager.getOrderPreview({
+        type: "SolidFillOrKill",
+        from,
+        to,
+        amount: fees.max,
+        isFromAmount: true
+      }).then((orderPreview) => orderPreview == null ? void 0 : orderPreview.to.amount)
+    ]);
+    if (!estimatedInFromCurrency || !maxInFromCurrency)
+      throw new Error(`It's no possible to convert fees from "${from}" to "${to}" currency`);
+    return {
+      estimated: estimatedInFromCurrency,
+      max: maxInFromCurrency
+    };
+  }
+  getSwapPreviewFeesCacheKey(fromCurrencyInfo, toCurrencyInfo, useWatchTower) {
+    return `${fromCurrencyInfo.currency.id}_${toCurrencyInfo.currency.id}_${useWatchTower}`;
+  }
+  static isNormalizedSwapPreviewParameters(swapPreviewParameters) {
+    return ordersHelper_exports.isNormalizedOrderPreviewParameters(swapPreviewParameters);
+  }
+  static normalizeSwapPreviewParameters(swapPreviewParameters, exchangeSymbolsProvider, defaultUseWatchTowerParameter) {
+    const normalizedOrderPreviewParameters = ordersHelper_exports.normalizeOrderPreviewParameters(swapPreviewParameters, exchangeSymbolsProvider);
+    return {
+      type: swapPreviewParameters.type,
+      amount: swapPreviewParameters.amount,
+      useWatchTower: typeof swapPreviewParameters.useWatchTower !== "boolean" ? defaultUseWatchTowerParameter : swapPreviewParameters.useWatchTower,
+      from: normalizedOrderPreviewParameters.from,
+      to: normalizedOrderPreviewParameters.to,
+      isFromAmount: normalizedOrderPreviewParameters.isFromAmount,
+      exchangeSymbol: normalizedOrderPreviewParameters.exchangeSymbol,
+      side: normalizedOrderPreviewParameters.side,
+      isQuoteCurrencyAmount: normalizedOrderPreviewParameters.isQuoteCurrencyAmount
+    };
+  }
+  static calculateMaxTotalFee(fees, currencyId) {
+    const successTotalFee = this.calculateTotalFee(fees.success, currencyId);
+    const refundTotalFee = this.calculateTotalFee(fees.refund, currencyId);
+    return BigNumber7.max(successTotalFee, refundTotalFee);
+  }
+  static calculateTotalFee(fees, currencyId) {
+    return fees.reduce((total, fee) => fee.currencyId === currencyId && fee.name.endsWith("fee") ? total.plus(fee.max) : total, new BigNumber7(0));
+  }
+};
+
+// src/atomex/atomex.ts
+var Atomex = class {
+  constructor(options) {
+    this.options = options;
+    this.atomexContext = options.atomexContext;
+    this.swapPreviewManager = new AtomexSwapPreviewManager(options.atomexContext);
+    this.wallets = options.managers.walletsManager;
+    this.authorization = options.managers.authorizationManager;
+    this.exchangeManager = options.managers.exchangeManager;
+    this.swapManager = options.managers.swapManager;
+    this.balanceManager = options.managers.balanceManager;
+    if (options.blockchains)
+      for (const blockchainName of Object.keys(options.blockchains))
+        this.addBlockchain((_context) => [blockchainName, options.blockchains[blockchainName]]);
+  }
+  authorization;
+  exchangeManager;
+  balanceManager;
+  swapManager;
+  wallets;
+  atomexContext;
+  swapPreviewManager;
+  _isStarted = false;
+  get atomexNetwork() {
+    return this.atomexContext.atomexNetwork;
+  }
+  get isStarted() {
+    return this._isStarted;
+  }
+  async start() {
+    if (this.isStarted)
+      return;
+    await this.authorization.start();
+    await this.exchangeManager.start();
+    await this.swapManager.start();
+    this._isStarted = true;
+  }
+  stop() {
+    if (!this.isStarted)
+      return;
+    this.authorization.stop();
+    this.exchangeManager.stop();
+    this.swapManager.stop();
+    this.balanceManager.dispose();
+    this._isStarted = false;
+  }
+  addBlockchain(factoryMethod) {
+    const [blockchain, blockchainOptions] = factoryMethod(this.atomexContext);
+    this.atomexContext.providers.blockchainProvider.addBlockchain(blockchain, blockchainOptions);
+  }
+  getCurrency(currencyId) {
+    return this.atomexContext.providers.currenciesProvider.getCurrency(currencyId);
+  }
+  getSwapPreview(swapPreviewParameters) {
+    return this.swapPreviewManager.getSwapPreview(swapPreviewParameters);
+  }
+  async swap(newSwapRequestOrSwapId, _completeStage = 15 /* All */) {
+    var _a;
+    if (typeof newSwapRequestOrSwapId === "number")
+      throw new Error("Swap tracking is not implemented yet");
+    const swapPreview = newSwapRequestOrSwapId.swapPreview;
+    if (swapPreview.errors.length)
+      throw new Error("Swap preview has errors");
+    const fromAddress = swapPreview.to.address;
+    if (!fromAddress)
+      throw new Error(`Swap preview doesn't have the "from" address`);
+    const [quoteCurrencyId, baseCurrencyId] = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol);
+    const baseCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(baseCurrencyId);
+    if (!baseCurrencyInfo)
+      throw new Error(`The "${baseCurrencyId}" currency (base) is unknown`);
+    const quoteCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(quoteCurrencyId);
+    if (!quoteCurrencyInfo)
+      throw new Error(`The "${quoteCurrencyInfo}" currency (quote) is unknown`);
+    if (baseCurrencyInfo.atomexProtocol.version !== 1)
+      throw new Error(`Unknown version (${baseCurrencyInfo.atomexProtocol.version}) of the Atomex protocol (base)`);
+    if (quoteCurrencyInfo.atomexProtocol.version !== 1)
+      throw new Error(`Unknown version (${quoteCurrencyInfo.atomexProtocol.version}) of the Atomex protocol (quote)`);
+    const baseCurrencyAtomexProtocolV1 = baseCurrencyInfo.atomexProtocol;
+    const quoteCurrencyAtomexProtocolV1 = quoteCurrencyInfo.atomexProtocol;
+    const directionName = quoteCurrencyId === swapPreview.from.currencyId ? "from" : "to";
+    const rewardForRedeem = (_a = swapPreview.fees.success.find((fee) => fee.name == "redeem-reward")) == null ? void 0 : _a.estimated;
+    const newOrderRequest = {
+      orderBody: {
+        type: swapPreview.type,
+        symbol: swapPreview.symbol,
+        side: swapPreview.side,
+        amount: swapPreview[directionName].actual.amount,
+        price: swapPreview[directionName].actual.price
+      },
+      requisites: {
+        secretHash: null,
+        receivingAddress: swapPreview.to.address,
+        refundAddress: newSwapRequestOrSwapId.refundAddress || null,
+        rewardForRedeem: rewardForRedeem || new BigNumber8(0),
+        lockTime: 18e3,
+        quoteCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
+        baseCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
+      },
+      proofsOfFunds: []
+    };
+    const orderId = await this.exchangeManager.addOrder(fromAddress, newOrderRequest);
+    const order = await this.exchangeManager.getOrder(fromAddress, orderId);
+    if (!order)
+      throw new Error(`The ${orderId} order not found`);
+    if (order.status !== "Filled")
+      throw new Error(`The ${orderId} order is not filled`);
+    const swaps = await Promise.all(order.swapIds.map((swapId) => this.swapManager.getSwap(swapId, fromAddress)));
+    if (!swaps.length)
+      throw new Error("Swaps not found");
+    if (swaps.some((swap) => !swap))
+      throw new Error("Swap not found");
+    return swaps.length === 1 ? swaps[0] : swaps;
+  }
+  async convertCurrency(fromAmount, fromCurrency, toCurrency) {
+    const price = await this.atomexContext.managers.priceManager.getAveragePrice({ baseCurrency: fromCurrency, quoteCurrency: toCurrency });
+    if (!price)
+      return void 0;
+    const inAmountBigNumber = BigNumber8.isBigNumber(fromAmount) ? fromAmount : new BigNumber8(fromAmount);
+    const outAmount = inAmountBigNumber.multipliedBy(price);
+    const toCurrencyInfo = this.getCurrency(toCurrency);
+    return toCurrencyInfo ? toFixedBigNumber(outAmount, toCurrencyInfo.decimals) : outAmount;
+  }
+};
+
+// src/atomex/atomexContext.ts
+var AtomexComponentNotResolvedError = class extends Error {
+  name;
+  componentName;
+  constructor(componentName) {
+    super(AtomexComponentNotResolvedError.getMessage(componentName));
+    this.componentName = componentName;
+    this.name = this.constructor.name;
+  }
+  static getMessage(componentName) {
+    return `Atomex "${componentName}" component has not resolved yet`;
+  }
+};
+
+// src/atomex/defaultAtomexContext.ts
+var _DefaultAtomexContext = class {
+  constructor(atomexNetwork) {
+    this.atomexNetwork = atomexNetwork;
+    this.id = _DefaultAtomexContext.idCounter++;
+    this.managers = new DefaultAtomexContextManagersSection(this);
+    this.services = new DefaultAtomexContextServicesSection(this);
+    this.providers = new DefaultAtomexContextProvidersSection(this);
+  }
+  id;
+  managers;
+  services;
+  providers;
+};
+var DefaultAtomexContext = _DefaultAtomexContext;
+__publicField(DefaultAtomexContext, "idCounter", 0);
+var DefaultAtomexContextManagersSection = class {
+  constructor(context) {
+    this.context = context;
+  }
+  _walletsManager;
+  _authorizationManager;
+  _exchangeManager;
+  _swapManager;
+  _priceManager;
+  _balanceManager;
+  get walletsManager() {
+    if (!this._walletsManager)
+      throw new AtomexComponentNotResolvedError("managers.walletsManager");
+    return this._walletsManager;
+  }
+  set walletsManager(walletsManager) {
+    this._walletsManager = walletsManager;
+  }
+  get authorizationManager() {
+    if (!this._authorizationManager)
+      throw new AtomexComponentNotResolvedError("managers.authorizationManager");
+    return this._authorizationManager;
+  }
+  set authorizationManager(authorizationManager) {
+    this._authorizationManager = authorizationManager;
+  }
+  get exchangeManager() {
+    if (!this._exchangeManager)
+      throw new AtomexComponentNotResolvedError("managers.exchangeManager");
+    return this._exchangeManager;
+  }
+  set exchangeManager(exchangeManager) {
+    this._exchangeManager = exchangeManager;
+  }
+  get swapManager() {
+    if (!this._swapManager)
+      throw new AtomexComponentNotResolvedError("managers.swapManager");
+    return this._swapManager;
+  }
+  set swapManager(swapManager) {
+    this._swapManager = swapManager;
+  }
+  get priceManager() {
+    if (!this._priceManager)
+      throw new AtomexComponentNotResolvedError("managers.priceManager");
+    return this._priceManager;
+  }
+  set priceManager(priceManager) {
+    this._priceManager = priceManager;
+  }
+  get balanceManager() {
+    if (!this._balanceManager)
+      throw new AtomexComponentNotResolvedError("managers.balanceManager");
+    return this._balanceManager;
+  }
+  set balanceManager(balanceManager) {
+    this._balanceManager = balanceManager;
+  }
+};
+var DefaultAtomexContextServicesSection = class {
+  constructor(context) {
+    this.context = context;
+  }
+  _exchangeService;
+  _swapService;
+  get exchangeService() {
+    if (!this._exchangeService)
+      throw new AtomexComponentNotResolvedError("services.exchangeService");
+    return this._exchangeService;
+  }
+  set exchangeService(exchangeService) {
+    this._exchangeService = exchangeService;
+  }
+  get swapService() {
+    if (!this._swapService)
+      throw new AtomexComponentNotResolvedError("services.swapService");
+    return this._swapService;
+  }
+  set swapService(swapService) {
+    this._swapService = swapService;
+  }
+};
+var DefaultAtomexContextProvidersSection = class {
+  constructor(context) {
+    this.context = context;
+  }
+  _blockchainProvider;
+  _currenciesProvider;
+  _exchangeSymbolsProvider;
+  _orderBookProvider;
+  get blockchainProvider() {
+    if (!this._blockchainProvider)
+      throw new AtomexComponentNotResolvedError("providers.blockchainProvider");
+    return this._blockchainProvider;
+  }
+  set blockchainProvider(blockchainProvider) {
+    this._blockchainProvider = blockchainProvider;
+  }
+  get currenciesProvider() {
+    if (!this._currenciesProvider)
+      throw new AtomexComponentNotResolvedError("providers.currenciesProvider");
+    return this._currenciesProvider;
+  }
+  set currenciesProvider(currenciesProvider) {
+    this._currenciesProvider = currenciesProvider;
+  }
+  get exchangeSymbolsProvider() {
+    if (!this._exchangeSymbolsProvider)
+      throw new AtomexComponentNotResolvedError("providers.exchangeSymbolsProvider");
+    return this._exchangeSymbolsProvider;
+  }
+  set exchangeSymbolsProvider(exchangeSymbolsProvider) {
+    this._exchangeSymbolsProvider = exchangeSymbolsProvider;
+  }
+  get orderBookProvider() {
+    if (!this._orderBookProvider)
+      throw new AtomexComponentNotResolvedError("providers.orderBookProvider");
+    return this._orderBookProvider;
+  }
+  set orderBookProvider(orderBookProvider) {
+    this._orderBookProvider = orderBookProvider;
+  }
+};
+
+// src/blockchain/balanceManager/cachedBalanceManager.ts
+var _CachedBalanceManager = class {
+  constructor(blockchainProvider) {
+    this.blockchainProvider = blockchainProvider;
+    this.cache = new InMemoryCache({
+      absoluteExpirationMs: _CachedBalanceManager.cacheExpirationTime
+    });
+  }
+  cache;
+  async getBalance(address, currency, dataSource = 3 /* All */) {
+    var _a;
+    const key = this.getCacheKey(address, currency);
+    if ((dataSource & 1 /* Local */) === 1 /* Local */) {
+      const cachedBalance = this.cache.get(key);
+      if (cachedBalance)
+        return cachedBalance;
+    }
+    if ((dataSource & 2 /* Remote */) === 2 /* Remote */) {
+      const balanceProvider = (_a = this.blockchainProvider.getCurrencyInfo(currency.id)) == null ? void 0 : _a.balanceProvider;
+      if (!balanceProvider)
+        throw new Error(`Balance provider not found for currency: ${currency.id}`);
+      const balance = await balanceProvider.getBalance(address);
+      this.cache.set(key, balance);
+      return balance;
+    }
+    return void 0;
+  }
+  dispose() {
+    return this.cache.dispose();
+  }
+  getCacheKey(address, currency) {
+    return `${address}_${currency.id}`;
+  }
+};
+var CachedBalanceManager = _CachedBalanceManager;
+__publicField(CachedBalanceManager, "cacheExpirationTime", 1e3 * 60 * 1);
+
 // src/blockchain/walletsManager.ts
 var WalletsManager = class {
   constructor(atomexNetwork) {
@@ -376,7 +1457,7 @@ var WalletsManager = class {
   }
 };
 
-// src/blockchain/controlledCurrencyBalancesProvider.ts
+// src/blockchain/balanceProvider/controlledCurrencyBalancesProvider.ts
 var ControlledCurrencyBalancesProvider = class {
   constructor(currency, getBalanceImplementation) {
     this.currency = currency;
@@ -401,9 +1482,12 @@ var AtomexBlockchainProvider = class {
       if (this.currencyInfoMap.has(currency.id))
         throw new Error("There is already currency added with the same key");
       const currencyOptions = networkOptions.currencyOptions[currency.id];
+      const atomexProtocol = currencyOptions == null ? void 0 : currencyOptions.atomexProtocol;
+      if (!atomexProtocol)
+        throw new Error(`Atomex protocol is not defined for the "${currency.id}" currency`);
       const options = {
         currency,
-        atomexProtocol: currencyOptions == null ? void 0 : currencyOptions.atomexProtocol,
+        atomexProtocol,
         blockchainToolkitProvider: networkOptions.blockchainToolkitProvider,
         balanceProvider: (currencyOptions == null ? void 0 : currencyOptions.currencyBalanceProvider) ?? this.createControlledBalancesProvider(currency, networkOptions.balancesProvider),
         swapTransactionsProvider: (currencyOptions == null ? void 0 : currencyOptions.swapTransactionsProvider) ?? networkOptions.swapTransactionsProvider
@@ -413,10 +1497,6 @@ var AtomexBlockchainProvider = class {
   }
   getNetworkOptions(blockchain) {
     return this.networkOptionsMap.get(blockchain);
-  }
-  getCurrency(currencyId) {
-    var _a;
-    return (_a = this.getCurrencyInfo(currencyId)) == null ? void 0 : _a.currency;
   }
   async getReadonlyToolkit(toolkitId, blockchain) {
     const providerToolkitPromises = [];
@@ -431,6 +1511,16 @@ var AtomexBlockchainProvider = class {
     }
     return Promise.resolve(void 0);
   }
+  getCurrency(currencyId) {
+    var _a;
+    return (_a = this.getCurrencyInfo(currencyId)) == null ? void 0 : _a.currency;
+  }
+  getNativeCurrencyInfo(blockchain) {
+    for (const currencyInfo of this.currencyInfoMap) {
+      if (currencyInfo[1].currency.type === "native" && currencyInfo[1].currency.blockchain === blockchain)
+        return currencyInfo[1];
+    }
+  }
   getCurrencyInfo(currencyId) {
     const options = this.currencyInfoMap.get(currencyId);
     return options;
@@ -441,7 +1531,7 @@ var AtomexBlockchainProvider = class {
 };
 
 // src/evm/atomexProtocol/web3AtomexProtocolV1.ts
-import BigNumber4 from "bignumber.js";
+import BigNumber10 from "bignumber.js";
 
 // src/evm/helpers/web3Helper.ts
 var web3Helper_exports = {};
@@ -449,15 +1539,15 @@ __export(web3Helper_exports, {
   convertFromWei: () => convertFromWei,
   getGasPriceInWei: () => getGasPriceInWei
 });
-import BigNumber3 from "bignumber.js";
+import BigNumber9 from "bignumber.js";
 var getGasPriceInWei = async (toolkit) => {
   const gasPrice = await toolkit.eth.getGasPrice();
-  return new BigNumber3(gasPrice);
+  return new BigNumber9(gasPrice);
 };
 var convertFromWei = (toolkit, value, unit) => {
   const stringValue = typeof value === "string" ? value : value.toString(10);
   const result = toolkit.utils.fromWei(stringValue, unit);
-  return new BigNumber3(result);
+  return new BigNumber9(result);
 };
 
 // src/evm/atomexProtocol/web3AtomexProtocolV1.ts
@@ -473,13 +1563,16 @@ var _Web3AtomexProtocolV1 = class {
   get currencyId() {
     return this.atomexProtocolOptions.currencyId;
   }
+  get swapContractAddress() {
+    return this.atomexProtocolOptions.swapContractAddress;
+  }
   async getInitiateFees(params) {
     var _a;
     const toolkit = await this.getReadonlyWeb3();
     const gasPriceInWei = await web3Helper_exports.getGasPriceInWei(toolkit);
     const gasLimitOptions = this.atomexProtocolOptions.initiateOperation.gasLimit;
     const hasRewardForRedeem = (_a = params.rewardForRedeem) == null ? void 0 : _a.isGreaterThan(0);
-    const gasLimit = new BigNumber4(hasRewardForRedeem ? gasLimitOptions.withReward : gasLimitOptions.withoutReward);
+    const gasLimit = new BigNumber10(hasRewardForRedeem ? gasLimitOptions.withReward : gasLimitOptions.withoutReward);
     const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(_Web3AtomexProtocolV1.maxNetworkFeeMultiplier);
     const estimated = web3Helper_exports.convertFromWei(toolkit, estimatedWei, "ether");
     const result = { estimated, max: estimated };
@@ -517,7 +1610,7 @@ var _Web3AtomexProtocolV1 = class {
   }
 };
 var Web3AtomexProtocolV1 = _Web3AtomexProtocolV1;
-__publicField(Web3AtomexProtocolV1, "maxNetworkFeeMultiplier", new BigNumber4(1.2));
+__publicField(Web3AtomexProtocolV1, "maxNetworkFeeMultiplier", new BigNumber10(1.2));
 
 // src/evm/wallets/web3BlockchainWallet.ts
 import Web3 from "web3";
@@ -634,7 +1727,7 @@ var Web3BlockchainToolkitProvider = class {
 };
 
 // src/evm/balancesProviders/web3BalancesProvider.ts
-import BigNumber5 from "bignumber.js";
+import BigNumber11 from "bignumber.js";
 
 // src/evm/abi/erc20abi.ts
 var erc20Abi = [
@@ -880,12 +1973,12 @@ var Web3BalancesProvider = class {
   }
   async getNativeTokenBalance(address, currency, toolkit) {
     const balance = await toolkit.eth.getBalance(address);
-    return numberToTokensAmount(new BigNumber5(balance), currency.decimals);
+    return numberToTokensAmount(new BigNumber11(balance), currency.decimals);
   }
   async getTokenBalance(address, currency, toolkit) {
     const contract = new toolkit.eth.Contract(erc20Abi, currency.contractAddress);
     const balance = await contract.methods.balanceOf(address).call();
-    return numberToTokensAmount(new BigNumber5(balance), currency.decimals);
+    return numberToTokensAmount(new BigNumber11(balance), currency.decimals);
   }
 };
 
@@ -904,8 +1997,9 @@ var EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
   redeem(_params) {
     throw new Error("Method not implemented.");
   }
-  getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
-    throw new Error("Method not implemented.");
+  async getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
+    const redeemFees = await this.getInitiateFees({});
+    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -936,8 +2030,9 @@ var ERC20EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
   redeem(_params) {
     throw new Error("Method not implemented.");
   }
-  getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
-    throw new Error("Method not implemented.");
+  async getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
+    const redeemFees = await this.getInitiateFees({});
+    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -1359,548 +2454,6 @@ var createDefaultEthereumBlockchainOptions = (atomexContext) => {
   return ethereumOptions;
 };
 
-// src/exchange/helpers/symbolsHelper.ts
-var symbolsHelper_exports = {};
-__export(symbolsHelper_exports, {
-  convertSymbolToFromToCurrenciesPair: () => convertSymbolToFromToCurrenciesPair,
-  findExchangeSymbolAndSide: () => findExchangeSymbolAndSide,
-  getQuoteBaseCurrenciesBySymbol: () => getQuoteBaseCurrenciesBySymbol
-});
-import BigNumber6 from "bignumber.js";
-var getQuoteBaseCurrenciesBySymbol = (symbol) => {
-  const [quoteCurrency = "", baseCurrency = ""] = symbol.split("/");
-  return [quoteCurrency, baseCurrency];
-};
-var convertSymbolToFromToCurrenciesPair = (symbol, side, currencyAmount, quoteCurrencyPrice, isQuoteCurrencyAmount = true) => {
-  const preparedQuoteCurrencyPrice = converters_exports.toFixedBigNumber(quoteCurrencyPrice, symbol.decimals.price, BigNumber6.ROUND_FLOOR);
-  const [quoteCurrencyId, baseCurrencyId] = getQuoteBaseCurrenciesBySymbol(symbol.name);
-  const isBuySide = side === "Buy";
-  let preparedQuoteCurrencyAmount;
-  let preparedBaseCurrencyAmount;
-  if (isQuoteCurrencyAmount) {
-    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.quoteCurrency, BigNumber6.ROUND_FLOOR);
-    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(preparedQuoteCurrencyPrice.multipliedBy(preparedQuoteCurrencyAmount), symbol.decimals.baseCurrency, isBuySide ? BigNumber6.ROUND_CEIL : BigNumber6.ROUND_FLOOR);
-  } else {
-    preparedBaseCurrencyAmount = converters_exports.toFixedBigNumber(currencyAmount, symbol.decimals.baseCurrency, BigNumber6.ROUND_FLOOR);
-    preparedQuoteCurrencyAmount = converters_exports.toFixedBigNumber(preparedBaseCurrencyAmount.div(preparedQuoteCurrencyPrice), symbol.decimals.quoteCurrency, isBuySide ? BigNumber6.ROUND_FLOOR : BigNumber6.ROUND_CEIL);
-  }
-  const preparedBaseCurrencyPrice = converters_exports.toFixedBigNumber(new BigNumber6(1).div(preparedQuoteCurrencyPrice), symbol.decimals.price, BigNumber6.ROUND_FLOOR);
-  const quoteCurrency = {
-    currencyId: quoteCurrencyId,
-    amount: preparedQuoteCurrencyAmount,
-    price: preparedQuoteCurrencyPrice
-  };
-  const baseCurrency = {
-    currencyId: baseCurrencyId,
-    amount: preparedBaseCurrencyAmount,
-    price: preparedBaseCurrencyPrice
-  };
-  return isBuySide ? [baseCurrency, quoteCurrency] : [quoteCurrency, baseCurrency];
-};
-var findExchangeSymbolAndSide = (symbols, from, to) => {
-  const sellSideSymbolName = `${from}/${to}`;
-  const buySideSymbolName = `${to}/${from}`;
-  let symbol;
-  let side = "Sell";
-  if (guards_exports.isReadonlyArray(symbols)) {
-    for (const s of symbols) {
-      if (s.name === sellSideSymbolName) {
-        symbol = s;
-        break;
-      }
-      if (s.name === buySideSymbolName) {
-        symbol = s;
-        side = "Buy";
-        break;
-      }
-    }
-  } else {
-    symbol = symbols.get(sellSideSymbolName);
-    if (!symbol) {
-      side = "Buy";
-      symbol = symbols.get(buySideSymbolName);
-    }
-  }
-  if (!symbol)
-    throw new Error(`Invalid pair: ${from}/${to}`);
-  return [symbol, side];
-};
-
-// src/exchange/exchangeManager.ts
-import { nanoid } from "nanoid";
-
-// src/common/models/dataSource.ts
-var DataSource = /* @__PURE__ */ ((DataSource2) => {
-  DataSource2[DataSource2["Local"] = 1] = "Local";
-  DataSource2[DataSource2["Remote"] = 2] = "Remote";
-  DataSource2[DataSource2["All"] = 3] = "All";
-  return DataSource2;
-})(DataSource || {});
-
-// src/common/models/importantDataReceivingMode.ts
-var ImportantDataReceivingMode = /* @__PURE__ */ ((ImportantDataReceivingMode2) => {
-  ImportantDataReceivingMode2[ImportantDataReceivingMode2["Local"] = 0] = "Local";
-  ImportantDataReceivingMode2[ImportantDataReceivingMode2["Remote"] = 1] = "Remote";
-  ImportantDataReceivingMode2[ImportantDataReceivingMode2["SafeMerged"] = 2] = "SafeMerged";
-  return ImportantDataReceivingMode2;
-})(ImportantDataReceivingMode || {});
-
-// src/core/eventEmitter.ts
-var EventEmitter = class {
-  listeners = /* @__PURE__ */ new Set();
-  addListener(listener) {
-    this.listeners.add(listener);
-    return this;
-  }
-  removeListener(listener) {
-    if (this.listeners.has(listener))
-      this.listeners.delete(listener);
-    return this;
-  }
-  removeAllListeners() {
-    this.listeners = /* @__PURE__ */ new Set();
-    return this;
-  }
-  emit(...args) {
-    if (!this.listeners.size)
-      return;
-    if (this.listeners.size === 1) {
-      this.listeners.values().next().value(...args);
-    } else {
-      [...this.listeners].forEach((listener) => listener(...args));
-    }
-  }
-};
-
-// src/core/deferredEventEmitter.ts
-var DeferredEventEmitter = class {
-  constructor(latencyMs = 1e3) {
-    this.latencyMs = latencyMs;
-  }
-  watcherIdsMap = /* @__PURE__ */ new Map();
-  internalEmitter = new EventEmitter();
-  addListener(listener) {
-    this.internalEmitter.addListener(listener);
-    return this;
-  }
-  removeListener(listener) {
-    this.internalEmitter.removeListener(listener);
-    return this;
-  }
-  removeAllListeners() {
-    this.internalEmitter.removeAllListeners();
-    return this;
-  }
-  emit(key, ...args) {
-    const oldWatcherId = this.watcherIdsMap.get(key);
-    if (oldWatcherId)
-      clearTimeout(oldWatcherId);
-    const watcherId = setTimeout(() => {
-      this.watcherIdsMap.delete(key);
-      this.internalEmitter.emit(...args);
-    }, this.latencyMs);
-    this.watcherIdsMap.set(key, watcherId);
-  }
-};
-
-// src/core/httpClient.ts
-var HttpClient = class {
-  constructor(baseUrl) {
-    this.baseUrl = baseUrl;
-  }
-  async request(options, returnUndefinedOn404 = true) {
-    const url = new URL(options.urlPath, this.baseUrl);
-    if (options.params)
-      this.setSearchParams(url, options.params);
-    const response = await fetch(url.toString(), {
-      headers: this.createHeaders(options),
-      method: options.method || "GET",
-      body: options.payload ? JSON.stringify(options.payload) : void 0
-    });
-    if (returnUndefinedOn404 && response.status === 404)
-      return void 0;
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw Error(errorBody);
-    }
-    return await response.json();
-  }
-  setSearchParams(url, params) {
-    for (const key in params) {
-      const value = params[key];
-      if (value !== null && value !== void 0)
-        url.searchParams.set(key, String(value));
-    }
-  }
-  createHeaders(options) {
-    const headers = {};
-    if (options.authToken)
-      headers["Authorization"] = `Bearer ${options.authToken}`;
-    if (options.method === "POST" && options.payload)
-      headers["Content-Type"] = "application/json";
-    return headers;
-  }
-};
-
-// src/exchange/exchangeManager.ts
-var ExchangeManager = class {
-  events = {
-    orderUpdated: new EventEmitter(),
-    orderBookSnapshot: new EventEmitter(),
-    orderBookUpdated: new EventEmitter(),
-    topOfBookUpdated: new EventEmitter()
-  };
-  exchangeService;
-  symbolsProvider;
-  orderBookProvider;
-  _isStarted = false;
-  constructor(options) {
-    this.exchangeService = options.exchangeService;
-    this.symbolsProvider = options.symbolsProvider;
-    this.orderBookProvider = options.orderBookProvider;
-  }
-  get isStarted() {
-    return this._isStarted;
-  }
-  async start() {
-    if (this.isStarted)
-      return;
-    this.attachEvents();
-    await this.exchangeService.start();
-    await this.getSymbols();
-    this._isStarted = true;
-  }
-  stop() {
-    if (!this._isStarted)
-      return;
-    this.detachEvents();
-    this.exchangeService.stop();
-    this._isStarted = false;
-  }
-  getOrder(accountAddress, orderId, _mode = 2 /* SafeMerged */) {
-    return this.exchangeService.getOrder(accountAddress, orderId);
-  }
-  getOrders(accountAddress, selector, _mode = 2 /* SafeMerged */) {
-    return this.exchangeService.getOrders(accountAddress, selector);
-  }
-  async getSymbol(name, dataSource = 3 /* All */) {
-    if ((dataSource & 1 /* Local */) === 1 /* Local */) {
-      const symbol = this.symbolsProvider.getSymbol(name);
-      if (symbol)
-        return symbol;
-    }
-    if ((dataSource & 2 /* Remote */) === 2 /* Remote */) {
-      const symbols = await this.exchangeService.getSymbols();
-      this.symbolsProvider.setSymbols(symbols);
-      return this.symbolsProvider.getSymbol(name);
-    }
-    return void 0;
-  }
-  async getSymbols(dataSource = 3 /* All */) {
-    if ((dataSource & 1 /* Local */) === 1 /* Local */) {
-      const symbols = this.symbolsProvider.getSymbols();
-      if (symbols.length > 0)
-        return symbols;
-    }
-    if ((dataSource & 2 /* Remote */) === 2 /* Remote */) {
-      const symbols = await this.exchangeService.getSymbols();
-      this.symbolsProvider.setSymbols(symbols);
-      return symbols;
-    }
-    return [];
-  }
-  getTopOfBook(symbolsOrDirections) {
-    return this.exchangeService.getTopOfBook(symbolsOrDirections);
-  }
-  async getOrderBook(symbolOrDirection) {
-    let symbol;
-    if (typeof symbolOrDirection === "string")
-      symbol = symbolOrDirection;
-    else {
-      const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
-      symbol = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
-    }
-    if (!symbol)
-      throw new Error("Invalid Symbol");
-    const orderBook = await this.exchangeService.getOrderBook(symbol);
-    if (orderBook)
-      this.orderBookProvider.setOrderBook(symbol, orderBook);
-    return orderBook;
-  }
-  addOrder(accountAddress, newOrderRequest) {
-    const clientOrderId = newOrderRequest.clientOrderId || nanoid(17);
-    return this.exchangeService.addOrder(accountAddress, { ...newOrderRequest, clientOrderId });
-  }
-  cancelOrder(accountAddress, cancelOrderRequest) {
-    return this.exchangeService.cancelOrder(accountAddress, cancelOrderRequest);
-  }
-  cancelAllOrders(accountAddress, cancelAllOrdersRequest) {
-    return this.exchangeService.cancelAllOrders(accountAddress, cancelAllOrdersRequest);
-  }
-  async getOrderPreview(orderPreviewParameters) {
-    if (orderPreviewParameters.type !== "SolidFillOrKill")
-      throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
-    const preparedOrderPreviewParameters = this.getPreparedOrderPreviewParameters(orderPreviewParameters);
-    const orderBookEntry = await this.findOrderBookEntry(preparedOrderPreviewParameters.exchangeSymbol.name, preparedOrderPreviewParameters.side, orderPreviewParameters.type, preparedOrderPreviewParameters.amount, preparedOrderPreviewParameters.isQuoteCurrencyAmount);
-    if (!orderBookEntry)
-      return void 0;
-    const [from, to] = symbolsHelper_exports.convertSymbolToFromToCurrenciesPair(preparedOrderPreviewParameters.exchangeSymbol, preparedOrderPreviewParameters.side, preparedOrderPreviewParameters.amount, orderBookEntry.price, preparedOrderPreviewParameters.isQuoteCurrencyAmount);
-    return {
-      type: orderPreviewParameters.type,
-      from,
-      to,
-      side: preparedOrderPreviewParameters.side,
-      symbol: preparedOrderPreviewParameters.exchangeSymbol.name
-    };
-  }
-  getMaximumLiquidity(_direction) {
-    throw new Error("Not implemented");
-  }
-  attachEvents() {
-    this.exchangeService.events.orderUpdated.addListener(this.handleExchangeServiceOrderUpdated);
-    this.exchangeService.events.orderBookSnapshot.addListener(this.handleExchangeServiceOrderBookSnapshot);
-    this.exchangeService.events.orderBookUpdated.addListener(this.handleExchangeServiceOrderBookUpdated);
-    this.exchangeService.events.topOfBookUpdated.addListener(this.handleExchangeServiceTopOfBookUpdated);
-  }
-  detachEvents() {
-    this.exchangeService.events.orderUpdated.removeListener(this.handleExchangeServiceOrderUpdated);
-    this.exchangeService.events.orderBookSnapshot.removeListener(this.handleExchangeServiceOrderBookSnapshot);
-    this.exchangeService.events.orderBookUpdated.removeListener(this.handleExchangeServiceOrderBookUpdated);
-    this.exchangeService.events.topOfBookUpdated.removeListener(this.handleExchangeServiceTopOfBookUpdated);
-  }
-  handleExchangeServiceOrderUpdated = (updatedOrder) => {
-    this.events.orderUpdated.emit(updatedOrder);
-  };
-  handleExchangeServiceOrderBookSnapshot = async (orderBook) => {
-    this.events.orderBookSnapshot.emit(orderBook);
-  };
-  handleExchangeServiceOrderBookUpdated = async (updatedOrderBook) => {
-    this.events.orderBookUpdated.emit(updatedOrderBook);
-  };
-  handleExchangeServiceTopOfBookUpdated = (updatedQuotes) => {
-    this.events.topOfBookUpdated.emit(updatedQuotes);
-  };
-  getPreparedOrderPreviewParameters(orderPreviewParameters) {
-    const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
-    let symbol;
-    let exchangeSymbol;
-    let side;
-    let isQuoteCurrencyAmount = true;
-    if (orderPreviewParameters.symbol && orderPreviewParameters.side) {
-      symbol = orderPreviewParameters.symbol;
-      exchangeSymbol = exchangeSymbols.get(symbol);
-      side = orderPreviewParameters.side;
-      if (orderPreviewParameters.isQuoteCurrencyAmount !== void 0 && orderPreviewParameters.isQuoteCurrencyAmount !== null)
-        isQuoteCurrencyAmount = orderPreviewParameters.isQuoteCurrencyAmount;
-    } else if (orderPreviewParameters.from && orderPreviewParameters.to) {
-      [exchangeSymbol, side] = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
-      symbol = exchangeSymbol.name;
-      const isFromAmount = orderPreviewParameters.isFromAmount !== void 0 && orderPreviewParameters.isFromAmount !== null ? orderPreviewParameters.isFromAmount : true;
-      if (exchangeSymbol)
-        isQuoteCurrencyAmount = orderPreviewParameters.from === exchangeSymbol.quoteCurrency && isFromAmount || orderPreviewParameters.to === exchangeSymbol.quoteCurrency && !isFromAmount;
-    } else
-      throw new Error("Invalid orderPreviewParameters argument passed");
-    if (!exchangeSymbol)
-      throw new Error(`The ${symbol} Symbol not found`);
-    return {
-      type: orderPreviewParameters.type,
-      amount: orderPreviewParameters.amount,
-      exchangeSymbol,
-      side,
-      isQuoteCurrencyAmount
-    };
-  }
-  async findOrderBookEntry(symbol, side, orderType, amount, isQuoteCurrencyAmount) {
-    if (orderType !== "SolidFillOrKill")
-      return void 0;
-    const orderBook = await this.getCachedOrderBook(symbol);
-    if (!orderBook)
-      return void 0;
-    for (const entry of orderBook.entries) {
-      if (entry.side !== side && (isQuoteCurrencyAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
-        return entry;
-      }
-    }
-  }
-  getCachedOrderBook(symbol) {
-    const cachedOrderBook = this.orderBookProvider.getOrderBook(symbol);
-    return cachedOrderBook ? Promise.resolve(cachedOrderBook) : this.getOrderBook(symbol);
-  }
-};
-
-// src/exchange/exchangeSymbolsProvider/inMemoryExchangeSymbolsProvider.ts
-var InMemoryExchangeSymbolsProvider = class {
-  symbolsMap = /* @__PURE__ */ new Map();
-  symbolsCollectionCache = [];
-  getSymbol(name) {
-    return this.symbolsMap.get(name);
-  }
-  getSymbols() {
-    return this.symbolsCollectionCache;
-  }
-  getSymbolsMap() {
-    return this.symbolsMap;
-  }
-  setSymbols(exchangeSymbols) {
-    this.symbolsCollectionCache = exchangeSymbols;
-    this.symbolsMap = this.mapSymbolsCollectionToMap(exchangeSymbols);
-  }
-  mapSymbolsCollectionToMap(symbolsCollection) {
-    const symbolsMap = /* @__PURE__ */ new Map();
-    for (const symbol of symbolsCollection)
-      symbolsMap.set(symbol.name, symbol);
-    return symbolsMap;
-  }
-};
-
-// src/exchange/orderBookProvider/inMemoryOrderBookProvider.ts
-var InMemoryOrderBookProvider = class {
-  orderBookMap = /* @__PURE__ */ new Map();
-  getOrderBook(symbol) {
-    return this.orderBookMap.get(symbol);
-  }
-  setOrderBook(symbol, orderBook) {
-    this.orderBookMap.set(symbol, orderBook);
-  }
-};
-
-// src/exchange/priceManager/mixedPriceManager/mixedPriceManager.ts
-import BigNumber7 from "bignumber.js";
-var MixedPriceManager = class {
-  constructor(providersMap) {
-    this.providersMap = providersMap;
-  }
-  async getAveragePrice({ baseCurrency, quoteCurrency, dataSource = 3 /* All */ }) {
-    const providers = this.getAvailableProviders();
-    const pricePromises = providers.map((provider) => this.getPrice({ baseCurrency, quoteCurrency, provider }));
-    const pricePromiseResults = await Promise.allSettled(pricePromises);
-    const prices = [];
-    for (const result of pricePromiseResults)
-      if (result.status === "fulfilled" && result.value !== void 0)
-        prices.push(result.value);
-    return prices.length ? BigNumber7.sum(...prices).div(prices.length) : void 0;
-  }
-  async getPrice({ baseCurrency, quoteCurrency, provider, dataSource = 3 /* All */ }) {
-    let price = await this.getPriceCore(baseCurrency, quoteCurrency, provider);
-    if (!price) {
-      const reversedPrice = await this.getPriceCore(quoteCurrency, baseCurrency, provider);
-      if (reversedPrice)
-        price = reversedPrice.pow(-1);
-    }
-    return price;
-  }
-  getAvailableProviders() {
-    return [...this.providersMap.keys()];
-  }
-  dispose() {
-    throw new Error("Method not implemented.");
-  }
-  async getPriceCore(baseCurrency, quoteCurrency, provider) {
-    const providers = this.getSelectedProviders(provider);
-    const pricePromises = providers.map((provider2) => provider2.getPrice(baseCurrency, quoteCurrency));
-    const pricePromiseResults = await Promise.allSettled(pricePromises);
-    for (const result of pricePromiseResults)
-      if (result.status === "fulfilled" && result.value !== void 0)
-        return result.value;
-    return void 0;
-  }
-  getSelectedProviders(provider) {
-    if (!provider)
-      return [...this.providersMap.values()];
-    const selectedProvider = this.providersMap.get(provider);
-    if (!selectedProvider)
-      throw new Error(`Provider not found for key: ${provider}`);
-    return [selectedProvider];
-  }
-};
-
-// src/exchange/priceProvider/atomex/atomexPriceProvider.ts
-var AtomexPriceProvider = class {
-  constructor(exchangeService) {
-    this.exchangeService = exchangeService;
-  }
-  async getPrice(baseCurrency, quoteCurrency) {
-    var _a;
-    const symbol = `${baseCurrency}/${quoteCurrency}`;
-    const quote = (_a = await this.exchangeService.getTopOfBook([{ from: baseCurrency, to: quoteCurrency }])) == null ? void 0 : _a[0];
-    return quote && quote.symbol == symbol ? this.getMiddlePrice(quote) : void 0;
-  }
-  getMiddlePrice(quote) {
-    return quote.ask.plus(quote.bid).div(2);
-  }
-};
-
-// src/exchange/priceProvider/binance/binancePriceProvider.ts
-import BigNumber8 from "bignumber.js";
-
-// src/exchange/priceProvider/binance/utils.ts
-var isErrorDto = (dto) => {
-  const errorDto = dto;
-  return typeof errorDto.code === "number" && typeof errorDto.msg === "string";
-};
-
-// src/exchange/priceProvider/binance/binancePriceProvider.ts
-var _BinancePriceProvider = class {
-  httpClient;
-  _allSymbols;
-  constructor() {
-    this.httpClient = new HttpClient(_BinancePriceProvider.baseUrl);
-  }
-  async getPrice(baseCurrency, quoteCurrency) {
-    const symbol = `${baseCurrency}${quoteCurrency}`;
-    const allSymbols = await this.getAllSymbols();
-    if (!allSymbols.has(symbol))
-      return void 0;
-    const urlPath = `${_BinancePriceProvider.priceUrlPath}?symbol=${symbol}`;
-    const responseDto = await this.httpClient.request({ urlPath }, false);
-    return this.mapRatesDtoToPrice(responseDto);
-  }
-  mapRatesDtoToPrice(dto) {
-    if (isErrorDto(dto))
-      return void 0;
-    return new BigNumber8(dto.price);
-  }
-  async getAllSymbols() {
-    if (!this._allSymbols)
-      this._allSymbols = new Set(await this.requestAllSymbols());
-    return this._allSymbols;
-  }
-  async requestAllSymbols() {
-    const urlPath = _BinancePriceProvider.priceUrlPath;
-    const responseDto = await this.httpClient.request({ urlPath }, false);
-    return responseDto.map((dto) => dto.symbol);
-  }
-};
-var BinancePriceProvider = _BinancePriceProvider;
-__publicField(BinancePriceProvider, "baseUrl", "https://www.binance.com");
-__publicField(BinancePriceProvider, "priceUrlPath", "/api/v3/ticker/price");
-
-// src/exchange/priceProvider/kraken/krakenPriceProvider.ts
-import BigNumber9 from "bignumber.js";
-var _KrakenPriceProvider = class {
-  httpClient;
-  constructor() {
-    this.httpClient = new HttpClient(_KrakenPriceProvider.baseUrl);
-  }
-  async getPrice(baseCurrency, quoteCurrency) {
-    const symbol = `${baseCurrency}${quoteCurrency}`;
-    const urlPath = `/0/public/Ticker?pair=${symbol}`;
-    const responseDto = await this.httpClient.request({ urlPath }, false);
-    return this.mapRatesDtoToPrice(responseDto);
-  }
-  mapRatesDtoToPrice(dto) {
-    if (dto.error.length)
-      return void 0;
-    const symbol = Object.keys(dto.result)[0];
-    const tickerInfo = symbol ? dto.result[symbol] : void 0;
-    if (!tickerInfo)
-      return void 0;
-    return new BigNumber9(tickerInfo.c[0]);
-  }
-};
-var KrakenPriceProvider = _KrakenPriceProvider;
-__publicField(KrakenPriceProvider, "baseUrl", "https://api.kraken.com");
-
 // src/swaps/swapManager.ts
 var SwapManager = class {
   constructor(swapService) {
@@ -1950,7 +2503,7 @@ import { TezosToolkit } from "@taquito/taquito";
 
 // src/tezos/utils/index.ts
 import { b58cdecode as b58cdecode2, prefix as prefix2, validatePkAndExtractPrefix } from "@taquito/utils";
-import BigNumber10 from "bignumber.js";
+import BigNumber12 from "bignumber.js";
 
 // src/tezos/utils/guards.ts
 var isTezosCurrency = (currency) => {
@@ -2000,7 +2553,7 @@ var decodeSignature = (signature) => {
 };
 
 // src/tezos/utils/index.ts
-var mutezInTez = new BigNumber10(1e6);
+var mutezInTez = new BigNumber12(1e6);
 var decodePublicKey = (publicKey) => {
   const keyPrefix = validatePkAndExtractPrefix(publicKey);
   const decodedKeyBytes = b58cdecode2(publicKey, prefix2[keyPrefix]);
@@ -2186,7 +2739,7 @@ var TaquitoBlockchainWallet = class {
 };
 
 // src/tezos/atomexProtocol/taquitoAtomexProtocolV1.ts
-import BigNumber11 from "bignumber.js";
+import BigNumber13 from "bignumber.js";
 var TaquitoAtomexProtocolV1 = class {
   constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
     this.blockchain = blockchain;
@@ -2199,18 +2752,21 @@ var TaquitoAtomexProtocolV1 = class {
   get currencyId() {
     return this.atomexProtocolOptions.currencyId;
   }
+  get swapContractAddress() {
+    return this.atomexProtocolOptions.swapContractAddress;
+  }
   getInitiateFees(_params) {
-    const estimated = new BigNumber11(this.atomexProtocolOptions.initiateOperation.fee).div(mutezInTez);
+    const estimated = new BigNumber13(this.atomexProtocolOptions.initiateOperation.fee).div(mutezInTez);
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
   }
   getRedeemFees(_params) {
-    const estimated = new BigNumber11(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
+    const estimated = new BigNumber13(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
   }
   getRefundFees(_params) {
-    const estimated = new BigNumber11(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
+    const estimated = new BigNumber13(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
   }
@@ -2246,8 +2802,9 @@ var TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   redeem(_params) {
     throw new Error("Method not implemented.");
   }
-  getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
-    throw new Error("Method not implemented.");
+  async getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
+    const redeemFees = await this.getInitiateFees({});
+    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -2278,8 +2835,9 @@ var FA12TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   redeem(_params) {
     throw new Error("Method not implemented.");
   }
-  getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
-    throw new Error("Method not implemented.");
+  async getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
+    const redeemFees = await this.getInitiateFees({});
+    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -2310,8 +2868,9 @@ var FA2TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   redeem(_params) {
     throw new Error("Method not implemented.");
   }
-  getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
-    throw new Error("Method not implemented.");
+  async getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
+    const redeemFees = await this.getInitiateFees({});
+    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -2447,7 +3006,6 @@ var tezosMainnetCurrencies = [
 ];
 var tezosTestnetCurrencies = [
   nativeTezosCurrency,
-  { ...tzBtcCurrency, contractAddress: "KT1DM4k79uSx5diQnwqDiF4XeA86aCBxBD35" },
   { ...usdtCurrency, contractAddress: "KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR" }
 ];
 
@@ -2566,8 +3124,8 @@ var mainnetTezosTaquitoAtomexProtocolV1Options = {
 var testnetNativeTezosTaquitoAtomexProtocolV1Options = {
   atomexProtocolVersion: 1,
   currencyId: "XTZ",
-  swapContractAddress: "KT1VG2WtYdSWz5E7chTeAdDPZNy2MpP8pTfL",
-  swapContractBlockId: "513046",
+  swapContractAddress: "KT1SJMtHZFSPva5AzQEx5btBuQ8BjvXqort3",
+  swapContractBlockId: "320132",
   initiateOperation: {
     fee: 2e3,
     gasLimit: 11e3,
@@ -2647,10 +3205,7 @@ var createDefaultTezosBlockchainOptions = (atomexContext) => {
 };
 
 // src/clients/helpers.ts
-import BigNumber12 from "bignumber.js";
-var isOrderPreview = (orderBody) => {
-  return typeof orderBody.symbol === "string" && typeof orderBody.side === "string" && !!orderBody.from && !!orderBody.to;
-};
+import BigNumber14 from "bignumber.js";
 var mapQuoteDtosToQuotes = (quoteDtos) => {
   const quotes = quoteDtos.map((quoteDto) => mapQuoteDtoToQuote(quoteDto));
   return quotes;
@@ -2658,8 +3213,8 @@ var mapQuoteDtosToQuotes = (quoteDtos) => {
 var mapQuoteDtoToQuote = (quoteDto) => {
   const [quoteCurrency, baseCurrency] = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(quoteDto.symbol);
   const quote = {
-    ask: new BigNumber12(quoteDto.ask),
-    bid: new BigNumber12(quoteDto.bid),
+    ask: new BigNumber14(quoteDto.ask),
+    bid: new BigNumber14(quoteDto.bid),
     symbol: quoteDto.symbol,
     timeStamp: new Date(quoteDto.timeStamp),
     quoteCurrency,
@@ -2678,7 +3233,7 @@ var mapSymbolDtoToSymbol = (symbolDto, currenciesProvider, defaultDecimals = 9) 
     name: symbolDto.name,
     baseCurrency,
     quoteCurrency,
-    minimumQty: new BigNumber12(symbolDto.minimumQty),
+    minimumQty: new BigNumber14(symbolDto.minimumQty),
     decimals: {
       baseCurrency: preparedBaseCurrencyDecimals,
       quoteCurrency: preparedQuoteCurrencyDecimals,
@@ -2703,7 +3258,7 @@ var mapOrderBookDtoToOrderBook = (orderBookDto) => {
 var mapOrderBookEntryDtoToOrderBookEntry = (entryDto) => {
   const entry = {
     side: entryDto.side,
-    price: new BigNumber12(entryDto.price),
+    price: new BigNumber14(entryDto.price),
     qtyProfile: entryDto.qtyProfile
   };
   return entry;
@@ -2731,7 +3286,7 @@ var mapOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
   const exchangeSymbol = exchangeSymbolsProvider.getSymbol(orderDto.symbol);
   if (!exchangeSymbol)
     throw new Error(`"${orderDto.symbol}" symbol not found`);
-  const [from, to] = symbolsHelper_exports.convertSymbolToFromToCurrenciesPair(exchangeSymbol, orderDto.side, orderDto.qty, orderDto.price);
+  const [from, to] = symbolsHelper_exports.convertSymbolAndSideToFromAndToSymbolCurrencies(exchangeSymbol, orderDto.side, orderDto.qty, orderDto.price);
   return {
     id: orderDto.id,
     from,
@@ -2739,7 +3294,7 @@ var mapOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
     clientOrderId: orderDto.clientOrderId,
     side: orderDto.side,
     symbol: orderDto.symbol,
-    leaveQty: new BigNumber12(orderDto.leaveQty),
+    leaveQty: new BigNumber14(orderDto.leaveQty),
     timeStamp: new Date(orderDto.timeStamp),
     type: orderDto.type,
     status: orderDto.status,
@@ -2764,7 +3319,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
   const exchangeSymbol = exchangeSymbolsProvider.getSymbol(swapDto.symbol);
   if (!exchangeSymbol)
     throw new Error(`"${swapDto.symbol}" symbol not found`);
-  const [from, to] = symbolsHelper_exports.convertSymbolToFromToCurrenciesPair(exchangeSymbol, swapDto.side, swapDto.qty, swapDto.price);
+  const [from, to] = symbolsHelper_exports.convertSymbolAndSideToFromAndToSymbolCurrencies(exchangeSymbol, swapDto.side, swapDto.qty, swapDto.price);
   const swap = {
     isInitiator: swapDto.isInitiator,
     secret: swapDto.secret,
@@ -2773,8 +3328,8 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
     from,
     to,
     trade: {
-      qty: new BigNumber12(swapDto.qty),
-      price: new BigNumber12(swapDto.price),
+      qty: new BigNumber14(swapDto.qty),
+      price: new BigNumber14(swapDto.price),
       side: swapDto.side,
       symbol: swapDto.symbol
     },
@@ -2784,7 +3339,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
       transactions: mapTransactionDtosToTransactions(swapDto.counterParty.transactions),
       requisites: {
         ...swapDto.counterParty.requisites,
-        rewardForRedeem: new BigNumber12(swapDto.counterParty.requisites.rewardForRedeem)
+        rewardForRedeem: new BigNumber14(swapDto.counterParty.requisites.rewardForRedeem)
       },
       trades: mapTradeDtosToTrades(swapDto.counterParty.trades)
     },
@@ -2793,7 +3348,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
       transactions: mapTransactionDtosToTransactions(swapDto.user.transactions),
       requisites: {
         ...swapDto.user.requisites,
-        rewardForRedeem: new BigNumber12(swapDto.user.requisites.rewardForRedeem)
+        rewardForRedeem: new BigNumber14(swapDto.user.requisites.rewardForRedeem)
       },
       trades: mapTradeDtosToTrades(swapDto.user.trades)
     }
@@ -2803,8 +3358,8 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
 var mapTradeDtosToTrades = (tradeDtos) => {
   const trades = tradeDtos.map((tradeDto) => ({
     orderId: tradeDto.orderId,
-    price: new BigNumber12(tradeDto.price),
-    qty: new BigNumber12(tradeDto.qty)
+    price: new BigNumber14(tradeDto.price),
+    qty: new BigNumber14(tradeDto.qty)
   }));
   return trades;
 };
@@ -2815,13 +3370,13 @@ var mapWebSocketOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
   const exchangeSymbol = exchangeSymbolsProvider.getSymbol(orderDto.symbol);
   if (!exchangeSymbol)
     throw new Error(`"${orderDto.symbol}" symbol not found`);
-  const [from, to] = symbolsHelper_exports.convertSymbolToFromToCurrenciesPair(exchangeSymbol, orderDto.side, orderDto.qty, orderDto.price);
+  const [from, to] = symbolsHelper_exports.convertSymbolAndSideToFromAndToSymbolCurrencies(exchangeSymbol, orderDto.side, orderDto.qty, orderDto.price);
   const order = {
     id: orderDto.id,
     clientOrderId: orderDto.clientOrderId,
     side: orderDto.side,
     status: orderDto.status,
-    leaveQty: new BigNumber12(orderDto.leaveQty),
+    leaveQty: new BigNumber14(orderDto.leaveQty),
     swapIds: orderDto.swaps,
     symbol: orderDto.symbol,
     type: orderDto.type,
@@ -2899,7 +3454,7 @@ var RestAtomexClient = class {
         symbols = symbolsOrDirections;
       else {
         const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-        symbols = symbolsOrDirections.map((d) => symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, d.from, d.to)[0].name);
+        symbols = symbolsOrDirections.map((d) => symbolsHelper_exports.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, d.from, d.to)[0].name);
       }
     }
     const params = { symbols: symbols == null ? void 0 : symbols.join(",") };
@@ -2913,7 +3468,7 @@ var RestAtomexClient = class {
       symbol = symbolOrDirection;
     else {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      symbol = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
+      symbol = symbolsHelper_exports.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, symbolOrDirection.from, symbolOrDirection.to)[0].name;
     }
     const params = { symbol };
     const orderBookDto = await this.httpClient.request({ urlPath, params });
@@ -2926,13 +3481,11 @@ var RestAtomexClient = class {
     let side = void 0;
     let amountBigNumber;
     let priceBigNumber;
-    if (isOrderPreview(newOrderRequest.orderBody)) {
-      const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      const exchangeSymbolAndSide = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, newOrderRequest.orderBody.from.currencyId, newOrderRequest.orderBody.to.currencyId);
-      const exchangeSymbol = exchangeSymbolAndSide[0];
-      symbol = exchangeSymbol.name;
-      side = exchangeSymbolAndSide[1];
-      const directionName = exchangeSymbol.quoteCurrency === newOrderRequest.orderBody.from.currencyId ? "from" : "to";
+    if (ordersHelper_exports.isOrderPreview(newOrderRequest.orderBody)) {
+      symbol = newOrderRequest.orderBody.symbol;
+      side = newOrderRequest.orderBody.side;
+      const quoteCurrencyId = symbolsHelper_exports.getQuoteBaseCurrenciesBySymbol(symbol)[0];
+      const directionName = quoteCurrencyId === newOrderRequest.orderBody.from.currencyId ? "from" : "to";
       amountBigNumber = newOrderRequest.orderBody[directionName].amount;
       priceBigNumber = newOrderRequest.orderBody[directionName].price;
     } else {
@@ -2977,7 +3530,7 @@ var RestAtomexClient = class {
       [symbol, side] = [cancelOrderRequest.symbol, cancelOrderRequest.side];
     else if (cancelOrderRequest.from && cancelOrderRequest.to) {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      const exchangeSymbolAndSide = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
+      const exchangeSymbolAndSide = symbolsHelper_exports.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, cancelOrderRequest.from, cancelOrderRequest.to);
       symbol = exchangeSymbolAndSide[0].name;
       side = exchangeSymbolAndSide[1];
     } else
@@ -3002,7 +3555,7 @@ var RestAtomexClient = class {
       [symbol, side] = [cancelAllOrdersRequest.symbol, cancelAllOrdersRequest.side];
     else if (cancelAllOrdersRequest.from && cancelAllOrdersRequest.to) {
       const exchangeSymbols = this.exchangeSymbolsProvider.getSymbolsMap();
-      const exchangeSymbolAndSide = symbolsHelper_exports.findExchangeSymbolAndSide(exchangeSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
+      const exchangeSymbolAndSide = symbolsHelper_exports.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, cancelAllOrdersRequest.from, cancelAllOrdersRequest.to);
       symbol = exchangeSymbolAndSide[0].name;
       side = exchangeSymbolAndSide[1];
       if (cancelAllOrdersRequest.cancelAllDirections)
@@ -3841,7 +4394,7 @@ var config = {
 
 // src/atomexBuilder/atomexBuilder.ts
 var AtomexBuilder = class {
-  constructor(options, atomexContext = new AtomexContext(options.atomexNetwork)) {
+  constructor(options, atomexContext = new DefaultAtomexContext(options.atomexNetwork)) {
     this.options = options;
     this.atomexContext = atomexContext;
   }
@@ -3877,6 +4430,7 @@ var AtomexBuilder = class {
     this.controlledAtomexContext.managers.exchangeManager = this.createExchangeManager();
     this.controlledAtomexContext.managers.swapManager = this.createSwapManager();
     this.controlledAtomexContext.managers.priceManager = this.createPriceManager();
+    this.controlledAtomexContext.managers.balanceManager = this.createBalanceManager();
     const blockchains = this.createDefaultBlockchainOptions();
     return new Atomex({
       atomexContext: this.atomexContext,
@@ -3884,7 +4438,8 @@ var AtomexBuilder = class {
         walletsManager: this.atomexContext.managers.walletsManager,
         authorizationManager: this.atomexContext.managers.authorizationManager,
         exchangeManager: this.atomexContext.managers.exchangeManager,
-        swapManager: this.atomexContext.managers.swapManager
+        swapManager: this.atomexContext.managers.swapManager,
+        balanceManager: this.atomexContext.managers.balanceManager
       },
       blockchains
     });
@@ -3915,6 +4470,9 @@ var AtomexBuilder = class {
   }
   createSwapManager() {
     return new SwapManager(this.atomexContext.services.swapService);
+  }
+  createBalanceManager() {
+    return new CachedBalanceManager(this.atomexContext.providers.blockchainProvider);
   }
   createDefaultBlockchainOptions() {
     return {
@@ -5090,7 +5648,7 @@ var Atomex2 = class {
 };
 
 // src/legacy/ethereum.ts
-import BigNumber13 from "bignumber.js";
+import BigNumber15 from "bignumber.js";
 import elliptic from "elliptic";
 import Web33 from "web3";
 
@@ -5209,14 +5767,14 @@ var EthereumHelpers = class extends Helpers {
       secretHash: params["_hashedSecret"].slice(2),
       receivingAddress: params["_participant"],
       refundTimestamp: parseInt(params["_refundTimestamp"]),
-      rewardForRedeem: new BigNumber13(this._web3.utils.toBN(params["_payoff"]).toString()),
-      netAmount: new BigNumber13(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
+      rewardForRedeem: new BigNumber15(this._web3.utils.toBN(params["_payoff"]).toString()),
+      netAmount: new BigNumber15(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
     };
   }
   async validateInitiateTransaction(_blockHeight, txId, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
     var _a;
-    amount = new BigNumber13(amount);
-    payoff = new BigNumber13(payoff);
+    amount = new BigNumber15(amount);
+    payoff = new BigNumber15(payoff);
     const netAmount = amount.minus(payoff);
     const transaction = await this.getTransaction(txId);
     try {
@@ -5330,7 +5888,7 @@ import {
   validateAddress,
   ValidationResult
 } from "@taquito/utils";
-import BigNumber14 from "bignumber.js";
+import BigNumber16 from "bignumber.js";
 var formatTimestamp = (timestamp) => {
   return new Date(timestamp * 1e3).toISOString().slice(0, -5) + "Z";
 };
@@ -5460,8 +6018,8 @@ var TezosHelpers = class extends Helpers {
       secretHash: initiateParams["settings"]["hashed_secret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["settings"]["refund_time"]),
-      netAmount: new BigNumber14(content.amount).minus(initiateParams["settings"]["payoff"]),
-      rewardForRedeem: new BigNumber14(initiateParams["settings"]["payoff"])
+      netAmount: new BigNumber16(content.amount).minus(initiateParams["settings"]["payoff"]),
+      rewardForRedeem: new BigNumber16(initiateParams["settings"]["payoff"])
     };
   }
   findContractCall(block, txID) {
@@ -5477,8 +6035,8 @@ var TezosHelpers = class extends Helpers {
     return contents;
   }
   async validateInitiateTransaction(blockHeight, txID, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
-    amount = new BigNumber14(amount);
-    payoff = new BigNumber14(payoff);
+    amount = new BigNumber16(amount);
+    payoff = new BigNumber16(payoff);
     const netAmount = amount.minus(payoff);
     const block = await this.getBlock(blockHeight);
     try {
@@ -5551,8 +6109,8 @@ var TezosHelpers = class extends Helpers {
       receivingAddress: "tz1Q2prWCrDGFDuGTe7axdt4z9e3QkCqdhmD",
       secretHash: "169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b",
       refundTimestamp: 2147483647,
-      rewardForRedeem: new BigNumber14(0),
-      netAmount: new BigNumber14(100)
+      rewardForRedeem: new BigNumber16(0),
+      netAmount: new BigNumber16(100)
     };
     const tx = this.buildInitiateTransaction(dummyTx);
     const header = await this._tezos.rpc.getBlockHeader();
@@ -5608,7 +6166,7 @@ var TezosHelpers = class extends Helpers {
 
 // src/legacy/fa12.ts
 import { TezosToolkit as TezosToolkit6 } from "@taquito/taquito";
-import BigNumber15 from "bignumber.js";
+import BigNumber17 from "bignumber.js";
 var FA12Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
@@ -5645,15 +6203,15 @@ var FA12Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: new BigNumber15(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
-      rewardForRedeem: new BigNumber15(initiateParams["payoffAmount"])
+      netAmount: new BigNumber17(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new BigNumber17(initiateParams["payoffAmount"])
     };
   }
 };
 
 // src/legacy/fa2.ts
 import { TezosToolkit as TezosToolkit7 } from "@taquito/taquito";
-import BigNumber16 from "bignumber.js";
+import BigNumber18 from "bignumber.js";
 var FA2Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
@@ -5681,8 +6239,8 @@ var FA2Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: new BigNumber16(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
-      rewardForRedeem: new BigNumber16(initiateParams["payoffAmount"])
+      netAmount: new BigNumber18(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new BigNumber18(initiateParams["payoffAmount"])
     };
   }
   getInitiateParams(entrypoint, params) {

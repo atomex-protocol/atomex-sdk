@@ -1,18 +1,22 @@
 import BigNumber from 'bignumber.js';
 import type { AuthorizationManager } from '../authorization/index';
+import type { BalanceManager } from '../blockchain/balanceManager';
 import type { WalletsManager } from '../blockchain/index';
 import type { AtomexService, Currency } from '../common/index';
-import type { ExchangeManager } from '../exchange/exchangeManager';
+import { ExchangeManager } from '../exchange/index';
 import type { Swap, SwapManager } from '../swaps/index';
 import type { AtomexContext } from './atomexContext';
-import { SwapOperationCompleteStage, AtomexOptions, NewSwapRequest, AtomexBlockchainNetworkOptions } from './models/index';
+import { AtomexSwapPreviewManager } from './atomexSwapPreviewManager';
+import { NewSwapRequest, SwapOperationCompleteStage, AtomexOptions, AtomexBlockchainNetworkOptions, SwapPreviewParameters, NormalizedSwapPreviewParameters, SwapPreview } from './models/index';
 export declare class Atomex implements AtomexService {
     readonly options: AtomexOptions;
     readonly authorization: AuthorizationManager;
     readonly exchangeManager: ExchangeManager;
+    readonly balanceManager: BalanceManager;
     readonly swapManager: SwapManager;
     readonly wallets: WalletsManager;
     readonly atomexContext: AtomexContext;
+    protected readonly swapPreviewManager: AtomexSwapPreviewManager;
     private _isStarted;
     constructor(options: AtomexOptions);
     get atomexNetwork(): import("../common/index").AtomexNetwork;
@@ -21,6 +25,7 @@ export declare class Atomex implements AtomexService {
     stop(): void;
     addBlockchain(factoryMethod: (context: AtomexContext) => [blockchain: string, options: AtomexBlockchainNetworkOptions]): void;
     getCurrency(currencyId: Currency['id']): Currency | undefined;
+    getSwapPreview(swapPreviewParameters: SwapPreviewParameters | NormalizedSwapPreviewParameters): Promise<SwapPreview>;
     swap(newSwapRequest: NewSwapRequest, completeStage?: SwapOperationCompleteStage): Promise<Swap | readonly Swap[]>;
     swap(swapId: Swap['id'], completeStage?: SwapOperationCompleteStage): Promise<Swap | readonly Swap[]>;
     convertCurrency(fromAmount: BigNumber.Value, fromCurrency: Currency['id'], toCurrency: Currency['id']): Promise<BigNumber | undefined>;

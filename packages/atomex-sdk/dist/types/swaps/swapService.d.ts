@@ -1,5 +1,5 @@
 import type { AtomexService } from '../common/atomexService';
-import type { PublicEventEmitter } from '../core/eventEmitter';
+import type { PublicEventEmitter } from '../core/index';
 import type { SwapsSelector } from '../exchange/index';
 import type { Swap } from './models/swap';
 export interface SwapServiceEvents {

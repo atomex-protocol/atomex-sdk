@@ -1,4 +1,3 @@
-import type BigNumber from 'bignumber.js';
 import type { AtomexBlockchainProvider, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters, FeesInfo, Transaction, WalletsManager } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
@@ -10,7 +9,7 @@ export declare class EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtocolV1 {
     initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
     getInitiateFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
     redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
-    getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<BigNumber>;
+    getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<FeesInfo>;
     getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
     refund(_params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
     getRefundFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;

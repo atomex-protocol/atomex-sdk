@@ -1,3 +1,4 @@
+import type { ProofOfFundsAlgorithm } from '../exchange/index';
 export declare type Side = 'Buy' | 'Sell';
 export declare type OrderType = 'Return' | 'FillOrKill' | 'ImmediateOrCancel' | 'SolidFillOrKill';
 export declare type OrderStatus = 'Pending' | 'Placed' | 'PartiallyFilled' | 'Filled' | 'Canceled' | 'Rejected';
@@ -27,6 +28,16 @@ export interface OrderBookEntryDto {
 export interface WebSocketOrderBookEntryDto extends OrderBookEntryDto {
     symbol: string;
     updateId: number;
+}
+export interface NewOrderRequestDto {
+    clientOrderId: string;
+    symbol: string;
+    price: number;
+    qty: number;
+    side: Side;
+    type: OrderType;
+    proofsOfFunds?: ProofOfFundsDto[];
+    requisites?: SwapRequisitesDto;
 }
 export interface OrderDto {
     id: number;
@@ -74,6 +85,15 @@ export interface SwapRequisitesDto {
     lockTime: number;
     baseCurrencyContract: string;
     quoteCurrencyContract: string;
+}
+export interface ProofOfFundsDto {
+    address: string;
+    currency: string;
+    timeStamp: number;
+    message: string;
+    publicKey: string;
+    signature: string;
+    algorithm: ProofOfFundsAlgorithm;
 }
 export interface TransactionDto {
     currency: string;

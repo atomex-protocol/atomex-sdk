@@ -1,7 +1,7 @@
 import type { AuthorizationManager } from '../../authorization/index';
 import type { Transaction } from '../../blockchain/index';
 import type { AtomexNetwork, CurrenciesProvider } from '../../common/index';
-import type { Order, OrderBook, Quote, ExchangeSymbol, NewOrderRequest, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider, ManagedOrderBookProvider } from '../../exchange/index';
+import type { Order, OrderBook, Quote, ExchangeSymbol, FilledNewOrderRequest, OrdersSelector, CancelOrderRequest, CancelAllOrdersRequest, SwapsSelector, CurrencyDirection, ExchangeSymbolsProvider, ManagedOrderBookProvider } from '../../exchange/index';
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
 import type { OrderBookDto, WebSocketOrderBookEntryDto, WebSocketResponseDto } from '../dtos';
@@ -37,7 +37,7 @@ export declare class WebSocketAtomexClient implements AtomexClient {
     getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
     getOrderBook(symbol: string): Promise<OrderBook | undefined>;
     getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
-    addOrder(_accountAddress: string, _newOrderRequest: NewOrderRequest): Promise<number>;
+    addOrder(_accountAddress: string, _newOrderRequest: FilledNewOrderRequest): Promise<number>;
     cancelOrder(_accountAddress: string, _cancelOrderRequest: CancelOrderRequest): Promise<boolean>;
     cancelAllOrders(_accountAddress: string, _cancelAllOrdersRequest: CancelAllOrdersRequest): Promise<number>;
     getSwapTransactions(_swap: Swap): Promise<readonly Transaction[]>;

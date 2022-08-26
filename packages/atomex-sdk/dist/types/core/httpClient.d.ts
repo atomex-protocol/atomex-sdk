@@ -2,7 +2,7 @@ declare type QueryParams = {
     [key: string]: string | number | boolean | null | undefined;
 };
 declare type Payload = {
-    [key: string]: unknown;
+    [key: string]: any;
 };
 export interface RequestOptions {
     urlPath: string;

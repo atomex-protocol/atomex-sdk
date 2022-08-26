@@ -1,9 +1,8 @@
 import type { Transaction } from '../blockchain/models/index';
 import type { CurrenciesProvider } from '../common/index';
-import { ExchangeSymbol, ExchangeSymbolsProvider, NewOrderRequest, Order, OrderBook, OrderBookEntry, OrderBookProvider, OrderPreview, Quote } from '../exchange/index';
+import { ExchangeSymbol, ExchangeSymbolsProvider, Order, OrderBook, OrderBookEntry, OrderBookProvider, Quote } from '../exchange/index';
 import type { Swap, SwapParticipantTrade } from '../swaps/index';
 import type { OrderBookDto, OrderBookEntryDto, OrderDto, QuoteDto, SwapDto, SymbolDto, TradeDto, TransactionDto, WebSocketOrderBookEntryDto, WebSocketOrderDataDto } from './dtos';
-export declare const isOrderPreview: (orderBody: NewOrderRequest['orderBody']) => orderBody is OrderPreview;
 export declare const mapQuoteDtosToQuotes: (quoteDtos: QuoteDto[]) => Quote[];
 export declare const mapQuoteDtoToQuote: (quoteDto: QuoteDto) => Quote;
 export declare const mapSymbolDtoToSymbol: (symbolDto: SymbolDto, currenciesProvider: CurrenciesProvider, defaultDecimals?: number) => ExchangeSymbol;

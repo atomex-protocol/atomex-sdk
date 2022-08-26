@@ -11,7 +11,7 @@ export { EthereumWeb3AtomexProtocolV1, ERC20EthereumWeb3AtomexProtocolV1 } from 
 export { InMemoryAuthorizationManagerStore } from './stores/index';
 export { TaquitoBlockchainWallet, TezosTaquitoAtomexProtocolV1, FA12TezosTaquitoAtomexProtocolV1, FA2TezosTaquitoAtomexProtocolV1 } from './tezos/index';
 export * from './utils';
-export type { AtomexOptions, NewSwapRequest } from './atomex/index';
+export type { AtomexOptions, NewSwapRequest, SwapPreview } from './atomex/index';
 export type { AuthToken, AuthorizationManagerOptions } from './authorization/index';
 export type { AtomexProtocol, Transaction, AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters, AtomexSignature, BlockchainWallet, BalancesProvider, SwapTransactionsProvider, TransactionsProvider } from './blockchain/index';
 export type { OrdersSelector, SwapsSelector } from './exchange/index';

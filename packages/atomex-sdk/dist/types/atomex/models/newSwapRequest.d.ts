@@ -1,4 +1,6 @@
-import type { NewOrderRequest } from '../../exchange/index';
-export declare type NewSwapRequest = NewOrderRequest & {
-    readonly accountAddress: string;
-};
+import type { SwapPreview } from './swapPreview';
+export interface NewSwapRequest {
+    swapPreview: SwapPreview;
+    refundAddress?: string;
+    isInitiator?: boolean;
+}

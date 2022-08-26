@@ -22,9 +22,12 @@ export declare type OrderPreviewParameters = OrderPreviewParametersBase & ({
     side: Side;
     isQuoteCurrencyAmount?: boolean;
 });
-export declare type PreparedPreviewParameters = Readonly<OrderPreviewParametersBase> & {
+export declare type NormalizedOrderPreviewParameters = Readonly<OrderPreviewParametersBase> & {
     readonly exchangeSymbol: ExchangeSymbol;
     readonly side: Side;
     readonly isQuoteCurrencyAmount: boolean;
+    readonly from: CurrencyDirection['from'];
+    readonly to: CurrencyDirection['to'];
+    readonly isFromAmount: boolean;
 };
 export {};

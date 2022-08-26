@@ -1,6 +1,7 @@
 import { Atomex, AtomexContext } from '../atomex/index';
 import type { AtomexBlockchainNetworkOptions } from '../atomex/models/index';
 import type { AuthorizationManager } from '../authorization/index';
+import { CachedBalanceManager } from '../blockchain/balanceManager';
 import { WalletsManager } from '../blockchain/index';
 import type { DeepReadonly } from '../core/index';
 import { ExchangeManager, InMemoryExchangeSymbolsProvider, InMemoryOrderBookProvider, PriceManager } from '../exchange/index';
@@ -27,6 +28,7 @@ export declare class AtomexBuilder {
     protected createDefaultExchangeService(): import("..").MixedApiAtomexClient;
     protected createExchangeManager(): ExchangeManager;
     protected createSwapManager(): SwapManager;
+    protected createBalanceManager(): CachedBalanceManager;
     protected createDefaultBlockchainOptions(): Record<string, AtomexBlockchainNetworkOptions>;
     protected createPriceManager(): PriceManager;
 }
