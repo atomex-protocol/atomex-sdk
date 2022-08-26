@@ -11,12 +11,12 @@ const validCancelOrderWithDirectionsTestCases: ReadonlyArray<readonly [
       [
         [{
           name: 'XTZ/ETH',
-          baseCurrency: 'ETH',
-          quoteCurrency: 'XTZ',
+          baseCurrency: 'XTZ',
+          quoteCurrency: 'ETH',
           minimumQty: new BigNumber(1),
           decimals: {
-            baseCurrency: 9,
-            quoteCurrency: 6,
+            baseCurrency: 6,
+            quoteCurrency: 9,
             price: 9
           }
         }],
@@ -34,12 +34,12 @@ const validCancelOrderWithDirectionsTestCases: ReadonlyArray<readonly [
       [
         [{
           name: 'XTZ/ETH',
-          baseCurrency: 'ETH',
-          quoteCurrency: 'XTZ',
+          baseCurrency: 'XTZ',
+          quoteCurrency: 'ETH',
           minimumQty: new BigNumber(1),
           decimals: {
-            baseCurrency: 9,
-            quoteCurrency: 6,
+            baseCurrency: 6,
+            quoteCurrency: 9,
             price: 9
           }
         }],

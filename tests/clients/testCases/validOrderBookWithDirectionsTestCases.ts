@@ -19,12 +19,12 @@ const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
         [
           {
             name: 'ETH/BTC',
-            baseCurrency: 'BTC',
-            quoteCurrency: 'ETH',
+            baseCurrency: 'ETH',
+            quoteCurrency: 'BTC',
             minimumQty: new BigNumber(0.0001),
             decimals: {
-              baseCurrency: 8,
-              quoteCurrency: 9,
+              baseCurrency: 9,
+              quoteCurrency: 8,
               price: 9
             }
           }
@@ -53,8 +53,8 @@ const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
         {
           updateId: 57551,
           symbol: 'ETH/BTC',
-          quoteCurrency: 'ETH',
-          baseCurrency: 'BTC',
+          baseCurrency: 'ETH',
+          quoteCurrency: 'BTC',
           entries: [
             {
               side: 'Buy',
@@ -81,12 +81,12 @@ const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
         [
           {
             name: 'ETH/BTC',
-            baseCurrency: 'BTC',
-            quoteCurrency: 'ETH',
+            baseCurrency: 'ETH',
+            quoteCurrency: 'BTC',
             minimumQty: new BigNumber(0.0001),
             decimals: {
-              baseCurrency: 8,
-              quoteCurrency: 9,
+              quoteCurrency: 8,
+              baseCurrency: 9,
               price: 9
             }
           }
@@ -115,8 +115,8 @@ const validOrderBookWithDirectionsTestCases: ReadonlyArray<readonly [
         {
           updateId: 57551,
           symbol: 'ETH/BTC',
-          quoteCurrency: 'ETH',
-          baseCurrency: 'BTC',
+          baseCurrency: 'ETH',
+          quoteCurrency: 'BTC',
           entries: [
             {
               side: 'Buy',

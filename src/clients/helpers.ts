@@ -16,22 +16,22 @@ export const mapQuoteDtosToQuotes = (quoteDtos: QuoteDto[]): Quote[] => {
 };
 
 export const mapQuoteDtoToQuote = (quoteDto: QuoteDto): Quote => {
-  const [quoteCurrency, baseCurrency] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(quoteDto.symbol);
+  const [baseCurrency, quoteCurrency] = symbolsHelper.getBaseQuoteCurrenciesBySymbol(quoteDto.symbol);
 
   const quote: Quote = {
     ask: new BigNumber(quoteDto.ask),
     bid: new BigNumber(quoteDto.bid),
     symbol: quoteDto.symbol,
     timeStamp: new Date(quoteDto.timeStamp),
-    quoteCurrency,
-    baseCurrency
+    baseCurrency,
+    quoteCurrency
   };
 
   return quote;
 };
 
 export const mapSymbolDtoToSymbol = (symbolDto: SymbolDto, currenciesProvider: CurrenciesProvider, defaultDecimals = 9): ExchangeSymbol => {
-  const [quoteCurrency, baseCurrency] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(symbolDto.name);
+  const [baseCurrency, quoteCurrency] = symbolsHelper.getBaseQuoteCurrenciesBySymbol(symbolDto.name);
   const baseCurrencyDecimals = currenciesProvider.getCurrency(baseCurrency)?.decimals;
   const quoteCurrencyDecimals = currenciesProvider.getCurrency(quoteCurrency)?.decimals;
 
@@ -60,13 +60,13 @@ export const mapSymbolDtosToSymbols = (
 };
 
 export const mapOrderBookDtoToOrderBook = (orderBookDto: OrderBookDto): OrderBook => {
-  const [quoteCurrency, baseCurrency] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(orderBookDto.symbol);
+  const [baseCurrency, quoteCurrency] = symbolsHelper.getBaseQuoteCurrenciesBySymbol(orderBookDto.symbol);
 
   const orderBook: OrderBook = {
     updateId: orderBookDto.updateId,
     symbol: orderBookDto.symbol,
-    quoteCurrency,
     baseCurrency,
+    quoteCurrency,
     entries: orderBookDto.entries.map(orderBookEntryDto => mapOrderBookEntryDtoToOrderBookEntry(orderBookEntryDto))
   };
 

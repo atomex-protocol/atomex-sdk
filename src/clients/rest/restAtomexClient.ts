@@ -157,8 +157,8 @@ export class RestAtomexClient implements AtomexClient {
       symbol = newOrderRequest.orderBody.symbol;
       side = newOrderRequest.orderBody.side;
 
-      const quoteCurrencyId = symbolsHelper.getQuoteBaseCurrenciesBySymbol(symbol)[0];
-      const directionName: 'from' | 'to' = quoteCurrencyId === newOrderRequest.orderBody.from.currencyId ? 'from' : 'to';
+      const baseCurrencyId = symbolsHelper.getBaseQuoteCurrenciesBySymbol(symbol)[0];
+      const directionName: 'from' | 'to' = baseCurrencyId === newOrderRequest.orderBody.from.currencyId ? 'from' : 'to';
 
       amountBigNumber = newOrderRequest.orderBody[directionName].amount;
       priceBigNumber = newOrderRequest.orderBody[directionName].price;
@@ -181,8 +181,8 @@ export class RestAtomexClient implements AtomexClient {
         refundAddress: newOrderRequest.requisites.refundAddress,
         rewardForRedeem: newOrderRequest.requisites.rewardForRedeem.toNumber(),
         lockTime: newOrderRequest.requisites.lockTime,
-        baseCurrencyContract: newOrderRequest.requisites.baseCurrencyContract,
-        quoteCurrencyContract: newOrderRequest.requisites.quoteCurrencyContract
+        quoteCurrencyContract: newOrderRequest.requisites.quoteCurrencyContract,
+        baseCurrencyContract: newOrderRequest.requisites.baseCurrencyContract
       } : undefined,
       proofsOfFunds: newOrderRequest.proofsOfFunds,
       qty: amountBigNumber.toNumber(),

@@ -10,7 +10,7 @@ export const isOrderPreview = (orderBody: NewOrderRequest['orderBody']): orderBo
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const isNormalizedOrderPreviewParameters = (orderPreviewParameters: any): orderPreviewParameters is NormalizedOrderPreviewParameters => {
   return !!(orderPreviewParameters.symbol && orderPreviewParameters.side && orderPreviewParameters.from && orderPreviewParameters.to
-    && typeof orderPreviewParameters.isQuoteCurrencyAmount === 'boolean'
+    && typeof orderPreviewParameters.isBaseCurrencyAmount === 'boolean'
     && typeof orderPreviewParameters.isFromAmount === 'boolean'
   );
 };
@@ -24,7 +24,7 @@ export const normalizeOrderPreviewParameters = (
   let symbol: string;
   let exchangeSymbol: NormalizedOrderPreviewParameters['exchangeSymbol'] | undefined;
   let side: NormalizedOrderPreviewParameters['side'];
-  let isQuoteCurrencyAmount: NormalizedOrderPreviewParameters['isQuoteCurrencyAmount'] = true;
+  let isBaseCurrencyAmount: NormalizedOrderPreviewParameters['isBaseCurrencyAmount'] = true;
   let from: NormalizedOrderPreviewParameters['from'];
   let to: NormalizedOrderPreviewParameters['to'];
   let isFromAmount: NormalizedOrderPreviewParameters['isFromAmount'] = true;
@@ -36,12 +36,12 @@ export const normalizeOrderPreviewParameters = (
       throw new Error(`The ${symbol} Symbol not found`);
 
     side = orderPreviewParameters.side;
-    if (orderPreviewParameters.isQuoteCurrencyAmount !== undefined && orderPreviewParameters.isQuoteCurrencyAmount !== null)
-      isQuoteCurrencyAmount = orderPreviewParameters.isQuoteCurrencyAmount;
+    if (orderPreviewParameters.isBaseCurrencyAmount !== undefined && orderPreviewParameters.isBaseCurrencyAmount !== null)
+      isBaseCurrencyAmount = orderPreviewParameters.isBaseCurrencyAmount;
 
     [from, to] = convertSymbolAndSideToFromAndToCurrencies(exchangeSymbol, side);
-    isFromAmount = (isQuoteCurrencyAmount && from === exchangeSymbol.quoteCurrency)
-      || (!isQuoteCurrencyAmount && to === exchangeSymbol.quoteCurrency);
+    isFromAmount = (isBaseCurrencyAmount && from === exchangeSymbol.baseCurrency)
+      || (!isBaseCurrencyAmount && to === exchangeSymbol.baseCurrency);
   }
   else if (orderPreviewParameters.from && orderPreviewParameters.to) {
     from = orderPreviewParameters.from;
@@ -52,8 +52,8 @@ export const normalizeOrderPreviewParameters = (
 
     [exchangeSymbol, side] = convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, orderPreviewParameters.from, orderPreviewParameters.to);
     symbol = exchangeSymbol.name;
-    isQuoteCurrencyAmount = (isFromAmount && orderPreviewParameters.from === exchangeSymbol.quoteCurrency)
-      || (!isFromAmount && orderPreviewParameters.to === exchangeSymbol.quoteCurrency);
+    isBaseCurrencyAmount = (isFromAmount && orderPreviewParameters.from === exchangeSymbol.baseCurrency)
+      || (!isFromAmount && orderPreviewParameters.to === exchangeSymbol.baseCurrency);
   }
   else
     throw new Error('Invalid orderPreviewParameters argument passed');
@@ -63,7 +63,7 @@ export const normalizeOrderPreviewParameters = (
     amount: orderPreviewParameters.amount,
     exchangeSymbol,
     side,
-    isQuoteCurrencyAmount,
+    isBaseCurrencyAmount,
     from,
     to,
     isFromAmount

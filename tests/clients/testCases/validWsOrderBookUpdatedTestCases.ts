@@ -39,8 +39,8 @@ const validWsOrderBookUpdatedTestCases: ReadonlyArray<readonly [
         [{
           updateId: 57552,
           symbol: 'ETH/BTC',
-          quoteCurrency: 'ETH',
-          baseCurrency: 'BTC',
+          baseCurrency: 'ETH',
+          quoteCurrency: 'BTC',
           entries: [
             {
               side: 'Sell',
@@ -94,8 +94,8 @@ const validWsOrderBookUpdatedTestCases: ReadonlyArray<readonly [
         [{
           updateId: 57553,
           symbol: 'ETH/BTC',
-          quoteCurrency: 'ETH',
-          baseCurrency: 'BTC',
+          baseCurrency: 'ETH',
+          quoteCurrency: 'BTC',
           entries: []
         }]
       ]
@@ -143,8 +143,8 @@ const validWsOrderBookUpdatedTestCases: ReadonlyArray<readonly [
         [{
           updateId: 57553,
           symbol: 'ETH/BTC',
-          quoteCurrency: 'ETH',
-          baseCurrency: 'BTC',
+          baseCurrency: 'ETH',
+          quoteCurrency: 'BTC',
           entries: [
             {
               side: 'Sell',
@@ -192,8 +192,8 @@ const validWsOrderBookUpdatedTestCases: ReadonlyArray<readonly [
         [{
           updateId: 57552,
           symbol: 'ETH/BTC',
-          quoteCurrency: 'ETH',
-          baseCurrency: 'BTC',
+          baseCurrency: 'ETH',
+          quoteCurrency: 'BTC',
           entries: [
             {
               side: 'Buy',
@@ -273,8 +273,8 @@ const validWsOrderBookUpdatedTestCases: ReadonlyArray<readonly [
         [{
           updateId: 57555,
           symbol: 'ETH/BTC',
-          quoteCurrency: 'ETH',
-          baseCurrency: 'BTC',
+          baseCurrency: 'ETH',
+          quoteCurrency: 'BTC',
           entries: [
             {
               side: 'Buy',
@@ -343,8 +343,8 @@ const validWsOrderBookUpdatedTestCases: ReadonlyArray<readonly [
         [{
           updateId: 57555,
           symbol: 'ETH/BTC',
-          quoteCurrency: 'ETH',
-          baseCurrency: 'BTC',
+          baseCurrency: 'ETH',
+          quoteCurrency: 'BTC',
           entries: [
             {
               side: 'Buy',
@@ -470,8 +470,8 @@ const validWsOrderBookUpdatedTestCases: ReadonlyArray<readonly [
         [{
           updateId: 57558,
           symbol: 'ETH/BTC',
-          quoteCurrency: 'ETH',
-          baseCurrency: 'BTC',
+          baseCurrency: 'ETH',
+          quoteCurrency: 'BTC',
           entries: [
             {
               side: 'Buy',
@@ -488,8 +488,8 @@ const validWsOrderBookUpdatedTestCases: ReadonlyArray<readonly [
         {
           updateId: 57559,
           symbol: 'XTZ/ETH',
-          quoteCurrency: 'XTZ',
-          baseCurrency: 'ETH',
+          baseCurrency: 'XTZ',
+          quoteCurrency: 'ETH',
           entries: [
             {
               side: 'Sell',

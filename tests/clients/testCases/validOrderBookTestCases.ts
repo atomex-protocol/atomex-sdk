@@ -33,8 +33,8 @@ const validOrderBookTestCases: ReadonlyArray<readonly [
         {
           updateId: 57551,
           symbol: 'ETH/BTC',
-          quoteCurrency: 'ETH',
-          baseCurrency: 'BTC',
+          baseCurrency: 'ETH',
+          quoteCurrency: 'BTC',
           entries: [
             {
               side: 'Buy',

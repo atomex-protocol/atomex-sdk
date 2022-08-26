@@ -103,13 +103,13 @@ export class Atomex implements AtomexService {
     if (!fromAddress)
       throw new Error('Swap preview doesn\'t have the "from" address');
 
-    const [quoteCurrencyId, baseCurrencyId] = symbolsHelper.getQuoteBaseCurrenciesBySymbol(swapPreview.symbol);
+    const [baseCurrencyId, quoteCurrencyId] = symbolsHelper.getBaseQuoteCurrenciesBySymbol(swapPreview.symbol);
     const baseCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(baseCurrencyId);
     if (!baseCurrencyInfo)
       throw new Error(`The "${baseCurrencyId}" currency (base) is unknown`);
     const quoteCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(quoteCurrencyId);
     if (!quoteCurrencyInfo)
-      throw new Error(`The "${quoteCurrencyInfo}" currency (quote) is unknown`);
+      throw new Error(`The "${quoteCurrencyId}" currency (quote) is unknown`);
 
     if (baseCurrencyInfo.atomexProtocol.version !== 1)
       throw new Error(`Unknown version (${baseCurrencyInfo.atomexProtocol.version}) of the Atomex protocol (base)`);
@@ -118,7 +118,7 @@ export class Atomex implements AtomexService {
 
     const baseCurrencyAtomexProtocolV1 = baseCurrencyInfo.atomexProtocol as AtomexProtocolV1;
     const quoteCurrencyAtomexProtocolV1 = quoteCurrencyInfo.atomexProtocol as AtomexProtocolV1;
-    const directionName: 'from' | 'to' = quoteCurrencyId === swapPreview.from.currencyId ? 'from' : 'to';
+    const directionName: 'from' | 'to' = baseCurrencyId === swapPreview.from.currencyId ? 'from' : 'to';
     const rewardForRedeem = swapPreview.fees.success.find(fee => fee.name == 'redeem-reward')?.estimated;
     const newOrderRequest: NewOrderRequest = {
       orderBody: {
@@ -135,8 +135,8 @@ export class Atomex implements AtomexService {
         rewardForRedeem: rewardForRedeem || new BigNumber(0),
         // TODO: from config
         lockTime: 18000,
-        quoteCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
-        baseCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
+        baseCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
+        quoteCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
       },
       proofsOfFunds: [
         // TODO
