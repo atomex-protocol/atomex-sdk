@@ -1,6 +1,6 @@
 import type BigNumber from 'bignumber.js';
 
-import { getRedeemRewardInNativeToken } from '../../blockchain/atomexProtocolV1';
+import { atomexProtocolV1Utils } from '../../blockchain/atomexProtocolV1';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
@@ -34,7 +34,7 @@ export class EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtocolV1 {
   }
 
   async getRedeemReward(nativeTokenPriceInUsd: BigNumber, _nativeTokenPriceInCurrency: BigNumber, redeemFee: BigNumber): Promise<FeesInfo> {
-    return getRedeemRewardInNativeToken(nativeTokenPriceInUsd, redeemFee);
+    return atomexProtocolV1Utils.getRedeemRewardInNativeToken(nativeTokenPriceInUsd, redeemFee);
   }
 
   getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
