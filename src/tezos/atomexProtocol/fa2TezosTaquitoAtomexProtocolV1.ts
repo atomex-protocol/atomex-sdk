@@ -1,6 +1,4 @@
-import type BigNumber from 'bignumber.js';
-
-import { atomexProtocolV1Utils } from '../../blockchain/atomexProtocolV1';
+import { atomexProtocolV1Helper } from '../../blockchain/atomexProtocolV1';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
@@ -8,6 +6,7 @@ import type {
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
+import type { PriceManager } from '../../exchange';
 import type { FA2TezosTaquitoAtomexProtocolV1Options } from '../models/index';
 import { TaquitoAtomexProtocolV1 } from './taquitoAtomexProtocolV1';
 
@@ -16,9 +15,10 @@ export class FA2TezosTaquitoAtomexProtocolV1 extends TaquitoAtomexProtocolV1 {
     atomexNetwork: AtomexNetwork,
     protected readonly atomexProtocolOptions: DeepReadonly<FA2TezosTaquitoAtomexProtocolV1Options>,
     atomexBlockchainProvider: AtomexBlockchainProvider,
-    walletsManager: WalletsManager
+    walletsManager: WalletsManager,
+    priceManager: PriceManager
   ) {
-    super('tezos', atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+    super('tezos', atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
   }
 
   get currencyId() {
@@ -37,8 +37,8 @@ export class FA2TezosTaquitoAtomexProtocolV1 extends TaquitoAtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  async getRedeemReward(nativeTokenPriceInUsd: BigNumber, nativeTokenPriceInCurrency: BigNumber, redeemFee: BigNumber): Promise<FeesInfo> {
-    return atomexProtocolV1Utils.getRedeemRewardInToken(nativeTokenPriceInUsd, nativeTokenPriceInCurrency, redeemFee);
+  getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo> {
+    return atomexProtocolV1Helper.getRedeemRewardInToken(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
 
   getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {

@@ -1,6 +1,4 @@
-import type BigNumber from 'bignumber.js';
-
-import { atomexProtocolV1Utils } from '../../blockchain/atomexProtocolV1';
+import { atomexProtocolV1Helper } from '../../blockchain/atomexProtocolV1';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
@@ -8,6 +6,7 @@ import type {
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
+import type { PriceManager } from '../../exchange';
 import type { TezosTaquitoAtomexProtocolV1Options } from '../models/index';
 import { TaquitoAtomexProtocolV1 } from './taquitoAtomexProtocolV1';
 
@@ -16,9 +15,10 @@ export class TezosTaquitoAtomexProtocolV1 extends TaquitoAtomexProtocolV1 {
     atomexNetwork: AtomexNetwork,
     protected readonly atomexProtocolOptions: DeepReadonly<TezosTaquitoAtomexProtocolV1Options>,
     atomexBlockchainProvider: AtomexBlockchainProvider,
-    walletsManager: WalletsManager
+    walletsManager: WalletsManager,
+    priceManager: PriceManager
   ) {
-    super('tezos', atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+    super('tezos', atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
   }
 
   get currencyId() {
@@ -37,8 +37,8 @@ export class TezosTaquitoAtomexProtocolV1 extends TaquitoAtomexProtocolV1 {
     throw new Error('Method not implemented.');
   }
 
-  async getRedeemReward(nativeTokenPriceInUsd: BigNumber, _nativeTokenPriceInCurrency: BigNumber, redeemFee: BigNumber): Promise<FeesInfo> {
-    return atomexProtocolV1Utils.getRedeemRewardInNativeToken(nativeTokenPriceInUsd, redeemFee);
+  getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo> {
+    return atomexProtocolV1Helper.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager);
   }
 
   getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {

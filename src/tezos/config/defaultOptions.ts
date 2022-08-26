@@ -20,21 +20,24 @@ const createAtomexProtocol = (
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
         atomexContext.providers.blockchainProvider,
-        atomexContext.managers.walletsManager
+        atomexContext.managers.walletsManager,
+        atomexContext.managers.priceManager
       );
     case 'fa1.2':
       return new FA12TezosTaquitoAtomexProtocolV1(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
         atomexContext.providers.blockchainProvider,
-        atomexContext.managers.walletsManager
+        atomexContext.managers.walletsManager,
+        atomexContext.managers.priceManager
       );
     case 'fa2':
       return new FA2TezosTaquitoAtomexProtocolV1(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
         atomexContext.providers.blockchainProvider,
-        atomexContext.managers.walletsManager
+        atomexContext.managers.walletsManager,
+        atomexContext.managers.priceManager
       );
     default:
       throw new Error(`Unknown Tezos currency: ${(currency as TezosCurrency).id}`);

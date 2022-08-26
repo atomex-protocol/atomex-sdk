@@ -1,5 +1,3 @@
-import type BigNumber from 'bignumber.js';
-
 import type { Currency } from '../../common/index';
 import type { AtomexProtocol } from '../atomexProtocol';
 import type { FeesInfo, Transaction } from '../models/index';
@@ -18,7 +16,7 @@ export interface AtomexProtocolV1 extends AtomexProtocol {
 
   redeem(params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
   getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
-  getRedeemReward(nativeTokenPriceInUsd: BigNumber, nativeTokenPriceInCurrency: BigNumber, redeemFee: BigNumber): Promise<FeesInfo>;
+  getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
 
   refund(params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
   getRefundFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;

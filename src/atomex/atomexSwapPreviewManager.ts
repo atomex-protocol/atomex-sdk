@@ -244,22 +244,11 @@ export class AtomexSwapPreviewManager {
     const fromAtomexProtocol = (fromCurrencyInfo.atomexProtocol as AtomexProtocolV1);
     const toAtomexProtocol = (toCurrencyInfo.atomexProtocol as AtomexProtocolV1);
 
-    const [toRedeemFees, nativeTokenPriceInUsd, nativeTokenPriceInCurrency] = await Promise.all([
-      toAtomexProtocol.getRedeemFees({}),
-      this.atomexContext.managers.priceManager.getAveragePrice({ baseCurrency: toNativeCurrencyInfo.currency.id, quoteCurrency: 'USD' }),
-      this.atomexContext.managers.priceManager.getAveragePrice({ baseCurrency: toNativeCurrencyInfo.currency.id, quoteCurrency: toCurrencyInfo.currency.id })
-    ]);
-
-    if (!nativeTokenPriceInUsd)
-      throw new Error(`Price for ${toNativeCurrencyInfo.currency.id} in USD not found`);
-
-    if (!nativeTokenPriceInCurrency)
-      throw new Error(`Price for ${toNativeCurrencyInfo.currency.id} in ${toCurrencyInfo.currency.id} not found`);
-
+    const toRedeemFees = await toAtomexProtocol.getRedeemFees({});
     const [fromInitiateFees, toRedeemOrRewardForRedeem, fromRefundFees, toInitiateFees, fromRedeemFees] = await Promise.all([
       // TODO: fill parameters
       fromAtomexProtocol.getInitiateFees({}),
-      useWatchTower ? toAtomexProtocol.getRedeemReward(nativeTokenPriceInUsd, nativeTokenPriceInCurrency, toRedeemFees.estimated) : toRedeemFees,
+      useWatchTower ? toAtomexProtocol.getRedeemReward(toRedeemFees) : toRedeemFees,
       fromAtomexProtocol.getRefundFees({}),
 
       toAtomexProtocol.getInitiateFees({}),

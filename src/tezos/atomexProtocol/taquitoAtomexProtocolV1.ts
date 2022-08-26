@@ -8,6 +8,7 @@ import type {
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
+import type { PriceManager } from '../../exchange';
 import type { TaquitoAtomexProtocolV1Options } from '../models/index';
 import { mutezInTez } from '../utils';
 
@@ -19,7 +20,8 @@ export abstract class TaquitoAtomexProtocolV1 implements AtomexProtocolV1 {
     readonly atomexNetwork: AtomexNetwork,
     protected readonly atomexProtocolOptions: DeepReadonly<TaquitoAtomexProtocolV1Options>,
     protected readonly atomexBlockchainProvider: AtomexBlockchainProvider,
-    protected readonly walletsManager: WalletsManager
+    protected readonly walletsManager: WalletsManager,
+    protected readonly priceManager: PriceManager
   ) {
   }
 
@@ -42,7 +44,7 @@ export abstract class TaquitoAtomexProtocolV1 implements AtomexProtocolV1 {
 
   abstract redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
 
-  abstract getRedeemReward(nativeTokenPriceInUsd: BigNumber, nativeTokenPriceInCurrency: BigNumber, redeemFee: BigNumber): Promise<FeesInfo>;
+  abstract getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
 
   getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
     const estimated = new BigNumber(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
