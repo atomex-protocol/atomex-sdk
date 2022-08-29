@@ -20,7 +20,7 @@ describe('Rest Atomex Client', () => {
   const testApiUrl = 'https://test-api.com';
   const atomexNetwork: AtomexNetwork = 'testnet';
 
-  const testAccounts: Map<string, AuthToken> = new Map(
+  const testAccounts = new Map<string, AuthToken>(
     [
       [
         'test-account-address',
@@ -28,7 +28,14 @@ describe('Rest Atomex Client', () => {
           address: 'test-account-address',
           expired: new Date(),
           userId: 'user-id',
-          value: 'test-auth-token'
+          value: 'test-auth-token',
+          request: {
+            algorithm: 'test-algorithm',
+            message: 'signing',
+            publicKey: 'test-public-key',
+            signature: 'test-signature',
+            timeStamp: 1
+          }
         }
       ],
       [
@@ -37,7 +44,14 @@ describe('Rest Atomex Client', () => {
           address: 'test-account-address2',
           expired: new Date(),
           userId: 'user-id2',
-          value: 'test-auth-token2'
+          value: 'test-auth-token2',
+          request: {
+            algorithm: 'test-algorithm',
+            message: 'signing',
+            publicKey: 'test-public-key2',
+            signature: 'test-signature2',
+            timeStamp: 1
+          }
         }
       ]
     ]

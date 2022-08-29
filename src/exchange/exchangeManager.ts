@@ -1,7 +1,8 @@
 import { BigNumber } from 'bignumber.js';
 import { nanoid } from 'nanoid';
 
-import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
+import type { AuthorizationManager } from '../authorization';
+import { AtomexService, Currency, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
 import { EventEmitter, type ToEventEmitter } from '../core/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider/index';
@@ -9,11 +10,13 @@ import { ordersHelper, symbolsHelper } from './helpers/index';
 import type {
   CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol,
   OrderPreviewParameters as OrderPreviewParameters,
-  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, NormalizedOrderPreviewParameters, FilledNewOrderRequest, SymbolLiquidity, SymbolLiquidityParameters
+  NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType,
+  NormalizedOrderPreviewParameters, FilledNewOrderRequest, SymbolLiquidity, SymbolLiquidityParameters, ProofOfFunds
 } from './models/index';
 import type { ManagedOrderBookProvider } from './orderBookProvider';
 
 export interface ExchangeManagerOptions {
+  authorizationManager: AuthorizationManager;
   exchangeService: ExchangeService;
   symbolsProvider: ManagedExchangeSymbolsProvider;
   orderBookProvider: ManagedOrderBookProvider;
@@ -27,6 +30,7 @@ export class ExchangeManager implements AtomexService {
     topOfBookUpdated: new EventEmitter()
   };
 
+  protected readonly authorizationManager: AuthorizationManager;
   protected readonly exchangeService: ExchangeService;
   protected readonly symbolsProvider: ManagedExchangeSymbolsProvider;
   protected readonly orderBookProvider: ManagedOrderBookProvider;
@@ -34,6 +38,7 @@ export class ExchangeManager implements AtomexService {
   private _isStarted = false;
 
   constructor(options: ExchangeManagerOptions) {
+    this.authorizationManager = options.authorizationManager;
     this.exchangeService = options.exchangeService;
     this.symbolsProvider = options.symbolsProvider;
     this.orderBookProvider = options.orderBookProvider;
@@ -135,13 +140,15 @@ export class ExchangeManager implements AtomexService {
   }
 
   addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number> {
+    const proofsOfFunds = newOrderRequest.proofsOfFunds
+      ? newOrderRequest.proofsOfFunds
+      : this.createProofOfFunds(accountAddress, newOrderRequest);
+
     const filledNewOrderRequest: FilledNewOrderRequest = {
       clientOrderId: newOrderRequest.clientOrderId || nanoid(17),
       orderBody: newOrderRequest.orderBody,
       requisites: newOrderRequest.requisites,
-      proofsOfFunds: newOrderRequest.proofsOfFunds ? newOrderRequest.proofsOfFunds : [
-        // TODO
-      ]
+      proofsOfFunds
     };
 
     return this.exchangeService.addOrder(accountAddress, filledNewOrderRequest);
@@ -293,6 +300,26 @@ export class ExchangeManager implements AtomexService {
         return entry;
       }
     }
+  }
+
+  protected createProofOfFunds(accountAddress: string, newOrderRequest: NewOrderRequest): ProofOfFunds[] {
+    const authToken = this.authorizationManager.getAuthToken(accountAddress);
+    if (!authToken)
+      throw new Error(`Cannot find auth token for address: ${accountAddress}`);
+
+    const currency: Currency['id'] = ordersHelper.isOrderPreview(newOrderRequest.orderBody)
+      ? newOrderRequest.orderBody.from.currencyId
+      : symbolsHelper.convertSymbolAndSideToFromAndToCurrencies(newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side)[0];
+
+    return [{
+      address: accountAddress,
+      currency,
+      timeStamp: authToken.request.timeStamp,
+      message: authToken.request.message,
+      publicKey: authToken.request.publicKey,
+      signature: authToken.request.signature,
+      algorithm: authToken.request.algorithm
+    }];
   }
 
   protected getCachedOrderBook(symbol: string): Promise<OrderBook | undefined> {

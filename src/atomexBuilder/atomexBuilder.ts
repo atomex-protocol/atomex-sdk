@@ -110,6 +110,7 @@ export class AtomexBuilder {
     return this.customExchangeManagerFactory
       ? this.customExchangeManagerFactory(this.atomexContext, this.options)
       : new ExchangeManager({
+        authorizationManager: this.atomexContext.managers.authorizationManager,
         exchangeService: this.atomexContext.services.exchangeService,
         symbolsProvider: this.atomexContext.providers.exchangeSymbolsProvider,
         orderBookProvider: this.atomexContext.providers.orderBookProvider

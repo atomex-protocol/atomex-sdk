@@ -1,19 +1,27 @@
 import { AtomexNetwork, DataSource, ExchangeManager } from '../../src/index';
-import { MockAtomexClient, MockExchangeSymbolsProvider, MockOrderBookProvider } from '../mocks';
+import { MockAtomexClient, MockAuthorizationManager, MockAuthorizationManagerStore, MockExchangeSymbolsProvider, MockOrderBookProvider, MockWalletsManager } from '../mocks';
 import { validGetAvailableLiquidityTestCases, validGetOrderPreviewTestCases, validGetSymbolsTestCases } from './testCases/index';
 
 describe('Exchange Manager', () => {
   const atomexNetwork: AtomexNetwork = 'testnet';
   let exchangeService: MockAtomexClient;
+  let authorizationManager: MockAuthorizationManager;
   let exchangeSymbolsProvider: MockExchangeSymbolsProvider;
   let orderBookProvider: MockOrderBookProvider;
   let exchangeManager: ExchangeManager;
 
   beforeEach(() => {
+    authorizationManager = new MockAuthorizationManager({
+      atomexNetwork,
+      walletsManager: new MockWalletsManager(atomexNetwork),
+      authorizationBaseUrl: 'https://atomex.authorization.url',
+      store: new MockAuthorizationManagerStore()
+    });
     exchangeService = new MockAtomexClient(atomexNetwork);
     exchangeSymbolsProvider = new MockExchangeSymbolsProvider();
     orderBookProvider = new MockOrderBookProvider();
     exchangeManager = new ExchangeManager({
+      authorizationManager,
       exchangeService,
       symbolsProvider: exchangeSymbolsProvider,
       orderBookProvider

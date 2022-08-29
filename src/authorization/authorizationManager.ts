@@ -104,20 +104,21 @@ export class AuthorizationManager implements AtomexService {
     if (atomexSignature.address !== address)
       throw new Error('Invalid address in the signed data');
 
-    const authenticationResponseData = await this.requestAuthToken({
+    const authenticationRequestData: AuthenticationRequestData = {
       message: authMessage,
       publicKey: atomexSignature.publicKeyBytes,
       algorithm: atomexSignature.algorithm,
       signingDataType: atomexSignature.signingDataType,
       signature: atomexSignature.signatureBytes,
       timeStamp
-    });
-
+    };
+    const authenticationResponseData = await this.requestAuthToken(authenticationRequestData);
     const authToken: AuthToken = {
       value: authenticationResponseData.token,
       userId: authenticationResponseData.id,
       address,
-      expired: new Date(authenticationResponseData.expires)
+      expired: new Date(authenticationResponseData.expires),
+      request: authenticationRequestData
     };
 
     await this.registerAuthToken(authToken, true);

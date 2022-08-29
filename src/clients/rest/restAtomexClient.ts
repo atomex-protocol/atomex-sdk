@@ -12,7 +12,7 @@ import {
 } from '../../exchange/index';
 import type { Swap } from '../../swaps/index';
 import type { AtomexClient } from '../atomexClient';
-import type { CreatedOrderDto, NewOrderRequestDto, OrderBookDto, OrderDto, QuoteDto, SwapDto, SymbolDto } from '../dtos';
+import type { CreatedOrderDto, NewOrderRequestDto, OrderBookDto, OrderDto, ProofOfFundsDto, QuoteDto, SwapDto, SymbolDto } from '../dtos';
 import {
   mapOrderBookDtoToOrderBook, mapOrderDtosToOrders, mapOrderDtoToOrder,
   mapQuoteDtosToQuotes, mapSwapDtosToSwaps, mapSwapDtoToSwap, mapSymbolDtosToSymbols
@@ -184,7 +184,15 @@ export class RestAtomexClient implements AtomexClient {
         quoteCurrencyContract: newOrderRequest.requisites.quoteCurrencyContract,
         baseCurrencyContract: newOrderRequest.requisites.baseCurrencyContract
       } : undefined,
-      proofsOfFunds: newOrderRequest.proofsOfFunds,
+      proofsOfFunds: newOrderRequest.proofsOfFunds.map<ProofOfFundsDto>(proof => ({
+        address: proof.address,
+        currency: proof.currency,
+        timeStamp: proof.timeStamp,
+        message: proof.message,
+        publicKey: proof.publicKey,
+        signature: proof.signature,
+        algorithm: proof.algorithm
+      })),
       qty: amountBigNumber.toNumber(),
       price: priceBigNumber.toNumber()
     };

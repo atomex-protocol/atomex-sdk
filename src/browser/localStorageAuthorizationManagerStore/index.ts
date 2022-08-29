@@ -3,5 +3,5 @@ export { DefaultSerializedAuthTokenMapper } from './defaultSerializedAuthTokenMa
 
 export type { PreDefinedStoreStrategyName } from './localStorageAuthorizationManagerStore';
 export type { SerializedAuthTokenMapper } from './serializedAuthTokenMapper';
-export type { SerializedAuthToken } from './serializedAuthToken';
+export type { SerializedAuthToken, SerializedAuthTokenRequestData } from './serializedAuthToken';
 export type { StoreStrategy } from './storeStrategy';

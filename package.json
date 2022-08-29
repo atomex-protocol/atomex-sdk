@@ -71,7 +71,7 @@
   },
   "scripts": {
     "build": "node ./scripts/build.mjs",
-    "test": "jest --coverage",
+    "test": "jest",
     "test-watch": "jest --watch",
     "lint": "eslint . --ext .ts",
     "check-types": "tsc --project tsconfig.build.json",
