@@ -11,7 +11,7 @@ describe('Atomex Protocol V1 utils', () => {
   const createPriceManager = (prices: Record<string, BigNumber>) => {
     const priceManager = new MockPriceManager();
 
-    const getPriceImplementation = (baseCurrencyOrIdOrSymbol: Currency | Currency['id'], quoteCurrencyOrIdOrSymbol: Currency | Currency['id']) => {
+    const getPriceImplementation = (baseCurrencyOrIdOrSymbol: Currency | Currency['id'] | string, quoteCurrencyOrIdOrSymbol: Currency | Currency['id'] | string) => {
       const baseCurrency = typeof baseCurrencyOrIdOrSymbol === 'string' ? baseCurrencyOrIdOrSymbol : baseCurrencyOrIdOrSymbol.symbol;
       const quoteCurrency = typeof quoteCurrencyOrIdOrSymbol === 'string' ? quoteCurrencyOrIdOrSymbol : quoteCurrencyOrIdOrSymbol.symbol;
       const symbol = `${baseCurrency}/${quoteCurrency}`;
@@ -19,12 +19,12 @@ describe('Atomex Protocol V1 utils', () => {
       return prices[symbol];
     };
 
-    priceManager.getPrice.mockImplementation(async ({ baseCurrencyOrIdOrSymbol, quoteCurrencyOrIdOrSymbol }) => {
-      return getPriceImplementation(baseCurrencyOrIdOrSymbol, quoteCurrencyOrIdOrSymbol);
+    priceManager.getPrice.mockImplementation(async ({ baseCurrency, quoteCurrency }) => {
+      return getPriceImplementation(baseCurrency, quoteCurrency);
     });
 
-    priceManager.getAveragePrice.mockImplementation(async ({ baseCurrencyOrIdOrSymbol, quoteCurrencyOrIdOrSymbol }) => {
-      return getPriceImplementation(baseCurrencyOrIdOrSymbol, quoteCurrencyOrIdOrSymbol);
+    priceManager.getAveragePrice.mockImplementation(async ({ baseCurrency, quoteCurrency }) => {
+      return getPriceImplementation(baseCurrency, quoteCurrency);
     });
 
     return priceManager;

@@ -20,9 +20,9 @@ export class MixedPriceManager implements PriceManager {
     private readonly providersMap: Map<string, PriceProvider>
   ) { }
 
-  async getAveragePrice({ baseCurrencyOrIdOrSymbol, quoteCurrencyOrIdOrSymbol, dataSource = DataSource.All }: GetAveragePriceParameters): Promise<BigNumber | undefined> {
-    const baseCurrencyOrSymbol = this.tryFindCurrency(baseCurrencyOrIdOrSymbol);
-    const quoteCurrencyOrSymbol = this.tryFindCurrency(quoteCurrencyOrIdOrSymbol);
+  async getAveragePrice({ baseCurrency, quoteCurrency, dataSource = DataSource.All }: GetAveragePriceParameters): Promise<BigNumber | undefined> {
+    const baseCurrencyOrSymbol = this.tryFindCurrency(baseCurrency);
+    const quoteCurrencyOrSymbol = this.tryFindCurrency(quoteCurrency);
 
     const key = this.getCacheKey({ isAverage: true, baseCurrencyOrSymbol, quoteCurrencyOrSymbol });
     if ((dataSource & DataSource.Local) === DataSource.Local) {
@@ -34,8 +34,8 @@ export class MixedPriceManager implements PriceManager {
     if ((dataSource & DataSource.Remote) === DataSource.Remote) {
       const providers = this.getAvailableProviders();
       const pricePromises = providers.map(provider => this.getPrice({
-        baseCurrencyOrIdOrSymbol: baseCurrencyOrSymbol,
-        quoteCurrencyOrIdOrSymbol: quoteCurrencyOrSymbol,
+        baseCurrency: baseCurrencyOrSymbol,
+        quoteCurrency: quoteCurrencyOrSymbol,
         provider,
         dataSource
       }));
@@ -56,9 +56,9 @@ export class MixedPriceManager implements PriceManager {
     return undefined;
   }
 
-  async getPrice({ baseCurrencyOrIdOrSymbol, quoteCurrencyOrIdOrSymbol, provider, dataSource = DataSource.All }: GetPriceParameters): Promise<BigNumber | undefined> {
-    const baseCurrencyOrSymbol = this.tryFindCurrency(baseCurrencyOrIdOrSymbol);
-    const quoteCurrencyOrSymbol = this.tryFindCurrency(quoteCurrencyOrIdOrSymbol);
+  async getPrice({ baseCurrency, quoteCurrency, provider, dataSource = DataSource.All }: GetPriceParameters): Promise<BigNumber | undefined> {
+    const baseCurrencyOrSymbol = this.tryFindCurrency(baseCurrency);
+    const quoteCurrencyOrSymbol = this.tryFindCurrency(quoteCurrency);
 
     const key = this.getCacheKey({ isAverage: false, baseCurrencyOrSymbol, quoteCurrencyOrSymbol, provider });
     if ((dataSource & DataSource.Local) === DataSource.Local) {
@@ -92,11 +92,11 @@ export class MixedPriceManager implements PriceManager {
     this.cache.clear();
   }
 
-  private tryFindCurrency(baseCurrencyOrIdOrSymbol: Currency | Currency['id']): Currency | string {
-    if (typeof baseCurrencyOrIdOrSymbol !== 'string')
-      return baseCurrencyOrIdOrSymbol;
+  private tryFindCurrency(baseCurrency: Currency | Currency['id'] | string): Currency | string {
+    if (typeof baseCurrency !== 'string')
+      return baseCurrency;
 
-    return this.currenciesProvider.getCurrency(baseCurrencyOrIdOrSymbol) || baseCurrencyOrIdOrSymbol;
+    return this.currenciesProvider.getCurrency(baseCurrency) || baseCurrency;
   }
 
   private getCacheKey({ isAverage, baseCurrencyOrSymbol, quoteCurrencyOrSymbol, provider }: GetCacheKeyParameters) {

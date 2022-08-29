@@ -3,15 +3,15 @@ import type BigNumber from 'bignumber.js';
 import type { Currency, DataSource, Disposable } from '../../common/index';
 
 export interface GetPriceParameters {
-  baseCurrencyOrIdOrSymbol: Currency | Currency['id'];
-  quoteCurrencyOrIdOrSymbol: Currency | Currency['id'];
+  baseCurrency: Currency | Currency['id'] | string;
+  quoteCurrency: Currency | Currency['id'] | string;
   provider?: string;
   dataSource?: DataSource;
 }
 
 export interface GetAveragePriceParameters {
-  baseCurrencyOrIdOrSymbol: Currency | Currency['id'];
-  quoteCurrencyOrIdOrSymbol: Currency | Currency['id'];
+  baseCurrency: Currency | Currency['id'] | string;
+  quoteCurrency: Currency | Currency['id'] | string;
   dataSource?: DataSource;
 }
 

@@ -8,7 +8,7 @@ export const getRedeemRewardInNativeCurrency = async (
   redeemFee: FeesInfo,
   priceManager: PriceManager
 ): Promise<FeesInfo> => {
-  const nativeTokenPriceInUsd = await priceManager.getAveragePrice({ baseCurrencyOrIdOrSymbol: currencyOrId, quoteCurrencyOrIdOrSymbol: 'USD' });
+  const nativeTokenPriceInUsd = await priceManager.getAveragePrice({ baseCurrency: currencyOrId, quoteCurrency: 'USD' });
   if (!nativeTokenPriceInUsd)
     throw new Error(`Price for ${currencyOrId} in USD not found`);
 
@@ -40,7 +40,7 @@ export const getRedeemRewardInToken = async (
   if (!nativeCurrency)
     throw new Error(`Native currency not found fir ${currency.blockchain}`);
 
-  const nativeTokenPriceInCurrency = await priceManager.getAveragePrice({ baseCurrencyOrIdOrSymbol: nativeCurrency, quoteCurrencyOrIdOrSymbol: currencyOrId });
+  const nativeTokenPriceInCurrency = await priceManager.getAveragePrice({ baseCurrency: nativeCurrency, quoteCurrency: currencyOrId });
 
   if (!nativeTokenPriceInCurrency)
     throw new Error(`Price for ${nativeCurrency.id} in ${currencyOrId} not found`);
