@@ -4,13 +4,13 @@ import type { AtomexBlockchainProvider } from '../atomexBlockchainProvider';
 import type { FeesInfo } from '../models/index';
 
 export const getRedeemRewardInNativeCurrency = async (
-  currencyId: Currency['id'],
+  currencyOrId: Currency | Currency['id'],
   redeemFee: FeesInfo,
   priceManager: PriceManager
 ): Promise<FeesInfo> => {
-  const nativeTokenPriceInUsd = await priceManager.getAveragePrice({ baseCurrency: currencyId, quoteCurrency: 'USD' });
+  const nativeTokenPriceInUsd = await priceManager.getAveragePrice({ baseCurrencyOrIdOrSymbol: currencyOrId, quoteCurrencyOrIdOrSymbol: 'USD' });
   if (!nativeTokenPriceInUsd)
-    throw new Error(`Price for ${currencyId} in USD not found`);
+    throw new Error(`Price for ${currencyOrId} in USD not found`);
 
   const maxRewardPercentValue = 30;
   const maxRewardPercent = 0.15;
@@ -27,25 +27,25 @@ export const getRedeemRewardInNativeCurrency = async (
 };
 
 export const getRedeemRewardInToken = async (
-  currencyId: string,
+  currencyOrId: Currency | Currency['id'],
   redeemFee: FeesInfo,
   priceManager: PriceManager,
   blockchainProvider: AtomexBlockchainProvider
 ): Promise<FeesInfo> => {
-  const currencyInfo = blockchainProvider.getCurrency(currencyId);
-  if (!currencyInfo)
-    throw new Error(`Currency info not found for ${currencyId}`);
+  const currency = typeof currencyOrId === 'string' ? blockchainProvider.getCurrency(currencyOrId) : currencyOrId;
+  if (!currency)
+    throw new Error(`Currency info not found for ${currencyOrId}`);
 
-  const nativeCurrencyId = blockchainProvider.getNativeCurrencyInfo(currencyInfo.blockchain)?.currency.id;
-  if (!nativeCurrencyId)
-    throw new Error(`Native currency not found fir ${currencyInfo.blockchain}`);
+  const nativeCurrency = blockchainProvider.getNativeCurrencyInfo(currency.blockchain)?.currency;
+  if (!nativeCurrency)
+    throw new Error(`Native currency not found fir ${currency.blockchain}`);
 
-  const nativeTokenPriceInCurrency = await priceManager.getAveragePrice({ baseCurrency: nativeCurrencyId, quoteCurrency: currencyId });
+  const nativeTokenPriceInCurrency = await priceManager.getAveragePrice({ baseCurrencyOrIdOrSymbol: nativeCurrency, quoteCurrencyOrIdOrSymbol: currencyOrId });
 
   if (!nativeTokenPriceInCurrency)
-    throw new Error(`Price for ${nativeCurrencyId} in ${currencyId} not found`);
+    throw new Error(`Price for ${nativeCurrency.id} in ${currencyOrId} not found`);
 
-  const inNativeToken = await getRedeemRewardInNativeCurrency(nativeCurrencyId, redeemFee, priceManager);
+  const inNativeToken = await getRedeemRewardInNativeCurrency(nativeCurrency.id, redeemFee, priceManager);
 
   return {
     estimated: inNativeToken.estimated.multipliedBy(nativeTokenPriceInCurrency),
