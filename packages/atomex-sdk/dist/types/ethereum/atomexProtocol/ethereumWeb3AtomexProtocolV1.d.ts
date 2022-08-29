@@ -2,14 +2,15 @@ import type { AtomexBlockchainProvider, AtomexProtocolV1InitiateParameters, Atom
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
 import { Web3AtomexProtocolV1 } from '../../evm/index';
+import type { PriceManager } from '../../exchange';
 import type { EthereumWeb3AtomexProtocolV1Options } from '../models/index';
 export declare class EthereumWeb3AtomexProtocolV1 extends Web3AtomexProtocolV1 {
     protected readonly atomexProtocolOptions: DeepReadonly<EthereumWeb3AtomexProtocolV1Options>;
-    constructor(atomexNetwork: AtomexNetwork, atomexProtocolOptions: DeepReadonly<EthereumWeb3AtomexProtocolV1Options>, atomexBlockchainProvider: AtomexBlockchainProvider, walletsManager: WalletsManager);
+    constructor(atomexNetwork: AtomexNetwork, atomexProtocolOptions: DeepReadonly<EthereumWeb3AtomexProtocolV1Options>, atomexBlockchainProvider: AtomexBlockchainProvider, walletsManager: WalletsManager, priceManager: PriceManager);
     initiate(_params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
     getInitiateFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
     redeem(_params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
-    getRedeemReward(_nativeTokenPriceInUsd: number, _nativeTokenPriceInCurrency: number): Promise<FeesInfo>;
+    getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
     getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
     refund(_params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
     getRefundFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;

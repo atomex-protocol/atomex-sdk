@@ -1,14 +1,14 @@
 import type BigNumber from 'bignumber.js';
 import type { Currency, DataSource, Disposable } from '../../common/index';
 export interface GetPriceParameters {
-    baseCurrency: Currency['id'];
-    quoteCurrency: Currency['id'];
+    baseCurrency: Currency | Currency['id'] | string;
+    quoteCurrency: Currency | Currency['id'] | string;
     provider?: string;
     dataSource?: DataSource;
 }
 export interface GetAveragePriceParameters {
-    baseCurrency: Currency['id'];
-    quoteCurrency: Currency['id'];
+    baseCurrency: Currency | Currency['id'] | string;
+    quoteCurrency: Currency | Currency['id'] | string;
     dataSource?: DataSource;
 }
 export interface PriceManager extends Disposable {

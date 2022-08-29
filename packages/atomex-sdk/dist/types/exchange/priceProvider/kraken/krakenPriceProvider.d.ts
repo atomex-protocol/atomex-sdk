@@ -5,6 +5,7 @@ export declare class KrakenPriceProvider implements PriceProvider {
     private static readonly baseUrl;
     private readonly httpClient;
     constructor();
-    getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined>;
+    getPrice(baseCurrencyOrSymbol: Currency | string, quoteCurrencyOrSymbol: Currency | string): Promise<BigNumber | undefined>;
+    private getSymbol;
     private mapRatesDtoToPrice;
 }

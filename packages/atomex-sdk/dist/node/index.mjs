@@ -679,14 +679,16 @@ var InMemoryOrderBookProvider = class {
 
 // src/exchange/priceManager/mixedPriceManager/mixedPriceManager.ts
 import BigNumber4 from "bignumber.js";
-var _MixedPriceManager = class {
-  constructor(providersMap) {
+var MixedPriceManager = class {
+  constructor(currenciesProvider, providersMap) {
+    this.currenciesProvider = currenciesProvider;
     this.providersMap = providersMap;
-    this.cache = new InMemoryCache({ absoluteExpirationMs: _MixedPriceManager.cacheExpirationTime });
   }
-  cache;
+  cache = new InMemoryCache({ absoluteExpirationMs: 1e3 * 30 });
   async getAveragePrice({ baseCurrency, quoteCurrency, dataSource = 3 /* All */ }) {
-    const key = this.getCacheKey({ isAverage: true, baseCurrency, quoteCurrency });
+    const baseCurrencyOrSymbol = this.tryFindCurrency(baseCurrency);
+    const quoteCurrencyOrSymbol = this.tryFindCurrency(quoteCurrency);
+    const key = this.getCacheKey({ isAverage: true, baseCurrencyOrSymbol, quoteCurrencyOrSymbol });
     if ((dataSource & 1 /* Local */) === 1 /* Local */) {
       const cachedAveragePrice = this.cache.get(key);
       if (cachedAveragePrice)
@@ -694,7 +696,12 @@ var _MixedPriceManager = class {
     }
     if ((dataSource & 2 /* Remote */) === 2 /* Remote */) {
       const providers = this.getAvailableProviders();
-      const pricePromises = providers.map((provider) => this.getPrice({ baseCurrency, quoteCurrency, provider }));
+      const pricePromises = providers.map((provider) => this.getPrice({
+        baseCurrency: baseCurrencyOrSymbol,
+        quoteCurrency: quoteCurrencyOrSymbol,
+        provider,
+        dataSource
+      }));
       const pricePromiseResults = await Promise.allSettled(pricePromises);
       const prices = [];
       for (const result of pricePromiseResults)
@@ -709,16 +716,18 @@ var _MixedPriceManager = class {
     return void 0;
   }
   async getPrice({ baseCurrency, quoteCurrency, provider, dataSource = 3 /* All */ }) {
-    const key = this.getCacheKey({ isAverage: false, baseCurrency, quoteCurrency, provider });
+    const baseCurrencyOrSymbol = this.tryFindCurrency(baseCurrency);
+    const quoteCurrencyOrSymbol = this.tryFindCurrency(quoteCurrency);
+    const key = this.getCacheKey({ isAverage: false, baseCurrencyOrSymbol, quoteCurrencyOrSymbol, provider });
     if ((dataSource & 1 /* Local */) === 1 /* Local */) {
       const cachedPrice = this.cache.get(key);
       if (cachedPrice)
         return cachedPrice;
     }
     if ((dataSource & 2 /* Remote */) === 2 /* Remote */) {
-      let price = await this.getPriceCore(baseCurrency, quoteCurrency, provider);
+      let price = await this.getPriceCore(baseCurrencyOrSymbol, quoteCurrencyOrSymbol, provider);
       if (!price) {
-        const reversedPrice = await this.getPriceCore(quoteCurrency, baseCurrency, provider);
+        const reversedPrice = await this.getPriceCore(quoteCurrencyOrSymbol, baseCurrencyOrSymbol, provider);
         if (reversedPrice)
           price = reversedPrice.pow(-1);
       }
@@ -735,14 +744,21 @@ var _MixedPriceManager = class {
   async dispose() {
     this.cache.clear();
   }
-  getCacheKey({ isAverage, baseCurrency, quoteCurrency, provider }) {
-    const prefix4 = isAverage ? "average" : "actual";
-    const postfix = provider ? provider : "";
-    return `${prefix4}_${baseCurrency}_${quoteCurrency}_${postfix}`;
+  tryFindCurrency(baseCurrency) {
+    if (typeof baseCurrency !== "string")
+      return baseCurrency;
+    return this.currenciesProvider.getCurrency(baseCurrency) || baseCurrency;
   }
-  async getPriceCore(baseCurrency, quoteCurrency, provider) {
+  getCacheKey({ isAverage, baseCurrencyOrSymbol, quoteCurrencyOrSymbol, provider }) {
+    const prefix4 = isAverage ? "average" : "actual";
+    const baseCurrencySymbol = typeof baseCurrencyOrSymbol === "string" ? baseCurrencyOrSymbol : baseCurrencyOrSymbol.id;
+    const quoteCurrencySymbol = typeof quoteCurrencyOrSymbol === "string" ? quoteCurrencyOrSymbol : quoteCurrencyOrSymbol.id;
+    const postfix = provider ? provider : "";
+    return `${prefix4}_${baseCurrencySymbol}_${quoteCurrencySymbol}_${postfix}`;
+  }
+  async getPriceCore(baseCurrencyOrSymbol, quoteCurrencyOrSymbol, provider) {
     const providers = this.getSelectedProviders(provider);
-    const pricePromises = providers.map((provider2) => provider2.getPrice(baseCurrency, quoteCurrency));
+    const pricePromises = providers.map((provider2) => provider2.getPrice(baseCurrencyOrSymbol, quoteCurrencyOrSymbol));
     const pricePromiseResults = await Promise.allSettled(pricePromises);
     for (const result of pricePromiseResults)
       if (result.status === "fulfilled" && result.value !== void 0)
@@ -758,19 +774,22 @@ var _MixedPriceManager = class {
     return [selectedProvider];
   }
 };
-var MixedPriceManager = _MixedPriceManager;
-__publicField(MixedPriceManager, "cacheExpirationTime", 1e3 * 60 * 1);
 
 // src/exchange/priceProvider/atomex/atomexPriceProvider.ts
 var AtomexPriceProvider = class {
   constructor(exchangeService) {
     this.exchangeService = exchangeService;
   }
-  async getPrice(baseCurrency, quoteCurrency) {
+  async getPrice(baseCurrencyOrSymbol, quoteCurrencyOrSymbol) {
     var _a;
-    const symbol = `${baseCurrency}/${quoteCurrency}`;
+    const baseCurrency = this.getSymbol(baseCurrencyOrSymbol);
+    const quoteCurrency = this.getSymbol(quoteCurrencyOrSymbol);
+    const pairSymbol = `${baseCurrency}/${quoteCurrency}`;
     const quote = (_a = await this.exchangeService.getTopOfBook([{ from: baseCurrency, to: quoteCurrency }])) == null ? void 0 : _a[0];
-    return quote && quote.symbol == symbol ? this.getMiddlePrice(quote) : void 0;
+    return quote && quote.symbol === pairSymbol ? this.getMiddlePrice(quote) : void 0;
+  }
+  getSymbol(currencyOrSymbol) {
+    return typeof currencyOrSymbol === "string" ? currencyOrSymbol : currencyOrSymbol.id;
   }
   getMiddlePrice(quote) {
     return quote.ask.plus(quote.bid).div(2);
@@ -793,14 +812,20 @@ var _BinancePriceProvider = class {
   constructor() {
     this.httpClient = new HttpClient(_BinancePriceProvider.baseUrl);
   }
-  async getPrice(baseCurrency, quoteCurrency) {
-    const symbol = `${baseCurrency}${quoteCurrency}`;
+  async getPrice(baseCurrencyOrSymbol, quoteCurrencyOrSymbol) {
+    const baseCurrency = this.getSymbol(baseCurrencyOrSymbol);
+    const quoteCurrency = this.getSymbol(quoteCurrencyOrSymbol);
+    const pairSymbol = `${baseCurrency}${quoteCurrency}`;
     const allSymbols = await this.getAllSymbols();
-    if (!allSymbols.has(symbol))
+    if (!allSymbols.has(pairSymbol))
       return void 0;
-    const urlPath = `${_BinancePriceProvider.priceUrlPath}?symbol=${symbol}`;
+    const urlPath = `${_BinancePriceProvider.priceUrlPath}?symbol=${pairSymbol}`;
     const responseDto = await this.httpClient.request({ urlPath }, false);
     return this.mapRatesDtoToPrice(responseDto);
+  }
+  getSymbol(currencyOrSymbol) {
+    const symbol = typeof currencyOrSymbol === "string" ? currencyOrSymbol : currencyOrSymbol.symbol;
+    return symbol.toUpperCase();
   }
   mapRatesDtoToPrice(dto) {
     if (isErrorDto(dto))
@@ -829,11 +854,17 @@ var _KrakenPriceProvider = class {
   constructor() {
     this.httpClient = new HttpClient(_KrakenPriceProvider.baseUrl);
   }
-  async getPrice(baseCurrency, quoteCurrency) {
-    const symbol = `${baseCurrency}${quoteCurrency}`;
-    const urlPath = `/0/public/Ticker?pair=${symbol}`;
+  async getPrice(baseCurrencyOrSymbol, quoteCurrencyOrSymbol) {
+    const baseCurrency = this.getSymbol(baseCurrencyOrSymbol);
+    const quoteCurrency = this.getSymbol(quoteCurrencyOrSymbol);
+    const pairSymbol = `${baseCurrency}${quoteCurrency}`;
+    const urlPath = `/0/public/Ticker?pair=${pairSymbol}`;
     const responseDto = await this.httpClient.request({ urlPath }, false);
     return this.mapRatesDtoToPrice(responseDto);
+  }
+  getSymbol(currencyOrSymbol) {
+    const symbol = typeof currencyOrSymbol === "string" ? currencyOrSymbol : currencyOrSymbol.symbol;
+    return symbol.toUpperCase();
   }
   mapRatesDtoToPrice(dto) {
     if (dto.error.length)
@@ -999,9 +1030,10 @@ var AtomexSwapPreviewManager = class {
       return cachedFees;
     const fromAtomexProtocol = fromCurrencyInfo.atomexProtocol;
     const toAtomexProtocol = toCurrencyInfo.atomexProtocol;
+    const toRedeemFees = await toAtomexProtocol.getRedeemFees({});
     const [fromInitiateFees, toRedeemOrRewardForRedeem, fromRefundFees, toInitiateFees, fromRedeemFees] = await Promise.all([
       fromAtomexProtocol.getInitiateFees({}),
-      useWatchTower ? toAtomexProtocol.getRedeemReward(0, 0) : toAtomexProtocol.getRedeemFees({}),
+      useWatchTower ? toAtomexProtocol.getRedeemReward(toRedeemFees) : toRedeemFees,
       fromAtomexProtocol.getRefundFees({}),
       toAtomexProtocol.getInitiateFees({}),
       fromAtomexProtocol.getRedeemFees({})
@@ -1130,6 +1162,7 @@ var Atomex = class {
     this.exchangeManager = options.managers.exchangeManager;
     this.swapManager = options.managers.swapManager;
     this.balanceManager = options.managers.balanceManager;
+    this.priceManager = options.managers.priceManager;
     if (options.blockchains)
       for (const blockchainName of Object.keys(options.blockchains))
         this.addBlockchain((_context) => [blockchainName, options.blockchains[blockchainName]]);
@@ -1137,6 +1170,7 @@ var Atomex = class {
   authorization;
   exchangeManager;
   balanceManager;
+  priceManager;
   swapManager;
   wallets;
   atomexContext;
@@ -1232,7 +1266,7 @@ var Atomex = class {
     return swaps.length === 1 ? swaps[0] : swaps;
   }
   async convertCurrency(fromAmount, fromCurrency, toCurrency) {
-    const price = await this.atomexContext.managers.priceManager.getAveragePrice({ baseCurrency: fromCurrency, quoteCurrency: toCurrency });
+    const price = await this.priceManager.getAveragePrice({ baseCurrency: fromCurrency, quoteCurrency: toCurrency });
     if (!price)
       return void 0;
     const inAmountBigNumber = BigNumber8.isBigNumber(fromAmount) ? fromAmount : new BigNumber8(fromAmount);
@@ -1474,6 +1508,44 @@ var WalletsManager = class {
   }
 };
 
+// src/blockchain/atomexProtocolV1/helper.ts
+var helper_exports = {};
+__export(helper_exports, {
+  getRedeemRewardInNativeCurrency: () => getRedeemRewardInNativeCurrency,
+  getRedeemRewardInToken: () => getRedeemRewardInToken
+});
+var getRedeemRewardInNativeCurrency = async (currencyOrId, redeemFee, priceManager) => {
+  const nativeTokenPriceInUsd = await priceManager.getAveragePrice({ baseCurrency: currencyOrId, quoteCurrency: "USD" });
+  if (!nativeTokenPriceInUsd)
+    throw new Error(`Price for ${currencyOrId} in USD not found`);
+  const maxRewardPercentValue = 30;
+  const maxRewardPercent = 0.15;
+  const maxRewardForRedeemDeviation = 0.05;
+  const redeemFeeInUsd = redeemFee.estimated.multipliedBy(nativeTokenPriceInUsd);
+  const k = maxRewardPercentValue / Math.log((1 - maxRewardPercent) / maxRewardForRedeemDeviation);
+  const p = (1 - maxRewardPercent) / Math.exp(redeemFeeInUsd.toNumber() / k) + maxRewardPercent;
+  const rewardForRedeem = redeemFee.estimated.multipliedBy(1 + p);
+  const result = { estimated: rewardForRedeem, max: rewardForRedeem };
+  return result;
+};
+var getRedeemRewardInToken = async (currencyOrId, redeemFee, priceManager, blockchainProvider) => {
+  var _a;
+  const currency = typeof currencyOrId === "string" ? blockchainProvider.getCurrency(currencyOrId) : currencyOrId;
+  if (!currency)
+    throw new Error(`Currency info not found for ${currencyOrId}`);
+  const nativeCurrency = (_a = blockchainProvider.getNativeCurrencyInfo(currency.blockchain)) == null ? void 0 : _a.currency;
+  if (!nativeCurrency)
+    throw new Error(`Native currency not found fir ${currency.blockchain}`);
+  const nativeTokenPriceInCurrency = await priceManager.getAveragePrice({ baseCurrency: nativeCurrency, quoteCurrency: currencyOrId });
+  if (!nativeTokenPriceInCurrency)
+    throw new Error(`Price for ${nativeCurrency.id} in ${currencyOrId} not found`);
+  const inNativeToken = await getRedeemRewardInNativeCurrency(nativeCurrency.id, redeemFee, priceManager);
+  return {
+    estimated: inNativeToken.estimated.multipliedBy(nativeTokenPriceInCurrency),
+    max: inNativeToken.max.multipliedBy(nativeTokenPriceInCurrency)
+  };
+};
+
 // src/blockchain/balanceProvider/controlledCurrencyBalancesProvider.ts
 var ControlledCurrencyBalancesProvider = class {
   constructor(currency, getBalanceImplementation) {
@@ -1569,12 +1641,13 @@ var convertFromWei = (toolkit, value, unit) => {
 
 // src/evm/atomexProtocol/web3AtomexProtocolV1.ts
 var _Web3AtomexProtocolV1 = class {
-  constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
+  constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
     this.blockchain = blockchain;
     this.atomexNetwork = atomexNetwork;
     this.atomexProtocolOptions = atomexProtocolOptions;
     this.atomexBlockchainProvider = atomexBlockchainProvider;
     this.walletsManager = walletsManager;
+    this.priceManager = priceManager;
   }
   version = 1;
   get currencyId() {
@@ -2001,8 +2074,8 @@ var Web3BalancesProvider = class {
 
 // src/ethereum/atomexProtocol/ethereumWeb3AtomexProtocolV1.ts
 var EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
-  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
-    super("ethereum", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
+    super("ethereum", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
     this.atomexProtocolOptions = atomexProtocolOptions;
   }
   initiate(_params) {
@@ -2014,9 +2087,8 @@ var EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
   redeem(_params) {
     throw new Error("Method not implemented.");
   }
-  async getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
-    const redeemFees = await this.getInitiateFees({});
-    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
+  getRedeemReward(redeemFee) {
+    return helper_exports.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager);
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -2031,8 +2103,8 @@ var EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
 
 // src/ethereum/atomexProtocol/erc20EthereumWeb3AtomexProtocolV1.ts
 var ERC20EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
-  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
-    super("ethereum", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
+    super("ethereum", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
     this.atomexProtocolOptions = atomexProtocolOptions;
   }
   get currencyId() {
@@ -2047,9 +2119,8 @@ var ERC20EthereumWeb3AtomexProtocolV1 = class extends Web3AtomexProtocolV1 {
   redeem(_params) {
     throw new Error("Method not implemented.");
   }
-  async getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
-    const redeemFees = await this.getInitiateFees({});
-    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
+  getRedeemReward(redeemFee) {
+    return helper_exports.getRedeemRewardInToken(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -2424,9 +2495,9 @@ var testnetEthereumWeb3AtomexProtocolV1Options = {
 var createAtomexProtocol = (atomexContext, currency, atomexProtocolOptions) => {
   switch (currency.type) {
     case "native":
-      return new EthereumWeb3AtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager);
+      return new EthereumWeb3AtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager, atomexContext.managers.priceManager);
     case "erc-20":
-      return new ERC20EthereumWeb3AtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager);
+      return new ERC20EthereumWeb3AtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager, atomexContext.managers.priceManager);
     default:
       throw new Error(`Unknown Ethereum currency: ${currency.id}`);
   }
@@ -2758,12 +2829,13 @@ var TaquitoBlockchainWallet = class {
 // src/tezos/atomexProtocol/taquitoAtomexProtocolV1.ts
 import BigNumber13 from "bignumber.js";
 var TaquitoAtomexProtocolV1 = class {
-  constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
+  constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
     this.blockchain = blockchain;
     this.atomexNetwork = atomexNetwork;
     this.atomexProtocolOptions = atomexProtocolOptions;
     this.atomexBlockchainProvider = atomexBlockchainProvider;
     this.walletsManager = walletsManager;
+    this.priceManager = priceManager;
   }
   version = 1;
   get currencyId() {
@@ -2803,8 +2875,8 @@ var TaquitoAtomexProtocolV1 = class {
 
 // src/tezos/atomexProtocol/tezosTaquitoAtomexProtocolV1.ts
 var TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
-  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
-    super("tezos", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
+    super("tezos", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
     this.atomexProtocolOptions = atomexProtocolOptions;
   }
   get currencyId() {
@@ -2819,9 +2891,8 @@ var TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   redeem(_params) {
     throw new Error("Method not implemented.");
   }
-  async getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
-    const redeemFees = await this.getInitiateFees({});
-    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
+  getRedeemReward(redeemFee) {
+    return helper_exports.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager);
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -2836,8 +2907,8 @@ var TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
 
 // src/tezos/atomexProtocol/fa12TezosTaquitoAtomexProtocolV1.ts
 var FA12TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
-  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
-    super("tezos", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
+    super("tezos", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
     this.atomexProtocolOptions = atomexProtocolOptions;
   }
   get currencyId() {
@@ -2852,9 +2923,8 @@ var FA12TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   redeem(_params) {
     throw new Error("Method not implemented.");
   }
-  async getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
-    const redeemFees = await this.getInitiateFees({});
-    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
+  getRedeemReward(redeemFee) {
+    return helper_exports.getRedeemRewardInToken(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -2869,8 +2939,8 @@ var FA12TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
 
 // src/tezos/atomexProtocol/fa2TezosTaquitoAtomexProtocolV1.ts
 var FA2TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
-  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager) {
-    super("tezos", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager);
+  constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
+    super("tezos", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
     this.atomexProtocolOptions = atomexProtocolOptions;
   }
   get currencyId() {
@@ -2885,9 +2955,8 @@ var FA2TezosTaquitoAtomexProtocolV1 = class extends TaquitoAtomexProtocolV1 {
   redeem(_params) {
     throw new Error("Method not implemented.");
   }
-  async getRedeemReward(_nativeTokenPriceInUsd, _nativeTokenPriceInCurrency) {
-    const redeemFees = await this.getInitiateFees({});
-    return { estimated: redeemFees.estimated.multipliedBy(2), max: redeemFees.max.multipliedBy(2) };
+  getRedeemReward(redeemFee) {
+    return helper_exports.getRedeemRewardInToken(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -3174,11 +3243,11 @@ var testnetTezosTaquitoAtomexProtocolV1Options = {
 var createAtomexProtocol2 = (atomexContext, currency, atomexProtocolOptions) => {
   switch (currency.type) {
     case "native":
-      return new TezosTaquitoAtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager);
+      return new TezosTaquitoAtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager, atomexContext.managers.priceManager);
     case "fa1.2":
-      return new FA12TezosTaquitoAtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager);
+      return new FA12TezosTaquitoAtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager, atomexContext.managers.priceManager);
     case "fa2":
-      return new FA2TezosTaquitoAtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager);
+      return new FA2TezosTaquitoAtomexProtocolV1(atomexContext.atomexNetwork, atomexProtocolOptions, atomexContext.providers.blockchainProvider, atomexContext.managers.walletsManager, atomexContext.managers.priceManager);
     default:
       throw new Error(`Unknown Tezos currency: ${currency.id}`);
   }
@@ -4490,7 +4559,8 @@ var AtomexBuilder = class {
         authorizationManager: this.atomexContext.managers.authorizationManager,
         exchangeManager: this.atomexContext.managers.exchangeManager,
         swapManager: this.atomexContext.managers.swapManager,
-        balanceManager: this.atomexContext.managers.balanceManager
+        balanceManager: this.atomexContext.managers.balanceManager,
+        priceManager: this.atomexContext.managers.priceManager
       },
       blockchains
     });
@@ -4533,7 +4603,7 @@ var AtomexBuilder = class {
     };
   }
   createPriceManager() {
-    return new MixedPriceManager(/* @__PURE__ */ new Map([
+    return new MixedPriceManager(this.atomexContext.providers.currenciesProvider, /* @__PURE__ */ new Map([
       ["binance", new BinancePriceProvider()],
       ["kraken", new KrakenPriceProvider()],
       ["atomex", new AtomexPriceProvider(this.atomexContext.services.exchangeService)]

@@ -7,7 +7,8 @@ export declare class BinancePriceProvider implements PriceProvider {
     private readonly httpClient;
     private _allSymbols;
     constructor();
-    getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined>;
+    getPrice(baseCurrencyOrSymbol: Currency | string, quoteCurrencyOrSymbol: Currency | string): Promise<BigNumber | undefined>;
+    private getSymbol;
     private mapRatesDtoToPrice;
     private getAllSymbols;
     private requestAllSymbols;

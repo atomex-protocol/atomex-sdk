@@ -2,7 +2,7 @@ import type { AuthorizationManager } from '../../authorization/index';
 import type { BalanceManager } from '../../blockchain/balanceManager';
 import type { AtomexProtocol, BalancesProvider, BlockchainToolkitProvider, CurrencyBalanceProvider, WalletsManager, SwapTransactionsProvider } from '../../blockchain/index';
 import type { Currency } from '../../common/index';
-import type { ExchangeManager, ExchangeService } from '../../exchange/index';
+import type { ExchangeManager, ExchangeService, PriceManager } from '../../exchange/index';
 import type { SwapManager } from '../../swaps/index';
 import type { AtomexContext } from '../atomexContext';
 export interface AtomexOptions {
@@ -16,6 +16,7 @@ export interface AtomexManagers {
     exchangeManager: ExchangeManager;
     swapManager: SwapManager;
     balanceManager: BalanceManager;
+    priceManager: PriceManager;
 }
 export interface AtomexServices {
     exchangeService: ExchangeService;
