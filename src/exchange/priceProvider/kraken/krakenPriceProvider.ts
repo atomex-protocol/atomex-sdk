@@ -14,12 +14,21 @@ export class KrakenPriceProvider implements PriceProvider {
     this.httpClient = new HttpClient(KrakenPriceProvider.baseUrl);
   }
 
-  async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined> {
-    const symbol = `${baseCurrency}${quoteCurrency}`;
-    const urlPath = `/0/public/Ticker?pair=${symbol}`;
+  async getPrice(baseCurrencyOrSymbol: Currency | string, quoteCurrencyOrSymbol: Currency | string): Promise<BigNumber | undefined> {
+    const baseCurrency = this.getSymbol(baseCurrencyOrSymbol);
+    const quoteCurrency = this.getSymbol(quoteCurrencyOrSymbol);
+
+    const pairSymbol = `${baseCurrency}${quoteCurrency}`;
+    const urlPath = `/0/public/Ticker?pair=${pairSymbol}`;
     const responseDto = await this.httpClient.request<KrakenRatesDto>({ urlPath }, false);
 
     return this.mapRatesDtoToPrice(responseDto);
+  }
+
+  private getSymbol(currencyOrSymbol: Currency | string): string {
+    const symbol = typeof currencyOrSymbol === 'string' ? currencyOrSymbol : currencyOrSymbol.symbol;
+
+    return symbol.toUpperCase();
   }
 
   private mapRatesDtoToPrice(dto: KrakenRatesDto): BigNumber | undefined {

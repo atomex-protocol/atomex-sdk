@@ -16,7 +16,7 @@ export interface AtomexProtocolV1 extends AtomexProtocol {
 
   redeem(params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
   getRedeemFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;
-  getRedeemReward(nativeTokenPriceInUsd: number, nativeTokenPriceInCurrency: number): Promise<FeesInfo>;
+  getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
 
   refund(params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
   getRefundFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo>;

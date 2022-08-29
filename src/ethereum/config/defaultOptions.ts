@@ -19,14 +19,16 @@ const createAtomexProtocol = (
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
         atomexContext.providers.blockchainProvider,
-        atomexContext.managers.walletsManager
+        atomexContext.managers.walletsManager,
+        atomexContext.managers.priceManager
       );
     case 'erc-20':
       return new ERC20EthereumWeb3AtomexProtocolV1(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
         atomexContext.providers.blockchainProvider,
-        atomexContext.managers.walletsManager
+        atomexContext.managers.walletsManager,
+        atomexContext.managers.priceManager
       );
     default:
       throw new Error(`Unknown Ethereum currency: ${(currency as EthereumCurrency).id}`);

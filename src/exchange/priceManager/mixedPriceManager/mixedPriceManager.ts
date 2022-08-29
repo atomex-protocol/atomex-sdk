@@ -1,29 +1,30 @@
 import BigNumber from 'bignumber.js';
 
-import { Currency, DataSource } from '../../../common';
+import { CurrenciesProvider, Currency, DataSource } from '../../../common';
 import { Cache, InMemoryCache } from '../../../core/index';
 import type { PriceProvider } from '../../priceProvider/index';
 import type { GetAveragePriceParameters, GetPriceParameters, PriceManager } from '../priceManager';
 
 interface GetCacheKeyParameters {
   isAverage: boolean;
-  baseCurrency: Currency['id'];
-  quoteCurrency: Currency['id'];
+  baseCurrencyOrSymbol: Currency | Currency['id'];
+  quoteCurrencyOrSymbol: Currency | Currency['id'];
   provider?: string;
 }
 
 export class MixedPriceManager implements PriceManager {
-  private static readonly cacheExpirationTime = 1000 * 60 * 1;
+  private readonly cache: Cache = new InMemoryCache({ absoluteExpirationMs: 1000 * 30 });
 
-  private readonly cache: Cache;
   constructor(
+    private readonly currenciesProvider: CurrenciesProvider,
     private readonly providersMap: Map<string, PriceProvider>
-  ) {
-    this.cache = new InMemoryCache({ absoluteExpirationMs: MixedPriceManager.cacheExpirationTime });
-  }
+  ) { }
 
   async getAveragePrice({ baseCurrency, quoteCurrency, dataSource = DataSource.All }: GetAveragePriceParameters): Promise<BigNumber | undefined> {
-    const key = this.getCacheKey({ isAverage: true, baseCurrency, quoteCurrency });
+    const baseCurrencyOrSymbol = this.tryFindCurrency(baseCurrency);
+    const quoteCurrencyOrSymbol = this.tryFindCurrency(quoteCurrency);
+
+    const key = this.getCacheKey({ isAverage: true, baseCurrencyOrSymbol, quoteCurrencyOrSymbol });
     if ((dataSource & DataSource.Local) === DataSource.Local) {
       const cachedAveragePrice = this.cache.get<BigNumber>(key);
       if (cachedAveragePrice)
@@ -32,7 +33,12 @@ export class MixedPriceManager implements PriceManager {
 
     if ((dataSource & DataSource.Remote) === DataSource.Remote) {
       const providers = this.getAvailableProviders();
-      const pricePromises = providers.map(provider => this.getPrice({ baseCurrency, quoteCurrency, provider }));
+      const pricePromises = providers.map(provider => this.getPrice({
+        baseCurrency: baseCurrencyOrSymbol,
+        quoteCurrency: quoteCurrencyOrSymbol,
+        provider,
+        dataSource
+      }));
       const pricePromiseResults = await Promise.allSettled(pricePromises);
 
       const prices: BigNumber[] = [];
@@ -51,7 +57,10 @@ export class MixedPriceManager implements PriceManager {
   }
 
   async getPrice({ baseCurrency, quoteCurrency, provider, dataSource = DataSource.All }: GetPriceParameters): Promise<BigNumber | undefined> {
-    const key = this.getCacheKey({ isAverage: false, baseCurrency, quoteCurrency, provider });
+    const baseCurrencyOrSymbol = this.tryFindCurrency(baseCurrency);
+    const quoteCurrencyOrSymbol = this.tryFindCurrency(quoteCurrency);
+
+    const key = this.getCacheKey({ isAverage: false, baseCurrencyOrSymbol, quoteCurrencyOrSymbol, provider });
     if ((dataSource & DataSource.Local) === DataSource.Local) {
       const cachedPrice = this.cache.get<BigNumber>(key);
       if (cachedPrice)
@@ -59,9 +68,9 @@ export class MixedPriceManager implements PriceManager {
     }
 
     if ((dataSource & DataSource.Remote) === DataSource.Remote) {
-      let price = await this.getPriceCore(baseCurrency, quoteCurrency, provider);
+      let price = await this.getPriceCore(baseCurrencyOrSymbol, quoteCurrencyOrSymbol, provider);
       if (!price) {
-        const reversedPrice = await this.getPriceCore(quoteCurrency, baseCurrency, provider);
+        const reversedPrice = await this.getPriceCore(quoteCurrencyOrSymbol, baseCurrencyOrSymbol, provider);
         if (reversedPrice)
           price = reversedPrice.pow(-1);
       }
@@ -83,16 +92,25 @@ export class MixedPriceManager implements PriceManager {
     this.cache.clear();
   }
 
-  private getCacheKey({ isAverage, baseCurrency, quoteCurrency, provider }: GetCacheKeyParameters) {
-    const prefix = isAverage ? 'average' : 'actual';
-    const postfix = provider ? provider : '';
+  private tryFindCurrency(baseCurrency: Currency | Currency['id'] | string): Currency | string {
+    if (typeof baseCurrency !== 'string')
+      return baseCurrency;
 
-    return `${prefix}_${baseCurrency}_${quoteCurrency}_${postfix}`;
+    return this.currenciesProvider.getCurrency(baseCurrency) || baseCurrency;
   }
 
-  private async getPriceCore(baseCurrency: Currency['id'], quoteCurrency: Currency['id'], provider?: string): Promise<BigNumber | undefined> {
+  private getCacheKey({ isAverage, baseCurrencyOrSymbol, quoteCurrencyOrSymbol, provider }: GetCacheKeyParameters) {
+    const prefix = isAverage ? 'average' : 'actual';
+    const baseCurrencySymbol = typeof baseCurrencyOrSymbol === 'string' ? baseCurrencyOrSymbol : baseCurrencyOrSymbol.id;
+    const quoteCurrencySymbol = typeof quoteCurrencyOrSymbol === 'string' ? quoteCurrencyOrSymbol : quoteCurrencyOrSymbol.id;
+    const postfix = provider ? provider : '';
+
+    return `${prefix}_${baseCurrencySymbol}_${quoteCurrencySymbol}_${postfix}`;
+  }
+
+  private async getPriceCore(baseCurrencyOrSymbol: Currency | string, quoteCurrencyOrSymbol: Currency | string, provider?: string): Promise<BigNumber | undefined> {
     const providers = this.getSelectedProviders(provider);
-    const pricePromises = providers.map(provider => provider.getPrice(baseCurrency, quoteCurrency));
+    const pricePromises = providers.map(provider => provider.getPrice(baseCurrencyOrSymbol, quoteCurrencyOrSymbol));
     const pricePromiseResults = await Promise.allSettled(pricePromises);
 
     for (const result of pricePromiseResults)

@@ -17,16 +17,25 @@ export class BinancePriceProvider implements PriceProvider {
     this.httpClient = new HttpClient(BinancePriceProvider.baseUrl);
   }
 
-  async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined> {
-    const symbol = `${baseCurrency}${quoteCurrency}`;
+  async getPrice(baseCurrencyOrSymbol: Currency | string, quoteCurrencyOrSymbol: Currency | string): Promise<BigNumber | undefined> {
+    const baseCurrency = this.getSymbol(baseCurrencyOrSymbol);
+    const quoteCurrency = this.getSymbol(quoteCurrencyOrSymbol);
+
+    const pairSymbol = `${baseCurrency}${quoteCurrency}`;
     const allSymbols = await this.getAllSymbols();
-    if (!allSymbols.has(symbol))
+    if (!allSymbols.has(pairSymbol))
       return undefined;
 
-    const urlPath = `${BinancePriceProvider.priceUrlPath}?symbol=${symbol}`;
+    const urlPath = `${BinancePriceProvider.priceUrlPath}?symbol=${pairSymbol}`;
     const responseDto = await this.httpClient.request<BinanceRatesDto | BinanceErrorDto>({ urlPath }, false);
 
     return this.mapRatesDtoToPrice(responseDto);
+  }
+
+  private getSymbol(currencyOrSymbol: Currency | string): string {
+    const symbol = typeof currencyOrSymbol === 'string' ? currencyOrSymbol : currencyOrSymbol.symbol;
+
+    return symbol.toUpperCase();
   }
 
   private mapRatesDtoToPrice(dto: BinanceRatesDto | BinanceErrorDto): BigNumber | undefined {

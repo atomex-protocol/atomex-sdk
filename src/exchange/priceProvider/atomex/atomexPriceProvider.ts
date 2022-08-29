@@ -10,11 +10,18 @@ export class AtomexPriceProvider implements PriceProvider {
     private readonly exchangeService: ExchangeService
   ) { }
 
-  async getPrice(baseCurrency: Currency['id'], quoteCurrency: Currency['id']): Promise<BigNumber | undefined> {
-    const symbol = `${baseCurrency}/${quoteCurrency}`;
+  async getPrice(baseCurrencyOrSymbol: Currency | string, quoteCurrencyOrSymbol: Currency | string): Promise<BigNumber | undefined> {
+    const baseCurrency = this.getSymbol(baseCurrencyOrSymbol);
+    const quoteCurrency = this.getSymbol(quoteCurrencyOrSymbol);
+    const pairSymbol = `${baseCurrency}/${quoteCurrency}`;
+
     const quote = (await this.exchangeService.getTopOfBook([{ from: baseCurrency, to: quoteCurrency }]))?.[0];
 
-    return quote && quote.symbol == symbol ? this.getMiddlePrice(quote) : undefined;
+    return quote && quote.symbol === pairSymbol ? this.getMiddlePrice(quote) : undefined;
+  }
+
+  private getSymbol(currencyOrSymbol: Currency | string): string {
+    return typeof currencyOrSymbol === 'string' ? currencyOrSymbol : currencyOrSymbol.id;
   }
 
   private getMiddlePrice(quote: Quote): BigNumber {

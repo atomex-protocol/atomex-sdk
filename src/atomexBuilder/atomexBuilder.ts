@@ -72,7 +72,8 @@ export class AtomexBuilder {
         authorizationManager: this.atomexContext.managers.authorizationManager,
         exchangeManager: this.atomexContext.managers.exchangeManager,
         swapManager: this.atomexContext.managers.swapManager,
-        balanceManager: this.atomexContext.managers.balanceManager
+        balanceManager: this.atomexContext.managers.balanceManager,
+        priceManager: this.atomexContext.managers.priceManager,
       },
       blockchains
     });
@@ -133,10 +134,12 @@ export class AtomexBuilder {
   }
 
   protected createPriceManager(): PriceManager {
-    return new MixedPriceManager(new Map<string, PriceProvider>([
-      ['binance', new BinancePriceProvider()],
-      ['kraken', new KrakenPriceProvider()],
-      ['atomex', new AtomexPriceProvider(this.atomexContext.services.exchangeService)]
-    ]));
+    return new MixedPriceManager(
+      this.atomexContext.providers.currenciesProvider,
+      new Map<string, PriceProvider>([
+        ['binance', new BinancePriceProvider()],
+        ['kraken', new KrakenPriceProvider()],
+        ['atomex', new AtomexPriceProvider(this.atomexContext.services.exchangeService)]
+      ]));
   }
 }

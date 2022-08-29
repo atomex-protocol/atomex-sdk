@@ -243,10 +243,12 @@ export class AtomexSwapPreviewManager {
 
     const fromAtomexProtocol = (fromCurrencyInfo.atomexProtocol as AtomexProtocolV1);
     const toAtomexProtocol = (toCurrencyInfo.atomexProtocol as AtomexProtocolV1);
+
+    const toRedeemFees = await toAtomexProtocol.getRedeemFees({});
     const [fromInitiateFees, toRedeemOrRewardForRedeem, fromRefundFees, toInitiateFees, fromRedeemFees] = await Promise.all([
       // TODO: fill parameters
       fromAtomexProtocol.getInitiateFees({}),
-      useWatchTower ? toAtomexProtocol.getRedeemReward(0, 0) : toAtomexProtocol.getRedeemFees({}),
+      useWatchTower ? toAtomexProtocol.getRedeemReward(toRedeemFees) : toRedeemFees,
       fromAtomexProtocol.getRefundFees({}),
 
       toAtomexProtocol.getInitiateFees({}),
