@@ -1,4 +1,3 @@
-import type { ProofOfFundsAlgorithm } from '../exchange/index';
 export declare type Side = 'Buy' | 'Sell';
 export declare type OrderType = 'Return' | 'FillOrKill' | 'ImmediateOrCancel' | 'SolidFillOrKill';
 export declare type OrderStatus = 'Pending' | 'Placed' | 'PartiallyFilled' | 'Filled' | 'Canceled' | 'Rejected';
@@ -93,7 +92,7 @@ export interface ProofOfFundsDto {
     message: string;
     publicKey: string;
     signature: string;
-    algorithm: ProofOfFundsAlgorithm;
+    algorithm: string;
 }
 export interface TransactionDto {
     currency: string;

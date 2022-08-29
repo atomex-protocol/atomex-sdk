@@ -425,11 +425,13 @@ var ExchangeManager = class {
     orderBookUpdated: new EventEmitter(),
     topOfBookUpdated: new EventEmitter()
   };
+  authorizationManager;
   exchangeService;
   symbolsProvider;
   orderBookProvider;
   _isStarted = false;
   constructor(options) {
+    this.authorizationManager = options.authorizationManager;
     this.exchangeService = options.exchangeService;
     this.symbolsProvider = options.symbolsProvider;
     this.orderBookProvider = options.orderBookProvider;
@@ -503,11 +505,12 @@ var ExchangeManager = class {
     return orderBook;
   }
   addOrder(accountAddress, newOrderRequest) {
+    const proofsOfFunds = newOrderRequest.proofsOfFunds ? newOrderRequest.proofsOfFunds : this.createProofOfFunds(accountAddress, newOrderRequest);
     const filledNewOrderRequest = {
       clientOrderId: newOrderRequest.clientOrderId || nanoid(17),
       orderBody: newOrderRequest.orderBody,
       requisites: newOrderRequest.requisites,
-      proofsOfFunds: newOrderRequest.proofsOfFunds ? newOrderRequest.proofsOfFunds : []
+      proofsOfFunds
     };
     return this.exchangeService.addOrder(accountAddress, filledNewOrderRequest);
   }
@@ -616,6 +619,21 @@ var ExchangeManager = class {
         return entry;
       }
     }
+  }
+  createProofOfFunds(accountAddress, newOrderRequest) {
+    const authToken = this.authorizationManager.getAuthToken(accountAddress);
+    if (!authToken)
+      throw new Error(`Cannot find auth token for address: ${accountAddress}`);
+    const currency = ordersHelper_exports.isOrderPreview(newOrderRequest.orderBody) ? newOrderRequest.orderBody.from.currencyId : symbolsHelper_exports.convertSymbolAndSideToFromAndToCurrencies(newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side)[0];
+    return [{
+      address: accountAddress,
+      currency,
+      timeStamp: authToken.request.timeStamp,
+      message: authToken.request.message,
+      publicKey: authToken.request.publicKey,
+      signature: authToken.request.signature,
+      algorithm: authToken.request.algorithm
+    }];
   }
   getCachedOrderBook(symbol) {
     const cachedOrderBook = this.orderBookProvider.getOrderBook(symbol);
@@ -1198,8 +1216,7 @@ var Atomex = class {
         lockTime: 18e3,
         baseCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
         quoteCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
-      },
-      proofsOfFunds: []
+      }
     };
     const orderId = await this.exchangeManager.addOrder(fromAddress, newOrderRequest);
     const order = await this.exchangeManager.getOrder(fromAddress, orderId);
@@ -3507,7 +3524,15 @@ var RestAtomexClient = class {
         quoteCurrencyContract: newOrderRequest.requisites.quoteCurrencyContract,
         baseCurrencyContract: newOrderRequest.requisites.baseCurrencyContract
       } : void 0,
-      proofsOfFunds: newOrderRequest.proofsOfFunds,
+      proofsOfFunds: newOrderRequest.proofsOfFunds.map((proof) => ({
+        address: proof.address,
+        currency: proof.currency,
+        timeStamp: proof.timeStamp,
+        message: proof.message,
+        publicKey: proof.publicKey,
+        signature: proof.signature,
+        algorithm: proof.algorithm
+      })),
       qty: amountBigNumber.toNumber(),
       price: priceBigNumber.toNumber()
     };
@@ -4081,19 +4106,21 @@ var _AuthorizationManager = class {
     const atomexSignature = await wallet.sign(authMessage + timeStamp);
     if (atomexSignature.address !== address)
       throw new Error("Invalid address in the signed data");
-    const authenticationResponseData = await this.requestAuthToken({
+    const authenticationRequestData = {
       message: authMessage,
       publicKey: atomexSignature.publicKeyBytes,
       algorithm: atomexSignature.algorithm,
       signingDataType: atomexSignature.signingDataType,
       signature: atomexSignature.signatureBytes,
       timeStamp
-    });
+    };
+    const authenticationResponseData = await this.requestAuthToken(authenticationRequestData);
     const authToken = {
       value: authenticationResponseData.token,
       userId: authenticationResponseData.id,
       address,
-      expired: new Date(authenticationResponseData.expires)
+      expired: new Date(authenticationResponseData.expires),
+      request: authenticationRequestData
     };
     await this.registerAuthToken(authToken, true);
     return authToken;
@@ -4195,15 +4222,39 @@ var DefaultSerializedAuthTokenMapper = class {
       a: authToken.address,
       u: authToken.userId,
       e: authToken.expired.getTime(),
-      v: authToken.value
+      v: authToken.value,
+      r: this.mapAuthTokenRequestDataToSerializedAuthTokenRequestData(authToken.request)
     };
   }
   mapSerializedAuthTokenToAuthToken(serializedAuthToken) {
+    if (!serializedAuthToken.r)
+      return null;
     return {
       address: serializedAuthToken.a,
       userId: serializedAuthToken.u,
       expired: new Date(serializedAuthToken.e),
-      value: serializedAuthToken.v
+      value: serializedAuthToken.v,
+      request: this.mapSerializedAuthTokenRequestDataToAuthTokenRequestData(serializedAuthToken.r)
+    };
+  }
+  mapAuthTokenRequestDataToSerializedAuthTokenRequestData(authTokenRequestData) {
+    return {
+      m: authTokenRequestData.message,
+      t: authTokenRequestData.timeStamp,
+      pk: authTokenRequestData.publicKey,
+      s: authTokenRequestData.signature,
+      a: authTokenRequestData.algorithm,
+      sdt: authTokenRequestData.signingDataType
+    };
+  }
+  mapSerializedAuthTokenRequestDataToAuthTokenRequestData(serializedAuthTokenRequestData) {
+    return {
+      message: serializedAuthTokenRequestData.m,
+      timeStamp: serializedAuthTokenRequestData.t,
+      publicKey: serializedAuthTokenRequestData.pk,
+      signature: serializedAuthTokenRequestData.s,
+      algorithm: serializedAuthTokenRequestData.a,
+      signingDataType: serializedAuthTokenRequestData.sdt
     };
   }
 };
@@ -4463,6 +4514,7 @@ var AtomexBuilder = class {
   }
   createExchangeManager() {
     return this.customExchangeManagerFactory ? this.customExchangeManagerFactory(this.atomexContext, this.options) : new ExchangeManager({
+      authorizationManager: this.atomexContext.managers.authorizationManager,
       exchangeService: this.atomexContext.services.exchangeService,
       symbolsProvider: this.atomexContext.providers.exchangeSymbolsProvider,
       orderBookProvider: this.atomexContext.providers.orderBookProvider

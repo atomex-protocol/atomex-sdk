@@ -1,16 +1,19 @@
 import { BigNumber } from 'bignumber.js';
+import type { AuthorizationManager } from '../authorization';
 import { AtomexService, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider/index';
-import type { CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol, OrderPreviewParameters as OrderPreviewParameters, NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, NormalizedOrderPreviewParameters, SymbolLiquidity, SymbolLiquidityParameters } from './models/index';
+import type { CancelAllOrdersRequest, CancelOrderRequest, CurrencyDirection, ExchangeSymbol, OrderPreviewParameters as OrderPreviewParameters, NewOrderRequest, Order, OrderBook, OrderPreview, OrdersSelector, Quote, OrderType, NormalizedOrderPreviewParameters, SymbolLiquidity, SymbolLiquidityParameters, ProofOfFunds } from './models/index';
 import type { ManagedOrderBookProvider } from './orderBookProvider';
 export interface ExchangeManagerOptions {
+    authorizationManager: AuthorizationManager;
     exchangeService: ExchangeService;
     symbolsProvider: ManagedExchangeSymbolsProvider;
     orderBookProvider: ManagedOrderBookProvider;
 }
 export declare class ExchangeManager implements AtomexService {
     readonly events: ExchangeServiceEvents;
+    protected readonly authorizationManager: AuthorizationManager;
     protected readonly exchangeService: ExchangeService;
     protected readonly symbolsProvider: ManagedExchangeSymbolsProvider;
     protected readonly orderBookProvider: ManagedOrderBookProvider;
@@ -40,5 +43,6 @@ export declare class ExchangeManager implements AtomexService {
     protected handleExchangeServiceTopOfBookUpdated: (updatedQuotes: readonly Quote[]) => void;
     protected normalizeOrderPreviewParametersIfNeeded(orderPreviewParameters: OrderPreviewParameters | NormalizedOrderPreviewParameters): NormalizedOrderPreviewParameters;
     protected findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isBaseCurrencyAmount: boolean): Promise<import("./models/orderBook").OrderBookEntry | undefined>;
+    protected createProofOfFunds(accountAddress: string, newOrderRequest: NewOrderRequest): ProofOfFunds[];
     protected getCachedOrderBook(symbol: string): Promise<OrderBook | undefined>;
 }
