@@ -22,7 +22,14 @@ describe('WebSocket Atomex Client', () => {
     address: 'address',
     expired: new Date(),
     userId: 'user-id',
-    value: 'test-auth-token'
+    value: 'test-auth-token',
+    request: {
+      algorithm: 'test-algorithm',
+      message: 'signing',
+      publicKey: 'test-public-key',
+      signature: 'test-signature',
+      timeStamp: 1
+    }
   };
 
   let exchangeWsServer: WS;
@@ -259,10 +266,17 @@ describe('WebSocket Atomex Client', () => {
 
     let connectPromise = getOnConnectPromise(exchangeWsServer);
     authorizationManager.emitAuthorizedEvent({
-      address: 'address2',
+      address: 'address1',
       expired: new Date(),
       userId: 'user1',
-      value: 'token1'
+      value: 'token1',
+      request: {
+        algorithm: 'test-algorithm',
+        message: 'signing',
+        publicKey: 'test-public-key1',
+        signature: 'test-signature1',
+        timeStamp: 1
+      }
     });
     await connectPromise;
 
@@ -271,7 +285,14 @@ describe('WebSocket Atomex Client', () => {
       address: 'address2',
       expired: new Date(),
       userId: 'user2',
-      value: 'token2'
+      value: 'token2',
+      request: {
+        algorithm: 'test-algorithm',
+        message: 'signing',
+        publicKey: 'test-public-key2',
+        signature: 'test-signature2',
+        timeStamp: 1
+      }
     });
     await connectPromise;
 
@@ -292,7 +313,14 @@ describe('WebSocket Atomex Client', () => {
       address: 'address2',
       expired: new Date(),
       userId: 'user1',
-      value: 'token1'
+      value: 'token1',
+      request: {
+        algorithm: 'test-algorithm',
+        message: 'signing',
+        publicKey: 'test-public-key',
+        signature: 'test-signature',
+        timeStamp: 1
+      }
     });
     await connectPromise;
 
@@ -301,7 +329,14 @@ describe('WebSocket Atomex Client', () => {
       address: 'address1',
       expired: new Date(),
       userId: 'user1',
-      value: 'token1Changed'
+      value: 'token1Changed',
+      request: {
+        algorithm: 'test-algorithm',
+        message: 'signing',
+        publicKey: 'test-public-key',
+        signature: 'test-signature',
+        timeStamp: 1
+      }
     });
     await connectPromise;
 
@@ -321,10 +356,17 @@ describe('WebSocket Atomex Client', () => {
 
     let connectPromise = getOnConnectPromise(exchangeWsServer);
     authorizationManager.emitAuthorizedEvent({
-      address: 'address2',
+      address: 'address1',
       expired: new Date(),
       userId: 'user1',
-      value: 'token1'
+      value: 'token1',
+      request: {
+        algorithm: 'test-algorithm',
+        message: 'signing',
+        publicKey: 'test-public-key',
+        signature: 'test-signature',
+        timeStamp: 1
+      }
     });
     await connectPromise;
     await exchangeWsServer.connected;
@@ -377,10 +419,17 @@ describe('WebSocket Atomex Client', () => {
 
     const connectPromise = getOnConnectPromise(exchangeWsServer);
     authorizationManager.emitAuthorizedEvent({
-      address: 'address2',
+      address: 'address1',
       expired: new Date(),
       userId: 'user1',
-      value: 'token1'
+      value: 'token1',
+      request: {
+        algorithm: 'test-algorithm',
+        message: 'signing',
+        publicKey: 'test-public-key',
+        signature: 'test-signature',
+        timeStamp: 1
+      }
     });
     await connectPromise;
 

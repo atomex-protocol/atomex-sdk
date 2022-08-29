@@ -15,4 +15,35 @@ export interface SerializedAuthToken {
    * expired
    */
   e: number;
+  /**
+   * request
+   */
+  r: SerializedAuthTokenRequestData;
+}
+
+export interface SerializedAuthTokenRequestData {
+  /**
+   * message
+   */
+  m: string;
+  /**
+   * timeStamp
+   */
+  t: number;
+  /**
+   * publicKey
+   */
+  pk: string;
+  /**
+   * signature
+   */
+  s: string;
+  /**
+   * algorithm
+   */
+  a: string;
+  /**
+   * signingDataType
+   */
+  sdt?: string;
 }

@@ -137,10 +137,7 @@ export class Atomex implements AtomexService {
         lockTime: 18000,
         baseCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
         quoteCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
-      },
-      proofsOfFunds: [
-        // TODO
-      ]
+      }
     };
 
     const orderId = await this.exchangeManager.addOrder(fromAddress, newOrderRequest);

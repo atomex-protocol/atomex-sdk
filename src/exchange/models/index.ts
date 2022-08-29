@@ -15,4 +15,4 @@ export type { OrderBook, OrderBookEntry } from './orderBook';
 export type { OrdersSelector } from './ordersSelector';
 export type { SwapsSelector } from './swapsSelector';
 export type { CurrencyDirection } from './currencyDirection';
-export type { ProofOfFunds, ProofOfFundsAlgorithm } from './proofOfFunds';
+export type { ProofOfFunds } from './proofOfFunds';

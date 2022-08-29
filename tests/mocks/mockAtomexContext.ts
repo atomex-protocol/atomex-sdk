@@ -38,19 +38,21 @@ export const createMockedAtomexContext = (atomexNetwork: AtomexNetwork, id = 0):
   const orderBookProvider = new MockOrderBookProvider();
   const symbolsProvider = new MockExchangeSymbolsProvider();
   const blockchainProvider = new MockBlockchainProvider();
+  const authorizationManager = new MockAuthorizationManager({
+    atomexNetwork,
+    walletsManager,
+    authorizationBaseUrl: 'https://atomex.authorization.url',
+    store: new MockAuthorizationManagerStore()
+  });
 
   return {
     atomexNetwork,
     id,
     managers: {
       walletsManager,
-      authorizationManager: new MockAuthorizationManager({
-        atomexNetwork,
-        walletsManager,
-        authorizationBaseUrl: 'https://atomex.authorization.url',
-        store: new MockAuthorizationManagerStore()
-      }),
+      authorizationManager,
       exchangeManager: new MockExchangeManager({
+        authorizationManager,
         exchangeService: mockAtomexClient,
         orderBookProvider,
         symbolsProvider
