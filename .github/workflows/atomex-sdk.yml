@@ -99,7 +99,7 @@ jobs:
         run: npm ci --force
 
       - name: Test
-        run: npm test
+        run: npm test -- --coverage
 
   publish-dist-branch:
     name: Publish to the dist branch
