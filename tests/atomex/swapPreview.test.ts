@@ -8,7 +8,7 @@ import { Atomex } from '../../src/index';
 import { tezosTestnetCurrencies } from '../../src/tezos';
 import { testnetTezosTaquitoAtomexProtocolV1Options } from '../../src/tezos/config/atomexProtocol';
 import { createMockedAtomexContext, createMockedBlockchainOptions, MockAtomexBlockchainNetworkOptions, MockAtomexContext } from '../mocks';
-import { Accounts, AtomexProtocolV1Fees, swapPreviewWithAccountTestCases, swapPreviewWithoutAccountTestCases } from './testCases';
+import { Accounts, AtomexProtocolV1Fees, swapPreviewWithAccountAndInvolvedSwapsTestCases, swapPreviewWithAccountTestCases, swapPreviewWithoutAccountTestCases } from './testCases';
 
 describe('Atomex | Swap Preview', () => {
   let mockedAtomexContext: MockAtomexContext;
@@ -60,6 +60,7 @@ describe('Atomex | Swap Preview', () => {
 
         throw new Error('Expected symbol');
       });
+      mockedAtomexContext.services.swapService.getSwaps.mockResolvedValue([]);
       mockPriceManagerByOrderBook(environment.orderBooks);
       mockAtomexProtocolV1Fees(environment.atomexProtocolFees);
       await atomex.start();
@@ -80,7 +81,29 @@ describe('Atomex | Swap Preview', () => {
 
         throw new Error('Expected symbol');
       });
+      mockedAtomexContext.services.swapService.getSwaps.mockResolvedValue([]);
+      mockPriceManagerByOrderBook(environment.orderBooks);
+      mockAccounts(environment.accounts);
+      mockAtomexProtocolV1Fees(environment.atomexProtocolFees);
+      await atomex.start();
 
+      const swapPreview = await atomex.getSwapPreview(swapPreviewParameters);
+
+      expect(swapPreview).toEqual(expectedSwapPreview);
+    }
+  );
+
+  test.each(swapPreviewWithAccountAndInvolvedSwapsTestCases)(
+    'getting swap preview with account and involved swaps: %s\n\tSwap Preview Parameters: %j',
+    async (_, swapPreviewParameters, expectedSwapPreview, environment) => {
+      mockedAtomexContext.services.exchangeService.getSymbols.mockResolvedValue(environment.symbols);
+      mockedAtomexContext.services.exchangeService.getOrderBook.mockImplementation(symbol => {
+        if (typeof symbol === 'string')
+          return Promise.resolve(environment.orderBooks.find(ob => ob.symbol === symbol));
+
+        throw new Error('Expected symbol');
+      });
+      mockedAtomexContext.services.swapService.getSwaps.mockResolvedValue(environment.swaps);
       mockPriceManagerByOrderBook(environment.orderBooks);
       mockAccounts(environment.accounts);
       mockAtomexProtocolV1Fees(environment.atomexProtocolFees);

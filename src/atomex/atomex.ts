@@ -74,6 +74,7 @@ export class Atomex implements AtomexService {
     this.exchangeManager.stop();
     this.swapManager.stop();
     this.balanceManager.dispose();
+    this.swapPreviewManager.dispose();
 
     this._isStarted = false;
   }
@@ -101,9 +102,12 @@ export class Atomex implements AtomexService {
     if (swapPreview.errors.length)
       throw new Error('Swap preview has errors');
 
-    const fromAddress = swapPreview.to.address;
+    const fromAddress = swapPreview.from.address;
     if (!fromAddress)
       throw new Error('Swap preview doesn\'t have the "from" address');
+    const toAddress = swapPreview.to.address;
+    if (!toAddress)
+      throw new Error('Swap preview doesn\'t have the "to" address');
 
     const [baseCurrencyId, quoteCurrencyId] = symbolsHelper.getBaseQuoteCurrenciesBySymbol(swapPreview.symbol);
     const baseCurrencyInfo = this.atomexContext.providers.blockchainProvider.getCurrencyInfo(baseCurrencyId);
@@ -132,7 +136,7 @@ export class Atomex implements AtomexService {
       },
       requisites: {
         secretHash: null,
-        receivingAddress: swapPreview.to.address,
+        receivingAddress: toAddress,
         refundAddress: newSwapRequestOrSwapId.refundAddress || null,
         rewardForRedeem: rewardForRedeem || new BigNumber(0),
         // TODO: from config
@@ -156,6 +160,7 @@ export class Atomex implements AtomexService {
     if (swaps.some(swap => !swap))
       throw new Error('Swap not found');
 
+    this.swapPreviewManager.clearCache();
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return swaps.length === 1 ? swaps[0]! : (swaps as readonly Swap[]);
   }

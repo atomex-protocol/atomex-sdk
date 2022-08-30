@@ -1,11 +1,86 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import BigNumber from 'bignumber.js';
 
+import type { Swap } from '../../../src';
 import type { SwapPreview, SwapPreviewParameters } from '../../../src/atomex/models';
 import type { ExchangeSymbol, OrderBook } from '../../../src/exchange';
 import type { Accounts } from './accounts';
 import { AtomexProtocolV1Fees, validAtomexProtocolV1Fees } from './atomexProtocolFees';
 import { validExchangeSymbols } from './exchangeSymbols';
 import { validOrderBooks } from './orderBooks';
+
+const swaps: Swap[] = [
+  {
+    id: 100,
+    isInitiator: false,
+    from: {
+      currencyId: 'XTZ',
+      amount: new BigNumber('55'),
+      price: new BigNumber('0.000948468'),
+    },
+    to: {
+      currencyId: 'ETH',
+      amount: new BigNumber('0.05216574'),
+      price: new BigNumber('1054.331827747'),
+    },
+    trade: {
+      price: new BigNumber('0.000948468'),
+      qty: new BigNumber('55'),
+      side: 'Sell',
+      symbol: 'XTZ/ETH'
+    },
+    user: {
+      status: 'Involved',
+      trades: [],
+      transactions: [],
+      requisites: null as any
+    },
+    counterParty: {
+      status: 'Involved',
+      trades: [],
+      transactions: [],
+      requisites: null as any
+    },
+    secret: null,
+    secretHash: '',
+    timeStamp: new Date('2022-08-30T00:25:01Z')
+  },
+  {
+    id: 89,
+    isInitiator: false,
+    from: {
+      currencyId: 'XTZ',
+      amount: new BigNumber('13'),
+      price: new BigNumber('0.000948468'),
+    },
+    to: {
+      currencyId: 'ETH',
+      amount: new BigNumber('0.05216574'),
+      price: new BigNumber('1054.331827747'),
+    },
+    trade: {
+      price: new BigNumber('0.000948468'),
+      qty: new BigNumber('13'),
+      side: 'Sell',
+      symbol: 'XTZ/ETH'
+    },
+    user: {
+      status: 'Involved',
+      trades: [],
+      transactions: [],
+      requisites: null as any
+    },
+    counterParty: {
+      status: 'Involved',
+      trades: [],
+      transactions: [],
+      requisites: null as any
+    },
+    secret: null,
+    secretHash: '',
+    timeStamp: new Date('2022-08-27T14:25:01Z')
+  },
+];
 
 const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
   message: string,
@@ -15,14 +90,15 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
     symbols: ExchangeSymbol[],
     orderBooks: OrderBook[],
     atomexProtocolFees: AtomexProtocolV1Fees,
-    accounts: Accounts
+    accounts: Accounts,
+    swaps: Swap[]
   }
 ]> = [
     [
-      'Swap XTZ -> ETH with default options',
+      'Swap XTZ -> ETH with default options and 2 involved swaps',
       {
         type: 'SolidFillOrKill',
-        amount: new BigNumber(35),
+        amount: new BigNumber(10),
         from: 'XTZ',
         to: 'ETH'
       },
@@ -34,7 +110,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
           currencyId: 'XTZ',
           address: 'tz101',
           actual: {
-            amount: new BigNumber('35'),
+            amount: new BigNumber('10'),
             price: new BigNumber('0.000948468'),
           },
           available: {
@@ -42,7 +118,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('0.000948468')
           },
           max: {
-            amount: new BigNumber('90.445209'),
+            amount: new BigNumber('22.445209'),
             price: new BigNumber('0.000948468')
           }
         },
@@ -50,7 +126,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
           currencyId: 'ETH',
           address: '0x01',
           actual: {
-            amount: new BigNumber('0.03319638'),
+            amount: new BigNumber('0.00948468'),
             price: new BigNumber('1054.331827747'),
           },
           available: {
@@ -58,7 +134,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('1054.331827747')
           },
           max: {
-            amount: new BigNumber('0.085784386'),
+            amount: new BigNumber('0.021288562'),
             price: new BigNumber('1054.331827747')
           }
         },
@@ -122,17 +198,17 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               ETH: new BigNumber(0)
             }
           }
-        }
+        },
+        swaps
       }
     ],
     [
-      'Swap XTZ -> ETH with disabled watch tower and with zero ETH balance',
+      'Try swap more XTZ than on balance including 2 involved swaps (XTZ -> ETH)',
       {
         type: 'SolidFillOrKill',
         amount: new BigNumber(35),
         from: 'XTZ',
-        to: 'ETH',
-        useWatchTower: false
+        to: 'ETH'
       },
       {
         type: 'SolidFillOrKill',
@@ -150,7 +226,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('0.000948468')
           },
           max: {
-            amount: new BigNumber('90.445209'),
+            amount: new BigNumber('22.445209'),
             price: new BigNumber('0.000948468')
           }
         },
@@ -166,7 +242,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('1054.331827747')
           },
           max: {
-            amount: new BigNumber('0.085784386'),
+            amount: new BigNumber('0.021288562'),
             price: new BigNumber('1054.331827747')
           }
         },
@@ -185,10 +261,10 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               max: new BigNumber('9.414791')
             },
             {
-              name: 'redeem-fee',
+              name: 'redeem-reward',
               currencyId: 'ETH',
-              estimated: new BigNumber('0.0023'),
-              max: new BigNumber('0.003')
+              estimated: new BigNumber('0.0035'),
+              max: new BigNumber('0.0035')
             }
           ],
           refund: [
@@ -213,12 +289,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
           ]
         },
         errors: [
-          {
-            id: 'not-enough-funds-network-fee',
-            data: {
-              requiredAmount: new BigNumber('0.003')
-            }
-          }
+          { id: 'not-enough-funds' }
         ],
         warnings: []
       },
@@ -237,14 +308,15 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               ETH: new BigNumber(0)
             }
           }
-        }
+        },
+        swaps
       }
     ],
     [
-      'Swap XTZ -> ETH with small balance (not enough to pay payment fee and maker fee)',
+      'Try swap more XTZ than on balance including 2 involved swaps (XTZ -> ETH)',
       {
         type: 'SolidFillOrKill',
-        amount: new BigNumber(3),
+        amount: new BigNumber(35),
         from: 'XTZ',
         to: 'ETH'
       },
@@ -256,27 +328,33 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
           currencyId: 'XTZ',
           address: 'tz101',
           actual: {
-            amount: new BigNumber('3'),
+            amount: new BigNumber('35'),
             price: new BigNumber('0.000948468'),
           },
           available: {
             amount: new BigNumber('300'),
             price: new BigNumber('0.000948468')
           },
-          max: undefined
+          max: {
+            amount: new BigNumber('22.445209'),
+            price: new BigNumber('0.000948468')
+          }
         },
         to: {
           currencyId: 'ETH',
           address: '0x01',
           actual: {
-            amount: new BigNumber('0.002845404'),
+            amount: new BigNumber('0.03319638'),
             price: new BigNumber('1054.331827747'),
           },
           available: {
             amount: new BigNumber('0.2845404'),
             price: new BigNumber('1054.331827747')
           },
-          max: undefined
+          max: {
+            amount: new BigNumber('0.021288562'),
+            price: new BigNumber('1054.331827747')
+          }
         },
         fees: {
           success: [
@@ -321,10 +399,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
           ]
         },
         errors: [
-          {
-            id: 'not-enough-funds-network-fee',
-            data: { requiredAmount: new BigNumber('9.554791') }
-          }
+          { id: 'not-enough-funds' }
         ],
         warnings: []
       },
@@ -335,7 +410,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         accounts: {
           tezos: {
             tz101: {
-              XTZ: new BigNumber(9)
+              XTZ: new BigNumber(100)
             }
           },
           ethereum: {
@@ -343,238 +418,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               ETH: new BigNumber(0)
             }
           }
-        }
-      }
-    ],
-    [
-      'Swap USDT_XTZ -> ETH with small XTZ balance (not enough to pay payment fee and maker fee)',
-      {
-        type: 'SolidFillOrKill',
-        amount: new BigNumber(1217.234),
-        from: 'USDT_XTZ',
-        to: 'ETH'
-      },
-      {
-        type: 'SolidFillOrKill',
-        side: 'Buy',
-        symbol: 'ETH/USDT_XTZ',
-        from: {
-          currencyId: 'USDT_XTZ',
-          address: 'tz101',
-          actual: {
-            amount: new BigNumber('1217.234'),
-            price: new BigNumber('0.000613034'),
-          },
-          available: {
-            amount: new BigNumber('1631.22858'),
-            price: new BigNumber('0.000613034')
-          },
-          max: {
-            amount: new BigNumber('1631.22858'),
-            price: new BigNumber('0.000613034')
-          }
         },
-        to: {
-          currencyId: 'ETH',
-          address: '0x01',
-          actual: {
-            amount: new BigNumber('0.746206886'),
-            price: new BigNumber('1631.22858'),
-          },
-          available: {
-            amount: new BigNumber('1'),
-            price: new BigNumber('1631.22858')
-          },
-          max: {
-            amount: new BigNumber('1'),
-            price: new BigNumber('1631.22858')
-          }
-        },
-        fees: {
-          success: [
-            {
-              name: 'payment-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.1043'),
-              max: new BigNumber('0.13')
-            },
-            {
-              name: 'maker-fee',
-              currencyId: 'USDT_XTZ',
-              estimated: new BigNumber('8.615812'),
-              max: new BigNumber('14.712051')
-            },
-            {
-              name: 'redeem-reward',
-              currencyId: 'ETH',
-              estimated: new BigNumber('0.0035'),
-              max: new BigNumber('0.0035')
-            }
-          ],
-          refund: [
-            {
-              name: 'payment-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.1043'),
-              max: new BigNumber('0.13')
-            },
-            {
-              name: 'maker-fee',
-              currencyId: 'USDT_XTZ',
-              estimated: new BigNumber('8.615812'),
-              max: new BigNumber('14.712051')
-            },
-            {
-              name: 'refund-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.06'),
-              max: new BigNumber('0.07')
-            }
-          ]
-        },
-        errors: [
-          {
-            id: 'not-enough-funds-network-fee',
-            data: { requiredAmount: new BigNumber(0.2) }
-          }
-        ],
-        warnings: []
-      },
-      {
-        symbols: validExchangeSymbols,
-        orderBooks: [
-          validOrderBooks['ETH/USDT_XTZ'][0],
-          validOrderBooks['XTZ/USDT_XTZ'][0]
-        ],
-        atomexProtocolFees: validAtomexProtocolV1Fees[0],
-        accounts: {
-          tezos: {
-            tz101: {
-              XTZ: new BigNumber(0),
-              USDT_XTZ: new BigNumber(2000)
-            }
-          },
-          ethereum: {
-            '0x01': {
-              ETH: new BigNumber(0)
-            }
-          }
-        }
-      }
-    ],
-    [
-      'Try swap more USDT_XTZ than on balance (USDT_XTZ -> ETH)',
-      {
-        type: 'SolidFillOrKill',
-        amount: new BigNumber(1217.234),
-        from: 'USDT_XTZ',
-        to: 'ETH'
-      },
-      {
-        type: 'SolidFillOrKill',
-        side: 'Buy',
-        symbol: 'ETH/USDT_XTZ',
-        from: {
-          currencyId: 'USDT_XTZ',
-          address: 'tz101',
-          actual: {
-            amount: new BigNumber('1217.234'),
-            price: new BigNumber('0.000613034'),
-          },
-          available: {
-            amount: new BigNumber('1631.22858'),
-            price: new BigNumber('0.000613034')
-          },
-          max: {
-            amount: new BigNumber('1000'),
-            price: new BigNumber('0.000613034')
-          }
-        },
-        to: {
-          currencyId: 'ETH',
-          address: '0x01',
-          actual: {
-            amount: new BigNumber('0.746206886'),
-            price: new BigNumber('1631.22858'),
-          },
-          available: {
-            amount: new BigNumber('1'),
-            price: new BigNumber('1631.22858')
-          },
-          max: {
-            amount: new BigNumber('0.613034869'),
-            price: new BigNumber('1631.22858')
-          }
-        },
-        fees: {
-          success: [
-            {
-              name: 'payment-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.1043'),
-              max: new BigNumber('0.13')
-            },
-            {
-              name: 'maker-fee',
-              currencyId: 'USDT_XTZ',
-              estimated: new BigNumber('8.615812'),
-              max: new BigNumber('14.712051')
-            },
-            {
-              name: 'redeem-reward',
-              currencyId: 'ETH',
-              estimated: new BigNumber('0.0035'),
-              max: new BigNumber('0.0035')
-            }
-          ],
-          refund: [
-            {
-              name: 'payment-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.1043'),
-              max: new BigNumber('0.13')
-            },
-            {
-              name: 'maker-fee',
-              currencyId: 'USDT_XTZ',
-              estimated: new BigNumber('8.615812'),
-              max: new BigNumber('14.712051')
-            },
-            {
-              name: 'refund-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.06'),
-              max: new BigNumber('0.07')
-            }
-          ]
-        },
-        errors: [
-          {
-            id: 'not-enough-funds',
-          }
-        ],
-        warnings: []
-      },
-      {
-        symbols: validExchangeSymbols,
-        orderBooks: [
-          validOrderBooks['ETH/USDT_XTZ'][0],
-          validOrderBooks['XTZ/USDT_XTZ'][0]
-        ],
-        atomexProtocolFees: validAtomexProtocolV1Fees[0],
-        accounts: {
-          tezos: {
-            tz101: {
-              XTZ: new BigNumber(10),
-              USDT_XTZ: new BigNumber(1000)
-            }
-          },
-          ethereum: {
-            '0x01': {
-              ETH: new BigNumber(0)
-            }
-          }
-        }
+        swaps
       }
     ],
   ];

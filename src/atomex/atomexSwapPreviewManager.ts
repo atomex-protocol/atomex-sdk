@@ -1,15 +1,23 @@
 import BigNumber from 'bignumber.js';
 
 import type { AtomexProtocolV1, CurrencyInfo, FeesInfo } from '../blockchain/index';
-import type { Currency } from '../common/index';
+import type { Currency, Disposable } from '../common/index';
 import { Mutable, Cache, InMemoryCache } from '../core/index';
 import { ExchangeSymbolsProvider, ordersHelper, symbolsHelper, type NormalizedOrderPreviewParameters, type OrderPreview } from '../exchange/index';
-import { converters } from '../utils';
+import type { Swap } from '../swaps/index';
+import { converters } from '../utils/index';
 import type { AtomexContext } from './atomexContext';
 import type { NormalizedSwapPreviewParameters, SwapPreview, SwapPreviewFee, SwapPreviewParameters } from './models/index';
 
-export class AtomexSwapPreviewManager {
-  private readonly swapPreviewFeesCache: Cache = new InMemoryCache({ absoluteExpirationMs: 10 * 1000 });
+interface UserInvolvedSwapsInfo {
+  readonly swaps: readonly Swap[];
+  readonly fromCurrencyId: string;
+  readonly fromTotalAmount: BigNumber;
+}
+
+export class AtomexSwapPreviewManager implements Disposable {
+  private readonly swapPreviewFeesCache: Cache = new InMemoryCache({ absoluteExpirationMs: 20 * 1000 });
+  private readonly userInvolvedSwapsCache: Cache = new InMemoryCache({ slidingExpirationMs: 30 * 1000 });
 
   constructor(protected readonly atomexContext: AtomexContext) {
   }
@@ -118,6 +126,16 @@ export class AtomexSwapPreviewManager {
     };
   }
 
+  // TODO: Temporarily. Remove this method when we add local swap tracking
+  clearCache() {
+    this.swapPreviewFeesCache.clear();
+    this.userInvolvedSwapsCache.clear();
+  }
+
+  async dispose(): Promise<void> {
+    this.clearCache();
+  }
+
   protected normalizeSwapPreviewParametersIfNeeded(swapPreviewParameters: SwapPreviewParameters | NormalizedSwapPreviewParameters): NormalizedSwapPreviewParameters {
     return AtomexSwapPreviewManager.isNormalizedSwapPreviewParameters(swapPreviewParameters)
       ? swapPreviewParameters
@@ -166,6 +184,7 @@ export class AtomexSwapPreviewManager {
 
       maxOrderPreview = await this.getMaxOrderPreview(
         normalizedSwapPreviewParameters,
+        fromAddress,
         fromAvailableAmount,
         fromCurrencyBalance,
         fromCurrencyInfo,
@@ -199,27 +218,25 @@ export class AtomexSwapPreviewManager {
 
   protected async getMaxOrderPreview(
     normalizedSwapPreviewParameters: NormalizedOrderPreviewParameters,
+    fromAddress: string,
     fromAvailableAmount: BigNumber,
     fromCurrencyBalance: BigNumber,
     fromCurrencyInfo: CurrencyInfo,
     _fromNativeCurrencyBalance: BigNumber,
     fromNativeCurrencyInfo: CurrencyInfo,
     fromNativeCurrencyNetworkFee: BigNumber,
-    errors: Mutable<SwapPreview['errors']>,
+    _errors: Mutable<SwapPreview['errors']>,
     _warnings: Mutable<SwapPreview['warnings']>
   ): Promise<OrderPreview | undefined> {
-    // TODO: add sum of the in progress swaps
-    const maxAmount = BigNumber.min(
-      fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id
-        ? fromCurrencyBalance.minus(fromNativeCurrencyNetworkFee)
-        : fromCurrencyBalance,
-      fromAvailableAmount
-    );
-
-    if (maxAmount.isLessThanOrEqualTo(0)) {
-      errors.push({ id: 'not-enough-funds' });
+    const userInvolvedSwapsInfo = await this.getUserInvolvedSwapsInfo(fromAddress, fromCurrencyInfo.currency.id);
+    let maxAmount = fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id
+      ? fromCurrencyBalance.minus(fromNativeCurrencyNetworkFee)
+      : fromCurrencyBalance;
+    maxAmount = maxAmount.minus(userInvolvedSwapsInfo.fromTotalAmount);
+    if (maxAmount.isLessThanOrEqualTo(0))
       return undefined;
-    }
+
+    maxAmount = BigNumber.min(maxAmount, fromAvailableAmount);
 
     return this.atomexContext.managers.exchangeManager.getOrderPreview({
       type: normalizedSwapPreviewParameters.type,
@@ -228,6 +245,25 @@ export class AtomexSwapPreviewManager {
       amount: maxAmount,
       isFromAmount: true,
     });
+  }
+
+  protected async getUserInvolvedSwapsInfo(userAddress: string, fromCurrencyId: Currency['id']): Promise<UserInvolvedSwapsInfo> {
+    const cacheKey = this.getUserInvolvedSwapsCacheKey(userAddress, fromCurrencyId);
+    let swapsInfo = this.userInvolvedSwapsCache.get<UserInvolvedSwapsInfo>(cacheKey);
+    if (swapsInfo)
+      return swapsInfo;
+
+    const swaps = (await this.atomexContext.managers.swapManager.getSwaps(userAddress))
+      .filter(swap => swap.user.status === 'Involved' && swap.from.currencyId === fromCurrencyId);
+    const fromTotalAmount = swaps.reduce(
+      (total, swap) => total.plus(swap.from.amount),
+      new BigNumber(0)
+    );
+
+    swapsInfo = { fromCurrencyId, swaps, fromTotalAmount };
+    this.userInvolvedSwapsCache.set(cacheKey, swapsInfo);
+
+    return swapsInfo;
   }
 
   protected async calculateSwapPreviewFees(
@@ -362,6 +398,13 @@ export class AtomexSwapPreviewManager {
     useWatchTower: boolean
   ) {
     return `${fromCurrencyInfo.currency.id}_${toCurrencyInfo.currency.id}_${useWatchTower}`;
+  }
+
+  private getUserInvolvedSwapsCacheKey(
+    userAddress: string,
+    fromCurrencyId: Currency['id']
+  ) {
+    return `${userAddress}_${fromCurrencyId}`;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
