@@ -1,9 +1,10 @@
 import BigNumber from 'bignumber.js';
 import type Web3 from 'web3';
 
+import type { AtomexProtocolMultiChainBase } from '../../blockchain/AtomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
-  AtomexProtocolMultiChain, AtomexProtocolMultiChainInitiateParameters,
+  AtomexProtocolMultiChainInitiateParameters,
   AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters,
   BlockchainWallet, FeesInfo, Transaction, WalletsManager
 } from '../../blockchain/index';
@@ -13,9 +14,10 @@ import type { PriceManager } from '../../exchange';
 import { web3Helper } from '../helpers';
 import type { Web3AtomexProtocolMultiChainOptions } from '../models/index';
 
-export abstract class Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChain {
+export abstract class Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChainBase {
   protected static maxNetworkFeeMultiplier = new BigNumber(1.2);
-  readonly type = 'MultiChain';
+
+  abstract readonly type: string;
 
   constructor(
     protected readonly blockchain: string,

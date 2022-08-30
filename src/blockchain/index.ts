@@ -1,10 +1,12 @@
 export { WalletsManager } from './walletsManager';
-export { isAtomexProtocolMultiChain } from './AtomexProtocolMultiChain/index';
+export { isAtomexProtocolMultiChain, isAtomexProtocolMultiChainApprovable } from './AtomexProtocolMultiChain/index';
 
 export type { AtomexProtocolOptions, AtomexSignature, Transaction, FeesInfo } from './models/index';
 export type { AtomexProtocol } from './atomexProtocol';
 export type {
-  AtomexProtocolMultiChain, AtomexProtocolMultiChainOptions,
+  AtomexProtocolMultiChain,
+  AtomexProtocolMultiChainApprovable,
+  AtomexProtocolMultiChainOptions,
   AtomexProtocolMultiChainInitiateParameters,
   AtomexProtocolMultiChainRedeemParameters,
   AtomexProtocolMultiChainRefundParameters

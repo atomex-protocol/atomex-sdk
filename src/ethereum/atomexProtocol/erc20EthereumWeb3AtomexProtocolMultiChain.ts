@@ -1,4 +1,4 @@
-import { atomexProtocolMultiChainHelper } from '../../blockchain/AtomexProtocolMultiChain';
+import { AtomexProtocolMultiChainApprovable, atomexProtocolMultiChainHelper } from '../../blockchain/AtomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolMultiChainInitiateParameters, AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters,
@@ -10,7 +10,9 @@ import { Web3AtomexProtocolMultiChain } from '../../evm/index';
 import type { PriceManager } from '../../exchange';
 import type { ERC20EthereumWeb3AtomexProtocolMultiChainOptions } from '../models/index';
 
-export class ERC20EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMultiChain {
+export class ERC20EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChainApprovable {
+  readonly type = 'MultiChainApprovable';
+
   constructor(
     atomexNetwork: AtomexNetwork,
     protected readonly atomexProtocolOptions: DeepReadonly<ERC20EthereumWeb3AtomexProtocolMultiChainOptions>,
@@ -23,6 +25,10 @@ export class ERC20EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtoco
 
   get currencyId() {
     return this.atomexProtocolOptions.currencyId;
+  }
+
+  approve(_params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {
+    throw new Error('Method not implemented.');
   }
 
   initiate(_params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {

@@ -1,4 +1,4 @@
-import { atomexProtocolMultiChainHelper } from '../../blockchain/AtomexProtocolMultiChain';
+import { AtomexProtocolMultiChain, atomexProtocolMultiChainHelper } from '../../blockchain/AtomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolMultiChainInitiateParameters,
@@ -12,7 +12,9 @@ import { Web3AtomexProtocolMultiChain } from '../../evm/index';
 import type { PriceManager } from '../../exchange';
 import type { EthereumWeb3AtomexProtocolMultiChainOptions } from '../models/index';
 
-export class EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMultiChain {
+export class EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChain {
+  readonly type = 'MultiChain';
+
   constructor(
     atomexNetwork: AtomexNetwork,
     protected readonly atomexProtocolOptions: DeepReadonly<EthereumWeb3AtomexProtocolMultiChainOptions>,
