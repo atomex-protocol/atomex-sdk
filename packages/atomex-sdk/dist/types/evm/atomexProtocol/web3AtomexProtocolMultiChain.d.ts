@@ -1,0 +1,30 @@
+import BigNumber from 'bignumber.js';
+import type Web3 from 'web3';
+import type { AtomexProtocolMultiChainBase } from '../../blockchain/atomexProtocolMultiChain';
+import type { AtomexBlockchainProvider, AtomexProtocolMultiChainInitiateParameters, AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters, BlockchainWallet, FeesInfo, Transaction, WalletsManager } from '../../blockchain/index';
+import type { AtomexNetwork } from '../../common/index';
+import type { DeepReadonly } from '../../core/index';
+import type { PriceManager } from '../../exchange';
+import type { Web3AtomexProtocolMultiChainOptions } from '../models/index';
+export declare abstract class Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChainBase {
+    protected readonly blockchain: string;
+    readonly atomexNetwork: AtomexNetwork;
+    protected readonly atomexProtocolOptions: DeepReadonly<Web3AtomexProtocolMultiChainOptions>;
+    protected readonly atomexBlockchainProvider: AtomexBlockchainProvider;
+    protected readonly walletsManager: WalletsManager;
+    protected readonly priceManager: PriceManager;
+    protected static maxNetworkFeeMultiplier: BigNumber;
+    abstract readonly type: string;
+    constructor(blockchain: string, atomexNetwork: AtomexNetwork, atomexProtocolOptions: DeepReadonly<Web3AtomexProtocolMultiChainOptions>, atomexBlockchainProvider: AtomexBlockchainProvider, walletsManager: WalletsManager, priceManager: PriceManager);
+    get currencyId(): string;
+    get swapContractAddress(): string;
+    abstract initiate(params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction>;
+    getInitiateFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo>;
+    abstract redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction>;
+    abstract getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
+    getRedeemFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo>;
+    abstract refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction>;
+    getRefundFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo>;
+    protected getReadonlyWeb3(): Promise<Web3>;
+    protected getWallet(address?: string): Promise<BlockchainWallet<Web3>>;
+}

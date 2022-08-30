@@ -1,5 +1,5 @@
-import type { AtomexProtocolV1Options } from '../../blockchain/index';
-export interface TaquitoAtomexProtocolV1Options extends AtomexProtocolV1Options {
+import type { AtomexProtocolMultiChainOptions } from '../../blockchain/index';
+export interface TaquitoAtomexProtocolMultiChainOptions extends AtomexProtocolMultiChainOptions {
     initiateOperation: {
         fee: number;
         gasLimit: number;
@@ -16,6 +16,6 @@ export interface TaquitoAtomexProtocolV1Options extends AtomexProtocolV1Options 
         storageLimit: number;
     };
 }
-export declare type TezosTaquitoAtomexProtocolV1Options = TaquitoAtomexProtocolV1Options;
-export declare type FA12TezosTaquitoAtomexProtocolV1Options = TezosTaquitoAtomexProtocolV1Options;
-export declare type FA2TezosTaquitoAtomexProtocolV1Options = TezosTaquitoAtomexProtocolV1Options;
+export declare type TezosTaquitoAtomexProtocolMultiChainOptions = TaquitoAtomexProtocolMultiChainOptions;
+export declare type FA12TezosTaquitoAtomexProtocolMultiChainOptions = TezosTaquitoAtomexProtocolMultiChainOptions;
+export declare type FA2TezosTaquitoAtomexProtocolMultiChainOptions = TezosTaquitoAtomexProtocolMultiChainOptions;

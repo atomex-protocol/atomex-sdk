@@ -1,5 +1,5 @@
-import type { FA12TezosTaquitoAtomexProtocolV1Options, FA2TezosTaquitoAtomexProtocolV1Options } from '../../models/index';
-export declare const mainnetFA12TezosTaquitoAtomexProtocolV1OptionsBase: Omit<FA12TezosTaquitoAtomexProtocolV1Options, 'currencyId' | 'swapContractAddress' | 'swapContractBlockId'>;
-export declare const mainnetFA2TezosTaquitoAtomexProtocolV1OptionsBase: Omit<FA2TezosTaquitoAtomexProtocolV1Options, 'currencyId' | 'swapContractAddress' | 'swapContractBlockId'>;
-export declare const testnetFA12TezosTaquitoAtomexProtocolV1OptionsBase: Omit<FA12TezosTaquitoAtomexProtocolV1Options, 'currencyId' | 'swapContractAddress' | 'swapContractBlockId'>;
-export declare const testnetFA2TezosTaquitoAtomexProtocolV1OptionsBase: Omit<FA2TezosTaquitoAtomexProtocolV1Options, 'currencyId' | 'swapContractAddress' | 'swapContractBlockId'>;
+import type { FA12TezosTaquitoAtomexProtocolMultiChainOptions, FA2TezosTaquitoAtomexProtocolMultiChainOptions } from '../../models/index';
+export declare const mainnetFA12TezosTaquitoAtomexProtocolMultiChainOptionsBase: Omit<FA12TezosTaquitoAtomexProtocolMultiChainOptions, 'currencyId' | 'swapContractAddress' | 'swapContractBlockId'>;
+export declare const mainnetFA2TezosTaquitoAtomexProtocolMultiChainOptionsBase: Omit<FA2TezosTaquitoAtomexProtocolMultiChainOptions, 'currencyId' | 'swapContractAddress' | 'swapContractBlockId'>;
+export declare const testnetFA12TezosTaquitoAtomexProtocolMultiChainOptionsBase: Omit<FA12TezosTaquitoAtomexProtocolMultiChainOptions, 'currencyId' | 'swapContractAddress' | 'swapContractBlockId'>;
+export declare const testnetFA2TezosTaquitoAtomexProtocolMultiChainOptionsBase: Omit<FA2TezosTaquitoAtomexProtocolMultiChainOptions, 'currencyId' | 'swapContractAddress' | 'swapContractBlockId'>;

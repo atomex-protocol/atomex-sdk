@@ -7,13 +7,13 @@ export { RestAtomexClient, WebSocketAtomexClient, MixedApiAtomexClient } from '.
 export { DataSource, ImportantDataReceivingMode } from './common/index';
 export { Web3BlockchainWallet } from './evm/index';
 export { ExchangeManager, InMemoryExchangeSymbolsProvider } from './exchange/index';
-export { EthereumWeb3AtomexProtocolV1, ERC20EthereumWeb3AtomexProtocolV1 } from './ethereum/index';
+export { EthereumWeb3AtomexProtocolMultiChain, ERC20EthereumWeb3AtomexProtocolMultiChain } from './ethereum/index';
 export { InMemoryAuthorizationManagerStore } from './stores/index';
-export { TaquitoBlockchainWallet, TezosTaquitoAtomexProtocolV1, FA12TezosTaquitoAtomexProtocolV1, FA2TezosTaquitoAtomexProtocolV1 } from './tezos/index';
+export { TaquitoBlockchainWallet, TezosTaquitoAtomexProtocolMultiChain, FA12TezosTaquitoAtomexProtocolMultiChain, FA2TezosTaquitoAtomexProtocolMultiChain } from './tezos/index';
 export * from './utils';
 export type { AtomexOptions, NewSwapRequest, SwapPreview } from './atomex/index';
 export type { AuthToken, AuthorizationManagerOptions } from './authorization/index';
-export type { AtomexProtocol, Transaction, AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters, AtomexSignature, BlockchainWallet, BalancesProvider, SwapTransactionsProvider, TransactionsProvider } from './blockchain/index';
+export type { AtomexProtocol, Transaction, AtomexProtocolMultiChain, AtomexProtocolMultiChainInitiateParameters, AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters, AtomexSignature, BlockchainWallet, BalancesProvider, SwapTransactionsProvider, TransactionsProvider } from './blockchain/index';
 export type { OrdersSelector, SwapsSelector } from './exchange/index';
 export type { SerializedAuthTokenMapper, SerializedAuthToken } from './browser/index';
 export type { AtomexClient } from './clients/index';
