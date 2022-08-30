@@ -3,7 +3,8 @@ import BigNumber from 'bignumber.js';
 import type { AtomexProtocolV1, CurrencyInfo, FeesInfo } from '../blockchain/index';
 import type { Currency } from '../common/index';
 import { Mutable, Cache, InMemoryCache } from '../core/index';
-import { ExchangeSymbolsProvider, ordersHelper, type NormalizedOrderPreviewParameters, type OrderPreview } from '../exchange/index';
+import { ExchangeSymbolsProvider, ordersHelper, symbolsHelper, type NormalizedOrderPreviewParameters, type OrderPreview } from '../exchange/index';
+import { converters } from '../utils';
 import type { AtomexContext } from './atomexContext';
 import type { NormalizedSwapPreviewParameters, SwapPreview, SwapPreviewFee, SwapPreviewParameters } from './models/index';
 
@@ -262,9 +263,9 @@ export class AtomexSwapPreviewManager {
       max: fromInitiateFees.max,
     };
     const makerFee = await this.calculateMakerFees(
-      fromCurrencyInfo.currency.id,
-      fromNativeCurrencyInfo.currency.id,
-      toNativeCurrencyInfo.currency.id,
+      fromCurrencyInfo.currency,
+      fromNativeCurrencyInfo.currency,
+      toNativeCurrencyInfo.currency,
       toInitiateFees,
       fromRedeemFees
     );
@@ -297,15 +298,15 @@ export class AtomexSwapPreviewManager {
   }
 
   protected async calculateMakerFees(
-    fromCurrencyId: Currency['id'],
-    fromNativeCurrencyId: Currency['id'],
-    toNativeCurrencyId: Currency['id'],
+    fromCurrency: Currency,
+    fromNativeCurrency: Currency,
+    toNativeCurrency: Currency,
     toInitiateFees: FeesInfo,
     fromRedeemFees: FeesInfo
   ): Promise<SwapPreviewFee> {
-    const toInitiateFeeConversationPromise = this.convertFeesToFromCurrency(toInitiateFees, toNativeCurrencyId, fromCurrencyId);
-    const fromRedeemFeeConversationPromise = fromCurrencyId !== fromNativeCurrencyId
-      ? this.convertFeesToFromCurrency(fromRedeemFees, fromNativeCurrencyId, fromCurrencyId)
+    const toInitiateFeeConversationPromise = this.convertFeesFromNativeCurrencyToCustom(toInitiateFees, toNativeCurrency, fromCurrency);
+    const fromRedeemFeeConversationPromise = fromCurrency !== fromNativeCurrency
+      ? this.convertFeesFromNativeCurrencyToCustom(fromRedeemFees, fromNativeCurrency, fromCurrency)
       : undefined;
 
     let estimatedToInitiateFeesInFromCurrency: BigNumber;
@@ -329,37 +330,29 @@ export class AtomexSwapPreviewManager {
 
     return {
       name: 'maker-fee',
-      currencyId: fromCurrencyId,
+      currencyId: fromCurrency.id,
       estimated: estimatedToInitiateFeesInFromCurrency.plus(estimatedFromRedeemFeesInFromCurrency),
       max: maxToInitiateFeesInFromCurrency.plus(maxFromRedeemFeesInFromCurrency)
     };
   }
 
-  protected async convertFeesToFromCurrency(fees: FeesInfo, from: Currency['id'], to: Currency['id']): Promise<FeesInfo> {
-    const [estimatedInFromCurrency, maxInFromCurrency] = await Promise.all([
-      this.atomexContext.managers.exchangeManager.getOrderPreview({
-        type: 'SolidFillOrKill',
-        from,
-        to,
-        amount: fees.estimated,
-        isFromAmount: true
-      }).then(orderPreview => orderPreview?.to.amount),
+  protected async convertFeesFromNativeCurrencyToCustom(fees: FeesInfo, nativeCurrency: Currency, customCurrency: Currency): Promise<FeesInfo> {
+    const price = await this.atomexContext.managers.priceManager.getPrice({ baseCurrency: nativeCurrency, quoteCurrency: customCurrency, provider: 'atomex' });
+    if (!price)
+      throw new Error(`It's no possible to convert fees from "${nativeCurrency.id}" to "${customCurrency.id}" currency`);
 
-      this.atomexContext.managers.exchangeManager.getOrderPreview({
-        type: 'SolidFillOrKill',
-        from,
-        to,
-        amount: fees.max,
-        isFromAmount: true
-      }).then(orderPreview => orderPreview?.to.amount)
-    ]);
-
-    if (!estimatedInFromCurrency || !maxInFromCurrency)
-      throw new Error(`It's no possible to convert fees from "${from}" to "${to}" currency`);
+    const [exchangeSymbol, _] = symbolsHelper.convertFromAndToCurrenciesToSymbolAndSide(
+      this.atomexContext.providers.exchangeSymbolsProvider.getSymbolsMap(),
+      nativeCurrency.id,
+      customCurrency.id
+    );
+    const customCurrencyDecimals = exchangeSymbol.baseCurrency === customCurrency.id ? exchangeSymbol.decimals.baseCurrency : exchangeSymbol.decimals.quoteCurrency;
+    const estimatedInCustomCurrency = converters.toFixedBigNumber(fees.estimated.multipliedBy(price), customCurrencyDecimals, BigNumber.ROUND_CEIL);
+    const maxInCustomCurrency = converters.toFixedBigNumber(fees.max.multipliedBy(price), customCurrencyDecimals, BigNumber.ROUND_CEIL);
 
     return {
-      estimated: estimatedInFromCurrency,
-      max: maxInFromCurrency
+      estimated: estimatedInCustomCurrency,
+      max: maxInCustomCurrency
     };
   }
 

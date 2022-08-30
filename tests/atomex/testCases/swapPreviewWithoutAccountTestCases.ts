@@ -61,8 +61,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'redeem-reward',
@@ -81,8 +81,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'refund-fee',
@@ -146,8 +146,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'ETH',
-              estimated: new BigNumber('0.002370471'),
-              max: new BigNumber('0.003094846')
+              estimated: new BigNumber('0.002371559'),
+              max: new BigNumber('0.003096311')
             },
             {
               name: 'redeem-reward',
@@ -166,8 +166,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'ETH',
-              estimated: new BigNumber('0.002370471'),
-              max: new BigNumber('0.003094846')
+              estimated: new BigNumber('0.002371559'),
+              max: new BigNumber('0.003096311')
             },
             {
               name: 'refund-fee',
@@ -231,8 +231,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'USDT_XTZ',
-              estimated: new BigNumber('8.541664'),
-              max: new BigNumber('14.585536')
+              estimated: new BigNumber('8.615812'),
+              max: new BigNumber('14.712051')
             },
             {
               name: 'redeem-reward',
@@ -251,8 +251,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'USDT_XTZ',
-              estimated: new BigNumber('8.541664'),
-              max: new BigNumber('14.585536')
+              estimated: new BigNumber('8.615812'),
+              max: new BigNumber('14.712051')
             },
             {
               name: 'refund-fee',
@@ -319,8 +319,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'ETH',
-              estimated: new BigNumber('0.002398925'),
-              max: new BigNumber('0.0031233')
+              estimated: new BigNumber('0.002400452'),
+              max: new BigNumber('0.003125204')
             },
             {
               name: 'redeem-reward',
@@ -339,8 +339,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'ETH',
-              estimated: new BigNumber('0.002398925'),
-              max: new BigNumber('0.0031233')
+              estimated: new BigNumber('0.002400452'),
+              max: new BigNumber('0.003125204')
             },
             {
               name: 'refund-fee',
@@ -408,8 +408,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'redeem-fee',
@@ -428,8 +428,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'refund-fee',
@@ -494,8 +494,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'ETH',
-              estimated: new BigNumber('0.002398925'),
-              max: new BigNumber('0.0031233')
+              estimated: new BigNumber('0.002400452'),
+              max: new BigNumber('0.003125204')
             },
             {
               name: 'redeem-fee',
@@ -514,8 +514,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'ETH',
-              estimated: new BigNumber('0.002398925'),
-              max: new BigNumber('0.0031233')
+              estimated: new BigNumber('0.002400452'),
+              max: new BigNumber('0.003125204')
             },
             {
               name: 'refund-fee',
@@ -582,8 +582,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'redeem-reward',
@@ -602,8 +602,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'refund-fee',
@@ -670,8 +670,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'redeem-reward',
@@ -690,8 +690,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'refund-fee',
