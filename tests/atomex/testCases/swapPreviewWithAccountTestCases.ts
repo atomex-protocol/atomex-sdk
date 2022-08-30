@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 import type { SwapPreview, SwapPreviewParameters } from '../../../src/atomex/models';
 import type { ExchangeSymbol, OrderBook } from '../../../src/exchange';
 import type { Accounts } from './accounts';
-import { AtomexProtocolV1Fees, validAtomexProtocolV1Fees } from './atomexProtocolFees';
+import { AtomexProtocolMultiChainFees, validAtomexProtocolMultiChainFees } from './atomexProtocolFees';
 import { validExchangeSymbols } from './exchangeSymbols';
 import { validOrderBooks } from './orderBooks';
 
@@ -14,7 +14,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
   environment: {
     symbols: ExchangeSymbol[],
     orderBooks: OrderBook[],
-    atomexProtocolFees: AtomexProtocolV1Fees,
+    atomexProtocolFees: AtomexProtocolMultiChainFees,
     accounts: Accounts
   }
 ]> = [
@@ -110,7 +110,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
       {
         symbols: validExchangeSymbols,
         orderBooks: [validOrderBooks['XTZ/ETH'][0]],
-        atomexProtocolFees: validAtomexProtocolV1Fees[0],
+        atomexProtocolFees: validAtomexProtocolMultiChainFees[0],
         accounts: {
           tezos: {
             tz101: {
@@ -225,7 +225,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
       {
         symbols: validExchangeSymbols,
         orderBooks: [validOrderBooks['XTZ/ETH'][0]],
-        atomexProtocolFees: validAtomexProtocolV1Fees[0],
+        atomexProtocolFees: validAtomexProtocolMultiChainFees[0],
         accounts: {
           tezos: {
             tz101: {
@@ -331,7 +331,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
       {
         symbols: validExchangeSymbols,
         orderBooks: [validOrderBooks['XTZ/ETH'][0]],
-        atomexProtocolFees: validAtomexProtocolV1Fees[0],
+        atomexProtocolFees: validAtomexProtocolMultiChainFees[0],
         accounts: {
           tezos: {
             tz101: {
@@ -446,7 +446,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
           validOrderBooks['ETH/USDT_XTZ'][0],
           validOrderBooks['XTZ/USDT_XTZ'][0]
         ],
-        atomexProtocolFees: validAtomexProtocolV1Fees[0],
+        atomexProtocolFees: validAtomexProtocolMultiChainFees[0],
         accounts: {
           tezos: {
             tz101: {
@@ -561,7 +561,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
           validOrderBooks['ETH/USDT_XTZ'][0],
           validOrderBooks['XTZ/USDT_XTZ'][0]
         ],
-        atomexProtocolFees: validAtomexProtocolV1Fees[0],
+        atomexProtocolFees: validAtomexProtocolMultiChainFees[0],
         accounts: {
           tezos: {
             tz101: {

@@ -1,12 +1,14 @@
 export { WalletsManager } from './walletsManager';
-export { isAtomexProtocolV1 } from './atomexProtocolV1/index';
+export { isAtomexProtocolMultiChain } from './AtomexProtocolMultiChain/index';
 
 export type { AtomexProtocolOptions, AtomexSignature, Transaction, FeesInfo } from './models/index';
 export type { AtomexProtocol } from './atomexProtocol';
 export type {
-  AtomexProtocolV1, AtomexProtocolV1Options,
-  AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters
-} from './atomexProtocolV1/index';
+  AtomexProtocolMultiChain, AtomexProtocolMultiChainOptions,
+  AtomexProtocolMultiChainInitiateParameters,
+  AtomexProtocolMultiChainRedeemParameters,
+  AtomexProtocolMultiChainRefundParameters
+} from './AtomexProtocolMultiChain/index';
 export type { BalancesProvider, CurrencyBalanceProvider } from './balanceProvider/index';
 export type { TransactionsProvider } from './transactionsProvider';
 export type { BlockchainToolkitProvider } from './blockchainToolkitProvider';

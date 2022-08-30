@@ -1,9 +1,9 @@
 import type { AbiItem } from 'web3-utils';
 
-import type { Web3AtomexProtocolV1Options } from '../../evm/index';
+import type { Web3AtomexProtocolMultiChainOptions } from '../../evm/index';
 
-export interface EthereumWeb3AtomexProtocolV1Options extends Web3AtomexProtocolV1Options {
+export interface EthereumWeb3AtomexProtocolMultiChainOptions extends Web3AtomexProtocolMultiChainOptions {
   abi: AbiItem[];
 }
 
-export type ERC20EthereumWeb3AtomexProtocolV1Options = EthereumWeb3AtomexProtocolV1Options;
+export type ERC20EthereumWeb3AtomexProtocolMultiChainOptions = EthereumWeb3AtomexProtocolMultiChainOptions;

@@ -18,7 +18,7 @@ describe('Atomex Blockchain Provider', () => {
   };
 
   const tezosNativeCurrencyOptions: AtomexCurrencyOptions = {
-    atomexProtocol: { atomexNetwork: 'mainnet', version: 1 }
+    atomexProtocol: { atomexNetwork: 'mainnet', type: 'MultiChain' }
   };
 
   const ethereumNativeCurrency: Currency = {
@@ -31,7 +31,7 @@ describe('Atomex Blockchain Provider', () => {
   };
 
   const ethereumNativeCurrencyOptions: AtomexCurrencyOptions = {
-    atomexProtocol: { atomexNetwork: 'mainnet', version: 1 }
+    atomexProtocol: { atomexNetwork: 'mainnet', type: 'MultiChain' }
   };
 
   let provider: AtomexBlockchainProvider;

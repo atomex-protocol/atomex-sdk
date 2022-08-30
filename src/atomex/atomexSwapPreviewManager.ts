@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 
-import type { AtomexProtocolV1, CurrencyInfo, FeesInfo } from '../blockchain/index';
+import type { AtomexProtocolMultiChain, CurrencyInfo, FeesInfo } from '../blockchain/index';
 import type { Currency, Disposable } from '../common/index';
 import { Mutable, Cache, InMemoryCache } from '../core/index';
 import { ExchangeSymbolsProvider, ordersHelper, symbolsHelper, type NormalizedOrderPreviewParameters, type OrderPreview } from '../exchange/index';
@@ -278,8 +278,8 @@ export class AtomexSwapPreviewManager implements Disposable {
     if (cachedFees)
       return cachedFees;
 
-    const fromAtomexProtocol = (fromCurrencyInfo.atomexProtocol as AtomexProtocolV1);
-    const toAtomexProtocol = (toCurrencyInfo.atomexProtocol as AtomexProtocolV1);
+    const fromAtomexProtocol = (fromCurrencyInfo.atomexProtocol as AtomexProtocolMultiChain);
+    const toAtomexProtocol = (toCurrencyInfo.atomexProtocol as AtomexProtocolMultiChain);
 
     const toRedeemFees = await toAtomexProtocol.getRedeemFees({});
     const [fromInitiateFees, toRedeemOrRewardForRedeem, fromRefundFees, toInitiateFees, fromRedeemFees] = await Promise.all([

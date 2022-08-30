@@ -2,13 +2,13 @@
 import BigNumber from 'bignumber.js';
 
 import { ethereumTestnetCurrencies } from '../../src/ethereum';
-import { testnetEthereumWeb3AtomexProtocolV1Options } from '../../src/ethereum/config';
+import { testnetEthereumWeb3AtomexProtocolMultiChainOptions } from '../../src/ethereum/config';
 import type { OrderBook } from '../../src/exchange';
 import { Atomex } from '../../src/index';
 import { tezosTestnetCurrencies } from '../../src/tezos';
-import { testnetTezosTaquitoAtomexProtocolV1Options } from '../../src/tezos/config/atomexProtocol';
+import { testnetTezosTaquitoAtomexProtocolMultiChainOptions } from '../../src/tezos/config/atomexProtocol';
 import { createMockedAtomexContext, createMockedBlockchainOptions, MockAtomexBlockchainNetworkOptions, MockAtomexContext } from '../mocks';
-import { Accounts, AtomexProtocolV1Fees, swapPreviewWithAccountAndInvolvedSwapsTestCases, swapPreviewWithAccountTestCases, swapPreviewWithoutAccountTestCases } from './testCases';
+import { Accounts, AtomexProtocolMultiChainFees, swapPreviewWithAccountAndInvolvedSwapsTestCases, swapPreviewWithAccountTestCases, swapPreviewWithoutAccountTestCases } from './testCases';
 
 describe('Atomex | Swap Preview', () => {
   let mockedAtomexContext: MockAtomexContext;
@@ -23,12 +23,12 @@ describe('Atomex | Swap Preview', () => {
     mockedBlockchainOptions = {
       ethereum: createMockedBlockchainOptions({
         currencies: ethereumTestnetCurrencies,
-        atomexProtocolOptions: testnetEthereumWeb3AtomexProtocolV1Options,
+        atomexProtocolOptions: testnetEthereumWeb3AtomexProtocolMultiChainOptions,
         toolkitId: 'web3'
       }),
       tezos: createMockedBlockchainOptions({
         currencies: tezosTestnetCurrencies,
-        atomexProtocolOptions: testnetTezosTaquitoAtomexProtocolV1Options,
+        atomexProtocolOptions: testnetTezosTaquitoAtomexProtocolMultiChainOptions,
         toolkitId: 'taquito'
       }),
     };
@@ -62,7 +62,7 @@ describe('Atomex | Swap Preview', () => {
       });
       mockedAtomexContext.services.swapService.getSwaps.mockResolvedValue([]);
       mockPriceManagerByOrderBook(environment.orderBooks);
-      mockAtomexProtocolV1Fees(environment.atomexProtocolFees);
+      mockAtomexProtocolMultiChainFees(environment.atomexProtocolFees);
       await atomex.start();
 
       const swapPreview = await atomex.getSwapPreview(swapPreviewParameters);
@@ -84,7 +84,7 @@ describe('Atomex | Swap Preview', () => {
       mockedAtomexContext.services.swapService.getSwaps.mockResolvedValue([]);
       mockPriceManagerByOrderBook(environment.orderBooks);
       mockAccounts(environment.accounts);
-      mockAtomexProtocolV1Fees(environment.atomexProtocolFees);
+      mockAtomexProtocolMultiChainFees(environment.atomexProtocolFees);
       await atomex.start();
 
       const swapPreview = await atomex.getSwapPreview(swapPreviewParameters);
@@ -106,7 +106,7 @@ describe('Atomex | Swap Preview', () => {
       mockedAtomexContext.services.swapService.getSwaps.mockResolvedValue(environment.swaps);
       mockPriceManagerByOrderBook(environment.orderBooks);
       mockAccounts(environment.accounts);
-      mockAtomexProtocolV1Fees(environment.atomexProtocolFees);
+      mockAtomexProtocolMultiChainFees(environment.atomexProtocolFees);
       await atomex.start();
 
       const swapPreview = await atomex.getSwapPreview(swapPreviewParameters);
@@ -197,7 +197,7 @@ describe('Atomex | Swap Preview', () => {
     });
   };
 
-  const mockAtomexProtocolV1Fees = (allFees: AtomexProtocolV1Fees) => {
+  const mockAtomexProtocolMultiChainFees = (allFees: AtomexProtocolMultiChainFees) => {
     for (const [currencyId, fees] of Object.entries(allFees)) {
       const blockchainId = getBlockchainNameByCurrencyId(currencyId);
 

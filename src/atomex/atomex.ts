@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import type { AuthorizationManager } from '../authorization/index';
 import type { BalanceManager } from '../blockchain/balanceManager';
-import type { AtomexProtocolV1, WalletsManager } from '../blockchain/index';
+import type { AtomexProtocolMultiChain, WalletsManager } from '../blockchain/index';
 import type { AtomexService, Currency } from '../common/index';
 import { NewOrderRequest, ExchangeManager, symbolsHelper, PriceManager } from '../exchange/index';
 import type { Swap, SwapManager } from '../swaps/index';
@@ -117,13 +117,13 @@ export class Atomex implements AtomexService {
     if (!quoteCurrencyInfo)
       throw new Error(`The "${quoteCurrencyId}" currency (quote) is unknown`);
 
-    if (baseCurrencyInfo.atomexProtocol.version !== 1)
-      throw new Error(`Unknown version (${baseCurrencyInfo.atomexProtocol.version}) of the Atomex protocol (base)`);
-    if (quoteCurrencyInfo.atomexProtocol.version !== 1)
-      throw new Error(`Unknown version (${quoteCurrencyInfo.atomexProtocol.version}) of the Atomex protocol (quote)`);
+    if (baseCurrencyInfo.atomexProtocol.type !== 'MultiChain')
+      throw new Error(`Unknown type (${baseCurrencyInfo.atomexProtocol.type}) of the Atomex protocol (base)`);
+    if (quoteCurrencyInfo.atomexProtocol.type !== 'MultiChain')
+      throw new Error(`Unknown type (${quoteCurrencyInfo.atomexProtocol.type}) of the Atomex protocol (quote)`);
 
-    const baseCurrencyAtomexProtocolV1 = baseCurrencyInfo.atomexProtocol as AtomexProtocolV1;
-    const quoteCurrencyAtomexProtocolV1 = quoteCurrencyInfo.atomexProtocol as AtomexProtocolV1;
+    const baseCurrencyAtomexProtocolMultiChain = baseCurrencyInfo.atomexProtocol as AtomexProtocolMultiChain;
+    const quoteCurrencyAtomexProtocolMultiChain = quoteCurrencyInfo.atomexProtocol as AtomexProtocolMultiChain;
     const directionName: 'from' | 'to' = baseCurrencyId === swapPreview.from.currencyId ? 'from' : 'to';
     const rewardForRedeem = swapPreview.fees.success.find(fee => fee.name == 'redeem-reward')?.estimated;
     const newOrderRequest: NewOrderRequest = {
@@ -141,8 +141,8 @@ export class Atomex implements AtomexService {
         rewardForRedeem: rewardForRedeem || new BigNumber(0),
         // TODO: from config
         lockTime: 18000,
-        baseCurrencyContract: baseCurrencyAtomexProtocolV1.swapContractAddress,
-        quoteCurrencyContract: quoteCurrencyAtomexProtocolV1.swapContractAddress
+        baseCurrencyContract: baseCurrencyAtomexProtocolMultiChain.swapContractAddress,
+        quoteCurrencyContract: quoteCurrencyAtomexProtocolMultiChain.swapContractAddress
       }
     };
 

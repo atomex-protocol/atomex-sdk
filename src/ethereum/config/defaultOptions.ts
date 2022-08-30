@@ -1,12 +1,12 @@
 import type { AtomexBlockchainNetworkOptions, AtomexContext, AtomexCurrencyOptions } from '../../atomex/index';
 import { Web3BlockchainToolkitProvider, Web3BalancesProvider } from '../../evm/index';
-import { ERC20EthereumWeb3AtomexProtocolV1, EthereumWeb3AtomexProtocolV1 } from '../atomexProtocol/index';
+import { ERC20EthereumWeb3AtomexProtocolMultiChain, EthereumWeb3AtomexProtocolMultiChain } from '../atomexProtocol/index';
 import type { EthereumCurrency } from '../models';
 import { EthereumSwapTransactionsProvider } from '../swapTransactionsProviders/index';
-import { mainnetEthereumWeb3AtomexProtocolV1Options, testnetEthereumWeb3AtomexProtocolV1Options } from './atomexProtocol';
+import { mainnetEthereumWeb3AtomexProtocolMultiChainOptions, testnetEthereumWeb3AtomexProtocolMultiChainOptions } from './atomexProtocol';
 import { ethereumMainnetCurrencies, ethereumTestnetCurrencies } from './currencies';
 
-type AtomexProtocolOptions = typeof mainnetEthereumWeb3AtomexProtocolV1Options | typeof testnetEthereumWeb3AtomexProtocolV1Options;
+type AtomexProtocolOptions = typeof mainnetEthereumWeb3AtomexProtocolMultiChainOptions | typeof testnetEthereumWeb3AtomexProtocolMultiChainOptions;
 
 const createAtomexProtocol = (
   atomexContext: AtomexContext,
@@ -15,7 +15,7 @@ const createAtomexProtocol = (
 ) => {
   switch (currency.type) {
     case 'native':
-      return new EthereumWeb3AtomexProtocolV1(
+      return new EthereumWeb3AtomexProtocolMultiChain(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
         atomexContext.providers.blockchainProvider,
@@ -23,7 +23,7 @@ const createAtomexProtocol = (
         atomexContext.managers.priceManager
       );
     case 'erc-20':
-      return new ERC20EthereumWeb3AtomexProtocolV1(
+      return new ERC20EthereumWeb3AtomexProtocolMultiChain(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
         atomexContext.providers.blockchainProvider,
@@ -75,7 +75,7 @@ export const createDefaultEthereumBlockchainOptions = (atomexContext: AtomexCont
     ? {
       rpcUrl: mainnetRpcUrl,
       currencies: ethereumMainnetCurrencies,
-      currencyOptions: createCurrencyOptions(atomexContext, ethereumMainnetCurrencies, mainnetEthereumWeb3AtomexProtocolV1Options),
+      currencyOptions: createCurrencyOptions(atomexContext, ethereumMainnetCurrencies, mainnetEthereumWeb3AtomexProtocolMultiChainOptions),
       blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, mainnetRpcUrl),
       balancesProvider,
       swapTransactionsProvider,
@@ -83,7 +83,7 @@ export const createDefaultEthereumBlockchainOptions = (atomexContext: AtomexCont
     : {
       rpcUrl: testNetRpcUrl,
       currencies: ethereumTestnetCurrencies,
-      currencyOptions: createCurrencyOptions(atomexContext, ethereumTestnetCurrencies, testnetEthereumWeb3AtomexProtocolV1Options),
+      currencyOptions: createCurrencyOptions(atomexContext, ethereumTestnetCurrencies, testnetEthereumWeb3AtomexProtocolMultiChainOptions),
       blockchainToolkitProvider: new Web3BlockchainToolkitProvider(blockchain, testNetRpcUrl),
       balancesProvider,
       swapTransactionsProvider,

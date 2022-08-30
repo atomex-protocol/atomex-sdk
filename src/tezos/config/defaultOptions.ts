@@ -1,13 +1,13 @@
 import type { AtomexBlockchainNetworkOptions, AtomexContext, AtomexCurrencyOptions } from '../../atomex/index';
-import { FA12TezosTaquitoAtomexProtocolV1, FA2TezosTaquitoAtomexProtocolV1, TezosTaquitoAtomexProtocolV1 } from '../atomexProtocol';
+import { FA12TezosTaquitoAtomexProtocolMultiChain, FA2TezosTaquitoAtomexProtocolMultiChain, TezosTaquitoAtomexProtocolMultiChain } from '../atomexProtocol';
 import { TzktBalancesProvider } from '../balancesProviders/index';
 import { TaquitoBlockchainToolkitProvider } from '../blockchainToolkitProviders/index';
 import type { TezosCurrency } from '../models';
 import { TezosSwapTransactionsProvider } from '../swapTransactionsProviders/index';
-import { mainnetTezosTaquitoAtomexProtocolV1Options, testnetTezosTaquitoAtomexProtocolV1Options } from './atomexProtocol';
+import { mainnetTezosTaquitoAtomexProtocolMultiChainOptions, testnetTezosTaquitoAtomexProtocolMultiChainOptions } from './atomexProtocol';
 import { tezosMainnetCurrencies, tezosTestnetCurrencies } from './currencies';
 
-type AtomexProtocolOptions = typeof mainnetTezosTaquitoAtomexProtocolV1Options | typeof testnetTezosTaquitoAtomexProtocolV1Options;
+type AtomexProtocolOptions = typeof mainnetTezosTaquitoAtomexProtocolMultiChainOptions | typeof testnetTezosTaquitoAtomexProtocolMultiChainOptions;
 
 const createAtomexProtocol = (
   atomexContext: AtomexContext,
@@ -16,7 +16,7 @@ const createAtomexProtocol = (
 ) => {
   switch (currency.type) {
     case 'native':
-      return new TezosTaquitoAtomexProtocolV1(
+      return new TezosTaquitoAtomexProtocolMultiChain(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
         atomexContext.providers.blockchainProvider,
@@ -24,7 +24,7 @@ const createAtomexProtocol = (
         atomexContext.managers.priceManager
       );
     case 'fa1.2':
-      return new FA12TezosTaquitoAtomexProtocolV1(
+      return new FA12TezosTaquitoAtomexProtocolMultiChain(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
         atomexContext.providers.blockchainProvider,
@@ -32,7 +32,7 @@ const createAtomexProtocol = (
         atomexContext.managers.priceManager
       );
     case 'fa2':
-      return new FA2TezosTaquitoAtomexProtocolV1(
+      return new FA2TezosTaquitoAtomexProtocolMultiChain(
         atomexContext.atomexNetwork,
         atomexProtocolOptions,
         atomexContext.providers.blockchainProvider,
@@ -82,7 +82,7 @@ export const createDefaultTezosBlockchainOptions = (atomexContext: AtomexContext
     ? {
       rpcUrl: mainnetRpcUrl,
       currencies: tezosMainnetCurrencies,
-      currencyOptions: createCurrencyOptions(atomexContext, tezosMainnetCurrencies, mainnetTezosTaquitoAtomexProtocolV1Options),
+      currencyOptions: createCurrencyOptions(atomexContext, tezosMainnetCurrencies, mainnetTezosTaquitoAtomexProtocolMultiChainOptions),
       blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(mainnetRpcUrl),
       balancesProvider: new TzktBalancesProvider('https://api.mainnet.tzkt.io/'),
       swapTransactionsProvider,
@@ -90,7 +90,7 @@ export const createDefaultTezosBlockchainOptions = (atomexContext: AtomexContext
     : {
       rpcUrl: testNetRpcUrl,
       currencies: tezosTestnetCurrencies,
-      currencyOptions: createCurrencyOptions(atomexContext, tezosTestnetCurrencies, testnetTezosTaquitoAtomexProtocolV1Options),
+      currencyOptions: createCurrencyOptions(atomexContext, tezosTestnetCurrencies, testnetTezosTaquitoAtomexProtocolMultiChainOptions),
       blockchainToolkitProvider: new TaquitoBlockchainToolkitProvider(testNetRpcUrl),
       balancesProvider: new TzktBalancesProvider('https://api.ghostnet.tzkt.io/'),
       swapTransactionsProvider,

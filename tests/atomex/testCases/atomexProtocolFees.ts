@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import type { FeesInfo } from '../../../src/blockchain';
 
-export type AtomexProtocolV1Fees = {
+export type AtomexProtocolMultiChainFees = {
   [currencyId: string]: {
     initiateFees: FeesInfo;
     redeemFees: FeesInfo;
@@ -11,7 +11,7 @@ export type AtomexProtocolV1Fees = {
   }
 };
 
-export const validAtomexProtocolV1Fees = [
+export const validAtomexProtocolMultiChainFees = [
   {
     ETH: {
       initiateFees: { estimated: new BigNumber('0.00525'), max: new BigNumber('0.009') },
@@ -31,5 +31,5 @@ export const validAtomexProtocolV1Fees = [
       refundFees: { estimated: new BigNumber('0.06'), max: new BigNumber('0.07') },
       redeemReward: { estimated: new BigNumber('0.217'), max: new BigNumber('0.217') },
     }
-  } as AtomexProtocolV1Fees
+  } as AtomexProtocolMultiChainFees
 ] as const;

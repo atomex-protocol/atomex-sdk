@@ -1,1 +1,1 @@
-export { Web3AtomexProtocolV1 } from './web3AtomexProtocolV1';
+export { Web3AtomexProtocolMultiChain } from './web3AtomexProtocolMultiChain';
