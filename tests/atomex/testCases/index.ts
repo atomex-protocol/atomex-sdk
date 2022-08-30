@@ -1,4 +1,4 @@
-export { type AtomexProtocolV1Fees } from './atomexProtocolFees';
+export { type AtomexProtocolMultiChainFees } from './atomexProtocolFees';
 export { type Accounts } from './accounts';
 
 export { default as swapPreviewWithoutAccountTestCases } from './swapPreviewWithoutAccountTestCases';

@@ -1,6 +1,6 @@
-import type { AtomexProtocolV1Options } from '../../blockchain/index';
+import type { AtomexProtocolMultiChainOptions } from '../../blockchain/index';
 
-export interface Web3AtomexProtocolV1Options extends AtomexProtocolV1Options {
+export interface Web3AtomexProtocolMultiChainOptions extends AtomexProtocolMultiChainOptions {
   initiateOperation: {
     gasLimit: {
       withoutReward: number;

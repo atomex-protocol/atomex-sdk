@@ -1,6 +1,6 @@
 import type { AtomexNetwork, Currency } from '../../../src';
-import type { AtomexProtocolV1Options } from '../../../src/blockchain';
-import { MockAtomexProtocolV1 } from './mockAtomexProtocolV1';
+import type { AtomexProtocolMultiChainOptions } from '../../../src/blockchain';
+import { MockAtomexProtocolMultiChain } from './mockAtomexProtocolMultiChain';
 import { MockBalancesProvider } from './mockBalancesProvider';
 import { MockBlockchainToolkitProvider } from './mockBlockchainToolkitProvider';
 import type { MockCurrencyBalanceProvider } from './mockCurrencyBalanceProvider';
@@ -17,7 +17,7 @@ export interface MockAtomexBlockchainNetworkOptions {
 }
 
 export interface MockAtomexCurrencyOptions {
-  atomexProtocol: MockAtomexProtocolV1;
+  atomexProtocol: MockAtomexProtocolMultiChain;
   currencyBalanceProvider?: MockCurrencyBalanceProvider;
   swapTransactionsProvider?: MockSwapTransactionsProvider;
   [name: string | number]: unknown;
@@ -27,7 +27,7 @@ export interface MockAtomexCurrencyOptions {
 const createCurrencyOptions = (
   atomexNetwork: AtomexNetwork,
   currencies: Currency[],
-  atomexProtocolOptions: Record<Currency['id'], AtomexProtocolV1Options>
+  atomexProtocolOptions: Record<Currency['id'], AtomexProtocolMultiChainOptions>
 ): Record<Currency['id'], MockAtomexCurrencyOptions> => {
   const result: Record<Currency['id'], MockAtomexCurrencyOptions> = {};
   const currenciesMap = currencies.reduce<Record<Currency['id'], Currency>>(
@@ -45,7 +45,7 @@ const createCurrencyOptions = (
       throw new Error(`The ${options.currencyId} currency not found`);
 
     result[currency.id] = {
-      atomexProtocol: new MockAtomexProtocolV1(atomexNetwork, options),
+      atomexProtocol: new MockAtomexProtocolMultiChain(atomexNetwork, options),
     };
   }
 
@@ -56,7 +56,7 @@ export const createMockedBlockchainOptions = ({
   currencies, atomexProtocolOptions, toolkitId, rpcUrl = 'https://testnet.rpc.url', atomexNetwork = 'testnet'
 }: {
   currencies: Currency[];
-  atomexProtocolOptions: Record<Currency['id'], AtomexProtocolV1Options>;
+  atomexProtocolOptions: Record<Currency['id'], AtomexProtocolMultiChainOptions>;
   toolkitId: string;
   rpcUrl?: string;
   atomexNetwork?: AtomexNetwork

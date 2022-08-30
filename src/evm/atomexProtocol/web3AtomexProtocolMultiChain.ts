@@ -1,25 +1,28 @@
 import BigNumber from 'bignumber.js';
 import type Web3 from 'web3';
 
+import type { AtomexProtocolMultiChainBase } from '../../blockchain/atomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
-  AtomexProtocolV1, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
+  AtomexProtocolMultiChainInitiateParameters,
+  AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters,
   BlockchainWallet, FeesInfo, Transaction, WalletsManager
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
 import type { PriceManager } from '../../exchange';
 import { web3Helper } from '../helpers';
-import type { Web3AtomexProtocolV1Options } from '../models/index';
+import type { Web3AtomexProtocolMultiChainOptions } from '../models/index';
 
-export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
+export abstract class Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChainBase {
   protected static maxNetworkFeeMultiplier = new BigNumber(1.2);
-  readonly version = 1;
+
+  abstract readonly type: string;
 
   constructor(
     protected readonly blockchain: string,
     readonly atomexNetwork: AtomexNetwork,
-    protected readonly atomexProtocolOptions: DeepReadonly<Web3AtomexProtocolV1Options>,
+    protected readonly atomexProtocolOptions: DeepReadonly<Web3AtomexProtocolMultiChainOptions>,
     protected readonly atomexBlockchainProvider: AtomexBlockchainProvider,
     protected readonly walletsManager: WalletsManager,
     protected readonly priceManager: PriceManager
@@ -34,46 +37,46 @@ export abstract class Web3AtomexProtocolV1 implements AtomexProtocolV1 {
     return this.atomexProtocolOptions.swapContractAddress;
   }
 
-  abstract initiate(params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
+  abstract initiate(params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction>;
 
-  async getInitiateFees(params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+  async getInitiateFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     const toolkit = await this.getReadonlyWeb3();
     const gasPriceInWei = await web3Helper.getGasPriceInWei(toolkit);
     const gasLimitOptions = this.atomexProtocolOptions.initiateOperation.gasLimit;
     const hasRewardForRedeem = params.rewardForRedeem?.isGreaterThan(0);
     const gasLimit = new BigNumber(hasRewardForRedeem ? gasLimitOptions.withReward : gasLimitOptions.withoutReward);
 
-    const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolV1.maxNetworkFeeMultiplier);
+    const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolMultiChain.maxNetworkFeeMultiplier);
     const estimated = web3Helper.convertFromWei(toolkit, estimatedWei, 'ether');
     const result: FeesInfo = { estimated, max: estimated };
 
     return Promise.resolve(result);
   }
 
-  abstract redeem(params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
+  abstract redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction>;
 
   abstract getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
 
-  async getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+  async getRedeemFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     const toolkit = await this.getReadonlyWeb3();
     const gasPriceInWei = await web3Helper.getGasPriceInWei(toolkit);
     const gasLimit = this.atomexProtocolOptions.redeemOperation.gasLimit;
 
-    const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolV1.maxNetworkFeeMultiplier);
+    const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolMultiChain.maxNetworkFeeMultiplier);
     const estimated = web3Helper.convertFromWei(toolkit, estimatedWei, 'ether');
     const result: FeesInfo = { estimated, max: estimated };
 
     return Promise.resolve(result);
   }
 
-  abstract refund(params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
+  abstract refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction>;
 
-  async getRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+  async getRefundFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     const toolkit = await this.getReadonlyWeb3();
     const gasPriceInWei = await web3Helper.getGasPriceInWei(toolkit);
     const gasLimit = this.atomexProtocolOptions.refundOperation.gasLimit;
 
-    const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolV1.maxNetworkFeeMultiplier);
+    const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(Web3AtomexProtocolMultiChain.maxNetworkFeeMultiplier);
     const estimated = web3Helper.convertFromWei(toolkit, estimatedWei, 'ether');
     const result: FeesInfo = { estimated, max: estimated };
 

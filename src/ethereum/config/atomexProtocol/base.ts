@@ -1,6 +1,6 @@
 import type { AbiItem } from 'web3-utils';
 
-export const ethereumWeb3AtomexProtocolV1ABI: AbiItem[] = [
+export const ethereumWeb3AtomexProtocolMultiChainABI: AbiItem[] = [
   {
     anonymous: false,
     inputs: [

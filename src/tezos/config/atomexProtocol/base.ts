@@ -1,8 +1,8 @@
 
-import type { FA12TezosTaquitoAtomexProtocolV1Options, FA2TezosTaquitoAtomexProtocolV1Options } from '../../models/index';
+import type { FA12TezosTaquitoAtomexProtocolMultiChainOptions, FA2TezosTaquitoAtomexProtocolMultiChainOptions } from '../../models/index';
 
-export const mainnetFA12TezosTaquitoAtomexProtocolV1OptionsBase: Omit<
-  FA12TezosTaquitoAtomexProtocolV1Options,
+export const mainnetFA12TezosTaquitoAtomexProtocolMultiChainOptionsBase: Omit<
+  FA12TezosTaquitoAtomexProtocolMultiChainOptions,
   'currencyId' | 'swapContractAddress' | 'swapContractBlockId'
 > = {
   atomexProtocolVersion: 1,
@@ -23,8 +23,8 @@ export const mainnetFA12TezosTaquitoAtomexProtocolV1OptionsBase: Omit<
   }
 };
 
-export const mainnetFA2TezosTaquitoAtomexProtocolV1OptionsBase: Omit<
-  FA2TezosTaquitoAtomexProtocolV1Options,
+export const mainnetFA2TezosTaquitoAtomexProtocolMultiChainOptionsBase: Omit<
+  FA2TezosTaquitoAtomexProtocolMultiChainOptions,
   'currencyId' | 'swapContractAddress' | 'swapContractBlockId'
 > = {
   atomexProtocolVersion: 1,
@@ -45,8 +45,8 @@ export const mainnetFA2TezosTaquitoAtomexProtocolV1OptionsBase: Omit<
   }
 };
 
-export const testnetFA12TezosTaquitoAtomexProtocolV1OptionsBase: Omit<
-  FA12TezosTaquitoAtomexProtocolV1Options,
+export const testnetFA12TezosTaquitoAtomexProtocolMultiChainOptionsBase: Omit<
+  FA12TezosTaquitoAtomexProtocolMultiChainOptions,
   'currencyId' | 'swapContractAddress' | 'swapContractBlockId'
 > = {
   atomexProtocolVersion: 1,
@@ -67,8 +67,8 @@ export const testnetFA12TezosTaquitoAtomexProtocolV1OptionsBase: Omit<
   }
 };
 
-export const testnetFA2TezosTaquitoAtomexProtocolV1OptionsBase: Omit<
-  FA2TezosTaquitoAtomexProtocolV1Options,
+export const testnetFA2TezosTaquitoAtomexProtocolMultiChainOptionsBase: Omit<
+  FA2TezosTaquitoAtomexProtocolMultiChainOptions,
   'currencyId' | 'swapContractAddress' | 'swapContractBlockId'
 > = {
   atomexProtocolVersion: 1,

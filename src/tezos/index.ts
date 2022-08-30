@@ -1,5 +1,9 @@
 export { TaquitoBlockchainWallet } from './wallets/index';
-export { TezosTaquitoAtomexProtocolV1, FA12TezosTaquitoAtomexProtocolV1, FA2TezosTaquitoAtomexProtocolV1 } from './atomexProtocol/index';
+export {
+  TezosTaquitoAtomexProtocolMultiChain,
+  FA12TezosTaquitoAtomexProtocolMultiChain,
+  FA2TezosTaquitoAtomexProtocolMultiChain
+} from './atomexProtocol/index';
 export { TzktBalancesProvider } from './balancesProviders';
 export { TezosSwapTransactionsProvider } from './swapTransactionsProviders';
 export { TaquitoBlockchainToolkitProvider } from './blockchainToolkitProviders';

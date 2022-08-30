@@ -1,2 +1,2 @@
-export { mainnetEthereumWeb3AtomexProtocolV1Options } from './mainnetV1Options';
-export { testnetEthereumWeb3AtomexProtocolV1Options } from './testnetV1Options';
+export { mainnetEthereumWeb3AtomexProtocolMultiChainOptions } from './mainnetMultiChainOptions';
+export { testnetEthereumWeb3AtomexProtocolMultiChainOptions } from './testnetMultiChainOptions';

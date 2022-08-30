@@ -3,22 +3,22 @@ import BigNumber from 'bignumber.js';
 
 import type {
   AtomexBlockchainProvider,
-  AtomexProtocolV1, FeesInfo, AtomexProtocolV1InitiateParameters, AtomexProtocolV1RedeemParameters, AtomexProtocolV1RefundParameters,
+  AtomexProtocolMultiChain, FeesInfo, AtomexProtocolMultiChainInitiateParameters, AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters,
   BlockchainWallet, Transaction, WalletsManager
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
 import type { PriceManager } from '../../exchange';
-import type { TaquitoAtomexProtocolV1Options } from '../models/index';
+import type { TaquitoAtomexProtocolMultiChainOptions } from '../models/index';
 import { mutezInTez } from '../utils';
 
-export abstract class TaquitoAtomexProtocolV1 implements AtomexProtocolV1 {
-  readonly version = 1;
+export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolMultiChain {
+  readonly type = 'multi-chain';
 
   constructor(
     protected readonly blockchain: string,
     readonly atomexNetwork: AtomexNetwork,
-    protected readonly atomexProtocolOptions: DeepReadonly<TaquitoAtomexProtocolV1Options>,
+    protected readonly atomexProtocolOptions: DeepReadonly<TaquitoAtomexProtocolMultiChainOptions>,
     protected readonly atomexBlockchainProvider: AtomexBlockchainProvider,
     protected readonly walletsManager: WalletsManager,
     protected readonly priceManager: PriceManager
@@ -33,29 +33,29 @@ export abstract class TaquitoAtomexProtocolV1 implements AtomexProtocolV1 {
     return this.atomexProtocolOptions.swapContractAddress;
   }
 
-  abstract initiate(params: AtomexProtocolV1InitiateParameters): Promise<Transaction>;
+  abstract initiate(params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction>;
 
-  getInitiateFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+  getInitiateFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     const estimated = new BigNumber(this.atomexProtocolOptions.initiateOperation.fee).div(mutezInTez);
     const result: FeesInfo = { estimated, max: estimated };
 
     return Promise.resolve(result);
   }
 
-  abstract redeem(params: AtomexProtocolV1RedeemParameters): Promise<Transaction>;
+  abstract redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction>;
 
   abstract getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
 
-  getRedeemFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+  getRedeemFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     const estimated = new BigNumber(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
     const result: FeesInfo = { estimated, max: estimated };
 
     return Promise.resolve(result);
   }
 
-  abstract refund(params: AtomexProtocolV1RefundParameters): Promise<Transaction>;
+  abstract refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction>;
 
-  getRefundFees(_params: Partial<AtomexProtocolV1InitiateParameters>): Promise<FeesInfo> {
+  getRefundFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     const estimated = new BigNumber(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
     const result: FeesInfo = { estimated, max: estimated };
 

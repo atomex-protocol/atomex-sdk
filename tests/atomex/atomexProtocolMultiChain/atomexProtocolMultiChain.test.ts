@@ -2,12 +2,11 @@ import type BigNumber from 'bignumber.js';
 
 import type { Currency } from '../../../src';
 import type { AtomexProtocol, BalancesProvider, BlockchainToolkitProvider, CurrencyInfo, SwapTransactionsProvider } from '../../../src/blockchain';
-import { atomexProtocolV1Helper } from '../../../src/blockchain/atomexProtocolV1/index';
+import { atomexProtocolMultiChainHelper } from '../../../src/blockchain/atomexProtocolMultiChain/index';
 import { MockBlockchainProvider, MockPriceManager } from '../../mocks';
 import { redeemRewardNativeCurrencyTestCases, redeemRewardTokenTestCases } from './testCases';
 
-describe('Atomex Protocol V1 utils', () => {
-
+describe('Atomex Protocol Multi Chain utils', () => {
   const createPriceManager = (prices: Record<string, BigNumber>) => {
     const priceManager = new MockPriceManager();
 
@@ -57,7 +56,7 @@ describe('Atomex Protocol V1 utils', () => {
     async (_, { currencyId, prices, redeemFee, expectedRedeemReward }) => {
       const priceManager = createPriceManager(prices);
 
-      const redeemReward = await atomexProtocolV1Helper.getRedeemRewardInNativeCurrency(currencyId, redeemFee, priceManager);
+      const redeemReward = await atomexProtocolMultiChainHelper.getRedeemRewardInNativeCurrency(currencyId, redeemFee, priceManager);
       expect(redeemReward).toEqual(expectedRedeemReward);
     });
 
@@ -67,7 +66,7 @@ describe('Atomex Protocol V1 utils', () => {
       const priceManager = createPriceManager(prices);
       const blockchainProvider = createBlockchainProvider(currencies, nativeCurrencyId);
 
-      const redeemReward = await atomexProtocolV1Helper.getRedeemRewardInToken(currencyId, redeemFee, priceManager, blockchainProvider);
+      const redeemReward = await atomexProtocolMultiChainHelper.getRedeemRewardInToken(currencyId, redeemFee, priceManager, blockchainProvider);
       expect(redeemReward).toEqual(expectedRedeemReward);
     });
 });
