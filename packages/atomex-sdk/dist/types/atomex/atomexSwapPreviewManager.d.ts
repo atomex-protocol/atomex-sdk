@@ -18,8 +18,8 @@ export declare class AtomexSwapPreviewManager {
     }>;
     protected getMaxOrderPreview(normalizedSwapPreviewParameters: NormalizedOrderPreviewParameters, fromAvailableAmount: BigNumber, fromCurrencyBalance: BigNumber, fromCurrencyInfo: CurrencyInfo, _fromNativeCurrencyBalance: BigNumber, fromNativeCurrencyInfo: CurrencyInfo, fromNativeCurrencyNetworkFee: BigNumber, errors: Mutable<SwapPreview['errors']>, _warnings: Mutable<SwapPreview['warnings']>): Promise<OrderPreview | undefined>;
     protected calculateSwapPreviewFees(fromCurrencyInfo: CurrencyInfo, fromNativeCurrencyInfo: CurrencyInfo, toCurrencyInfo: CurrencyInfo, toNativeCurrencyInfo: CurrencyInfo, useWatchTower: boolean): Promise<SwapPreview['fees']>;
-    protected calculateMakerFees(fromCurrencyId: Currency['id'], fromNativeCurrencyId: Currency['id'], toNativeCurrencyId: Currency['id'], toInitiateFees: FeesInfo, fromRedeemFees: FeesInfo): Promise<SwapPreviewFee>;
-    protected convertFeesToFromCurrency(fees: FeesInfo, from: Currency['id'], to: Currency['id']): Promise<FeesInfo>;
+    protected calculateMakerFees(fromCurrency: Currency, fromNativeCurrency: Currency, toNativeCurrency: Currency, toInitiateFees: FeesInfo, fromRedeemFees: FeesInfo): Promise<SwapPreviewFee>;
+    protected convertFeesFromNativeCurrencyToCustom(fees: FeesInfo, nativeCurrency: Currency, customCurrency: Currency): Promise<FeesInfo>;
     private getSwapPreviewFeesCacheKey;
     static isNormalizedSwapPreviewParameters(swapPreviewParameters: any): swapPreviewParameters is NormalizedSwapPreviewParameters;
     static normalizeSwapPreviewParameters(swapPreviewParameters: SwapPreviewParameters, exchangeSymbolsProvider: ExchangeSymbolsProvider, defaultUseWatchTowerParameter: boolean): NormalizedSwapPreviewParameters;

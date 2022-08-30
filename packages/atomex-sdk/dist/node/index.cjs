@@ -1097,7 +1097,7 @@ var AtomexSwapPreviewManager = class {
       estimated: fromInitiateFees.estimated,
       max: fromInitiateFees.max
     };
-    const makerFee = await this.calculateMakerFees(fromCurrencyInfo.currency.id, fromNativeCurrencyInfo.currency.id, toNativeCurrencyInfo.currency.id, toInitiateFees, fromRedeemFees);
+    const makerFee = await this.calculateMakerFees(fromCurrencyInfo.currency, fromNativeCurrencyInfo.currency, toNativeCurrencyInfo.currency, toInitiateFees, fromRedeemFees);
     const swapPreviewFees = {
       success: [
         paymentFee,
@@ -1123,9 +1123,9 @@ var AtomexSwapPreviewManager = class {
     this.swapPreviewFeesCache.set(feesCacheKey, swapPreviewFees);
     return swapPreviewFees;
   }
-  async calculateMakerFees(fromCurrencyId, fromNativeCurrencyId, toNativeCurrencyId, toInitiateFees, fromRedeemFees) {
-    const toInitiateFeeConversationPromise = this.convertFeesToFromCurrency(toInitiateFees, toNativeCurrencyId, fromCurrencyId);
-    const fromRedeemFeeConversationPromise = fromCurrencyId !== fromNativeCurrencyId ? this.convertFeesToFromCurrency(fromRedeemFees, fromNativeCurrencyId, fromCurrencyId) : void 0;
+  async calculateMakerFees(fromCurrency, fromNativeCurrency, toNativeCurrency, toInitiateFees, fromRedeemFees) {
+    const toInitiateFeeConversationPromise = this.convertFeesFromNativeCurrencyToCustom(toInitiateFees, toNativeCurrency, fromCurrency);
+    const fromRedeemFeeConversationPromise = fromCurrency !== fromNativeCurrency ? this.convertFeesFromNativeCurrencyToCustom(fromRedeemFees, fromNativeCurrency, fromCurrency) : void 0;
     let estimatedToInitiateFeesInFromCurrency;
     let maxToInitiateFeesInFromCurrency;
     let estimatedFromRedeemFeesInFromCurrency;
@@ -1145,33 +1145,22 @@ var AtomexSwapPreviewManager = class {
     }
     return {
       name: "maker-fee",
-      currencyId: fromCurrencyId,
+      currencyId: fromCurrency.id,
       estimated: estimatedToInitiateFeesInFromCurrency.plus(estimatedFromRedeemFeesInFromCurrency),
       max: maxToInitiateFeesInFromCurrency.plus(maxFromRedeemFeesInFromCurrency)
     };
   }
-  async convertFeesToFromCurrency(fees, from, to) {
-    const [estimatedInFromCurrency, maxInFromCurrency] = await Promise.all([
-      this.atomexContext.managers.exchangeManager.getOrderPreview({
-        type: "SolidFillOrKill",
-        from,
-        to,
-        amount: fees.estimated,
-        isFromAmount: true
-      }).then((orderPreview) => orderPreview == null ? void 0 : orderPreview.to.amount),
-      this.atomexContext.managers.exchangeManager.getOrderPreview({
-        type: "SolidFillOrKill",
-        from,
-        to,
-        amount: fees.max,
-        isFromAmount: true
-      }).then((orderPreview) => orderPreview == null ? void 0 : orderPreview.to.amount)
-    ]);
-    if (!estimatedInFromCurrency || !maxInFromCurrency)
-      throw new Error(`It's no possible to convert fees from "${from}" to "${to}" currency`);
+  async convertFeesFromNativeCurrencyToCustom(fees, nativeCurrency, customCurrency) {
+    const price = await this.atomexContext.managers.priceManager.getPrice({ baseCurrency: nativeCurrency, quoteCurrency: customCurrency, provider: "atomex" });
+    if (!price)
+      throw new Error(`It's no possible to convert fees from "${nativeCurrency.id}" to "${customCurrency.id}" currency`);
+    const [exchangeSymbol, _] = symbolsHelper_exports.convertFromAndToCurrenciesToSymbolAndSide(this.atomexContext.providers.exchangeSymbolsProvider.getSymbolsMap(), nativeCurrency.id, customCurrency.id);
+    const customCurrencyDecimals = exchangeSymbol.baseCurrency === customCurrency.id ? exchangeSymbol.decimals.baseCurrency : exchangeSymbol.decimals.quoteCurrency;
+    const estimatedInCustomCurrency = converters_exports.toFixedBigNumber(fees.estimated.multipliedBy(price), customCurrencyDecimals, import_bignumber7.default.ROUND_CEIL);
+    const maxInCustomCurrency = converters_exports.toFixedBigNumber(fees.max.multipliedBy(price), customCurrencyDecimals, import_bignumber7.default.ROUND_CEIL);
     return {
-      estimated: estimatedInFromCurrency,
-      max: maxInFromCurrency
+      estimated: estimatedInCustomCurrency,
+      max: maxInCustomCurrency
     };
   }
   getSwapPreviewFeesCacheKey(fromCurrencyInfo, toCurrencyInfo, useWatchTower) {
@@ -2643,7 +2632,7 @@ var import_beacon_sdk = require("@airgap/beacon-sdk");
 var import_taquito = require("@taquito/taquito");
 
 // src/tezos/utils/index.ts
-var import_utils10 = require("@taquito/utils");
+var import_utils11 = require("@taquito/utils");
 var import_bignumber12 = __toESM(require("bignumber.js"));
 
 // src/tezos/utils/guards.ts
@@ -2660,7 +2649,7 @@ __export(signing_exports, {
   getTezosSigningAlgorithm: () => getTezosSigningAlgorithm,
   getWalletMichelineSigningData: () => getWalletMichelineSigningData
 });
-var import_utils8 = require("@taquito/utils");
+var import_utils9 = require("@taquito/utils");
 var tezosSignedMessagePrefixBytes = "54657a6f73205369676e6564204d6573736167653a20";
 var getMichelineSigningData = (message, prefixBytes) => {
   const messageBytes = converters_exports.stringToHexString(message);
@@ -2674,14 +2663,14 @@ var getWalletMichelineSigningData = (message) => getMichelineSigningData(message
 var getTezosSigningAlgorithm = (addressOrPublicKey) => {
   const prefix4 = addressOrPublicKey.substring(0, addressOrPublicKey.startsWith("tz") ? 3 : 4);
   switch (prefix4) {
-    case import_utils8.Prefix.TZ1:
-    case import_utils8.Prefix.EDPK:
+    case import_utils9.Prefix.TZ1:
+    case import_utils9.Prefix.EDPK:
       return "Ed25519:Blake2b";
-    case import_utils8.Prefix.TZ2:
-    case import_utils8.Prefix.SPPK:
+    case import_utils9.Prefix.TZ2:
+    case import_utils9.Prefix.SPPK:
       return "Blake2bWithEcdsa:Secp256k1";
-    case import_utils8.Prefix.TZ3:
-    case import_utils8.Prefix.P2PK:
+    case import_utils9.Prefix.TZ3:
+    case import_utils9.Prefix.P2PK:
       return "Blake2bWithEcdsa:Secp256r1";
     default:
       throw new Error(`Unexpected address/public key prefix: ${prefix4} (${addressOrPublicKey})`);
@@ -2689,15 +2678,15 @@ var getTezosSigningAlgorithm = (addressOrPublicKey) => {
 };
 var decodeSignature = (signature) => {
   const signaturePrefix = signature.startsWith("sig") ? signature.substring(0, 3) : signature.substring(0, 5);
-  const decodedKeyBytes = (0, import_utils8.b58cdecode)(signature, import_utils8.prefix[signaturePrefix]);
+  const decodedKeyBytes = (0, import_utils9.b58cdecode)(signature, import_utils9.prefix[signaturePrefix]);
   return Buffer.from(decodedKeyBytes).toString("hex");
 };
 
 // src/tezos/utils/index.ts
 var mutezInTez = new import_bignumber12.default(1e6);
 var decodePublicKey = (publicKey) => {
-  const keyPrefix = (0, import_utils10.validatePkAndExtractPrefix)(publicKey);
-  const decodedKeyBytes = (0, import_utils10.b58cdecode)(publicKey, import_utils10.prefix[keyPrefix]);
+  const keyPrefix = (0, import_utils11.validatePkAndExtractPrefix)(publicKey);
+  const decodedKeyBytes = (0, import_utils11.b58cdecode)(publicKey, import_utils11.prefix[keyPrefix]);
   return import_node_buffer.Buffer.from(decodedKeyBytes).toString("hex");
 };
 
@@ -6055,7 +6044,7 @@ var EthereumHelpers = class extends Helpers {
 var import_michelson_encoder = require("@taquito/michelson-encoder");
 var import_rpc = require("@taquito/rpc");
 var import_taquito5 = require("@taquito/taquito");
-var import_utils19 = require("@taquito/utils");
+var import_utils20 = require("@taquito/utils");
 var import_bignumber16 = __toESM(require("bignumber.js"));
 var formatTimestamp = (timestamp) => {
   return new Date(timestamp * 1e3).toISOString().slice(0, -5) + "Z";
@@ -6252,11 +6241,11 @@ var TezosHelpers = class extends Helpers {
     const curve = pubKey.substring(0, 2);
     switch (curve) {
       case "ed":
-        return Buffer.from((0, import_utils19.b58cdecode)(pubKey, import_utils19.prefix["edpk"])).toString("hex");
+        return Buffer.from((0, import_utils20.b58cdecode)(pubKey, import_utils20.prefix["edpk"])).toString("hex");
       case "p2":
-        return Buffer.from((0, import_utils19.b58cdecode)(pubKey, import_utils19.prefix["p2pk"])).toString("hex");
+        return Buffer.from((0, import_utils20.b58cdecode)(pubKey, import_utils20.prefix["p2pk"])).toString("hex");
       case "sp":
-        return Buffer.from((0, import_utils19.b58cdecode)(pubKey, import_utils19.prefix["sppk"])).toString("hex");
+        return Buffer.from((0, import_utils20.b58cdecode)(pubKey, import_utils20.prefix["sppk"])).toString("hex");
       default:
         throw new Error("Unsupported Public Key Type");
     }
@@ -6264,8 +6253,8 @@ var TezosHelpers = class extends Helpers {
   encodeSignature(signature) {
     var _a;
     const pref = signature.startsWith("sig") ? signature.substring(0, 3) : signature.substring(0, 5);
-    if (Object.prototype.hasOwnProperty.call(import_utils19.prefix, pref)) {
-      return Buffer.from((0, import_utils19.b58cdecode)(signature, (_a = Object.getOwnPropertyDescriptor(import_utils19.prefix, pref)) == null ? void 0 : _a.value)).toString("hex");
+    if (Object.prototype.hasOwnProperty.call(import_utils20.prefix, pref)) {
+      return Buffer.from((0, import_utils20.b58cdecode)(signature, (_a = Object.getOwnPropertyDescriptor(import_utils20.prefix, pref)) == null ? void 0 : _a.value)).toString("hex");
     }
     throw new Error("Unsupported Signature Type");
   }
@@ -6325,7 +6314,7 @@ var TezosHelpers = class extends Helpers {
     };
   }
   isValidAddress(address) {
-    return (0, import_utils19.validateAddress)(address) == import_utils19.ValidationResult.VALID;
+    return (0, import_utils20.validateAddress)(address) == import_utils20.ValidationResult.VALID;
   }
   getBlock(blockId) {
     return this._tezos.rpc.getBlock({ block: blockId.toString() });

@@ -1067,7 +1067,7 @@ var AtomexSwapPreviewManager = class {
       estimated: fromInitiateFees.estimated,
       max: fromInitiateFees.max
     };
-    const makerFee = await this.calculateMakerFees(fromCurrencyInfo.currency.id, fromNativeCurrencyInfo.currency.id, toNativeCurrencyInfo.currency.id, toInitiateFees, fromRedeemFees);
+    const makerFee = await this.calculateMakerFees(fromCurrencyInfo.currency, fromNativeCurrencyInfo.currency, toNativeCurrencyInfo.currency, toInitiateFees, fromRedeemFees);
     const swapPreviewFees = {
       success: [
         paymentFee,
@@ -1093,9 +1093,9 @@ var AtomexSwapPreviewManager = class {
     this.swapPreviewFeesCache.set(feesCacheKey, swapPreviewFees);
     return swapPreviewFees;
   }
-  async calculateMakerFees(fromCurrencyId, fromNativeCurrencyId, toNativeCurrencyId, toInitiateFees, fromRedeemFees) {
-    const toInitiateFeeConversationPromise = this.convertFeesToFromCurrency(toInitiateFees, toNativeCurrencyId, fromCurrencyId);
-    const fromRedeemFeeConversationPromise = fromCurrencyId !== fromNativeCurrencyId ? this.convertFeesToFromCurrency(fromRedeemFees, fromNativeCurrencyId, fromCurrencyId) : void 0;
+  async calculateMakerFees(fromCurrency, fromNativeCurrency, toNativeCurrency, toInitiateFees, fromRedeemFees) {
+    const toInitiateFeeConversationPromise = this.convertFeesFromNativeCurrencyToCustom(toInitiateFees, toNativeCurrency, fromCurrency);
+    const fromRedeemFeeConversationPromise = fromCurrency !== fromNativeCurrency ? this.convertFeesFromNativeCurrencyToCustom(fromRedeemFees, fromNativeCurrency, fromCurrency) : void 0;
     let estimatedToInitiateFeesInFromCurrency;
     let maxToInitiateFeesInFromCurrency;
     let estimatedFromRedeemFeesInFromCurrency;
@@ -1115,33 +1115,22 @@ var AtomexSwapPreviewManager = class {
     }
     return {
       name: "maker-fee",
-      currencyId: fromCurrencyId,
+      currencyId: fromCurrency.id,
       estimated: estimatedToInitiateFeesInFromCurrency.plus(estimatedFromRedeemFeesInFromCurrency),
       max: maxToInitiateFeesInFromCurrency.plus(maxFromRedeemFeesInFromCurrency)
     };
   }
-  async convertFeesToFromCurrency(fees, from, to) {
-    const [estimatedInFromCurrency, maxInFromCurrency] = await Promise.all([
-      this.atomexContext.managers.exchangeManager.getOrderPreview({
-        type: "SolidFillOrKill",
-        from,
-        to,
-        amount: fees.estimated,
-        isFromAmount: true
-      }).then((orderPreview) => orderPreview == null ? void 0 : orderPreview.to.amount),
-      this.atomexContext.managers.exchangeManager.getOrderPreview({
-        type: "SolidFillOrKill",
-        from,
-        to,
-        amount: fees.max,
-        isFromAmount: true
-      }).then((orderPreview) => orderPreview == null ? void 0 : orderPreview.to.amount)
-    ]);
-    if (!estimatedInFromCurrency || !maxInFromCurrency)
-      throw new Error(`It's no possible to convert fees from "${from}" to "${to}" currency`);
+  async convertFeesFromNativeCurrencyToCustom(fees, nativeCurrency, customCurrency) {
+    const price = await this.atomexContext.managers.priceManager.getPrice({ baseCurrency: nativeCurrency, quoteCurrency: customCurrency, provider: "atomex" });
+    if (!price)
+      throw new Error(`It's no possible to convert fees from "${nativeCurrency.id}" to "${customCurrency.id}" currency`);
+    const [exchangeSymbol, _] = symbolsHelper_exports.convertFromAndToCurrenciesToSymbolAndSide(this.atomexContext.providers.exchangeSymbolsProvider.getSymbolsMap(), nativeCurrency.id, customCurrency.id);
+    const customCurrencyDecimals = exchangeSymbol.baseCurrency === customCurrency.id ? exchangeSymbol.decimals.baseCurrency : exchangeSymbol.decimals.quoteCurrency;
+    const estimatedInCustomCurrency = converters_exports.toFixedBigNumber(fees.estimated.multipliedBy(price), customCurrencyDecimals, BigNumber7.ROUND_CEIL);
+    const maxInCustomCurrency = converters_exports.toFixedBigNumber(fees.max.multipliedBy(price), customCurrencyDecimals, BigNumber7.ROUND_CEIL);
     return {
-      estimated: estimatedInFromCurrency,
-      max: maxInFromCurrency
+      estimated: estimatedInCustomCurrency,
+      max: maxInCustomCurrency
     };
   }
   getSwapPreviewFeesCacheKey(fromCurrencyInfo, toCurrencyInfo, useWatchTower) {
