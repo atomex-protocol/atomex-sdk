@@ -1,4 +1,4 @@
-import { AtomexProtocolMultiChain, atomexProtocolMultiChainHelper } from '../../blockchain/atomexProtocolMultiChain2';
+import { AtomexProtocolMultiChain, atomexProtocolMultiChainHelper } from '../../blockchain/atomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolMultiChainInitiateParameters,

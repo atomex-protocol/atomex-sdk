@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import type Web3 from 'web3';
 
-import type { AtomexProtocolMultiChainBase } from '../../blockchain/atomexProtocolMultiChain2';
+import type { AtomexProtocolMultiChainBase } from '../../blockchain/atomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolMultiChainInitiateParameters,
