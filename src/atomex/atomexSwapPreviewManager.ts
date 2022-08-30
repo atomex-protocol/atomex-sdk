@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 
 import type { AtomexProtocolV1, CurrencyInfo, FeesInfo } from '../blockchain/index';
-import type { Currency } from '../common/index';
+import type { Currency, Disposable } from '../common/index';
 import { Mutable, Cache, InMemoryCache } from '../core/index';
 import { ExchangeSymbolsProvider, ordersHelper, symbolsHelper, type NormalizedOrderPreviewParameters, type OrderPreview } from '../exchange/index';
 import type { Swap } from '../swaps/index';
@@ -15,9 +15,9 @@ interface UserInvolvedSwapsInfo {
   fromTotalAmount: BigNumber;
 }
 
-export class AtomexSwapPreviewManager {
-  private readonly swapPreviewFeesCache: Cache = new InMemoryCache({ absoluteExpirationMs: 10 * 1000 });
-  private readonly userInvolvedSwapsCache: Cache = new InMemoryCache({ absoluteExpirationMs: 10 * 1000 });
+export class AtomexSwapPreviewManager implements Disposable {
+  private readonly swapPreviewFeesCache: Cache = new InMemoryCache({ absoluteExpirationMs: 20 * 1000 });
+  private readonly userInvolvedSwapsCache: Cache = new InMemoryCache({ slidingExpirationMs: 30 * 1000 });
 
   constructor(protected readonly atomexContext: AtomexContext) {
   }
@@ -124,6 +124,16 @@ export class AtomexSwapPreviewManager {
       errors,
       warnings
     };
+  }
+
+  // TODO: Temporarily. Remove this method when we add local swap tracking
+  clearCache() {
+    this.swapPreviewFeesCache.clear();
+    this.userInvolvedSwapsCache.clear();
+  }
+
+  async dispose(): Promise<void> {
+    this.clearCache();
   }
 
   protected normalizeSwapPreviewParametersIfNeeded(swapPreviewParameters: SwapPreviewParameters | NormalizedSwapPreviewParameters): NormalizedSwapPreviewParameters {
@@ -243,7 +253,7 @@ export class AtomexSwapPreviewManager {
     if (swapsInfo)
       return swapsInfo;
 
-    const swaps = (await this.atomexContext.managers.swapManager.getSwaps(userAddress, { active: true }))
+    const swaps = (await this.atomexContext.managers.swapManager.getSwaps(userAddress))
       .filter(swap => swap.user.status === 'Involved' && swap.from.currencyId === fromCurrencyId);
     const fromTotalAmount = swaps.reduce(
       (total, swap) => total.plus(swap.from.amount),
