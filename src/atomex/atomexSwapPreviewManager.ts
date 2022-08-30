@@ -10,9 +10,9 @@ import type { AtomexContext } from './atomexContext';
 import type { NormalizedSwapPreviewParameters, SwapPreview, SwapPreviewFee, SwapPreviewParameters } from './models/index';
 
 interface UserInvolvedSwapsInfo {
-  swaps: readonly Swap[];
-  fromCurrencyId: string;
-  fromTotalAmount: BigNumber;
+  readonly swaps: readonly Swap[];
+  readonly fromCurrencyId: string;
+  readonly fromTotalAmount: BigNumber;
 }
 
 export class AtomexSwapPreviewManager implements Disposable {
