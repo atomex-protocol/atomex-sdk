@@ -3,9 +3,9 @@ import type { AtomexProtocolMultiChain } from './atomexProtocolMultiChain';
 import type { AtomexProtocolMultiChainApprovable } from './atomexProtocolMultiChainApprovable';
 
 export const isAtomexProtocolMultiChain = (atomexProtocol: AtomexProtocol): atomexProtocol is AtomexProtocolMultiChain => {
-  return atomexProtocol.type === 'MultiChain';
+  return atomexProtocol.type === 'multi-chain';
 };
 
 export const isAtomexProtocolMultiChainApprovable = (atomexProtocol: AtomexProtocol): atomexProtocol is AtomexProtocolMultiChainApprovable => {
-  return atomexProtocol.type === 'MultiChainApprovable';
+  return atomexProtocol.type === 'multi-chain-approvable';
 };

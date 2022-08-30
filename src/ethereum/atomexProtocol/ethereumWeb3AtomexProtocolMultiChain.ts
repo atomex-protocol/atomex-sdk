@@ -13,7 +13,7 @@ import type { PriceManager } from '../../exchange';
 import type { EthereumWeb3AtomexProtocolMultiChainOptions } from '../models/index';
 
 export class EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChain {
-  readonly type = 'MultiChain';
+  readonly type = 'multi-chain';
 
   constructor(
     atomexNetwork: AtomexNetwork,

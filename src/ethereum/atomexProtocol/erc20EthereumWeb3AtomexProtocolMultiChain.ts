@@ -11,7 +11,7 @@ import type { PriceManager } from '../../exchange';
 import type { ERC20EthereumWeb3AtomexProtocolMultiChainOptions } from '../models/index';
 
 export class ERC20EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChainApprovable {
-  readonly type = 'MultiChainApprovable';
+  readonly type = 'multi-chain-approvable';
 
   constructor(
     atomexNetwork: AtomexNetwork,

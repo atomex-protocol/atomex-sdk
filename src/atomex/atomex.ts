@@ -117,9 +117,9 @@ export class Atomex implements AtomexService {
     if (!quoteCurrencyInfo)
       throw new Error(`The "${quoteCurrencyId}" currency (quote) is unknown`);
 
-    if (baseCurrencyInfo.atomexProtocol.type !== 'MultiChain')
+    if (baseCurrencyInfo.atomexProtocol.type !== 'multi-chain')
       throw new Error(`Unknown type (${baseCurrencyInfo.atomexProtocol.type}) of the Atomex protocol (base)`);
-    if (quoteCurrencyInfo.atomexProtocol.type !== 'MultiChain')
+    if (quoteCurrencyInfo.atomexProtocol.type !== 'multi-chain')
       throw new Error(`Unknown type (${quoteCurrencyInfo.atomexProtocol.type}) of the Atomex protocol (quote)`);
 
     const baseCurrencyAtomexProtocolMultiChain = baseCurrencyInfo.atomexProtocol as AtomexProtocolMultiChain;

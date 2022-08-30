@@ -3,7 +3,7 @@ import type { DeepReadonly } from '../../../src/core';
 import type { AtomexNetwork, AtomexProtocolMultiChain } from '../../../src/index';
 
 export class MockAtomexProtocolMultiChain implements AtomexProtocolMultiChain {
-  readonly type = 'MultiChain';
+  readonly type = 'multi-chain';
 
   constructor(
     readonly atomexNetwork: AtomexNetwork,

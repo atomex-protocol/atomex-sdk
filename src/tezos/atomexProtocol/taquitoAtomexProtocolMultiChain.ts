@@ -13,7 +13,7 @@ import type { TaquitoAtomexProtocolMultiChainOptions } from '../models/index';
 import { mutezInTez } from '../utils';
 
 export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolMultiChain {
-  readonly type = 'MultiChain';
+  readonly type = 'multi-chain';
 
   constructor(
     protected readonly blockchain: string,
