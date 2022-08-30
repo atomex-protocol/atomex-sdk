@@ -624,16 +624,8 @@ var ExchangeManager = class {
     const authToken = this.authorizationManager.getAuthToken(accountAddress);
     if (!authToken)
       throw new Error(`Cannot find auth token for address: ${accountAddress}`);
-    const currency = ordersHelper_exports.isOrderPreview(newOrderRequest.orderBody) ? newOrderRequest.orderBody.from.currencyId : symbolsHelper_exports.convertSymbolAndSideToFromAndToCurrencies(newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side)[0];
-    return [{
-      address: accountAddress,
-      currency,
-      timeStamp: authToken.request.timeStamp,
-      message: authToken.request.message,
-      publicKey: authToken.request.publicKey,
-      signature: authToken.request.signature,
-      algorithm: authToken.request.algorithm
-    }];
+    const _currency = ordersHelper_exports.isOrderPreview(newOrderRequest.orderBody) ? newOrderRequest.orderBody.from.currencyId : symbolsHelper_exports.convertSymbolAndSideToFromAndToCurrencies(newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side)[0];
+    return [];
   }
   getCachedOrderBook(symbol) {
     const cachedOrderBook = this.orderBookProvider.getOrderBook(symbol);
