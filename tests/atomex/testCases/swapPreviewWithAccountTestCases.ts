@@ -42,7 +42,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('0.000948468')
           },
           max: {
-            amount: new BigNumber('90.58509'),
+            amount: new BigNumber('90.445209'),
             price: new BigNumber('0.000948468')
           }
         },
@@ -58,7 +58,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('1054.331827747')
           },
           max: {
-            amount: new BigNumber('0.085917059'),
+            amount: new BigNumber('0.085784386'),
             price: new BigNumber('1054.331827747')
           }
         },
@@ -73,8 +73,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'redeem-reward',
@@ -93,8 +93,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'refund-fee',
@@ -150,7 +150,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('0.000948468')
           },
           max: {
-            amount: new BigNumber('90.58509'),
+            amount: new BigNumber('90.445209'),
             price: new BigNumber('0.000948468')
           }
         },
@@ -166,7 +166,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('1054.331827747')
           },
           max: {
-            amount: new BigNumber('0.085917059'),
+            amount: new BigNumber('0.085784386'),
             price: new BigNumber('1054.331827747')
           }
         },
@@ -181,8 +181,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'redeem-fee',
@@ -201,8 +201,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'refund-fee',
@@ -289,8 +289,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'redeem-reward',
@@ -309,8 +309,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'XTZ',
-              estimated: new BigNumber('5.419531'),
-              max: new BigNumber('9.27491')
+              estimated: new BigNumber('5.501128'),
+              max: new BigNumber('9.414791')
             },
             {
               name: 'refund-fee',
@@ -324,7 +324,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
           {
             id: 'not-enough-funds-network-fee',
             data: {
-              requiredAmount: new BigNumber('9.41491')
+              requiredAmount: new BigNumber('9.554791')
             }
           },
           {
@@ -406,8 +406,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'USDT_XTZ',
-              estimated: new BigNumber('8.541664'),
-              max: new BigNumber('14.585536')
+              estimated: new BigNumber('8.615812'),
+              max: new BigNumber('14.712051')
             },
             {
               name: 'redeem-reward',
@@ -426,8 +426,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'USDT_XTZ',
-              estimated: new BigNumber('8.541664'),
-              max: new BigNumber('14.585536')
+              estimated: new BigNumber('8.615812'),
+              max: new BigNumber('14.712051')
             },
             {
               name: 'refund-fee',
@@ -522,8 +522,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'USDT_XTZ',
-              estimated: new BigNumber('8.541664'),
-              max: new BigNumber('14.585536')
+              estimated: new BigNumber('8.615812'),
+              max: new BigNumber('14.712051')
             },
             {
               name: 'redeem-reward',
@@ -542,8 +542,8 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             {
               name: 'maker-fee',
               currencyId: 'USDT_XTZ',
-              estimated: new BigNumber('8.541664'),
-              max: new BigNumber('14.585536')
+              estimated: new BigNumber('8.615812'),
+              max: new BigNumber('14.712051')
             },
             {
               name: 'refund-fee',
