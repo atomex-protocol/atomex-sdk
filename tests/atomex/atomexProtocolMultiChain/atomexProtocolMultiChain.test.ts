@@ -2,7 +2,7 @@ import type BigNumber from 'bignumber.js';
 
 import type { Currency } from '../../../src';
 import type { AtomexProtocol, BalancesProvider, BlockchainToolkitProvider, CurrencyInfo, SwapTransactionsProvider } from '../../../src/blockchain';
-import { atomexProtocolMultiChainHelper } from '../../../src/blockchain/AtomexProtocolMultiChain/index';
+import { atomexProtocolMultiChainHelper } from '../../../src/blockchain/atomexProtocolMultiChain/index';
 import { MockBlockchainProvider, MockPriceManager } from '../../mocks';
 import { redeemRewardNativeCurrencyTestCases, redeemRewardTokenTestCases } from './testCases';
 
