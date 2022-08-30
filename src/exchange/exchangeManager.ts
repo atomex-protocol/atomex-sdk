@@ -307,19 +307,21 @@ export class ExchangeManager implements AtomexService {
     if (!authToken)
       throw new Error(`Cannot find auth token for address: ${accountAddress}`);
 
-    const currency: Currency['id'] = ordersHelper.isOrderPreview(newOrderRequest.orderBody)
+    const _currency: Currency['id'] = ordersHelper.isOrderPreview(newOrderRequest.orderBody)
       ? newOrderRequest.orderBody.from.currencyId
       : symbolsHelper.convertSymbolAndSideToFromAndToCurrencies(newOrderRequest.orderBody.symbol, newOrderRequest.orderBody.side)[0];
 
-    return [{
-      address: accountAddress,
-      currency,
-      timeStamp: authToken.request.timeStamp,
-      message: authToken.request.message,
-      publicKey: authToken.request.publicKey,
-      signature: authToken.request.signature,
-      algorithm: authToken.request.algorithm
-    }];
+    return [
+      // {
+      //   address: accountAddress,
+      //   currency,
+      //   timeStamp: authToken.request.timeStamp,
+      //   message: authToken.request.message,
+      //   publicKey: authToken.request.publicKey,
+      //   signature: authToken.request.signature,
+      //   algorithm: authToken.request.algorithm
+      // }
+    ];
   }
 
   protected getCachedOrderBook(symbol: string): Promise<OrderBook | undefined> {
