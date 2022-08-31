@@ -40,7 +40,7 @@ export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolM
   }
 
   getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo> {
-    return atomexProtocolMultiChainHelper.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager);
+    return atomexProtocolMultiChainHelper.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
 
   getRedeemFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
