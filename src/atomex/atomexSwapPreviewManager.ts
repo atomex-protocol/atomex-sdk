@@ -202,18 +202,15 @@ export class AtomexSwapPreviewManager implements Disposable {
         });
       }
 
-      const fromMinAvailableAmount = BigNumber.min(
-        fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id
-          ? fromCurrencyBalance.minus(maxFromNativeCurrencyFee)
-          : fromCurrencyBalance,
-        availableLiquidity.from.amount
-      );
+      const balanceIncludingFees = fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id
+        ? fromCurrencyBalance.minus(maxFromNativeCurrencyFee)
+        : fromCurrencyBalance;
 
       maxOrderPreview = await this.getMaxOrderPreview(
         actualOrderPreview,
         availableLiquidity,
         fromAddress,
-        fromMinAvailableAmount,
+        balanceIncludingFees,
         fromCurrencyInfo,
         fromNativeCurrencyInfo,
         errors,
@@ -249,13 +246,13 @@ export class AtomexSwapPreviewManager implements Disposable {
     actualOrderPreview: OrderPreview | undefined,
     availableLiquidity: SymbolLiquidity,
     authorizedFromAddress: string,
-    fromMinAvailableAmount: BigNumber,
+    balanceIncludingFees: BigNumber,
     fromCurrencyInfo: CurrencyInfo,
     fromNativeCurrencyInfo: CurrencyInfo,
     errors: Mutable<SwapPreview['errors']>,
     _warnings: Mutable<SwapPreview['warnings']>
   ): Promise<OrderPreview | undefined> {
-    if (fromMinAvailableAmount.isLessThanOrEqualTo(0)) {
+    if (balanceIncludingFees.isLessThanOrEqualTo(0)) {
       if (fromCurrencyInfo.currency.id !== fromNativeCurrencyInfo.currency.id) {
         errors.push({
           id: 'not-enough-funds',
@@ -271,7 +268,11 @@ export class AtomexSwapPreviewManager implements Disposable {
     }
 
     const userInvolvedSwapsInfo = await this.getUserInvolvedSwapsInfo(authorizedFromAddress, fromCurrencyInfo.currency.id);
-    const maxAmount = fromMinAvailableAmount.minus(userInvolvedSwapsInfo.fromTotalAmount);
+    const maxAmount = BigNumber.min(
+      balanceIncludingFees.minus(userInvolvedSwapsInfo.fromTotalAmount),
+      availableLiquidity.from.amount
+    );
+
     if (maxAmount.isLessThanOrEqualTo(0)) {
       errors.push({
         id: 'not-enough-funds',
@@ -293,7 +294,7 @@ export class AtomexSwapPreviewManager implements Disposable {
       isFromAmount: true,
     });
     if (maxOrderPreview && actualOrderPreview && actualOrderPreview.from.amount.isGreaterThan(maxOrderPreview.from.amount)) {
-      if (actualOrderPreview.from.amount.isGreaterThan(fromMinAvailableAmount))
+      if (actualOrderPreview.from.amount.isGreaterThan(balanceIncludingFees))
         errors.push({
           id: 'not-enough-funds',
           data: {
@@ -341,7 +342,7 @@ export class AtomexSwapPreviewManager implements Disposable {
 
         if (!(
           (swapTimeStamp + swap.user.requisites.lockTime * 1000 > now)
-          && (swapTimeStamp + swap.counterParty.requisites.lockTime * 1000 > now)
+          && (swap.counterParty.requisites.lockTime === 0 || (swapTimeStamp + swap.counterParty.requisites.lockTime * 1000 > now))
         )) {
           return false;
         }
