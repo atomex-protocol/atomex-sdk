@@ -27,8 +27,8 @@ const testnetNativeTezosTaquitoAtomexProtocolMultiChainOptions: TezosTaquitoAtom
 const testnetUSDtTezosTaquitoAtomexProtocolMultiChainOptions: FA2TezosTaquitoAtomexProtocolMultiChainOptions = {
   ...testnetFA2TezosTaquitoAtomexProtocolMultiChainOptionsBase,
   currencyId: 'USDT_XTZ',
-  swapContractAddress: 'KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR',
-  swapContractBlockId: '665321'
+  swapContractAddress: 'KT1HHjNxi3okxxGJT1SPPhpcs3gMQt8hqixY',
+  swapContractBlockId: '734339'
 };
 
 export const testnetTezosTaquitoAtomexProtocolMultiChainOptions = {
