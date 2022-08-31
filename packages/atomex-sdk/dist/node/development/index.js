@@ -1576,8 +1576,12 @@ __export(helper_exports, {
   getRedeemRewardInNativeCurrency: () => getRedeemRewardInNativeCurrency,
   getRedeemRewardInToken: () => getRedeemRewardInToken
 });
-var getRedeemRewardInNativeCurrency = async (currencyOrId, redeemFee, priceManager) => {
-  const nativeTokenPriceInUsd = await priceManager.getAveragePrice({ baseCurrency: currencyOrId, quoteCurrency: "USD" });
+var import_bignumber9 = __toESM(require("bignumber.js"));
+var getRedeemRewardInNativeCurrency = async (currencyOrId, redeemFee, priceManager, blockchainProvider) => {
+  const currency = typeof currencyOrId === "string" ? blockchainProvider.getCurrency(currencyOrId) : currencyOrId;
+  if (!currency)
+    throw new Error(`Currency info not found for ${currencyOrId}`);
+  const nativeTokenPriceInUsd = await priceManager.getAveragePrice({ baseCurrency: currency, quoteCurrency: "USD" });
   if (!nativeTokenPriceInUsd)
     throw new Error(`Price for ${currencyOrId} in USD not found`);
   const maxRewardPercentValue = 30;
@@ -1586,7 +1590,7 @@ var getRedeemRewardInNativeCurrency = async (currencyOrId, redeemFee, priceManag
   const redeemFeeInUsd = redeemFee.estimated.multipliedBy(nativeTokenPriceInUsd);
   const k = maxRewardPercentValue / Math.log((1 - maxRewardPercent) / maxRewardForRedeemDeviation);
   const p = (1 - maxRewardPercent) / Math.exp(redeemFeeInUsd.toNumber() / k) + maxRewardPercent;
-  const rewardForRedeem = redeemFee.estimated.multipliedBy(1 + p);
+  const rewardForRedeem = toFixedBigNumber(redeemFee.estimated.multipliedBy(1 + p), Math.min(currency.decimals, 9), import_bignumber9.default.ROUND_FLOOR);
   const result = { estimated: rewardForRedeem, max: rewardForRedeem };
   return result;
 };
@@ -1600,12 +1604,10 @@ var getRedeemRewardInToken = async (currencyOrId, redeemFee, priceManager, block
     throw new Error(`Native currency not found fir ${currency.blockchain}`);
   const nativeTokenPriceInCurrency = await priceManager.getAveragePrice({ baseCurrency: nativeCurrency, quoteCurrency: currencyOrId });
   if (!nativeTokenPriceInCurrency)
-    throw new Error(`Price for ${nativeCurrency.id} in ${currencyOrId} not found`);
-  const inNativeToken = await getRedeemRewardInNativeCurrency(nativeCurrency.id, redeemFee, priceManager);
-  return {
-    estimated: inNativeToken.estimated.multipliedBy(nativeTokenPriceInCurrency),
-    max: inNativeToken.max.multipliedBy(nativeTokenPriceInCurrency)
-  };
+    throw new Error(`Price for ${nativeCurrency.id} in ${currency.id} not found`);
+  const inNativeToken = await getRedeemRewardInNativeCurrency(nativeCurrency.id, redeemFee, priceManager, blockchainProvider);
+  const rewardForRedeem = toFixedBigNumber(inNativeToken.estimated.multipliedBy(nativeTokenPriceInCurrency), Math.min(currency.decimals, 9), import_bignumber9.default.ROUND_FLOOR);
+  return { estimated: rewardForRedeem, max: rewardForRedeem };
 };
 
 // src/blockchain/balanceProvider/controlledCurrencyBalancesProvider.ts
@@ -1682,7 +1684,7 @@ var AtomexBlockchainProvider = class {
 };
 
 // src/evm/atomexProtocol/web3AtomexProtocolMultiChain.ts
-var import_bignumber10 = __toESM(require("bignumber.js"));
+var import_bignumber11 = __toESM(require("bignumber.js"));
 
 // src/evm/helpers/web3Helper.ts
 var web3Helper_exports = {};
@@ -1690,15 +1692,15 @@ __export(web3Helper_exports, {
   convertFromWei: () => convertFromWei,
   getGasPriceInWei: () => getGasPriceInWei
 });
-var import_bignumber9 = __toESM(require("bignumber.js"));
+var import_bignumber10 = __toESM(require("bignumber.js"));
 var getGasPriceInWei = async (toolkit) => {
   const gasPrice = await toolkit.eth.getGasPrice();
-  return new import_bignumber9.default(gasPrice);
+  return new import_bignumber10.default(gasPrice);
 };
 var convertFromWei = (toolkit, value, unit) => {
   const stringValue = typeof value === "string" ? value : value.toString(10);
   const result = toolkit.utils.fromWei(stringValue, unit);
-  return new import_bignumber9.default(result);
+  return new import_bignumber10.default(result);
 };
 
 // src/evm/atomexProtocol/web3AtomexProtocolMultiChain.ts
@@ -1723,7 +1725,7 @@ var _Web3AtomexProtocolMultiChain = class {
     const gasPriceInWei = await web3Helper_exports.getGasPriceInWei(toolkit);
     const gasLimitOptions = this.atomexProtocolOptions.initiateOperation.gasLimit;
     const hasRewardForRedeem = (_a = params.rewardForRedeem) == null ? void 0 : _a.isGreaterThan(0);
-    const gasLimit = new import_bignumber10.default(hasRewardForRedeem ? gasLimitOptions.withReward : gasLimitOptions.withoutReward);
+    const gasLimit = new import_bignumber11.default(hasRewardForRedeem ? gasLimitOptions.withReward : gasLimitOptions.withoutReward);
     const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(_Web3AtomexProtocolMultiChain.maxNetworkFeeMultiplier);
     const estimated = web3Helper_exports.convertFromWei(toolkit, estimatedWei, "ether");
     const result = { estimated, max: estimated };
@@ -1761,7 +1763,7 @@ var _Web3AtomexProtocolMultiChain = class {
   }
 };
 var Web3AtomexProtocolMultiChain = _Web3AtomexProtocolMultiChain;
-__publicField(Web3AtomexProtocolMultiChain, "maxNetworkFeeMultiplier", new import_bignumber10.default(1.2));
+__publicField(Web3AtomexProtocolMultiChain, "maxNetworkFeeMultiplier", new import_bignumber11.default(1.2));
 
 // src/evm/wallets/web3BlockchainWallet.ts
 var import_web3 = __toESM(require("web3"));
@@ -1878,7 +1880,7 @@ var Web3BlockchainToolkitProvider = class {
 };
 
 // src/evm/balancesProviders/web3BalancesProvider.ts
-var import_bignumber11 = __toESM(require("bignumber.js"));
+var import_bignumber12 = __toESM(require("bignumber.js"));
 
 // src/evm/abi/erc20abi.ts
 var erc20Abi = [
@@ -2124,12 +2126,12 @@ var Web3BalancesProvider = class {
   }
   async getNativeTokenBalance(address, currency, toolkit) {
     const balance = await toolkit.eth.getBalance(address);
-    return numberToTokensAmount(new import_bignumber11.default(balance), currency.decimals);
+    return numberToTokensAmount(new import_bignumber12.default(balance), currency.decimals);
   }
   async getTokenBalance(address, currency, toolkit) {
     const contract = new toolkit.eth.Contract(erc20Abi, currency.contractAddress);
     const balance = await contract.methods.balanceOf(address).call();
-    return numberToTokensAmount(new import_bignumber11.default(balance), currency.decimals);
+    return numberToTokensAmount(new import_bignumber12.default(balance), currency.decimals);
   }
 };
 
@@ -2150,7 +2152,7 @@ var EthereumWeb3AtomexProtocolMultiChain = class extends Web3AtomexProtocolMulti
     throw new Error("Method not implemented.");
   }
   getRedeemReward(redeemFee) {
-    return helper_exports.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager);
+    return helper_exports.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -2657,7 +2659,7 @@ var import_taquito = require("@taquito/taquito");
 
 // src/tezos/utils/index.ts
 var import_utils11 = require("@taquito/utils");
-var import_bignumber12 = __toESM(require("bignumber.js"));
+var import_bignumber13 = __toESM(require("bignumber.js"));
 
 // src/tezos/utils/guards.ts
 var isTezosCurrency = (currency) => {
@@ -2707,7 +2709,7 @@ var decodeSignature = (signature) => {
 };
 
 // src/tezos/utils/index.ts
-var mutezInTez = new import_bignumber12.default(1e6);
+var mutezInTez = new import_bignumber13.default(1e6);
 var decodePublicKey = (publicKey) => {
   const keyPrefix = (0, import_utils11.validatePkAndExtractPrefix)(publicKey);
   const decodedKeyBytes = (0, import_utils11.b58cdecode)(publicKey, import_utils11.prefix[keyPrefix]);
@@ -2893,7 +2895,7 @@ var TaquitoBlockchainWallet = class {
 };
 
 // src/tezos/atomexProtocol/taquitoAtomexProtocolMultiChain.ts
-var import_bignumber13 = __toESM(require("bignumber.js"));
+var import_bignumber14 = __toESM(require("bignumber.js"));
 var TaquitoAtomexProtocolMultiChain = class {
   constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
     this.blockchain = blockchain;
@@ -2911,17 +2913,17 @@ var TaquitoAtomexProtocolMultiChain = class {
     return this.atomexProtocolOptions.swapContractAddress;
   }
   getInitiateFees(_params) {
-    const estimated = new import_bignumber13.default(this.atomexProtocolOptions.initiateOperation.fee).div(mutezInTez);
+    const estimated = new import_bignumber14.default(this.atomexProtocolOptions.initiateOperation.fee).div(mutezInTez);
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
   }
   getRedeemFees(_params) {
-    const estimated = new import_bignumber13.default(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
+    const estimated = new import_bignumber14.default(this.atomexProtocolOptions.redeemOperation.fee).div(mutezInTez);
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
   }
   getRefundFees(_params) {
-    const estimated = new import_bignumber13.default(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
+    const estimated = new import_bignumber14.default(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
   }
@@ -2958,7 +2960,7 @@ var TezosTaquitoAtomexProtocolMultiChain = class extends TaquitoAtomexProtocolMu
     throw new Error("Method not implemented.");
   }
   getRedeemReward(redeemFee) {
-    return helper_exports.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager);
+    return helper_exports.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
   getRedeemFees(params) {
     return super.getRedeemFees(params);
@@ -3357,7 +3359,7 @@ var createDefaultTezosBlockchainOptions = (atomexContext) => {
 };
 
 // src/clients/helpers.ts
-var import_bignumber14 = __toESM(require("bignumber.js"));
+var import_bignumber15 = __toESM(require("bignumber.js"));
 var mapQuoteDtosToQuotes = (quoteDtos) => {
   const quotes = quoteDtos.map((quoteDto) => mapQuoteDtoToQuote(quoteDto));
   return quotes;
@@ -3365,8 +3367,8 @@ var mapQuoteDtosToQuotes = (quoteDtos) => {
 var mapQuoteDtoToQuote = (quoteDto) => {
   const [baseCurrency, quoteCurrency] = symbolsHelper_exports.getBaseQuoteCurrenciesBySymbol(quoteDto.symbol);
   const quote = {
-    ask: new import_bignumber14.default(quoteDto.ask),
-    bid: new import_bignumber14.default(quoteDto.bid),
+    ask: new import_bignumber15.default(quoteDto.ask),
+    bid: new import_bignumber15.default(quoteDto.bid),
     symbol: quoteDto.symbol,
     timeStamp: new Date(quoteDto.timeStamp),
     baseCurrency,
@@ -3385,7 +3387,7 @@ var mapSymbolDtoToSymbol = (symbolDto, currenciesProvider, defaultDecimals = 9) 
     name: symbolDto.name,
     baseCurrency,
     quoteCurrency,
-    minimumQty: new import_bignumber14.default(symbolDto.minimumQty),
+    minimumQty: new import_bignumber15.default(symbolDto.minimumQty),
     decimals: {
       baseCurrency: preparedBaseCurrencyDecimals,
       quoteCurrency: preparedQuoteCurrencyDecimals,
@@ -3410,7 +3412,7 @@ var mapOrderBookDtoToOrderBook = (orderBookDto) => {
 var mapOrderBookEntryDtoToOrderBookEntry = (entryDto) => {
   const entry = {
     side: entryDto.side,
-    price: new import_bignumber14.default(entryDto.price),
+    price: new import_bignumber15.default(entryDto.price),
     qtyProfile: entryDto.qtyProfile
   };
   return entry;
@@ -3446,7 +3448,7 @@ var mapOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
     clientOrderId: orderDto.clientOrderId,
     side: orderDto.side,
     symbol: orderDto.symbol,
-    leaveQty: new import_bignumber14.default(orderDto.leaveQty),
+    leaveQty: new import_bignumber15.default(orderDto.leaveQty),
     timeStamp: new Date(orderDto.timeStamp),
     type: orderDto.type,
     status: orderDto.status,
@@ -3480,8 +3482,8 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
     from,
     to,
     trade: {
-      qty: new import_bignumber14.default(swapDto.qty),
-      price: new import_bignumber14.default(swapDto.price),
+      qty: new import_bignumber15.default(swapDto.qty),
+      price: new import_bignumber15.default(swapDto.price),
       side: swapDto.side,
       symbol: swapDto.symbol
     },
@@ -3491,7 +3493,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
       transactions: mapTransactionDtosToTransactions(swapDto.counterParty.transactions),
       requisites: {
         ...swapDto.counterParty.requisites,
-        rewardForRedeem: new import_bignumber14.default(swapDto.counterParty.requisites.rewardForRedeem)
+        rewardForRedeem: new import_bignumber15.default(swapDto.counterParty.requisites.rewardForRedeem)
       },
       trades: mapTradeDtosToTrades(swapDto.counterParty.trades)
     },
@@ -3500,7 +3502,7 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
       transactions: mapTransactionDtosToTransactions(swapDto.user.transactions),
       requisites: {
         ...swapDto.user.requisites,
-        rewardForRedeem: new import_bignumber14.default(swapDto.user.requisites.rewardForRedeem)
+        rewardForRedeem: new import_bignumber15.default(swapDto.user.requisites.rewardForRedeem)
       },
       trades: mapTradeDtosToTrades(swapDto.user.trades)
     }
@@ -3510,8 +3512,8 @@ var mapSwapDtoToSwap = (swapDto, exchangeSymbolsProvider) => {
 var mapTradeDtosToTrades = (tradeDtos) => {
   const trades = tradeDtos.map((tradeDto) => ({
     orderId: tradeDto.orderId,
-    price: new import_bignumber14.default(tradeDto.price),
-    qty: new import_bignumber14.default(tradeDto.qty)
+    price: new import_bignumber15.default(tradeDto.price),
+    qty: new import_bignumber15.default(tradeDto.qty)
   }));
   return trades;
 };
@@ -3528,7 +3530,7 @@ var mapWebSocketOrderDtoToOrder = (orderDto, exchangeSymbolsProvider) => {
     clientOrderId: orderDto.clientOrderId,
     side: orderDto.side,
     status: orderDto.status,
-    leaveQty: new import_bignumber14.default(orderDto.leaveQty),
+    leaveQty: new import_bignumber15.default(orderDto.leaveQty),
     swapIds: orderDto.swaps,
     symbol: orderDto.symbol,
     type: orderDto.type,
@@ -5836,7 +5838,7 @@ var Atomex2 = class {
 };
 
 // src/legacy/ethereum.ts
-var import_bignumber15 = __toESM(require("bignumber.js"));
+var import_bignumber16 = __toESM(require("bignumber.js"));
 var import_elliptic2 = __toESM(require("elliptic"));
 var import_web33 = __toESM(require("web3"));
 
@@ -5955,14 +5957,14 @@ var EthereumHelpers = class extends Helpers {
       secretHash: params["_hashedSecret"].slice(2),
       receivingAddress: params["_participant"],
       refundTimestamp: parseInt(params["_refundTimestamp"]),
-      rewardForRedeem: new import_bignumber15.default(this._web3.utils.toBN(params["_payoff"]).toString()),
-      netAmount: new import_bignumber15.default(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
+      rewardForRedeem: new import_bignumber16.default(this._web3.utils.toBN(params["_payoff"]).toString()),
+      netAmount: new import_bignumber16.default(this._web3.utils.toBN(transaction.value).sub(this._web3.utils.toBN(params["_payoff"])).toString())
     };
   }
   async validateInitiateTransaction(_blockHeight, txId, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
     var _a;
-    amount = new import_bignumber15.default(amount);
-    payoff = new import_bignumber15.default(payoff);
+    amount = new import_bignumber16.default(amount);
+    payoff = new import_bignumber16.default(payoff);
     const netAmount = amount.minus(payoff);
     const transaction = await this.getTransaction(txId);
     try {
@@ -6069,7 +6071,7 @@ var import_michelson_encoder = require("@taquito/michelson-encoder");
 var import_rpc = require("@taquito/rpc");
 var import_taquito5 = require("@taquito/taquito");
 var import_utils20 = require("@taquito/utils");
-var import_bignumber16 = __toESM(require("bignumber.js"));
+var import_bignumber17 = __toESM(require("bignumber.js"));
 var formatTimestamp = (timestamp) => {
   return new Date(timestamp * 1e3).toISOString().slice(0, -5) + "Z";
 };
@@ -6199,8 +6201,8 @@ var TezosHelpers = class extends Helpers {
       secretHash: initiateParams["settings"]["hashed_secret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["settings"]["refund_time"]),
-      netAmount: new import_bignumber16.default(content.amount).minus(initiateParams["settings"]["payoff"]),
-      rewardForRedeem: new import_bignumber16.default(initiateParams["settings"]["payoff"])
+      netAmount: new import_bignumber17.default(content.amount).minus(initiateParams["settings"]["payoff"]),
+      rewardForRedeem: new import_bignumber17.default(initiateParams["settings"]["payoff"])
     };
   }
   findContractCall(block, txID) {
@@ -6216,8 +6218,8 @@ var TezosHelpers = class extends Helpers {
     return contents;
   }
   async validateInitiateTransaction(blockHeight, txID, secretHash, receivingAddress, amount, payoff, minRefundTimestamp, minConfirmations = 2) {
-    amount = new import_bignumber16.default(amount);
-    payoff = new import_bignumber16.default(payoff);
+    amount = new import_bignumber17.default(amount);
+    payoff = new import_bignumber17.default(payoff);
     const netAmount = amount.minus(payoff);
     const block = await this.getBlock(blockHeight);
     try {
@@ -6290,8 +6292,8 @@ var TezosHelpers = class extends Helpers {
       receivingAddress: "tz1Q2prWCrDGFDuGTe7axdt4z9e3QkCqdhmD",
       secretHash: "169cbd29345af89a0983f28254e71bdd1367890b9876fc8a9ea117c32f6a521b",
       refundTimestamp: 2147483647,
-      rewardForRedeem: new import_bignumber16.default(0),
-      netAmount: new import_bignumber16.default(100)
+      rewardForRedeem: new import_bignumber17.default(0),
+      netAmount: new import_bignumber17.default(100)
     };
     const tx = this.buildInitiateTransaction(dummyTx);
     const header = await this._tezos.rpc.getBlockHeader();
@@ -6347,7 +6349,7 @@ var TezosHelpers = class extends Helpers {
 
 // src/legacy/fa12.ts
 var import_taquito6 = require("@taquito/taquito");
-var import_bignumber17 = __toESM(require("bignumber.js"));
+var import_bignumber18 = __toESM(require("bignumber.js"));
 var FA12Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
@@ -6384,15 +6386,15 @@ var FA12Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: new import_bignumber17.default(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
-      rewardForRedeem: new import_bignumber17.default(initiateParams["payoffAmount"])
+      netAmount: new import_bignumber18.default(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new import_bignumber18.default(initiateParams["payoffAmount"])
     };
   }
 };
 
 // src/legacy/fa2.ts
 var import_taquito7 = require("@taquito/taquito");
-var import_bignumber18 = __toESM(require("bignumber.js"));
+var import_bignumber19 = __toESM(require("bignumber.js"));
 var FA2Helpers = class extends TezosHelpers {
   static async create(newAtomex, network, currency, rpcUri) {
     const networkSettings = config_default.blockchains.tezos.rpc[network];
@@ -6420,8 +6422,8 @@ var FA2Helpers = class extends TezosHelpers {
       secretHash: initiateParams["hashedSecret"],
       receivingAddress: initiateParams["participant"],
       refundTimestamp: dt2ts(initiateParams["refundTime"]),
-      netAmount: new import_bignumber18.default(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
-      rewardForRedeem: new import_bignumber18.default(initiateParams["payoffAmount"])
+      netAmount: new import_bignumber19.default(initiateParams["totalAmount"]).minus(initiateParams["payoffAmount"]),
+      rewardForRedeem: new import_bignumber19.default(initiateParams["payoffAmount"])
     };
   }
   getInitiateParams(entrypoint, params) {
