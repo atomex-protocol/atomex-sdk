@@ -45,7 +45,7 @@ export class TzktBalancesProvider implements BalancesProvider {
     };
 
     const balances = await this.httpClient.request<number[]>({ urlPath, params }, false);
-    const balance = balances[0];
+    const balance = balances.length ? balances[0] : 0;
     if (balance === undefined)
       throw new Error('Invalid response');
 
