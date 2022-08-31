@@ -3013,7 +3013,7 @@ var TzktBalancesProvider = class {
       "select": "balance"
     };
     const balances = await this.httpClient.request({ urlPath, params }, false);
-    const balance = balances[0];
+    const balance = balances.length ? balances[0] : 0;
     if (balance === void 0)
       throw new Error("Invalid response");
     return numberToTokensAmount(balance, currency.decimals);
