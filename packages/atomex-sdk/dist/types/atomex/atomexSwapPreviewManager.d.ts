@@ -27,7 +27,7 @@ export declare class AtomexSwapPreviewManager implements Disposable {
         toAddress?: string;
         maxOrderPreview?: OrderPreview;
     }>;
-    protected getMaxOrderPreview(actualOrderPreview: OrderPreview | undefined, availableLiquidity: SymbolLiquidity, authorizedFromAddress: string, fromMinAvailableAmount: BigNumber, fromCurrencyInfo: CurrencyInfo, fromNativeCurrencyInfo: CurrencyInfo, errors: Mutable<SwapPreview['errors']>, _warnings: Mutable<SwapPreview['warnings']>): Promise<OrderPreview | undefined>;
+    protected getMaxOrderPreview(actualOrderPreview: OrderPreview | undefined, availableLiquidity: SymbolLiquidity, authorizedFromAddress: string, balanceIncludingFees: BigNumber, fromCurrencyInfo: CurrencyInfo, fromNativeCurrencyInfo: CurrencyInfo, errors: Mutable<SwapPreview['errors']>, _warnings: Mutable<SwapPreview['warnings']>): Promise<OrderPreview | undefined>;
     protected getUserInvolvedSwapsInfo(userAddress: string, fromCurrencyId: Currency['id']): Promise<UserInvolvedSwapsInfo>;
     protected calculateSwapPreviewFees(fromCurrencyInfo: CurrencyInfo, fromNativeCurrencyInfo: CurrencyInfo, toCurrencyInfo: CurrencyInfo, toNativeCurrencyInfo: CurrencyInfo, useWatchTower: boolean): Promise<SwapPreview['fees']>;
     protected calculateMakerFees(fromCurrency: Currency, fromNativeCurrency: Currency, toNativeCurrency: Currency, toInitiateFees: FeesInfo, fromRedeemFees: FeesInfo): Promise<SwapPreviewFee>;

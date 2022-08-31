@@ -555,7 +555,7 @@ var ExchangeManager = class {
     if (orderPreviewParameters.type !== "SolidFillOrKill")
       throw new Error('Only the "SolidFillOrKill" order type is supported at the current moment');
     const normalizedPreviewParameters = this.normalizeOrderPreviewParametersIfNeeded(orderPreviewParameters);
-    const orderBookEntry = await this.findOrderBookEntry(normalizedPreviewParameters.exchangeSymbol.name, normalizedPreviewParameters.side, orderPreviewParameters.type, normalizedPreviewParameters.amount, normalizedPreviewParameters.isBaseCurrencyAmount);
+    const orderBookEntry = await this.findOrderBookEntry(normalizedPreviewParameters.exchangeSymbol, normalizedPreviewParameters.side, orderPreviewParameters.type, normalizedPreviewParameters.amount, normalizedPreviewParameters.isBaseCurrencyAmount);
     if (!orderBookEntry)
       return void 0;
     const [from, to] = symbolsHelper_exports.convertSymbolAndSideToFromAndToSymbolCurrencies(normalizedPreviewParameters.exchangeSymbol, normalizedPreviewParameters.side, normalizedPreviewParameters.amount, orderBookEntry.price, normalizedPreviewParameters.isBaseCurrencyAmount);
@@ -627,16 +627,18 @@ var ExchangeManager = class {
   normalizeOrderPreviewParametersIfNeeded(orderPreviewParameters) {
     return ordersHelper_exports.isNormalizedOrderPreviewParameters(orderPreviewParameters) ? orderPreviewParameters : ordersHelper_exports.normalizeOrderPreviewParameters(orderPreviewParameters, this.symbolsProvider);
   }
-  async findOrderBookEntry(symbol, side, orderType, amount, isBaseCurrencyAmount) {
+  async findOrderBookEntry(exchangeSymbol, side, orderType, amount, isBaseCurrencyAmount) {
     if (orderType !== "SolidFillOrKill")
       return void 0;
-    const orderBook = await this.getCachedOrderBook(symbol);
+    const orderBook = await this.getCachedOrderBook(exchangeSymbol.name);
     if (!orderBook)
       return void 0;
     for (const entry of orderBook.entries) {
-      if (entry.side !== side && (isBaseCurrencyAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
+      if (entry.side === side)
+        continue;
+      const convertedAmount = isBaseCurrencyAmount ? amount : toFixedBigNumber(amount.div(entry.price), exchangeSymbol.decimals.quoteCurrency, BigNumber3.ROUND_FLOOR);
+      if (convertedAmount.isLessThanOrEqualTo(Math.max(...entry.qtyProfile)))
         return entry;
-      }
     }
   }
   createProofOfFunds(accountAddress, newOrderRequest) {
@@ -1017,8 +1019,8 @@ var AtomexSwapPreviewManager = class {
           }
         });
       }
-      const fromMinAvailableAmount = BigNumber7.min(fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id ? fromCurrencyBalance.minus(maxFromNativeCurrencyFee) : fromCurrencyBalance, availableLiquidity.from.amount);
-      maxOrderPreview = await this.getMaxOrderPreview(actualOrderPreview, availableLiquidity, fromAddress, fromMinAvailableAmount, fromCurrencyInfo, fromNativeCurrencyInfo, errors, warnings);
+      const balanceIncludingFees = fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id ? fromCurrencyBalance.minus(maxFromNativeCurrencyFee) : fromCurrencyBalance;
+      maxOrderPreview = await this.getMaxOrderPreview(actualOrderPreview, availableLiquidity, fromAddress, balanceIncludingFees, fromCurrencyInfo, fromNativeCurrencyInfo, errors, warnings);
     }
     if (toAddress) {
       const toNativeCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(toAddress, toNativeCurrencyInfo.currency);
@@ -1041,8 +1043,8 @@ var AtomexSwapPreviewManager = class {
       maxOrderPreview
     };
   }
-  async getMaxOrderPreview(actualOrderPreview, availableLiquidity, authorizedFromAddress, fromMinAvailableAmount, fromCurrencyInfo, fromNativeCurrencyInfo, errors, _warnings) {
-    if (fromMinAvailableAmount.isLessThanOrEqualTo(0)) {
+  async getMaxOrderPreview(actualOrderPreview, availableLiquidity, authorizedFromAddress, balanceIncludingFees, fromCurrencyInfo, fromNativeCurrencyInfo, errors, _warnings) {
+    if (balanceIncludingFees.isLessThanOrEqualTo(0)) {
       if (fromCurrencyInfo.currency.id !== fromNativeCurrencyInfo.currency.id) {
         errors.push({
           id: "not-enough-funds",
@@ -1056,7 +1058,7 @@ var AtomexSwapPreviewManager = class {
       return void 0;
     }
     const userInvolvedSwapsInfo = await this.getUserInvolvedSwapsInfo(authorizedFromAddress, fromCurrencyInfo.currency.id);
-    const maxAmount = fromMinAvailableAmount.minus(userInvolvedSwapsInfo.fromTotalAmount);
+    const maxAmount = BigNumber7.min(balanceIncludingFees.minus(userInvolvedSwapsInfo.fromTotalAmount), availableLiquidity.from.amount);
     if (maxAmount.isLessThanOrEqualTo(0)) {
       errors.push({
         id: "not-enough-funds",
@@ -1077,7 +1079,7 @@ var AtomexSwapPreviewManager = class {
       isFromAmount: true
     });
     if (maxOrderPreview && actualOrderPreview && actualOrderPreview.from.amount.isGreaterThan(maxOrderPreview.from.amount)) {
-      if (actualOrderPreview.from.amount.isGreaterThan(fromMinAvailableAmount))
+      if (actualOrderPreview.from.amount.isGreaterThan(balanceIncludingFees))
         errors.push({
           id: "not-enough-funds",
           data: {
@@ -1111,7 +1113,7 @@ var AtomexSwapPreviewManager = class {
       }
       const now2 = Date.now();
       const swapTimeStamp = swap.timeStamp.getTime();
-      if (!(swapTimeStamp + swap.user.requisites.lockTime * 1e3 > now2 && swapTimeStamp + swap.counterParty.requisites.lockTime * 1e3 > now2)) {
+      if (!(swapTimeStamp + swap.user.requisites.lockTime * 1e3 > now2 && (swap.counterParty.requisites.lockTime === 0 || swapTimeStamp + swap.counterParty.requisites.lockTime * 1e3 > now2))) {
         return false;
       }
       swapIds.push(swap.id);
