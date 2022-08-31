@@ -38,7 +38,7 @@ export class EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMult
   }
 
   getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo> {
-    return atomexProtocolMultiChainHelper.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager);
+    return atomexProtocolMultiChainHelper.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
 
   getRedeemFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {

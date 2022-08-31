@@ -29,34 +29,37 @@ describe('Atomex Protocol Multi Chain utils', () => {
     return priceManager;
   };
 
-  const createBlockchainProvider = (currencies: Record<string, Currency>, nativeCurrencyId: string) => {
+  const createBlockchainProvider = (currencies: Record<string, Currency>, nativeCurrencyId?: string) => {
     const blockchainProvider = new MockBlockchainProvider();
 
     blockchainProvider.getCurrency.mockImplementation(currencyId => {
       return currencies[currencyId];
     });
 
-    blockchainProvider.getNativeCurrencyInfo.mockImplementation(() => {
-      const currency = currencies[nativeCurrencyId];
+    if (nativeCurrencyId) {
+      blockchainProvider.getNativeCurrencyInfo.mockImplementation(() => {
+        const currency = currencies[nativeCurrencyId];
 
-      return {
-        currency,
-        atomexProtocol: null as unknown as AtomexProtocol,
-        balanceProvider: null as unknown as BalancesProvider,
-        blockchainToolkitProvider: null as unknown as BlockchainToolkitProvider,
-        swapTransactionsProvider: null as unknown as SwapTransactionsProvider
-      } as CurrencyInfo;
-    });
+        return {
+          currency,
+          atomexProtocol: null as unknown as AtomexProtocol,
+          balanceProvider: null as unknown as BalancesProvider,
+          blockchainToolkitProvider: null as unknown as BlockchainToolkitProvider,
+          swapTransactionsProvider: null as unknown as SwapTransactionsProvider
+        } as CurrencyInfo;
+      });
+    }
 
     return blockchainProvider;
   };
 
   test.each(redeemRewardNativeCurrencyTestCases)(
     'returns redeem reward for native currency (%s)',
-    async (_, { currencyId, prices, redeemFee, expectedRedeemReward }) => {
+    async (_, { currencyId, currencies, prices, redeemFee, expectedRedeemReward }) => {
       const priceManager = createPriceManager(prices);
+      const blockchainProvider = createBlockchainProvider(currencies);
 
-      const redeemReward = await atomexProtocolMultiChainHelper.getRedeemRewardInNativeCurrency(currencyId, redeemFee, priceManager);
+      const redeemReward = await atomexProtocolMultiChainHelper.getRedeemRewardInNativeCurrency(currencyId, redeemFee, priceManager, blockchainProvider);
       expect(redeemReward).toEqual(expectedRedeemReward);
     });
 
