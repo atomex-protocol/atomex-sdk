@@ -3318,8 +3318,8 @@ var testnetNativeTezosTaquitoAtomexProtocolMultiChainOptions = {
 };
 var testnetUSDtTezosTaquitoAtomexProtocolMultiChainOptions = __spreadProps(__spreadValues({}, testnetFA2TezosTaquitoAtomexProtocolMultiChainOptionsBase), {
   currencyId: "USDT_XTZ",
-  swapContractAddress: "KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR",
-  swapContractBlockId: "665321"
+  swapContractAddress: "KT1HHjNxi3okxxGJT1SPPhpcs3gMQt8hqixY",
+  swapContractBlockId: "734339"
 });
 var testnetTezosTaquitoAtomexProtocolMultiChainOptions = {
   XTZ: testnetNativeTezosTaquitoAtomexProtocolMultiChainOptions,
