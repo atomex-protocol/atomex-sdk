@@ -32,6 +32,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'XTZ/ETH',
         from: {
           currencyId: 'XTZ',
+          price: new BigNumber('0.000948468'),
           address: 'tz101',
           actual: {
             amount: new BigNumber('35'),
@@ -48,6 +49,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
+          price: new BigNumber('1054.331827747'),
           address: '0x01',
           actual: {
             amount: new BigNumber('0.03319638'),
@@ -140,6 +142,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'XTZ/ETH',
         from: {
           currencyId: 'XTZ',
+          price: new BigNumber('0.000948468'),
           address: 'tz101',
           actual: {
             amount: new BigNumber('35'),
@@ -156,6 +159,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
+          price: new BigNumber('1054.331827747'),
           address: '0x01',
           actual: {
             amount: new BigNumber('0.03319638'),
@@ -214,8 +218,10 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         errors: [
           {
-            id: 'not-enough-funds-network-fee',
+            id: 'not-enough-funds',
             data: {
+              type: 'fees',
+              currencyId: 'ETH',
               requiredAmount: new BigNumber('0.003')
             }
           }
@@ -254,6 +260,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'XTZ/ETH',
         from: {
           currencyId: 'XTZ',
+          price: new BigNumber('0.000948468'),
           address: 'tz101',
           actual: {
             amount: new BigNumber('3'),
@@ -267,6 +274,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
+          price: new BigNumber('1054.331827747'),
           address: '0x01',
           actual: {
             amount: new BigNumber('0.002845404'),
@@ -322,8 +330,12 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         errors: [
           {
-            id: 'not-enough-funds-network-fee',
-            data: { requiredAmount: new BigNumber('9.554791') }
+            id: 'not-enough-funds',
+            data: {
+              type: 'fees',
+              currencyId: 'XTZ',
+              requiredAmount: new BigNumber('9.554791')
+            }
           }
         ],
         warnings: []
@@ -360,6 +372,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'ETH/USDT_XTZ',
         from: {
           currencyId: 'USDT_XTZ',
+          price: new BigNumber('0.000613034'),
           address: 'tz101',
           actual: {
             amount: new BigNumber('1217.234'),
@@ -376,6 +389,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
+          price: new BigNumber('1631.22858'),
           address: '0x01',
           actual: {
             amount: new BigNumber('0.746206886'),
@@ -434,8 +448,12 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         errors: [
           {
-            id: 'not-enough-funds-network-fee',
-            data: { requiredAmount: new BigNumber(0.2) }
+            id: 'not-enough-funds',
+            data: {
+              type: 'fees',
+              currencyId: 'XTZ',
+              requiredAmount: new BigNumber(0.2)
+            }
           }
         ],
         warnings: []
@@ -476,6 +494,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'ETH/USDT_XTZ',
         from: {
           currencyId: 'USDT_XTZ',
+          price: new BigNumber('0.000613034'),
           address: 'tz101',
           actual: {
             amount: new BigNumber('1217.234'),
@@ -492,6 +511,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
+          price: new BigNumber('1631.22858'),
           address: '0x01',
           actual: {
             amount: new BigNumber('0.746206886'),
@@ -551,6 +571,11 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         errors: [
           {
             id: 'not-enough-funds',
+            data: {
+              type: 'balance',
+              currencyId: 'USDT_XTZ',
+              requiredAmount: new BigNumber(217.234)
+            }
           }
         ],
         warnings: []

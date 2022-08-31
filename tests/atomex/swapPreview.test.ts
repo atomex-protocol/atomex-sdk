@@ -62,6 +62,7 @@ describe('Atomex | Swap Preview', () => {
       });
       mockedAtomexContext.services.swapService.getSwaps.mockResolvedValue([]);
       mockPriceManagerByOrderBook(environment.orderBooks);
+      mockAccounts({ ethereum: {}, tezos: {} });
       mockAtomexProtocolMultiChainFees(environment.atomexProtocolFees);
       await atomex.start();
 
@@ -149,6 +150,21 @@ describe('Atomex | Swap Preview', () => {
         return Promise.resolve(wallet as any);
       }
     );
+    mockedAtomexContext.managers.authorizationManager.getAuthToken.mockImplementation(
+      address => ({
+        address,
+        expired: new Date(Date.now() + 60 * 60 * 1000),
+        userId: address,
+        value: address,
+        request: {
+          algorithm: 'test-algorithm',
+          message: 'test-message',
+          publicKey: address,
+          signature: `test-signature-${address}`,
+          timeStamp: Date.now(),
+        }
+      })
+    );
 
     mockedAtomexContext.managers.balanceManager.getBalance
       .mockImplementation((address, currency) => {
@@ -176,7 +192,6 @@ describe('Atomex | Swap Preview', () => {
       return buyPrice && sellPrice
         ? buyPrice.plus(sellPrice).div(2)
         : undefined;
-
     };
 
     mockedAtomexContext.managers.priceManager.getPrice.mockImplementation(async params => {

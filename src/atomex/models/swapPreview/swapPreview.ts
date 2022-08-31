@@ -1,7 +1,9 @@
 import type BigNumber from 'bignumber.js';
 
-import type { Currency, Side } from '../../common/index';
-import type { OrderType } from '../../exchange/index';
+import type { Currency, Side } from '../../../common/index';
+import type { OrderType } from '../../../exchange/index';
+import type { SwapPreviewError } from './swapPreviewError';
+import type { SwapPreviewWarning } from './swapPreviewWarning';
 
 export interface SwapPreview {
   readonly type: OrderType;
@@ -20,6 +22,7 @@ export interface SwapPreview {
 export interface SwapPreviewDirectionData {
   readonly address?: string;
   readonly currencyId: Currency['id'];
+  readonly price: BigNumber;
   readonly actual: SwapPreviewCurrencyData;
   readonly available: SwapPreviewCurrencyData;
   readonly max?: SwapPreviewCurrencyData;
@@ -28,16 +31,6 @@ export interface SwapPreviewDirectionData {
 export interface SwapPreviewCurrencyData {
   readonly amount: BigNumber;
   readonly price: BigNumber;
-}
-
-export interface SwapPreviewError<TErrorData = unknown> {
-  readonly id: string
-  readonly data?: TErrorData;
-}
-
-export interface SwapPreviewWarning<TWarningData = unknown> {
-  readonly id: string
-  readonly data: TWarningData;
 }
 
 export interface SwapPreviewFee {
