@@ -7,6 +7,6 @@ export type { SwapPreviewParameters, NormalizedSwapPreviewParameters } from './s
 export type {
   SwapPreview, SwapPreviewDirectionData, SwapPreviewCurrencyData,
   SwapPreviewFee, SwapPreviewError, SwapPreviewWarning
-} from './swapPreview';
+} from './swapPreview/index';
 
 export { SwapOperationCompleteStage } from './swapOperationCompleteStage';

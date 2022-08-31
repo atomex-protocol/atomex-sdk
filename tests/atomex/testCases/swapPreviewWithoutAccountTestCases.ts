@@ -30,6 +30,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'XTZ/ETH',
         from: {
           currencyId: 'XTZ',
+          price: new BigNumber('0.000948468'),
           actual: {
             amount: new BigNumber('35'),
             price: new BigNumber('0.000948468'),
@@ -41,6 +42,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
+          price: new BigNumber('1054.331827747'),
           actual: {
             amount: new BigNumber('0.03319638'),
             price: new BigNumber('1054.331827747'),
@@ -115,6 +117,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'XTZ/ETH',
         from: {
           currencyId: 'ETH',
+          price: new BigNumber('1022.767834769'),
           actual: {
             amount: new BigNumber('0.51717'),
             price: new BigNumber('1022.767834769'),
@@ -126,6 +129,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'XTZ',
+          price: new BigNumber('0.000977739'),
           actual: {
             amount: new BigNumber('528.944841'),
             price: new BigNumber('0.000977739'),
@@ -200,6 +204,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'ETH/USDT_XTZ',
         from: {
           currencyId: 'USDT_XTZ',
+          price: new BigNumber('0.000613034'),
           actual: {
             amount: new BigNumber('1217.234'),
             price: new BigNumber('0.000613034'),
@@ -211,6 +216,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
+          price: new BigNumber('1631.22858'),
           actual: {
             amount: new BigNumber('0.746206886'),
             price: new BigNumber('1631.22858'),
@@ -288,6 +294,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'ETH/USDT_XTZ',
         from: {
           currencyId: 'ETH',
+          price: new BigNumber('1603.468672'),
           actual: {
             amount: new BigNumber('0.425755'),
             price: new BigNumber('1603.468672'),
@@ -299,6 +306,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'USDT_XTZ',
+          price: new BigNumber('0.000623647'),
           actual: {
             amount: new BigNumber('682.684804'),
             price: new BigNumber('0.000623647'),
@@ -377,6 +385,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'XTZ/ETH',
         from: {
           currencyId: 'XTZ',
+          price: new BigNumber('0.000948468'),
           actual: {
             amount: new BigNumber('123'),
             price: new BigNumber('0.000948468'),
@@ -388,6 +397,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
+          price: new BigNumber('1054.331827747'),
           actual: {
             amount: new BigNumber('0.116661564'),
             price: new BigNumber('1054.331827747'),
@@ -463,6 +473,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'ETH/USDT_XTZ',
         from: {
           currencyId: 'ETH',
+          price: new BigNumber('1603.468672'),
           actual: {
             amount: new BigNumber('0.37'),
             price: new BigNumber('1603.468672'),
@@ -474,6 +485,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'USDT_XTZ',
+          price: new BigNumber('0.000623647'),
           actual: {
             amount: new BigNumber('593.283408'),
             price: new BigNumber('0.000623647'),
@@ -551,6 +563,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'XTZ/ETH',
         from: {
           currencyId: 'XTZ',
+          price: new BigNumber('0.000948468'),
           actual: {
             amount: new BigNumber('301.12345678'),
             price: new BigNumber(0),
@@ -562,6 +575,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
+          price: new BigNumber('1054.331827747'),
           actual: {
             amount: new BigNumber(0),
             price: new BigNumber(0),
@@ -639,6 +653,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         symbol: 'XTZ/ETH',
         from: {
           currencyId: 'XTZ',
+          price: new BigNumber('0.000948468'),
           actual: {
             amount: new BigNumber(0),
             price: new BigNumber(0),
@@ -650,6 +665,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         },
         to: {
           currencyId: 'ETH',
+          price: new BigNumber('1054.331827747'),
           actual: {
             amount: new BigNumber(1),
             price: new BigNumber(0),
