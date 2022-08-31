@@ -33,17 +33,33 @@ const swaps: Swap[] = [
       status: 'Involved',
       trades: [],
       transactions: [],
-      requisites: null as any
+      requisites: {
+        lockTime: 18000,
+        baseCurrencyContract: '',
+        quoteCurrencyContract: '',
+        receivingAddress: '',
+        refundAddress: null,
+        secretHash: null,
+        rewardForRedeem: new BigNumber(0)
+      }
     },
     counterParty: {
       status: 'Involved',
       trades: [],
       transactions: [],
-      requisites: null as any
+      requisites: {
+        lockTime: 36000,
+        baseCurrencyContract: '',
+        quoteCurrencyContract: '',
+        receivingAddress: '',
+        refundAddress: null,
+        secretHash: null,
+        rewardForRedeem: new BigNumber(0)
+      }
     },
     secret: null,
     secretHash: '',
-    timeStamp: new Date('2022-08-30T00:25:01Z')
+    timeStamp: new Date()
   },
   {
     id: 89,
@@ -68,17 +84,33 @@ const swaps: Swap[] = [
       status: 'Involved',
       trades: [],
       transactions: [],
-      requisites: null as any
+      requisites: {
+        lockTime: 18000,
+        baseCurrencyContract: '',
+        quoteCurrencyContract: '',
+        receivingAddress: '',
+        refundAddress: null,
+        secretHash: null,
+        rewardForRedeem: new BigNumber(0)
+      }
     },
     counterParty: {
       status: 'Involved',
       trades: [],
       transactions: [],
-      requisites: null as any
+      requisites: {
+        lockTime: 36000,
+        baseCurrencyContract: '',
+        quoteCurrencyContract: '',
+        receivingAddress: '',
+        refundAddress: null,
+        secretHash: null,
+        rewardForRedeem: new BigNumber(0)
+      }
     },
     secret: null,
     secretHash: '',
-    timeStamp: new Date('2022-08-27T14:25:01Z')
+    timeStamp: new Date()
   },
 ];
 

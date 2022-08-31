@@ -254,7 +254,23 @@ export class AtomexSwapPreviewManager implements Disposable {
       return swapsInfo;
 
     const swaps = (await this.atomexContext.managers.swapManager.getSwaps(userAddress))
-      .filter(swap => swap.user.status === 'Involved' && swap.from.currencyId === fromCurrencyId);
+      .filter(swap => {
+        if (!(
+          swap.from.currencyId === fromCurrencyId
+          && (swap.user.status === 'Created' || swap.user.status === 'Involved')
+          && (swap.counterParty.status === 'Created' || swap.counterParty.status === 'Involved'
+            || swap.counterParty.status === 'PartiallyInitiated' || swap.counterParty.status === 'Initiated'
+          )
+        )) {
+          return false;
+        }
+
+        const now = Date.now();
+        const swapTimeStamp = swap.timeStamp.getTime();
+
+        return (swapTimeStamp + swap.user.requisites.lockTime * 1000 > now)
+          && (swapTimeStamp + swap.counterParty.requisites.lockTime * 1000 > now);
+      });
     const fromTotalAmount = swaps.reduce(
       (total, swap) => total.plus(swap.from.amount),
       new BigNumber(0)
