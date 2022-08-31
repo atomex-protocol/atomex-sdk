@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid';
 import type { AuthorizationManager } from '../authorization';
 import { AtomexService, Currency, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
 import { EventEmitter, type ToEventEmitter } from '../core/index';
+import { toFixedBigNumber } from '../utils/converters';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider/index';
 import { ordersHelper, symbolsHelper } from './helpers/index';
@@ -168,7 +169,7 @@ export class ExchangeManager implements AtomexService {
 
     const normalizedPreviewParameters = this.normalizeOrderPreviewParametersIfNeeded(orderPreviewParameters);
     const orderBookEntry = await this.findOrderBookEntry(
-      normalizedPreviewParameters.exchangeSymbol.name,
+      normalizedPreviewParameters.exchangeSymbol,
       normalizedPreviewParameters.side, orderPreviewParameters.type,
       normalizedPreviewParameters.amount,
       normalizedPreviewParameters.isBaseCurrencyAmount
@@ -287,18 +288,23 @@ export class ExchangeManager implements AtomexService {
       : ordersHelper.normalizeOrderPreviewParameters(orderPreviewParameters, this.symbolsProvider);
   }
 
-  protected async findOrderBookEntry(symbol: string, side: Side, orderType: OrderType, amount: BigNumber, isBaseCurrencyAmount: boolean) {
+  protected async findOrderBookEntry(exchangeSymbol: ExchangeSymbol, side: Side, orderType: OrderType, amount: BigNumber, isBaseCurrencyAmount: boolean) {
     if (orderType !== 'SolidFillOrKill')
       return undefined;
 
-    const orderBook = await this.getCachedOrderBook(symbol);
+    const orderBook = await this.getCachedOrderBook(exchangeSymbol.name);
     if (!orderBook)
       return undefined;
 
     for (const entry of orderBook.entries) {
-      if (entry.side !== side && (isBaseCurrencyAmount ? amount : amount.div(entry.price)).isLessThanOrEqualTo(Math.max(...entry.qtyProfile))) {
+      if (entry.side === side)
+        continue;
+
+      const convertedAmount = isBaseCurrencyAmount
+        ? amount
+        : toFixedBigNumber(amount.div(entry.price), exchangeSymbol.decimals.quoteCurrency, BigNumber.ROUND_FLOOR);
+      if (convertedAmount.isLessThanOrEqualTo(Math.max(...entry.qtyProfile)))
         return entry;
-      }
     }
   }
 
