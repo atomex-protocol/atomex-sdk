@@ -73,7 +73,7 @@ export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolM
   protected async getWallet(address?: string): Promise<BlockchainWallet<TezosToolkit>> {
     const taquitoWallet = await this.walletsManager.getWallet<TezosToolkit>(address, this.blockchain, 'taquito');
     if (!taquitoWallet)
-      throw new Error(`${this.blockchain} Taqutio wallet not found`);
+      throw new Error(`${this.blockchain} Taquito wallet not found`);
 
     return taquitoWallet;
   }
