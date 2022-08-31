@@ -1,3 +1,5 @@
+import type { Wallet } from '@taquito/taquito';
+
 import { atomexProtocolMultiChainHelper } from '../../blockchain/atomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
@@ -9,7 +11,8 @@ import type {
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
 import type { PriceManager } from '../../exchange';
-import type { TezosTaquitoAtomexProtocolMultiChainOptions } from '../models/index';
+import type { TezosMultiChainSmartContract, TezosTaquitoAtomexProtocolMultiChainOptions } from '../models/index';
+import { mutezInTez } from '../utils';
 import { TaquitoAtomexProtocolMultiChain } from './taquitoAtomexProtocolMultiChain';
 
 export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolMultiChain {
@@ -27,16 +30,31 @@ export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolM
     return this.atomexProtocolOptions.currencyId;
   }
 
-  initiate(_params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {
-    throw new Error('Method not implemented.');
+  async initiate(params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {
+    const contract = await this.getSwapContract(params.senderAddress);
+    const operation = await contract.methodsObject
+      .initiate({
+        settings: {
+          hashed_secret: params.secretHash,
+          refund_time: this.formatDate(params.refundTimestamp),
+          payoff: params.rewardForRedeem.multipliedBy(mutezInTez).toNumber(),
+        },
+        participant: params.receivingAddress,
+      })
+      .send({ amount: params.amount.toNumber() });
+
+    return this.getTransaction(operation);
   }
 
   getInitiateFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     return super.getInitiateFees(params);
   }
 
-  redeem(_params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
-    throw new Error('Method not implemented.');
+  async redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
+    const contract = await this.getSwapContract(params.senderAddress);
+    const operation = await contract.methodsObject.redeem(params.secret).send();
+
+    return this.getTransaction(operation);
   }
 
   getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo> {
@@ -47,11 +65,21 @@ export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolM
     return super.getRedeemFees(params);
   }
 
-  refund(_params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
-    throw new Error('Method not implemented.');
+  async refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
+    const contract = await this.getSwapContract(params.senderAddress);
+    const operation = await contract.methodsObject.refund(params.secret).send();
+
+    return this.getTransaction(operation);
   }
 
   getRefundFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     return super.getRefundFees(params);
+  }
+
+  protected async getSwapContract(address: string): Promise<TezosMultiChainSmartContract<Wallet>> {
+    const wallet = await this.getWallet(address);
+    const contract = await wallet.toolkit.wallet.at<TezosMultiChainSmartContract<Wallet>>(this.swapContractAddress);
+
+    return contract;
   }
 }

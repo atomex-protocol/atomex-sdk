@@ -1,3 +1,4 @@
 export interface AtomexProtocolMultiChainRedeemParameters {
-  readonly secretHash: string;
+  readonly senderAddress: string;
+  readonly secret: string;
 }

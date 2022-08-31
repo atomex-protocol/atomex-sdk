@@ -1,4 +1,4 @@
-import type { TezosToolkit } from '@taquito/taquito';
+import type { TezosToolkit, TransactionWalletOperation } from '@taquito/taquito';
 import BigNumber from 'bignumber.js';
 
 import type {
@@ -76,5 +76,24 @@ export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolM
       throw new Error(`${this.blockchain} Taquito wallet not found`);
 
     return taquitoWallet;
+  }
+
+  protected async getTransaction(operation: TransactionWalletOperation): Promise<Transaction> {
+    const status = await operation.status();
+    const confirmation = await operation.confirmation();
+
+    //TODO: fill others fields
+    return {
+      id: operation.opHash,
+      currencyId: this.currencyId,
+      confirmations: confirmation.currentConfirmation,
+      status,
+      blockId: 0,
+      type: ''
+    };
+  }
+
+  protected formatDate(date: Date): string {
+    return date.toISOString().slice(0, -5) + 'Z';
   }
 }

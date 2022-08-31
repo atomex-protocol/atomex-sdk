@@ -42,7 +42,6 @@ const createAtomexProtocol = (
     default:
       throw new Error(`Unknown Tezos currency: ${(currency as TezosCurrency).id}`);
   }
-
 };
 
 const createCurrencyOptions = (

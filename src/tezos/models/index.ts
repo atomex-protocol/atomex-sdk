@@ -6,3 +6,4 @@ export type {
   TaquitoAtomexProtocolMultiChainOptions, TezosTaquitoAtomexProtocolMultiChainOptions,
   FA12TezosTaquitoAtomexProtocolMultiChainOptions, FA2TezosTaquitoAtomexProtocolMultiChainOptions
 } from './atomexProtocolOptions';
+export type { TezosMultiChainSmartContract } from './contracts';
