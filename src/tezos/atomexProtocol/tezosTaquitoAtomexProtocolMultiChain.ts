@@ -77,9 +77,6 @@ export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolM
   }
 
   protected async getSwapContract(address: string): Promise<TezosMultiChainSmartContract<Wallet>> {
-    const wallet = await this.getWallet(address);
-    const contract = await wallet.toolkit.wallet.at<TezosMultiChainSmartContract<Wallet>>(this.swapContractAddress);
-
-    return contract;
+    return this.getSwapContractCore<TezosMultiChainSmartContract<Wallet>>(address);
   }
 }

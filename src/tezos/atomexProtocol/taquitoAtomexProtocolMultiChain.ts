@@ -1,4 +1,4 @@
-import type { TezosToolkit, TransactionWalletOperation } from '@taquito/taquito';
+import type { ContractAbstraction, TezosToolkit, TransactionWalletOperation, Wallet } from '@taquito/taquito';
 import BigNumber from 'bignumber.js';
 
 import type {
@@ -76,6 +76,13 @@ export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolM
       throw new Error(`${this.blockchain} Taquito wallet not found`);
 
     return taquitoWallet;
+  }
+
+  protected async getSwapContractCore<T extends ContractAbstraction<Wallet>>(address: string): Promise<T> {
+    const wallet = await this.getWallet(address);
+    const contract = await wallet.toolkit.wallet.at<T>(this.swapContractAddress);
+
+    return contract;
   }
 
   protected async getTransaction(operation: TransactionWalletOperation): Promise<Transaction> {
