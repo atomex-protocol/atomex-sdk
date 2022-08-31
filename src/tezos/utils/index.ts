@@ -2,7 +2,7 @@ import { b58cdecode, prefix, validatePkAndExtractPrefix } from '@taquito/utils';
 import BigNumber from 'bignumber.js';
 
 import { Buffer } from '../../native';
-export { isTezosCurrency } from './guards';
+export { isTezosCurrency, isFA12TezosCurrency } from './guards';
 
 export const mutezInTez = new BigNumber(1_000_000);
 

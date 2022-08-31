@@ -15,3 +15,19 @@ export type TezosMultiChainSmartContract<T extends ContractProvider | Wallet = C
     refund(secret: string): ContractMethod<T>;
   }
 };
+
+export type FA12TezosMultiChainSmartContract<T extends ContractProvider | Wallet = ContractProvider> = ContractAbstraction<T> & {
+  methodsObject: {
+    initiate(args: {
+      tokenAddress: string,
+      totalAmount: number,
+      hashedSecret: string,
+      participant: string,
+      payoffAmount: number,
+      refundTime: string,
+    }): ContractMethod<T>;
+
+    redeem(secret: string): ContractMethod<T>;
+    refund(secret: string): ContractMethod<T>;
+  }
+};
