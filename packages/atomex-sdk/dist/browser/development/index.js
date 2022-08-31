@@ -916,32 +916,34 @@ var AtomexSwapPreviewManager = class {
     const toNativeCurrencyInfo = this.atomexContext.providers.blockchainProvider.getNativeCurrencyInfo(toCurrencyInfo.currency.blockchain);
     if (!toNativeCurrencyInfo)
       throw new Error(`The "${toCurrencyInfo.currency.id}" currency is a currency of unknown blockchain: ${toCurrencyInfo.currency.blockchain}`);
+    return this.getSwapPreviewInternal(normalizedSwapPreviewParameters, fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo);
+  }
+  async getSwapPreviewInternal(swapPreviewParameters, fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo) {
     const availableLiquidity = await this.atomexContext.managers.exchangeManager.getAvailableLiquidity({
-      type: normalizedSwapPreviewParameters.type,
-      symbol: normalizedSwapPreviewParameters.exchangeSymbol.name,
-      side: normalizedSwapPreviewParameters.side
+      type: swapPreviewParameters.type,
+      symbol: swapPreviewParameters.exchangeSymbol.name,
+      side: swapPreviewParameters.side
     });
     if (!availableLiquidity)
-      throw new Error(`No available liquidity for the "${normalizedSwapPreviewParameters.exchangeSymbol.name}" symbol`);
+      throw new Error(`No available liquidity for the "${swapPreviewParameters.exchangeSymbol.name}" symbol`);
     const errors = [];
     const warnings = [];
-    const actualOrderPreview = await this.atomexContext.managers.exchangeManager.getOrderPreview(normalizedSwapPreviewParameters);
-    const fees = await this.calculateSwapPreviewFees(fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo, normalizedSwapPreviewParameters.useWatchTower);
-    const swapPreviewAccountData = await this.getSwapPreviewAccountData(normalizedSwapPreviewParameters, fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo, availableLiquidity.from.amount, fees, errors, warnings);
+    const actualOrderPreview = await this.atomexContext.managers.exchangeManager.getOrderPreview(swapPreviewParameters);
     if (!actualOrderPreview)
       errors.push({ id: "not-enough-liquidity" });
-    else if (swapPreviewAccountData.maxOrderPreview && actualOrderPreview.from.amount.isGreaterThan(swapPreviewAccountData.maxOrderPreview.from.amount))
-      errors.push({ id: "not-enough-funds" });
+    const fees = await this.calculateSwapPreviewFees(fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo, swapPreviewParameters.useWatchTower);
+    const swapPreviewAccountData = await this.getSwapPreviewAccountData(swapPreviewParameters, actualOrderPreview, availableLiquidity, fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo, fees, errors, warnings);
     return {
-      type: normalizedSwapPreviewParameters.type,
+      type: swapPreviewParameters.type,
       from: {
-        currencyId: normalizedSwapPreviewParameters.from,
+        currencyId: swapPreviewParameters.from,
+        price: actualOrderPreview ? actualOrderPreview.from.price : availableLiquidity.from.price,
         address: swapPreviewAccountData.fromAddress,
         actual: actualOrderPreview ? {
           amount: actualOrderPreview.from.amount,
           price: actualOrderPreview.from.price
         } : {
-          amount: normalizedSwapPreviewParameters.isFromAmount ? normalizedSwapPreviewParameters.amount : new BigNumber7(0),
+          amount: swapPreviewParameters.isFromAmount ? swapPreviewParameters.amount : new BigNumber7(0),
           price: new BigNumber7(0)
         },
         available: {
@@ -954,13 +956,14 @@ var AtomexSwapPreviewManager = class {
         }
       },
       to: {
-        currencyId: normalizedSwapPreviewParameters.to,
+        currencyId: swapPreviewParameters.to,
+        price: actualOrderPreview ? actualOrderPreview.to.price : availableLiquidity.to.price,
         address: swapPreviewAccountData.toAddress,
         actual: actualOrderPreview ? {
           amount: actualOrderPreview.to.amount,
           price: actualOrderPreview.to.price
         } : {
-          amount: !normalizedSwapPreviewParameters.isFromAmount ? normalizedSwapPreviewParameters.amount : new BigNumber7(0),
+          amount: !swapPreviewParameters.isFromAmount ? swapPreviewParameters.amount : new BigNumber7(0),
           price: new BigNumber7(0)
         },
         available: {
@@ -972,8 +975,8 @@ var AtomexSwapPreviewManager = class {
           price: swapPreviewAccountData.maxOrderPreview.to.price
         }
       },
-      symbol: normalizedSwapPreviewParameters.exchangeSymbol.name,
-      side: normalizedSwapPreviewParameters.side,
+      symbol: swapPreviewParameters.exchangeSymbol.name,
+      side: swapPreviewParameters.side,
       fees,
       errors,
       warnings
@@ -989,41 +992,47 @@ var AtomexSwapPreviewManager = class {
   normalizeSwapPreviewParametersIfNeeded(swapPreviewParameters) {
     return AtomexSwapPreviewManager.isNormalizedSwapPreviewParameters(swapPreviewParameters) ? swapPreviewParameters : AtomexSwapPreviewManager.normalizeSwapPreviewParameters(swapPreviewParameters, this.atomexContext.providers.exchangeSymbolsProvider, true);
   }
-  async getSwapPreviewAccountData(normalizedSwapPreviewParameters, fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo, fromAvailableAmount, swapPreviewFees, errors, warnings) {
-    let fromAddress;
-    let toAddress;
-    let maxOrderPreview;
-    const maxFromNativeCurrencyFee = AtomexSwapPreviewManager.calculateMaxTotalFee(swapPreviewFees, fromNativeCurrencyInfo.currency.id);
-    const maxToNativeCurrencyFee = AtomexSwapPreviewManager.calculateMaxTotalFee(swapPreviewFees, toNativeCurrencyInfo.currency.id);
-    const [fromWallet, toWallet] = await Promise.all([
-      this.atomexContext.managers.walletsManager.getWallet(void 0, fromCurrencyInfo.currency.blockchain),
-      this.atomexContext.managers.walletsManager.getWallet(void 0, toCurrencyInfo.currency.blockchain)
+  async getSwapPreviewAccountData(_swapPreviewParameters, actualOrderPreview, availableLiquidity, fromCurrencyInfo, fromNativeCurrencyInfo, toCurrencyInfo, toNativeCurrencyInfo, swapPreviewFees, errors, warnings) {
+    var _a;
+    const [fromAddress, toAddress] = await Promise.all([
+      this.atomexContext.managers.walletsManager.getWallet(void 0, fromCurrencyInfo.currency.blockchain).then((wallet) => wallet == null ? void 0 : wallet.getAddress()).then((address) => address && this.atomexContext.managers.authorizationManager.getAuthToken(address) ? address : void 0),
+      this.atomexContext.managers.walletsManager.getWallet(void 0, toCurrencyInfo.currency.blockchain).then((wallet) => wallet == null ? void 0 : wallet.getAddress())
     ]);
-    if (fromWallet) {
-      fromAddress = await fromWallet.getAddress();
+    let maxOrderPreview;
+    if (fromAddress) {
       const [fromCurrencyBalance, fromNativeCurrencyBalance] = await Promise.all([
         this.atomexContext.managers.balanceManager.getBalance(fromAddress, fromCurrencyInfo.currency),
         this.atomexContext.managers.balanceManager.getBalance(fromAddress, fromNativeCurrencyInfo.currency)
       ]);
       if (!fromCurrencyBalance || !fromNativeCurrencyBalance)
         throw new Error("Can not get from currency balances");
+      const maxFromNativeCurrencyFee = AtomexSwapPreviewManager.calculateMaxTotalFee(swapPreviewFees, fromNativeCurrencyInfo.currency.id);
       if (fromNativeCurrencyBalance.isLessThan(maxFromNativeCurrencyFee)) {
         errors.push({
-          id: "not-enough-funds-network-fee",
-          data: { requiredAmount: maxFromNativeCurrencyFee }
+          id: "not-enough-funds",
+          data: {
+            type: "fees",
+            currencyId: fromNativeCurrencyInfo.currency.id,
+            requiredAmount: maxFromNativeCurrencyFee
+          }
         });
       }
-      maxOrderPreview = await this.getMaxOrderPreview(normalizedSwapPreviewParameters, fromAddress, fromAvailableAmount, fromCurrencyBalance, fromCurrencyInfo, fromNativeCurrencyBalance, fromNativeCurrencyInfo, maxFromNativeCurrencyFee, errors, warnings);
+      const fromMinAvailableAmount = BigNumber7.min(fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id ? fromCurrencyBalance.minus(maxFromNativeCurrencyFee) : fromCurrencyBalance, availableLiquidity.from.amount);
+      maxOrderPreview = await this.getMaxOrderPreview(actualOrderPreview, availableLiquidity, fromAddress, fromMinAvailableAmount, fromCurrencyInfo, fromNativeCurrencyInfo, errors, warnings);
     }
-    if (toWallet) {
-      toAddress = await toWallet.getAddress();
+    if (toAddress) {
       const toNativeCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(toAddress, toNativeCurrencyInfo.currency);
       if (!toNativeCurrencyBalance)
         throw new Error("Can not get to currency balance");
-      if (toNativeCurrencyBalance.isLessThan(maxToNativeCurrencyFee))
+      const maxToNativeCurrencyFee = (_a = swapPreviewFees.success.find((fee) => fee.name === "redeem-fee")) == null ? void 0 : _a.max;
+      if (maxToNativeCurrencyFee && toNativeCurrencyBalance.isLessThan(maxToNativeCurrencyFee))
         errors.push({
-          id: "not-enough-funds-network-fee",
-          data: { requiredAmount: maxToNativeCurrencyFee }
+          id: "not-enough-funds",
+          data: {
+            type: "fees",
+            currencyId: toNativeCurrencyInfo.currency.id,
+            requiredAmount: maxToNativeCurrencyFee
+          }
         });
     }
     return {
@@ -1032,29 +1041,84 @@ var AtomexSwapPreviewManager = class {
       maxOrderPreview
     };
   }
-  async getMaxOrderPreview(normalizedSwapPreviewParameters, fromAddress, fromAvailableAmount, fromCurrencyBalance, fromCurrencyInfo, _fromNativeCurrencyBalance, fromNativeCurrencyInfo, fromNativeCurrencyNetworkFee, _errors, _warnings) {
-    const userInvolvedSwapsInfo = await this.getUserInvolvedSwapsInfo(fromAddress, fromCurrencyInfo.currency.id);
-    let maxAmount = fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id ? fromCurrencyBalance.minus(fromNativeCurrencyNetworkFee) : fromCurrencyBalance;
-    maxAmount = maxAmount.minus(userInvolvedSwapsInfo.fromTotalAmount);
-    if (maxAmount.isLessThanOrEqualTo(0))
+  async getMaxOrderPreview(actualOrderPreview, availableLiquidity, authorizedFromAddress, fromMinAvailableAmount, fromCurrencyInfo, fromNativeCurrencyInfo, errors, _warnings) {
+    if (fromMinAvailableAmount.isLessThanOrEqualTo(0)) {
+      if (fromCurrencyInfo.currency.id !== fromNativeCurrencyInfo.currency.id) {
+        errors.push({
+          id: "not-enough-funds",
+          data: {
+            type: "balance",
+            currencyId: (actualOrderPreview == null ? void 0 : actualOrderPreview.from.currencyId) || availableLiquidity.from.currencyId,
+            requiredAmount: (actualOrderPreview == null ? void 0 : actualOrderPreview.from.amount) || availableLiquidity.from.amount
+          }
+        });
+      }
       return void 0;
-    maxAmount = BigNumber7.min(maxAmount, fromAvailableAmount);
-    return this.atomexContext.managers.exchangeManager.getOrderPreview({
-      type: normalizedSwapPreviewParameters.type,
-      from: normalizedSwapPreviewParameters.from,
-      to: normalizedSwapPreviewParameters.to,
+    }
+    const userInvolvedSwapsInfo = await this.getUserInvolvedSwapsInfo(authorizedFromAddress, fromCurrencyInfo.currency.id);
+    const maxAmount = fromMinAvailableAmount.minus(userInvolvedSwapsInfo.fromTotalAmount);
+    if (maxAmount.isLessThanOrEqualTo(0)) {
+      errors.push({
+        id: "not-enough-funds",
+        data: {
+          type: "swaps",
+          swapIds: userInvolvedSwapsInfo.swapIds,
+          currencyId: userInvolvedSwapsInfo.fromCurrencyId,
+          lockedAmount: userInvolvedSwapsInfo.fromTotalAmount
+        }
+      });
+      return void 0;
+    }
+    const maxOrderPreview = await this.atomexContext.managers.exchangeManager.getOrderPreview({
+      type: availableLiquidity.type,
+      from: availableLiquidity.from.currencyId,
+      to: availableLiquidity.to.currencyId,
       amount: maxAmount,
       isFromAmount: true
     });
+    if (maxOrderPreview && actualOrderPreview && actualOrderPreview.from.amount.isGreaterThan(maxOrderPreview.from.amount)) {
+      if (actualOrderPreview.from.amount.isGreaterThan(fromMinAvailableAmount))
+        errors.push({
+          id: "not-enough-funds",
+          data: {
+            type: "balance",
+            currencyId: actualOrderPreview.from.currencyId,
+            requiredAmount: actualOrderPreview.from.amount.minus(maxOrderPreview.from.amount)
+          }
+        });
+      else
+        errors.push({
+          id: "not-enough-funds",
+          data: {
+            type: "swaps",
+            swapIds: userInvolvedSwapsInfo.swapIds,
+            currencyId: userInvolvedSwapsInfo.fromCurrencyId,
+            lockedAmount: userInvolvedSwapsInfo.fromTotalAmount
+          }
+        });
+    }
+    return maxOrderPreview;
   }
   async getUserInvolvedSwapsInfo(userAddress, fromCurrencyId) {
     const cacheKey = this.getUserInvolvedSwapsCacheKey(userAddress, fromCurrencyId);
     let swapsInfo = this.userInvolvedSwapsCache.get(cacheKey);
     if (swapsInfo)
       return swapsInfo;
-    const swaps = (await this.atomexContext.managers.swapManager.getSwaps(userAddress)).filter((swap) => swap.user.status === "Involved" && swap.from.currencyId === fromCurrencyId);
+    const swapIds = [];
+    const swaps = (await this.atomexContext.managers.swapManager.getSwaps(userAddress)).filter((swap) => {
+      if (!(swap.from.currencyId === fromCurrencyId && (swap.user.status === "Created" || swap.user.status === "Involved") && (swap.counterParty.status === "Created" || swap.counterParty.status === "Involved" || swap.counterParty.status === "PartiallyInitiated" || swap.counterParty.status === "Initiated"))) {
+        return false;
+      }
+      const now2 = Date.now();
+      const swapTimeStamp = swap.timeStamp.getTime();
+      if (!(swapTimeStamp + swap.user.requisites.lockTime * 1e3 > now2 && swapTimeStamp + swap.counterParty.requisites.lockTime * 1e3 > now2)) {
+        return false;
+      }
+      swapIds.push(swap.id);
+      return true;
+    });
     const fromTotalAmount = swaps.reduce((total, swap) => total.plus(swap.from.amount), new BigNumber7(0));
-    swapsInfo = { fromCurrencyId, swaps, fromTotalAmount };
+    swapsInfo = { swaps, swapIds, fromCurrencyId, fromTotalAmount };
     this.userInvolvedSwapsCache.set(cacheKey, swapsInfo);
     return swapsInfo;
   }
@@ -1106,30 +1170,15 @@ var AtomexSwapPreviewManager = class {
     return swapPreviewFees;
   }
   async calculateMakerFees(fromCurrency, fromNativeCurrency, toNativeCurrency, toInitiateFees, fromRedeemFees) {
-    const toInitiateFeeConversationPromise = this.convertFeesFromNativeCurrencyToCustom(toInitiateFees, toNativeCurrency, fromCurrency);
-    const fromRedeemFeeConversationPromise = fromCurrency !== fromNativeCurrency ? this.convertFeesFromNativeCurrencyToCustom(fromRedeemFees, fromNativeCurrency, fromCurrency) : void 0;
-    let estimatedToInitiateFeesInFromCurrency;
-    let maxToInitiateFeesInFromCurrency;
-    let estimatedFromRedeemFeesInFromCurrency;
-    let maxFromRedeemFeesInFromCurrency;
-    if (fromRedeemFeeConversationPromise) {
-      const conversationResult = await Promise.all([toInitiateFeeConversationPromise, fromRedeemFeeConversationPromise]);
-      estimatedToInitiateFeesInFromCurrency = conversationResult[0].estimated;
-      maxToInitiateFeesInFromCurrency = conversationResult[0].max;
-      estimatedFromRedeemFeesInFromCurrency = conversationResult[1].estimated;
-      maxFromRedeemFeesInFromCurrency = conversationResult[1].max;
-    } else {
-      const conversationResult = await toInitiateFeeConversationPromise;
-      estimatedToInitiateFeesInFromCurrency = conversationResult.estimated;
-      maxToInitiateFeesInFromCurrency = conversationResult.max;
-      estimatedFromRedeemFeesInFromCurrency = fromRedeemFees.estimated;
-      maxFromRedeemFeesInFromCurrency = fromRedeemFees.max;
-    }
+    const [toInitiateFeeInInFromCurrency, fromRedeemFeeInFromCurrency] = await Promise.all([
+      fromCurrency !== toNativeCurrency ? this.convertFeesFromNativeCurrencyToCustom(toInitiateFees, toNativeCurrency, fromCurrency) : toInitiateFees,
+      fromCurrency !== fromNativeCurrency ? this.convertFeesFromNativeCurrencyToCustom(fromRedeemFees, fromNativeCurrency, fromCurrency) : fromRedeemFees
+    ]);
     return {
       name: "maker-fee",
       currencyId: fromCurrency.id,
-      estimated: estimatedToInitiateFeesInFromCurrency.plus(estimatedFromRedeemFeesInFromCurrency),
-      max: maxToInitiateFeesInFromCurrency.plus(maxFromRedeemFeesInFromCurrency)
+      estimated: toInitiateFeeInInFromCurrency.estimated.plus(fromRedeemFeeInFromCurrency.estimated),
+      max: toInitiateFeeInInFromCurrency.max.plus(fromRedeemFeeInFromCurrency.max)
     };
   }
   async convertFeesFromNativeCurrencyToCustom(fees, nativeCurrency, customCurrency) {
