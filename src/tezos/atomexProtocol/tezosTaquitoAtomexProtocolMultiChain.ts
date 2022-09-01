@@ -10,12 +10,13 @@ import type {
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
-import type { PriceManager } from '../../exchange';
-import type { TezosMultiChainSmartContract, TezosTaquitoAtomexProtocolMultiChainOptions } from '../models/index';
-import { mutezInTez } from '../utils';
+import type { PriceManager } from '../../exchange/index';
+import type { TezosTaquitoAtomexProtocolMultiChainOptions } from '../models/index';
+import { mutezInTez } from '../utils/index';
+import type { TezosMultiChainSmartContract } from './contracts';
 import { TaquitoAtomexProtocolMultiChain } from './taquitoAtomexProtocolMultiChain';
 
-export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolMultiChain {
+export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolMultiChain<TezosMultiChainSmartContract<Wallet>> {
   constructor(
     atomexNetwork: AtomexNetwork,
     protected readonly atomexProtocolOptions: DeepReadonly<TezosTaquitoAtomexProtocolMultiChainOptions>,
@@ -37,7 +38,7 @@ export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolM
         settings: {
           hashed_secret: params.secretHash,
           refund_time: this.formatDate(params.refundTimestamp),
-          payoff: params.rewardForRedeem.multipliedBy(mutezInTez).toNumber(),
+          payoff: params.rewardForRedeem.multipliedBy(mutezInTez).toString(),
         },
         participant: params.receivingAddress,
       })
@@ -50,11 +51,8 @@ export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolM
     return super.getInitiateFees(params);
   }
 
-  async redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
-    const contract = await this.getSwapContract(params.senderAddress);
-    const operation = await contract.methodsObject.redeem(params.secret).send();
-
-    return this.getTransaction(operation);
+  redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
+    return super.redeem(params);
   }
 
   getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo> {
@@ -65,18 +63,11 @@ export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolM
     return super.getRedeemFees(params);
   }
 
-  async refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
-    const contract = await this.getSwapContract(params.senderAddress);
-    const operation = await contract.methodsObject.refund(params.secret).send();
-
-    return this.getTransaction(operation);
+  refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
+    return super.refund(params);
   }
 
   getRefundFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     return super.getRefundFees(params);
-  }
-
-  protected async getSwapContract(address: string): Promise<TezosMultiChainSmartContract<Wallet>> {
-    return this.getSwapContractCore<TezosMultiChainSmartContract<Wallet>>(address);
   }
 }

@@ -1,4 +1,4 @@
-import type { ContractAbstraction, TezosToolkit, TransactionWalletOperation, Wallet } from '@taquito/taquito';
+import type { TezosToolkit, TransactionWalletOperation, Wallet } from '@taquito/taquito';
 import BigNumber from 'bignumber.js';
 
 import type {
@@ -11,8 +11,9 @@ import type { DeepReadonly } from '../../core/index';
 import type { PriceManager } from '../../exchange';
 import type { TaquitoAtomexProtocolMultiChainOptions } from '../models/index';
 import { mutezInTez } from '../utils';
+import type { TezosMultiChainSmartContractBase } from './contracts';
 
-export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolMultiChain {
+export abstract class TaquitoAtomexProtocolMultiChain<T extends TezosMultiChainSmartContractBase<Wallet>> implements AtomexProtocolMultiChain {
   readonly type = 'multi-chain';
 
   constructor(
@@ -42,7 +43,12 @@ export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolM
     return Promise.resolve(result);
   }
 
-  abstract redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction>;
+  async redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
+    const contract = await this.getSwapContract(params.senderAddress);
+    const operation = await contract.methodsObject.redeem(params.secret).send();
+
+    return this.getTransaction(operation);
+  }
 
   abstract getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
 
@@ -53,7 +59,12 @@ export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolM
     return Promise.resolve(result);
   }
 
-  abstract refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction>;
+  async refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
+    const contract = await this.getSwapContract(params.senderAddress);
+    const operation = await contract.methodsObject.refund(params.secret).send();
+
+    return this.getTransaction(operation);
+  }
 
   getRefundFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     const estimated = new BigNumber(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
@@ -78,7 +89,7 @@ export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolM
     return taquitoWallet;
   }
 
-  protected async getSwapContractCore<T extends ContractAbstraction<Wallet>>(address: string): Promise<T> {
+  protected async getSwapContract(address: string): Promise<T> {
     const wallet = await this.getWallet(address);
     const contract = await wallet.toolkit.wallet.at<T>(this.swapContractAddress);
 

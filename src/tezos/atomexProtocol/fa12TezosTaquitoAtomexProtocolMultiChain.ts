@@ -12,12 +12,12 @@ import type {
 import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
 import type { PriceManager } from '../../exchange';
-import type { FA12TezosMultiChainSmartContract } from '../models/contracts';
 import type { FA12TezosTaquitoAtomexProtocolMultiChainOptions } from '../models/index';
 import { isFA12TezosCurrency } from '../utils';
+import type { FA12TezosMultiChainSmartContract } from './contracts';
 import { TaquitoAtomexProtocolMultiChain } from './taquitoAtomexProtocolMultiChain';
 
-export class FA12TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolMultiChain {
+export class FA12TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolMultiChain<FA12TezosMultiChainSmartContract<Wallet>> {
   constructor(
     atomexNetwork: AtomexNetwork,
     protected readonly atomexProtocolOptions: DeepReadonly<FA12TezosTaquitoAtomexProtocolMultiChainOptions>,
@@ -40,15 +40,14 @@ export class FA12TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProto
     if (!isFA12TezosCurrency(currency))
       throw new Error(`Currency is not fa1.2; id: ${this.currencyId}`);
 
-
     const contract = await this.getSwapContract(params.senderAddress);
     const multiplier = new BigNumber(10).pow(currency.decimals);
     const operation = await contract.methodsObject
       .initiate({
-        totalAmount: params.amount.multipliedBy(multiplier).toNumber(),
+        totalAmount: params.amount.multipliedBy(multiplier).toString(),
         tokenAddress: currency.contractAddress,
         refundTime: this.formatDate(params.refundTimestamp),
-        payoffAmount: params.rewardForRedeem.multipliedBy(multiplier).toNumber(),
+        payoffAmount: params.rewardForRedeem.multipliedBy(multiplier).toString(),
         hashedSecret: params.secretHash,
         participant: params.receivingAddress,
       })
@@ -61,11 +60,8 @@ export class FA12TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProto
     return super.getInitiateFees(params);
   }
 
-  async redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
-    const contract = await this.getSwapContract(params.senderAddress);
-    const operation = await contract.methodsObject.redeem(params.secret).send();
-
-    return this.getTransaction(operation);
+  redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
+    return super.redeem(params);
   }
 
   getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo> {
@@ -76,18 +72,11 @@ export class FA12TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProto
     return super.getRedeemFees(params);
   }
 
-  async refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
-    const contract = await this.getSwapContract(params.senderAddress);
-    const operation = await contract.methodsObject.refund(params.secret).send();
-
-    return this.getTransaction(operation);
+  refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
+    return super.refund(params);
   }
 
   getRefundFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     return super.getRefundFees(params);
-  }
-
-  protected async getSwapContract(address: string): Promise<FA12TezosMultiChainSmartContract<Wallet>> {
-    return this.getSwapContractCore<FA12TezosMultiChainSmartContract<Wallet>>(address);
   }
 }

@@ -1,3 +1,6 @@
+import type { Wallet } from '@taquito/taquito';
+import BigNumber from 'bignumber.js';
+
 import { atomexProtocolMultiChainHelper } from '../../blockchain/atomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
@@ -10,9 +13,11 @@ import type { AtomexNetwork } from '../../common/index';
 import type { DeepReadonly } from '../../core/index';
 import type { PriceManager } from '../../exchange';
 import type { FA2TezosTaquitoAtomexProtocolMultiChainOptions } from '../models/index';
+import { isFA2TezosCurrency } from '../utils/guards';
+import type { FA2TezosMultiChainSmartContract } from './contracts';
 import { TaquitoAtomexProtocolMultiChain } from './taquitoAtomexProtocolMultiChain';
 
-export class FA2TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolMultiChain {
+export class FA2TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolMultiChain<FA2TezosMultiChainSmartContract<Wallet>> {
   constructor(
     atomexNetwork: AtomexNetwork,
     protected readonly atomexProtocolOptions: DeepReadonly<FA2TezosTaquitoAtomexProtocolMultiChainOptions>,
@@ -27,16 +32,37 @@ export class FA2TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtoc
     return this.atomexProtocolOptions.currencyId;
   }
 
-  initiate(_params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {
-    throw new Error('Method not implemented.');
+  async initiate(params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {
+    const currency = this.atomexBlockchainProvider.getCurrency(this.currencyId);
+    if (!currency)
+      throw new Error(`Currency not found for id: ${this.currencyId}`);
+
+    if (!isFA2TezosCurrency(currency))
+      throw new Error(`Currency is not fa1.2; id: ${this.currencyId}`);
+
+    const contract = await this.getSwapContract(params.senderAddress);
+    const multiplier = new BigNumber(10).pow(currency.decimals);
+    const operation = await contract.methodsObject
+      .initiate({
+        totalAmount: params.amount.multipliedBy(multiplier).toString(),
+        tokenAddress: currency.contractAddress,
+        tokenId: currency.tokenId,
+        refundTime: this.formatDate(params.refundTimestamp),
+        payoffAmount: params.rewardForRedeem.multipliedBy(multiplier).toString(),
+        hashedSecret: params.secretHash,
+        participant: params.receivingAddress,
+      })
+      .send();
+
+    return this.getTransaction(operation);
   }
 
   getInitiateFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     return super.getInitiateFees(params);
   }
 
-  redeem(_params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
-    throw new Error('Method not implemented.');
+  redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
+    return super.redeem(params);
   }
 
   getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo> {
@@ -47,8 +73,8 @@ export class FA2TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtoc
     return super.getRedeemFees(params);
   }
 
-  refund(_params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
-    throw new Error('Method not implemented.');
+  refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
+    return super.refund(params);
   }
 
   getRefundFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
