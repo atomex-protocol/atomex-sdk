@@ -1,26 +1,28 @@
 import type { Wallet } from '@taquito/taquito';
 import BigNumber from 'bignumber.js';
 
-import { atomexProtocolMultiChainHelper } from '../../blockchain/atomexProtocolMultiChain';
+import { atomexProtocolMultiChainHelper } from '../../../blockchain/atomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolMultiChainInitiateParameters,
   AtomexProtocolMultiChainRedeemParameters,
   AtomexProtocolMultiChainRefundParameters,
   FeesInfo, Transaction, WalletsManager
-} from '../../blockchain/index';
-import type { AtomexNetwork } from '../../common/index';
-import type { DeepReadonly } from '../../core/index';
-import type { PriceManager } from '../../exchange';
-import type { FA12TezosTaquitoAtomexProtocolMultiChainOptions } from '../models/index';
-import { isFA12TezosCurrency } from '../utils';
-import type { FA12TezosMultiChainSmartContract } from './contracts';
+} from '../../../blockchain/index';
+import type { AtomexNetwork } from '../../../common/index';
+import type { DeepReadonly } from '../../../core/index';
+import type { PriceManager } from '../../../exchange/index';
+import type { FA2Contract } from '../../contracts/index';
+import type { FA2TezosTaquitoAtomexProtocolMultiChainOptions } from '../../models/index';
+import { fa2helper } from '../../utils';
+import { isFA2TezosCurrency } from '../../utils/guards';
+import type { FA2TezosMultiChainSmartContract } from './contracts';
 import { TaquitoAtomexProtocolMultiChain } from './taquitoAtomexProtocolMultiChain';
 
-export class FA12TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolMultiChain<FA12TezosMultiChainSmartContract<Wallet>> {
+export class FA2TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolMultiChain {
   constructor(
     atomexNetwork: AtomexNetwork,
-    protected readonly atomexProtocolOptions: DeepReadonly<FA12TezosTaquitoAtomexProtocolMultiChainOptions>,
+    protected readonly atomexProtocolOptions: DeepReadonly<FA2TezosTaquitoAtomexProtocolMultiChainOptions>,
     atomexBlockchainProvider: AtomexBlockchainProvider,
     walletsManager: WalletsManager,
     priceManager: PriceManager
@@ -37,21 +39,32 @@ export class FA12TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProto
     if (!currency)
       throw new Error(`Currency not found for id: ${this.currencyId}`);
 
-    if (!isFA12TezosCurrency(currency))
-      throw new Error(`Currency is not fa1.2; id: ${this.currencyId}`);
+    if (!isFA2TezosCurrency(currency))
+      throw new Error(`Currency with id ${this.currencyId} is not fa2`);
 
-    const contract = await this.getSwapContract(params.senderAddress);
+    const wallet = await this.getWallet(params.senderAddress);
+    const tokenContract = await wallet.toolkit.wallet.at<FA2Contract<Wallet>>(currency.contractAddress);
+    const contract = await wallet.toolkit.wallet.at<FA2TezosMultiChainSmartContract<Wallet>>(this.swapContractAddress);
     const multiplier = new BigNumber(10).pow(currency.decimals);
-    const operation = await contract.methodsObject
-      .initiate({
-        totalAmount: params.amount.multipliedBy(multiplier).toString(),
-        tokenAddress: currency.contractAddress,
-        refundTime: this.formatDate(params.refundTimestamp),
-        payoffAmount: params.rewardForRedeem.multipliedBy(multiplier).toString(),
-        hashedSecret: params.secretHash,
-        participant: params.receivingAddress,
-      })
-      .send();
+
+    const operation = await fa2helper.wrapContractCallsWithApprove({
+      toolkit: wallet.toolkit,
+      ownerAddress: params.senderAddress,
+      approvedAddress: contract.address,
+      tokenContract,
+      tokenId: currency.tokenId,
+      contractCalls: [
+        contract.methodsObject.initiate({
+          totalAmount: params.amount.multipliedBy(multiplier),
+          tokenAddress: currency.contractAddress,
+          tokenId: currency.tokenId,
+          refundTime: this.formatDate(params.refundTimestamp),
+          payoffAmount: params.rewardForRedeem.multipliedBy(multiplier),
+          hashedSecret: params.secretHash,
+          participant: params.receivingAddress,
+        })
+      ]
+    }).send();
 
     return this.getTransaction('Lock', operation);
   }
