@@ -18,6 +18,7 @@ export declare class ExchangeManager implements AtomexService {
     protected readonly symbolsProvider: ManagedExchangeSymbolsProvider;
     protected readonly orderBookProvider: ManagedOrderBookProvider;
     private _isStarted;
+    private topOfBookCache;
     constructor(options: ExchangeManagerOptions);
     get isStarted(): boolean;
     start(): Promise<void>;
@@ -26,8 +27,8 @@ export declare class ExchangeManager implements AtomexService {
     getOrders(accountAddress: string, selector?: OrdersSelector | undefined, _mode?: ImportantDataReceivingMode): Promise<Order[]>;
     getSymbol(name: string, dataSource?: DataSource): Promise<ExchangeSymbol | undefined>;
     getSymbols(dataSource?: DataSource): Promise<readonly ExchangeSymbol[]>;
-    getTopOfBook(symbols?: string[]): Promise<Quote[]>;
-    getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
+    getTopOfBook(symbols?: string[], dataSource?: DataSource): Promise<Quote[] | undefined>;
+    getTopOfBook(directions?: CurrencyDirection[], dataSource?: DataSource): Promise<Quote[] | undefined>;
     getOrderBook(symbol: string): Promise<OrderBook | undefined>;
     getOrderBook(direction: CurrencyDirection): Promise<OrderBook | undefined>;
     addOrder(accountAddress: string, newOrderRequest: NewOrderRequest): Promise<number>;
@@ -45,4 +46,6 @@ export declare class ExchangeManager implements AtomexService {
     protected findOrderBookEntry(exchangeSymbol: ExchangeSymbol, side: Side, orderType: OrderType, amount: BigNumber, isBaseCurrencyAmount: boolean): Promise<import("./models/orderBook").OrderBookEntry | undefined>;
     protected createProofOfFunds(accountAddress: string, newOrderRequest: NewOrderRequest): ProofOfFunds[];
     protected getCachedOrderBook(symbol: string): Promise<OrderBook | undefined>;
+    private getTopOfBookCacheKey;
+    private convertToSymbolsArray;
 }

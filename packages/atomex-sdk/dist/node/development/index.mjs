@@ -430,6 +430,7 @@ var ExchangeManager = class {
   symbolsProvider;
   orderBookProvider;
   _isStarted = false;
+  topOfBookCache = new InMemoryCache({ absoluteExpirationMs: 1e3 * 60 });
   constructor(options) {
     this.authorizationManager = options.authorizationManager;
     this.exchangeService = options.exchangeService;
@@ -486,8 +487,20 @@ var ExchangeManager = class {
     }
     return [];
   }
-  getTopOfBook(symbolsOrDirections) {
-    return this.exchangeService.getTopOfBook(symbolsOrDirections);
+  async getTopOfBook(symbolsOrDirections, dataSource = 3 /* All */) {
+    const symbols = this.convertToSymbolsArray(symbolsOrDirections);
+    const key = this.getTopOfBookCacheKey(symbols);
+    if ((dataSource & 1 /* Local */) === 1 /* Local */) {
+      const cachedQuotes = this.topOfBookCache.get(key);
+      if (cachedQuotes)
+        return cachedQuotes;
+    }
+    if ((dataSource & 2 /* Remote */) === 2 /* Remote */) {
+      const quotes = await this.exchangeService.getTopOfBook(symbolsOrDirections);
+      this.topOfBookCache.set(key, quotes);
+      return quotes;
+    }
+    return void 0;
   }
   async getOrderBook(symbolOrDirection) {
     let symbol;
@@ -633,6 +646,27 @@ var ExchangeManager = class {
     const cachedOrderBook = this.orderBookProvider.getOrderBook(symbol);
     return cachedOrderBook ? Promise.resolve(cachedOrderBook) : this.getOrderBook(symbol);
   }
+  getTopOfBookCacheKey(symbols) {
+    let postfix;
+    if (symbols && symbols.length) {
+      symbols.sort();
+      postfix = symbols.join(",");
+    } else
+      postfix = "all";
+    return `top-of-book_${postfix}`;
+  }
+  convertToSymbolsArray(symbolsOrDirections) {
+    let symbols = void 0;
+    if (symbolsOrDirections == null ? void 0 : symbolsOrDirections.length) {
+      if (typeof symbolsOrDirections[0] === "string")
+        symbols = [...symbolsOrDirections];
+      else {
+        const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
+        symbols = symbolsOrDirections.map((d) => symbolsHelper_exports.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, d.from, d.to)[0].name);
+      }
+    }
+    return symbols;
+  }
 };
 
 // src/exchange/exchangeSymbolsProvider/inMemoryExchangeSymbolsProvider.ts
@@ -771,15 +805,15 @@ var MixedPriceManager = class {
 
 // src/exchange/priceProvider/atomex/atomexPriceProvider.ts
 var AtomexPriceProvider = class {
-  constructor(exchangeService) {
-    this.exchangeService = exchangeService;
+  constructor(exchangeManager) {
+    this.exchangeManager = exchangeManager;
   }
   async getPrice(baseCurrencyOrSymbol, quoteCurrencyOrSymbol) {
     var _a;
     const baseCurrency = this.getSymbol(baseCurrencyOrSymbol);
     const quoteCurrency = this.getSymbol(quoteCurrencyOrSymbol);
     const pairSymbol = `${baseCurrency}/${quoteCurrency}`;
-    const quote = (_a = await this.exchangeService.getTopOfBook([{ from: baseCurrency, to: quoteCurrency }])) == null ? void 0 : _a[0];
+    const quote = (_a = await this.exchangeManager.getTopOfBook([{ from: baseCurrency, to: quoteCurrency }], 2 /* Remote */)) == null ? void 0 : _a[0];
     return quote && quote.symbol === pairSymbol ? this.getMiddlePrice(quote) : void 0;
   }
   getSymbol(currencyOrSymbol) {
@@ -4682,7 +4716,7 @@ var AtomexBuilder = class {
     return new MixedPriceManager(this.atomexContext.providers.currenciesProvider, /* @__PURE__ */ new Map([
       ["binance", new BinancePriceProvider()],
       ["kraken", new KrakenPriceProvider()],
-      ["atomex", new AtomexPriceProvider(this.atomexContext.services.exchangeService)]
+      ["atomex", new AtomexPriceProvider(this.atomexContext.managers.exchangeManager)]
     ]));
   }
 };
