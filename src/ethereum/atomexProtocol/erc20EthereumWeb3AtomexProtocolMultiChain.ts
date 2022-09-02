@@ -1,7 +1,9 @@
 import { AtomexProtocolMultiChainApprovable, atomexProtocolMultiChainHelper } from '../../blockchain/atomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
-  AtomexProtocolMultiChainInitiateParameters, AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters,
+  AtomexProtocolMultiChainInitiateParameters,
+  AtomexProtocolMultiChainRedeemParameters,
+  AtomexProtocolMultiChainRefundParameters,
   FeesInfo, Transaction, WalletsManager
 } from '../../blockchain/index';
 import type { AtomexNetwork } from '../../common/index';
@@ -23,20 +25,12 @@ export class ERC20EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtoco
     super('ethereum', atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
   }
 
-  get currencyId() {
-    return this.atomexProtocolOptions.currencyId;
-  }
-
   approve(_params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {
     throw new Error('Method not implemented.');
   }
 
   initiate(_params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {
     throw new Error('Method not implemented.');
-  }
-
-  getInitiateFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
-    return super.getInitiateFees(params);
   }
 
   redeem(_params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
@@ -47,15 +41,7 @@ export class ERC20EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtoco
     return atomexProtocolMultiChainHelper.getRedeemRewardInToken(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
 
-  getRedeemFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
-    return super.getRedeemFees(params);
-  }
-
   refund(_params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
     throw new Error('Method not implemented.');
-  }
-
-  getRefundFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
-    return super.getRefundFees(params);
   }
 }

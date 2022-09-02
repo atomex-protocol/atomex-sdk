@@ -4,8 +4,6 @@ import { atomexProtocolMultiChainHelper } from '../../../blockchain/atomexProtoc
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolMultiChainInitiateParameters,
-  AtomexProtocolMultiChainRedeemParameters,
-  AtomexProtocolMultiChainRefundParameters,
   FeesInfo, Transaction, WalletsManager
 } from '../../../blockchain/index';
 import type { AtomexNetwork } from '../../../common/index';
@@ -27,10 +25,6 @@ export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolM
     super('tezos', atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
   }
 
-  get currencyId() {
-    return this.atomexProtocolOptions.currencyId;
-  }
-
   async initiate(params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {
     const wallet = await this.getWallet(params.senderAddress);
     const contract = await wallet.toolkit.wallet.at<TezosMultiChainSmartContract<Wallet>>(this.swapContractAddress);
@@ -49,27 +43,7 @@ export class TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProtocolM
     return this.getTransaction('Lock', operation);
   }
 
-  getInitiateFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
-    return super.getInitiateFees(params);
-  }
-
-  redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
-    return super.redeem(params);
-  }
-
   getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo> {
     return atomexProtocolMultiChainHelper.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
-  }
-
-  getRedeemFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
-    return super.getRedeemFees(params);
-  }
-
-  refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
-    return super.refund(params);
-  }
-
-  getRefundFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
-    return super.getRefundFees(params);
   }
 }
