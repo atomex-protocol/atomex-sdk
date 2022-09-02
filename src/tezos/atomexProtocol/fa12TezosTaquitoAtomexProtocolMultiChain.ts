@@ -53,7 +53,7 @@ export class FA12TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProto
       })
       .send();
 
-    return this.getTransaction(operation);
+    return this.getTransaction('Lock', operation);
   }
 
   getInitiateFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {

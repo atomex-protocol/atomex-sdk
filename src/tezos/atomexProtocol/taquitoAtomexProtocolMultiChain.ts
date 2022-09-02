@@ -47,7 +47,7 @@ export abstract class TaquitoAtomexProtocolMultiChain<T extends TezosMultiChainS
     const contract = await this.getSwapContract(params.senderAddress);
     const operation = await contract.methodsObject.redeem(params.secret).send();
 
-    return this.getTransaction(operation);
+    return this.getTransaction('Redeem', operation);
   }
 
   abstract getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
@@ -63,7 +63,7 @@ export abstract class TaquitoAtomexProtocolMultiChain<T extends TezosMultiChainS
     const contract = await this.getSwapContract(params.senderAddress);
     const operation = await contract.methodsObject.refund(params.secret).send();
 
-    return this.getTransaction(operation);
+    return this.getTransaction('Refund', operation);
   }
 
   getRefundFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
@@ -96,7 +96,7 @@ export abstract class TaquitoAtomexProtocolMultiChain<T extends TezosMultiChainS
     return contract;
   }
 
-  protected async getTransaction(operation: TransactionWalletOperation): Promise<Transaction> {
+  protected async getTransaction(type: Transaction['type'], operation: TransactionWalletOperation): Promise<Transaction> {
     const status = await operation.status();
     const confirmation = await operation.confirmation();
 
@@ -106,8 +106,8 @@ export abstract class TaquitoAtomexProtocolMultiChain<T extends TezosMultiChainS
       currencyId: this.currencyId,
       confirmations: confirmation.currentConfirmation,
       status,
+      type,
       blockId: 0,
-      type: ''
     };
   }
 
