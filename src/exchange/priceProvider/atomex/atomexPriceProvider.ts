@@ -1,13 +1,13 @@
 import type BigNumber from 'bignumber.js';
 
-import type { Currency } from '../../../common/index';
-import type { ExchangeService } from '../../exchangeService';
+import { Currency, DataSource } from '../../../common/index';
+import type { ExchangeManager } from '../../exchangeManager';
 import type { Quote } from '../../models/index';
 import type { PriceProvider } from '../priceProvider';
 
 export class AtomexPriceProvider implements PriceProvider {
   constructor(
-    private readonly exchangeService: ExchangeService
+    private readonly exchangeManager: ExchangeManager
   ) { }
 
   async getPrice(baseCurrencyOrSymbol: Currency | string, quoteCurrencyOrSymbol: Currency | string): Promise<BigNumber | undefined> {
@@ -15,7 +15,7 @@ export class AtomexPriceProvider implements PriceProvider {
     const quoteCurrency = this.getSymbol(quoteCurrencyOrSymbol);
     const pairSymbol = `${baseCurrency}/${quoteCurrency}`;
 
-    const quote = (await this.exchangeService.getTopOfBook([{ from: baseCurrency, to: quoteCurrency }]))?.[0];
+    const quote = (await this.exchangeManager.getTopOfBook([{ from: baseCurrency, to: quoteCurrency }], DataSource.Remote))?.[0];
 
     return quote && quote.symbol === pairSymbol ? this.getMiddlePrice(quote) : undefined;
   }

@@ -139,7 +139,7 @@ export class AtomexBuilder {
       new Map<string, PriceProvider>([
         ['binance', new BinancePriceProvider()],
         ['kraken', new KrakenPriceProvider()],
-        ['atomex', new AtomexPriceProvider(this.atomexContext.services.exchangeService)]
+        ['atomex', new AtomexPriceProvider(this.atomexContext.managers.exchangeManager)]
       ]));
   }
 }
