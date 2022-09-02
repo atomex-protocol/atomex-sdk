@@ -3,7 +3,7 @@ import type BigNumber from 'bignumber.js';
 
 import type { FA12Contract } from '../contracts';
 
-export interface WrapTransactionsWithFA12ApproveOptions {
+export interface WrapTransactionsWithFA12ApproveParameters {
   toolkit: TezosToolkit;
   tokenContract: FA12Contract<Wallet>;
   approvedAddress: string;
@@ -11,7 +11,7 @@ export interface WrapTransactionsWithFA12ApproveOptions {
   contractCalls: Array<ContractMethod<Wallet> | ContractMethodObject<Wallet>>;
 }
 
-export const wrapContractCallsWithApprove = (options: WrapTransactionsWithFA12ApproveOptions): WalletOperationBatch => {
+export const wrapContractCallsWithApprove = (options: WrapTransactionsWithFA12ApproveParameters): WalletOperationBatch => {
   const batch = options.toolkit.wallet.batch()
     .withContractCall(options.tokenContract.methods.approve(options.approvedAddress, options.approvedAmount));
 

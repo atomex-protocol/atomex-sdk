@@ -2,7 +2,7 @@ import type { ContractMethod, ContractMethodObject, TezosToolkit, Wallet, Wallet
 
 import type { FA2Contract } from '../contracts';
 
-export interface WrapTransactionsWithFA2ApproveOptions {
+export interface WrapTransactionsWithFA2ApproveParameters {
   toolkit: TezosToolkit;
   tokenContract: FA2Contract<Wallet>;
   ownerAddress: string;
@@ -11,7 +11,7 @@ export interface WrapTransactionsWithFA2ApproveOptions {
   contractCalls: Array<ContractMethod<Wallet> | ContractMethodObject<Wallet>>;
 }
 
-export const wrapContractCallsWithApprove = (options: WrapTransactionsWithFA2ApproveOptions): WalletOperationBatch => {
+export const wrapContractCallsWithApprove = (options: WrapTransactionsWithFA2ApproveParameters): WalletOperationBatch => {
   const batch = options.toolkit.wallet.batch()
     .withContractCall(options.tokenContract.methods.update_operators([{
       add_operator: {

@@ -1,20 +1,20 @@
 import type { ContractAbstraction, ContractMethod, ContractProvider, Wallet } from '@taquito/taquito';
 
-export interface FA2UpdateOperatorParams {
+export interface FA2UpdateOperatorParameters {
   owner: string;
   operator: string;
   token_id: number;
 }
 
-export interface FA2AddOperatorParams {
-  add_operator: FA2UpdateOperatorParams;
+export interface FA2AddOperatorParameters {
+  add_operator: FA2UpdateOperatorParameters;
 }
 
-export interface FA2RemoveOperatorParams {
-  remove_operator: FA2UpdateOperatorParams;
+export interface FA2RemoveOperatorParameters {
+  remove_operator: FA2UpdateOperatorParameters;
 }
 
-export type FA2UpdateOperatorsPayload = Array<FA2AddOperatorParams | FA2RemoveOperatorParams>;
+export type FA2UpdateOperatorsPayload = Array<FA2AddOperatorParameters | FA2RemoveOperatorParameters>;
 
 export type FA2Contract<T extends ContractProvider | Wallet = ContractProvider> = ContractAbstraction<T> & {
   methods: {
