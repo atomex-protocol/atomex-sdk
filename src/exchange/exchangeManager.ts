@@ -370,7 +370,7 @@ export class ExchangeManager implements AtomexService {
 
     if (symbolsOrDirections?.length) {
       if (typeof symbolsOrDirections[0] === 'string')
-        symbols = symbolsOrDirections as string[];
+        symbols = [...symbolsOrDirections] as string[];
       else {
         const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
         symbols = (symbolsOrDirections as CurrencyDirection[])
