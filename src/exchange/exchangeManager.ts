@@ -362,7 +362,7 @@ export class ExchangeManager implements AtomexService {
     } else
       postfix = 'all';
 
-    return `top_of_book_${postfix}`;
+    return `top-of-book_${postfix}`;
   }
 
   private convertToSymbolsArray(symbolsOrDirections?: string[] | CurrencyDirection[]) {
