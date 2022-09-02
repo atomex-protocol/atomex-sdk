@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 
 import type { AuthorizationManager } from '../authorization';
 import { AtomexService, Currency, DataSource, ImportantDataReceivingMode, Side } from '../common/index';
-import { EventEmitter, type ToEventEmitter } from '../core/index';
+import { EventEmitter, Cache, InMemoryCache, type ToEventEmitter } from '../core/index';
 import { toFixedBigNumber } from '../utils/converters';
 import type { ExchangeService, ExchangeServiceEvents } from './exchangeService';
 import type { ManagedExchangeSymbolsProvider } from './exchangeSymbolsProvider/index';
@@ -37,6 +37,7 @@ export class ExchangeManager implements AtomexService {
   protected readonly orderBookProvider: ManagedOrderBookProvider;
 
   private _isStarted = false;
+  private topOfBookCache: Cache = new InMemoryCache({ absoluteExpirationMs: 1000 * 60 });
 
   constructor(options: ExchangeManagerOptions) {
     this.authorizationManager = options.authorizationManager;
@@ -112,10 +113,26 @@ export class ExchangeManager implements AtomexService {
     return [];
   }
 
-  getTopOfBook(symbols?: string[]): Promise<Quote[]>;
-  getTopOfBook(directions?: CurrencyDirection[]): Promise<Quote[]>;
-  getTopOfBook(symbolsOrDirections?: string[] | CurrencyDirection[]): Promise<Quote[]> {
-    return (this.exchangeService.getTopOfBook as (symbolsOrDirections?: string[] | CurrencyDirection[]) => Promise<Quote[]>)(symbolsOrDirections);
+  getTopOfBook(symbols?: string[], dataSource?: DataSource): Promise<Quote[] | undefined>;
+  getTopOfBook(directions?: CurrencyDirection[], dataSource?: DataSource): Promise<Quote[] | undefined>;
+  async getTopOfBook(symbolsOrDirections?: string[] | CurrencyDirection[], dataSource = DataSource.All): Promise<Quote[] | undefined> {
+    const symbols = this.convertToSymbolsArray(symbolsOrDirections);
+    const key = this.getTopOfBookCacheKey(symbols);
+
+    if ((dataSource & DataSource.Local) === DataSource.Local) {
+      const cachedQuotes = this.topOfBookCache.get<Quote[]>(key);
+      if (cachedQuotes)
+        return cachedQuotes;
+    }
+
+    if ((dataSource & DataSource.Remote) === DataSource.Remote) {
+      const quotes = await (this.exchangeService.getTopOfBook as (symbolsOrDirections?: string[] | CurrencyDirection[]) => Promise<Quote[]>)(symbolsOrDirections);
+      this.topOfBookCache.set(key, quotes);
+
+      return quotes;
+    }
+
+    return undefined;
   }
 
   getOrderBook(symbol: string): Promise<OrderBook | undefined>;
@@ -334,5 +351,33 @@ export class ExchangeManager implements AtomexService {
     const cachedOrderBook = this.orderBookProvider.getOrderBook(symbol);
 
     return cachedOrderBook ? Promise.resolve(cachedOrderBook) : this.getOrderBook(symbol);
+  }
+
+  private getTopOfBookCacheKey(symbols: string[] | undefined) {
+    let postfix;
+
+    if (symbols && symbols.length) {
+      symbols.sort();
+      postfix = symbols.join(',');
+    } else
+      postfix = 'all';
+
+    return `top-of-book_${postfix}`;
+  }
+
+  private convertToSymbolsArray(symbolsOrDirections?: string[] | CurrencyDirection[]) {
+    let symbols: string[] | undefined = undefined;
+
+    if (symbolsOrDirections?.length) {
+      if (typeof symbolsOrDirections[0] === 'string')
+        symbols = [...symbolsOrDirections] as string[];
+      else {
+        const exchangeSymbols = this.symbolsProvider.getSymbolsMap();
+        symbols = (symbolsOrDirections as CurrencyDirection[])
+          .map(d => symbolsHelper.convertFromAndToCurrenciesToSymbolAndSide(exchangeSymbols, d.from, d.to)[0].name);
+      }
+    }
+
+    return symbols;
   }
 }
