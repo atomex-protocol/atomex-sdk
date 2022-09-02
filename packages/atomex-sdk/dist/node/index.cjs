@@ -1741,12 +1741,21 @@ var import_bignumber11 = __toESM(require("bignumber.js"));
 var web3Helper_exports = {};
 __export(web3Helper_exports, {
   convertFromWei: () => convertFromWei,
-  getGasPriceInWei: () => getGasPriceInWei
+  getGasPriceInWei: () => getGasPriceInWei,
+  getMaxFeePerGas: () => getMaxFeePerGas
 });
 var import_bignumber10 = __toESM(require("bignumber.js"));
+var defaultMaxPriorityFeePerGasInWei = new import_bignumber10.default(25e8);
 var getGasPriceInWei = async (toolkit) => {
   const gasPrice = await toolkit.eth.getGasPrice();
   return new import_bignumber10.default(gasPrice);
+};
+var getMaxFeePerGas = async (toolkit, maxPriorityFeePerGasInWei = defaultMaxPriorityFeePerGasInWei) => {
+  const latestBlock = await toolkit.eth.getBlock("latest");
+  if (!latestBlock.baseFeePerGas)
+    return getGasPriceInWei(toolkit);
+  const latestBlockBaseFeePerGasInWei = new import_bignumber10.default(latestBlock.baseFeePerGas);
+  return latestBlockBaseFeePerGasInWei.multipliedBy(2).plus(maxPriorityFeePerGasInWei);
 };
 var convertFromWei = (toolkit, value, unit) => {
   const stringValue = typeof value === "string" ? value : value.toString(10);
@@ -1773,29 +1782,30 @@ var _Web3AtomexProtocolMultiChain = class {
   async getInitiateFees(params) {
     var _a;
     const toolkit = await this.getReadonlyWeb3();
-    const gasPriceInWei = await web3Helper_exports.getGasPriceInWei(toolkit);
+    const maxFeePerGasInWei = await web3Helper_exports.getMaxFeePerGas(toolkit);
     const gasLimitOptions = this.atomexProtocolOptions.initiateOperation.gasLimit;
     const hasRewardForRedeem = (_a = params.rewardForRedeem) == null ? void 0 : _a.isGreaterThan(0);
     const gasLimit = new import_bignumber11.default(hasRewardForRedeem ? gasLimitOptions.withReward : gasLimitOptions.withoutReward);
-    const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(_Web3AtomexProtocolMultiChain.maxNetworkFeeMultiplier);
-    const estimated = web3Helper_exports.convertFromWei(toolkit, estimatedWei, "ether");
-    const result = { estimated, max: estimated };
+    const estimatedInWei = maxFeePerGasInWei.multipliedBy(gasLimit);
+    const estimated = web3Helper_exports.convertFromWei(toolkit, estimatedInWei, "ether");
+    const max = estimated.multipliedBy(_Web3AtomexProtocolMultiChain.defaultMaxNetworkFeeMultiplier);
+    const result = { estimated, max };
     return Promise.resolve(result);
   }
   async getRedeemFees(_params) {
     const toolkit = await this.getReadonlyWeb3();
-    const gasPriceInWei = await web3Helper_exports.getGasPriceInWei(toolkit);
+    const maxFeePerGasInWei = await web3Helper_exports.getMaxFeePerGas(toolkit);
     const gasLimit = this.atomexProtocolOptions.redeemOperation.gasLimit;
-    const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(_Web3AtomexProtocolMultiChain.maxNetworkFeeMultiplier);
+    const estimatedWei = maxFeePerGasInWei.multipliedBy(gasLimit).multipliedBy(_Web3AtomexProtocolMultiChain.defaultMaxNetworkFeeMultiplier);
     const estimated = web3Helper_exports.convertFromWei(toolkit, estimatedWei, "ether");
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
   }
   async getRefundFees(_params) {
     const toolkit = await this.getReadonlyWeb3();
-    const gasPriceInWei = await web3Helper_exports.getGasPriceInWei(toolkit);
+    const maxFeePerGasInWei = await web3Helper_exports.getMaxFeePerGas(toolkit);
     const gasLimit = this.atomexProtocolOptions.refundOperation.gasLimit;
-    const estimatedWei = gasPriceInWei.multipliedBy(gasLimit).multipliedBy(_Web3AtomexProtocolMultiChain.maxNetworkFeeMultiplier);
+    const estimatedWei = maxFeePerGasInWei.multipliedBy(gasLimit).multipliedBy(_Web3AtomexProtocolMultiChain.defaultMaxNetworkFeeMultiplier);
     const estimated = web3Helper_exports.convertFromWei(toolkit, estimatedWei, "ether");
     const result = { estimated, max: estimated };
     return Promise.resolve(result);
@@ -1814,7 +1824,7 @@ var _Web3AtomexProtocolMultiChain = class {
   }
 };
 var Web3AtomexProtocolMultiChain = _Web3AtomexProtocolMultiChain;
-__publicField(Web3AtomexProtocolMultiChain, "maxNetworkFeeMultiplier", new import_bignumber11.default(1.2));
+__publicField(Web3AtomexProtocolMultiChain, "defaultMaxNetworkFeeMultiplier", new import_bignumber11.default(1.2));
 
 // src/evm/wallets/web3BlockchainWallet.ts
 var import_web3 = __toESM(require("web3"));

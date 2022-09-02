@@ -13,7 +13,7 @@ export declare abstract class Web3AtomexProtocolMultiChain implements AtomexProt
     protected readonly atomexBlockchainProvider: AtomexBlockchainProvider;
     protected readonly walletsManager: WalletsManager;
     protected readonly priceManager: PriceManager;
-    protected static maxNetworkFeeMultiplier: BigNumber;
+    protected static readonly defaultMaxNetworkFeeMultiplier: BigNumber;
     abstract readonly type: string;
     constructor(blockchain: string, atomexNetwork: AtomexNetwork, atomexProtocolOptions: DeepReadonly<Web3AtomexProtocolMultiChainOptions>, atomexBlockchainProvider: AtomexBlockchainProvider, walletsManager: WalletsManager, priceManager: PriceManager);
     get currencyId(): string;
