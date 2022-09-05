@@ -35,11 +35,13 @@ export class FA12TezosTaquitoAtomexProtocolMultiChain extends TaquitoAtomexProto
     if (!isFA12TezosCurrency(currency))
       throw new Error(`Currency with id ${this.currencyId} is not fa1.2`);
 
-    const wallet = await this.getWallet(params.senderAddress);
-    const tokenContract = await wallet.toolkit.wallet.at<FA12Contract<Wallet>>(currency.contractAddress);
-    const contract = await wallet.toolkit.wallet.at<FA12TezosMultiChainSmartContract<Wallet>>(this.swapContractAddress);
     const multiplier = new BigNumber(10).pow(currency.decimals);
     const totalAmount = params.amount.multipliedBy(multiplier);
+    const wallet = await this.getWallet(params.senderAddress);
+    const [contract, tokenContract] = await Promise.all([
+      wallet.toolkit.wallet.at<FA12TezosMultiChainSmartContract<Wallet>>(this.swapContractAddress),
+      wallet.toolkit.wallet.at<FA12Contract<Wallet>>(currency.contractAddress)
+    ]);
 
     const operation = await fa12helper.wrapContractCallsWithApprove({
       toolkit: wallet.toolkit,
