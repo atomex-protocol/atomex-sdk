@@ -7,7 +7,7 @@ export class TimeoutScheduler implements Disposable {
 
   constructor(
     private readonly timeouts: number[],
-    private readonly counterExpirationMs: number
+    private readonly counterExpirationMs?: number
   ) { }
 
   async dispose(): Promise<void> {
@@ -19,7 +19,8 @@ export class TimeoutScheduler implements Disposable {
   }
 
   setTimeout(action: () => void) {
-    this.resetCounterExpiration();
+    if (this.counterExpirationMs)
+      this.resetCounterExpiration();
 
     const timeoutIndex = Math.min(this.actionCounter, this.timeouts.length - 1);
     const timeout = this.timeouts[timeoutIndex];
@@ -28,12 +29,16 @@ export class TimeoutScheduler implements Disposable {
     this.actionCounter++;
   }
 
+  resetCounter() {
+    this.actionCounter = 0;
+  }
+
   private resetCounterExpiration() {
     if (this.counterExpirationWatcherId)
       clearInterval(this.counterExpirationWatcherId);
 
     this.counterExpirationWatcherId = setTimeout(() => {
-      this.actionCounter = 0;
+      this.resetCounter();
       this.counterExpirationWatcherId = undefined;
     }, this.counterExpirationMs);
   }
