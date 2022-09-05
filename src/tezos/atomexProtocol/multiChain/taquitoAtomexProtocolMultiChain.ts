@@ -95,18 +95,20 @@ export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolM
     return taquitoWallet;
   }
 
-  protected async getTransaction(type: Transaction['type'], operation: TransactionWalletOperation | BatchWalletOperation): Promise<Transaction> {
+  protected async getTransaction(
+    type: Transaction['type'],
+    operation: TransactionWalletOperation | BatchWalletOperation
+  ): Promise<Transaction> {
     const status = await operation.status();
     const confirmation = await operation.confirmation();
 
-    //TODO: fill others fields
     return {
       id: operation.opHash,
-      currencyId: this.currencyId,
+      blockId: confirmation.block.header.level,
       confirmations: confirmation.currentConfirmation,
+      currencyId: this.currencyId,
       status,
       type,
-      blockId: 0,
     };
   }
 
