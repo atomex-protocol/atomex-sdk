@@ -10,10 +10,7 @@ export declare class EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProt
     readonly type = "multi-chain";
     constructor(atomexNetwork: AtomexNetwork, atomexProtocolOptions: DeepReadonly<EthereumWeb3AtomexProtocolMultiChainOptions>, atomexBlockchainProvider: AtomexBlockchainProvider, walletsManager: WalletsManager, priceManager: PriceManager);
     initiate(_params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction>;
-    getInitiateFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo>;
     redeem(_params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction>;
     getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
-    getRedeemFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo>;
     refund(_params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction>;
-    getRefundFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo>;
 }

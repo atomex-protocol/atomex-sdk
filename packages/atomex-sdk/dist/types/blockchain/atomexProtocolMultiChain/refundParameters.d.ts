@@ -1,3 +1,4 @@
 export interface AtomexProtocolMultiChainRefundParameters {
-    readonly secretHash: string;
+    readonly senderAddress: string;
+    readonly secret: string;
 }

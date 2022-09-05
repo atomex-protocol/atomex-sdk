@@ -9,13 +9,9 @@ export declare class ERC20EthereumWeb3AtomexProtocolMultiChain extends Web3Atome
     protected readonly atomexProtocolOptions: DeepReadonly<ERC20EthereumWeb3AtomexProtocolMultiChainOptions>;
     readonly type = "multi-chain-approvable";
     constructor(atomexNetwork: AtomexNetwork, atomexProtocolOptions: DeepReadonly<ERC20EthereumWeb3AtomexProtocolMultiChainOptions>, atomexBlockchainProvider: AtomexBlockchainProvider, walletsManager: WalletsManager, priceManager: PriceManager);
-    get currencyId(): string;
     approve(_params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction>;
     initiate(_params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction>;
-    getInitiateFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo>;
     redeem(_params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction>;
     getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
-    getRedeemFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo>;
     refund(_params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction>;
-    getRefundFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo>;
 }
