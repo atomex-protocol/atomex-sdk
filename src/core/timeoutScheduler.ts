@@ -1,7 +1,7 @@
 import type { Disposable } from '../common';
 
 export class TimeoutScheduler implements Disposable {
-  private actionCounter = 0;
+  private counter = 0;
   private counterExpirationWatcherId: ReturnType<typeof setTimeout> | undefined;
   private actionWatcherId: ReturnType<typeof setTimeout> | undefined;
 
@@ -22,15 +22,15 @@ export class TimeoutScheduler implements Disposable {
     if (this.counterExpirationMs)
       this.resetCounterExpiration();
 
-    const timeoutIndex = Math.min(this.actionCounter, this.timeouts.length - 1);
+    const timeoutIndex = Math.min(this.counter, this.timeouts.length - 1);
     const timeout = this.timeouts[timeoutIndex];
     this.actionWatcherId = setTimeout(action, timeout);
 
-    this.actionCounter++;
+    this.counter++;
   }
 
   resetCounter() {
-    this.actionCounter = 0;
+    this.counter = 0;
   }
 
   private resetCounterExpiration() {
