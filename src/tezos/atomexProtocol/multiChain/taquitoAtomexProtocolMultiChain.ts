@@ -1,16 +1,21 @@
-import type { TezosToolkit } from '@taquito/taquito';
+import type { TezosToolkit, TransactionWalletOperation, Wallet } from '@taquito/taquito';
+import type { BatchWalletOperation } from '@taquito/taquito/dist/types/wallet/batch-operation';
 import BigNumber from 'bignumber.js';
 
 import type {
   AtomexBlockchainProvider,
-  AtomexProtocolMultiChain, FeesInfo, AtomexProtocolMultiChainInitiateParameters, AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters,
+  AtomexProtocolMultiChain, FeesInfo,
+  AtomexProtocolMultiChainInitiateParameters,
+  AtomexProtocolMultiChainRedeemParameters,
+  AtomexProtocolMultiChainRefundParameters,
   BlockchainWallet, Transaction, WalletsManager
-} from '../../blockchain/index';
-import type { AtomexNetwork } from '../../common/index';
-import type { DeepReadonly } from '../../core/index';
-import type { PriceManager } from '../../exchange';
-import type { TaquitoAtomexProtocolMultiChainOptions } from '../models/index';
-import { mutezInTez } from '../utils';
+} from '../../../blockchain/index';
+import type { AtomexNetwork } from '../../../common/index';
+import type { DeepReadonly } from '../../../core/index';
+import type { PriceManager } from '../../../exchange';
+import type { TaquitoAtomexProtocolMultiChainOptions } from '../../models/index';
+import { mutezInTez } from '../../utils';
+import type { TezosMultiChainSmartContractBase } from './contracts';
 
 export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolMultiChain {
   readonly type = 'multi-chain';
@@ -42,7 +47,13 @@ export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolM
     return Promise.resolve(result);
   }
 
-  abstract redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction>;
+  async redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
+    const wallet = await this.getWallet(params.senderAddress);
+    const contract = await wallet.toolkit.wallet.at<TezosMultiChainSmartContractBase<Wallet>>(this.swapContractAddress);
+    const operation = await contract.methodsObject.redeem(params.secret).send();
+
+    return this.getTransaction('Redeem', operation);
+  }
 
   abstract getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo>;
 
@@ -53,7 +64,13 @@ export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolM
     return Promise.resolve(result);
   }
 
-  abstract refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction>;
+  async refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
+    const wallet = await this.getWallet(params.senderAddress);
+    const contract = await wallet.toolkit.wallet.at<TezosMultiChainSmartContractBase<Wallet>>(this.swapContractAddress);
+    const operation = await contract.methodsObject.refund(params.secret).send();
+
+    return this.getTransaction('Refund', operation);
+  }
 
   getRefundFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
     const estimated = new BigNumber(this.atomexProtocolOptions.refundOperation.fee).div(mutezInTez);
@@ -73,8 +90,29 @@ export abstract class TaquitoAtomexProtocolMultiChain implements AtomexProtocolM
   protected async getWallet(address?: string): Promise<BlockchainWallet<TezosToolkit>> {
     const taquitoWallet = await this.walletsManager.getWallet<TezosToolkit>(address, this.blockchain, 'taquito');
     if (!taquitoWallet)
-      throw new Error(`${this.blockchain} Taqutio wallet not found`);
+      throw new Error(`${this.blockchain} Taquito wallet not found`);
 
     return taquitoWallet;
+  }
+
+  protected async getTransaction(
+    type: Transaction['type'],
+    operation: TransactionWalletOperation | BatchWalletOperation
+  ): Promise<Transaction> {
+    const status = await operation.status();
+    const confirmation = await operation.confirmation();
+
+    return {
+      id: operation.opHash,
+      blockId: confirmation.block.header.level,
+      confirmations: confirmation.currentConfirmation,
+      currencyId: this.currencyId,
+      status,
+      type,
+    };
+  }
+
+  protected formatDate(date: Date): string {
+    return date.toISOString().slice(0, -5) + 'Z';
   }
 }

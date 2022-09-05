@@ -1,3 +1,5 @@
-export { TezosTaquitoAtomexProtocolMultiChain } from './tezosTaquitoAtomexProtocolMultiChain';
-export { FA12TezosTaquitoAtomexProtocolMultiChain } from './fa12TezosTaquitoAtomexProtocolMultiChain';
-export { FA2TezosTaquitoAtomexProtocolMultiChain } from './fa2TezosTaquitoAtomexProtocolMultiChain';
+export {
+  TezosTaquitoAtomexProtocolMultiChain,
+  FA12TezosTaquitoAtomexProtocolMultiChain,
+  FA2TezosTaquitoAtomexProtocolMultiChain
+} from './multiChain/index';

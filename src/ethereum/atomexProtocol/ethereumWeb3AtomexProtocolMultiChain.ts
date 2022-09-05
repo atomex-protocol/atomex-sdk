@@ -29,10 +29,6 @@ export class EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMult
     throw new Error('Method not implemented.');
   }
 
-  getInitiateFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
-    return super.getInitiateFees(params);
-  }
-
   redeem(_params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
     throw new Error('Method not implemented.');
   }
@@ -41,15 +37,7 @@ export class EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMult
     return atomexProtocolMultiChainHelper.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
 
-  getRedeemFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
-    return super.getRedeemFees(params);
-  }
-
   refund(_params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
     throw new Error('Method not implemented.');
-  }
-
-  getRefundFees(params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo> {
-    return super.getRefundFees(params);
   }
 }
