@@ -1,4 +1,4 @@
-import { EventEmitter } from '../../core/index';
+import { EventEmitter, TimeoutScheduler } from '../../core/index';
 import type { WebSocketResponseDto } from '../dtos';
 import { WebSocketClient } from './webSocketClient';
 
@@ -7,6 +7,7 @@ export interface MarketDataWebSocketClientEvents {
 }
 
 export class MarketDataWebSocketClient {
+  protected static readonly reconnectTimeouts = [1000, 5000, 3000, 6000];
   protected static readonly MARKET_DATA_URL_PATH = '/ws/marketdata';
   protected static readonly TOP_OF_BOOK_STREAM = 'topOfBook';
   protected static readonly ORDER_BOOK_STREAM = 'orderBook';
@@ -18,6 +19,7 @@ export class MarketDataWebSocketClient {
   protected socket: WebSocketClient;
 
   private _isStarted = false;
+  protected reconnectScheduler = new TimeoutScheduler([1000, 5000, 30000, 60000], 60000);
 
   constructor(
     protected readonly webSocketApiBaseUrl: string
@@ -49,6 +51,7 @@ export class MarketDataWebSocketClient {
     this.socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
     this.socket.events.closed.removeListener(this.onSocketClosed);
     this.socket.disconnect();
+    this.reconnectScheduler.dispose();
 
     this._isStarted = false;
   }
@@ -59,10 +62,10 @@ export class MarketDataWebSocketClient {
   }
 
   protected onSocketClosed = (socket: WebSocketClient, _event: CloseEvent) => {
-    setTimeout(async () => {
+    this.reconnectScheduler.setTimeout(async () => {
       await socket.connect();
       this.subscribeOnStreams(socket);
-    }, 1000);
+    });
   };
 
   protected onSocketMessageReceived = (message: WebSocketResponseDto) => {
