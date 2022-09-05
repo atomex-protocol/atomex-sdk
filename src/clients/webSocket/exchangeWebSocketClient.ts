@@ -17,7 +17,7 @@ export class ExchangeWebSocketClient {
   protected readonly sockets: Map<string, WebSocketClient> = new Map();
 
   private _isStarted = false;
-  protected reconnectScheduler = new TimeoutScheduler([1000, 5000, 30000, 60000], 60000);
+  protected reconnectScheduler = new TimeoutScheduler([1000, 5000, 30000, 60000], 120000);
 
   constructor(
     protected readonly webSocketApiBaseUrl: string,
