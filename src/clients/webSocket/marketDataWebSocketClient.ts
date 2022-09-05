@@ -7,7 +7,6 @@ export interface MarketDataWebSocketClientEvents {
 }
 
 export class MarketDataWebSocketClient {
-  protected static readonly reconnectTimeouts = [1000, 5000, 3000, 6000];
   protected static readonly MARKET_DATA_URL_PATH = '/ws/marketdata';
   protected static readonly TOP_OF_BOOK_STREAM = 'topOfBook';
   protected static readonly ORDER_BOOK_STREAM = 'orderBook';
