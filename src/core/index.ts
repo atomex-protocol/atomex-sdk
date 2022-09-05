@@ -13,3 +13,4 @@ export type {
 
 export { InMemoryCache } from './cache/index';
 export type { Cache, SetCacheOptions } from './cache/index';
+export { TimeoutScheduler } from './timeoutScheduler';
