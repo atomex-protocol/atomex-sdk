@@ -25,21 +25,24 @@ export class TimeoutScheduler implements Disposable {
     this.actionWatchers.forEach(watcher => clearTimeout(watcher));
   }
 
-  setTimeout(action: () => void) {
-    if (this.counterExpirationMs)
-      this.resetCounterExpiration();
+  setTimeout(action: () => void | Promise<void>): Promise<void> {
+    return new Promise(resolve => {
+      if (this.counterExpirationMs)
+        this.resetCounterExpiration();
 
-    const timeoutIndex = Math.min(this.counter, this.timeouts.length - 1);
-    const timeout = this.timeouts[timeoutIndex];
+      const timeoutIndex = Math.min(this.counter, this.timeouts.length - 1);
+      const timeout = this.timeouts[timeoutIndex];
 
-    const watcherId = setTimeout(() => {
-      this.actionWatchers.delete(watcherId);
-      clearTimeout(watcherId);
-      action();
-    }, timeout);
-    this.actionWatchers.add(watcherId);
+      const watcherId = setTimeout(async () => {
+        this.actionWatchers.delete(watcherId);
+        clearTimeout(watcherId);
+        await action();
+        resolve();
+      }, timeout);
+      this.actionWatchers.add(watcherId);
 
-    this.counter++;
+      this.counter++;
+    });
   }
 
   resetCounter() {
