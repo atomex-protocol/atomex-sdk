@@ -1,5 +1,5 @@
 import type { AuthorizationManager, AuthToken } from '../../authorization/index';
-import { EventEmitter } from '../../core/index';
+import { EventEmitter, TimeoutScheduler } from '../../core/index';
 import type { WebSocketResponseDto } from '../dtos';
 import { WebSocketClient } from './webSocketClient';
 
@@ -17,6 +17,7 @@ export class ExchangeWebSocketClient {
   protected readonly sockets: Map<string, WebSocketClient> = new Map();
 
   private _isStarted = false;
+  protected reconnectScheduler = new TimeoutScheduler([1000, 5000, 30000, 60000], 120000);
 
   constructor(
     protected readonly webSocketApiBaseUrl: string,
@@ -44,6 +45,8 @@ export class ExchangeWebSocketClient {
     this.sockets.forEach((_, userId) => {
       this.removeSocket(userId);
     });
+
+    this.reconnectScheduler.dispose();
 
     this._isStarted = false;
   }
@@ -84,8 +87,8 @@ export class ExchangeWebSocketClient {
   };
 
   protected onClosed = (socket: WebSocketClient, _event: CloseEvent) => {
-    setTimeout(() => {
+    this.reconnectScheduler.setTimeout(() => {
       socket.connect();
-    }, 1000);
+    });
   };
 }

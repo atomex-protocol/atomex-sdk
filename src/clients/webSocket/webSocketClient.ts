@@ -29,9 +29,11 @@ export class WebSocketClient {
 
   async connect(): Promise<void> {
     this.disconnect();
+
     return new Promise(resolve => {
       const protocols = this.authToken ? ['access_token', this.authToken] : undefined;
       this._socket = new WebSocket(this.url, protocols);
+
       this.socket.addEventListener('message', this.onMessageReceived);
       this.socket.addEventListener('error', this.onError);
       this.socket.addEventListener('close', this.onClosed);
