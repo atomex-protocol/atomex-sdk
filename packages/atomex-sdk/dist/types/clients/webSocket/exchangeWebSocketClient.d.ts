@@ -1,5 +1,5 @@
 import type { AuthorizationManager, AuthToken } from '../../authorization/index';
-import { EventEmitter } from '../../core/index';
+import { EventEmitter, TimeoutScheduler } from '../../core/index';
 import type { WebSocketResponseDto } from '../dtos';
 import { WebSocketClient } from './webSocketClient';
 export interface ExchangeWebSocketClientEvents {
@@ -12,6 +12,7 @@ export declare class ExchangeWebSocketClient {
     readonly events: ExchangeWebSocketClientEvents;
     protected readonly sockets: Map<string, WebSocketClient>;
     private _isStarted;
+    protected reconnectScheduler: TimeoutScheduler;
     constructor(webSocketApiBaseUrl: string, authorizationManager: AuthorizationManager);
     get isStarted(): boolean;
     start(): Promise<void>;

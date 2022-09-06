@@ -470,6 +470,55 @@ __publicField(InMemoryCache, "defaultCacheOptions", {
   absoluteExpirationMs: 1e3 * 60 * 30
 });
 
+// src/core/timeoutScheduler.ts
+var TimeoutScheduler = class {
+  constructor(timeouts, counterExpirationMs) {
+    this.timeouts = timeouts;
+    this.counterExpirationMs = counterExpirationMs;
+  }
+  counterExpirationWatcherId;
+  actionWatchers = /* @__PURE__ */ new Set();
+  _counter = 0;
+  get counter() {
+    return this._counter;
+  }
+  set counter(value) {
+    this._counter = value;
+  }
+  async dispose() {
+    if (this.counterExpirationWatcherId)
+      clearTimeout(this.counterExpirationWatcherId);
+    this.actionWatchers.forEach((watcher) => clearTimeout(watcher));
+  }
+  setTimeout(action) {
+    return new Promise((resolve) => {
+      if (this.counterExpirationMs)
+        this.resetCounterExpiration();
+      const timeoutIndex = Math.min(this.counter, this.timeouts.length - 1);
+      const timeout = this.timeouts[timeoutIndex];
+      const watcherId = setTimeout(async () => {
+        this.actionWatchers.delete(watcherId);
+        clearTimeout(watcherId);
+        await action();
+        resolve();
+      }, timeout);
+      this.actionWatchers.add(watcherId);
+      this.counter++;
+    });
+  }
+  resetCounter() {
+    this.counter = 0;
+  }
+  resetCounterExpiration() {
+    if (this.counterExpirationWatcherId)
+      clearTimeout(this.counterExpirationWatcherId);
+    this.counterExpirationWatcherId = setTimeout(() => {
+      this.resetCounter();
+      this.counterExpirationWatcherId = void 0;
+    }, this.counterExpirationMs);
+  }
+};
+
 // src/exchange/exchangeManager.ts
 var ExchangeManager = class {
   events = {
@@ -4017,6 +4066,7 @@ var _ExchangeWebSocketClient = class {
   };
   sockets = /* @__PURE__ */ new Map();
   _isStarted = false;
+  reconnectScheduler = new TimeoutScheduler([1e3, 5e3, 3e4, 6e4], 12e4);
   get isStarted() {
     return this._isStarted;
   }
@@ -4032,6 +4082,7 @@ var _ExchangeWebSocketClient = class {
     this.sockets.forEach((_, userId) => {
       this.removeSocket(userId);
     });
+    this.reconnectScheduler.dispose();
     this._isStarted = false;
   }
   subscribeOnAuthEvents() {
@@ -4062,9 +4113,9 @@ var _ExchangeWebSocketClient = class {
     this.events.messageReceived.emit(message);
   };
   onClosed = (socket, _event) => {
-    setTimeout(() => {
+    this.reconnectScheduler.setTimeout(() => {
       socket.connect();
-    }, 1e3);
+    });
   };
 };
 var ExchangeWebSocketClient = _ExchangeWebSocketClient;
@@ -4081,6 +4132,7 @@ var _MarketDataWebSocketClient = class {
   };
   socket;
   _isStarted = false;
+  reconnectScheduler = new TimeoutScheduler([1e3, 5e3, 3e4, 6e4], 12e4);
   get isStarted() {
     return this._isStarted;
   }
@@ -4099,6 +4151,7 @@ var _MarketDataWebSocketClient = class {
     this.socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
     this.socket.events.closed.removeListener(this.onSocketClosed);
     this.socket.disconnect();
+    this.reconnectScheduler.dispose();
     this._isStarted = false;
   }
   subscribeOnStreams(socket) {
@@ -4106,10 +4159,10 @@ var _MarketDataWebSocketClient = class {
     socket.subscribe(_MarketDataWebSocketClient.ORDER_BOOK_STREAM);
   }
   onSocketClosed = (socket, _event) => {
-    setTimeout(async () => {
+    this.reconnectScheduler.setTimeout(async () => {
       await socket.connect();
       this.subscribeOnStreams(socket);
-    }, 1e3);
+    });
   };
   onSocketMessageReceived = (message) => {
     this.events.messageReceived.emit(message);

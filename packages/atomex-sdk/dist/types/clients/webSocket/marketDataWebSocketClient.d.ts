@@ -1,4 +1,4 @@
-import { EventEmitter } from '../../core/index';
+import { EventEmitter, TimeoutScheduler } from '../../core/index';
 import type { WebSocketResponseDto } from '../dtos';
 import { WebSocketClient } from './webSocketClient';
 export interface MarketDataWebSocketClientEvents {
@@ -12,6 +12,7 @@ export declare class MarketDataWebSocketClient {
     readonly events: MarketDataWebSocketClientEvents;
     protected socket: WebSocketClient;
     private _isStarted;
+    protected reconnectScheduler: TimeoutScheduler;
     constructor(webSocketApiBaseUrl: string);
     get isStarted(): boolean;
     start(): Promise<void>;

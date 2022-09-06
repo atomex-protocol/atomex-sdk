@@ -4,3 +4,4 @@ export type { PublicEventEmitter, ToEventEmitter, ToEventEmitters, ToDeferredEve
 export type { Result, SuccessResult, ErrorResult, Mutable, DeepReadonly, DeepRequired, DeepPartial, DeepMutable, PropsOf, OverloadParameters, OverloadReturnType } from './types/index';
 export { InMemoryCache } from './cache/index';
 export type { Cache, SetCacheOptions } from './cache/index';
+export { TimeoutScheduler } from './timeoutScheduler';

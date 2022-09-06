@@ -436,6 +436,55 @@ __publicField(InMemoryCache, "defaultCacheOptions", {
   absoluteExpirationMs: 1e3 * 60 * 30
 });
 
+// src/core/timeoutScheduler.ts
+var TimeoutScheduler = class {
+  constructor(timeouts, counterExpirationMs) {
+    this.timeouts = timeouts;
+    this.counterExpirationMs = counterExpirationMs;
+    __publicField(this, "counterExpirationWatcherId");
+    __publicField(this, "actionWatchers", /* @__PURE__ */ new Set());
+    __publicField(this, "_counter", 0);
+  }
+  get counter() {
+    return this._counter;
+  }
+  set counter(value) {
+    this._counter = value;
+  }
+  async dispose() {
+    if (this.counterExpirationWatcherId)
+      clearTimeout(this.counterExpirationWatcherId);
+    this.actionWatchers.forEach((watcher) => clearTimeout(watcher));
+  }
+  setTimeout(action) {
+    return new Promise((resolve) => {
+      if (this.counterExpirationMs)
+        this.resetCounterExpiration();
+      const timeoutIndex = Math.min(this.counter, this.timeouts.length - 1);
+      const timeout = this.timeouts[timeoutIndex];
+      const watcherId = setTimeout(async () => {
+        this.actionWatchers.delete(watcherId);
+        clearTimeout(watcherId);
+        await action();
+        resolve();
+      }, timeout);
+      this.actionWatchers.add(watcherId);
+      this.counter++;
+    });
+  }
+  resetCounter() {
+    this.counter = 0;
+  }
+  resetCounterExpiration() {
+    if (this.counterExpirationWatcherId)
+      clearTimeout(this.counterExpirationWatcherId);
+    this.counterExpirationWatcherId = setTimeout(() => {
+      this.resetCounter();
+      this.counterExpirationWatcherId = void 0;
+    }, this.counterExpirationMs);
+  }
+};
+
 // src/exchange/exchangeManager.ts
 var ExchangeManager = class {
   constructor(options) {
@@ -3981,6 +4030,7 @@ var _ExchangeWebSocketClient = class {
     });
     __publicField(this, "sockets", /* @__PURE__ */ new Map());
     __publicField(this, "_isStarted", false);
+    __publicField(this, "reconnectScheduler", new TimeoutScheduler([1e3, 5e3, 3e4, 6e4], 12e4));
     __publicField(this, "onAuthorized", async (authToken) => {
       this.removeSocket(authToken.userId);
       const socket = new WebSocketClient(new URL(_ExchangeWebSocketClient.EXCHANGE_URL_PATH, this.webSocketApiBaseUrl), authToken.value);
@@ -3996,9 +4046,9 @@ var _ExchangeWebSocketClient = class {
       this.events.messageReceived.emit(message);
     });
     __publicField(this, "onClosed", (socket, _event) => {
-      setTimeout(() => {
+      this.reconnectScheduler.setTimeout(() => {
         socket.connect();
-      }, 1e3);
+      });
     });
   }
   get isStarted() {
@@ -4016,6 +4066,7 @@ var _ExchangeWebSocketClient = class {
     this.sockets.forEach((_, userId) => {
       this.removeSocket(userId);
     });
+    this.reconnectScheduler.dispose();
     this._isStarted = false;
   }
   subscribeOnAuthEvents() {
@@ -4044,11 +4095,12 @@ var _MarketDataWebSocketClient = class {
     });
     __publicField(this, "socket");
     __publicField(this, "_isStarted", false);
+    __publicField(this, "reconnectScheduler", new TimeoutScheduler([1e3, 5e3, 3e4, 6e4], 12e4));
     __publicField(this, "onSocketClosed", (socket, _event) => {
-      setTimeout(async () => {
+      this.reconnectScheduler.setTimeout(async () => {
         await socket.connect();
         this.subscribeOnStreams(socket);
-      }, 1e3);
+      });
     });
     __publicField(this, "onSocketMessageReceived", (message) => {
       this.events.messageReceived.emit(message);
@@ -4073,6 +4125,7 @@ var _MarketDataWebSocketClient = class {
     this.socket.events.messageReceived.removeListener(this.onSocketMessageReceived);
     this.socket.events.closed.removeListener(this.onSocketClosed);
     this.socket.disconnect();
+    this.reconnectScheduler.dispose();
     this._isStarted = false;
   }
   subscribeOnStreams(socket) {
