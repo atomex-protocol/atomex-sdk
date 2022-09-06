@@ -1,16 +1,16 @@
-import { AtomexProtocolMultiChain, atomexProtocolMultiChainHelper } from '../../blockchain/atomexProtocolMultiChain';
+import { AtomexProtocolMultiChain, atomexProtocolMultiChainHelper } from '../../../blockchain/atomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolMultiChainInitiateParameters,
   AtomexProtocolMultiChainRedeemParameters,
   AtomexProtocolMultiChainRefundParameters,
   FeesInfo, Transaction, WalletsManager
-} from '../../blockchain/index';
-import type { AtomexNetwork } from '../../common/index';
-import type { DeepReadonly } from '../../core/index';
-import { Web3AtomexProtocolMultiChain } from '../../evm/index';
-import type { PriceManager } from '../../exchange';
-import type { EthereumWeb3AtomexProtocolMultiChainOptions } from '../models/index';
+} from '../../../blockchain/index';
+import type { AtomexNetwork } from '../../../common/index';
+import type { DeepReadonly } from '../../../core/index';
+import { Web3AtomexProtocolMultiChain } from '../../../evm/index';
+import type { PriceManager } from '../../../exchange';
+import type { EthereumWeb3AtomexProtocolMultiChainOptions } from '../../models/index';
 
 export class EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChain {
   readonly type = 'multi-chain';
