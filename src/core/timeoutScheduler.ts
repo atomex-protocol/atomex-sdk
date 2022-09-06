@@ -20,10 +20,10 @@ export class TimeoutScheduler implements Disposable {
 
   async dispose(): Promise<void> {
     if (this.counterExpirationWatcherId)
-      clearInterval(this.counterExpirationWatcherId);
+      clearTimeout(this.counterExpirationWatcherId);
 
     if (this.actionWatcherId)
-      clearInterval(this.actionWatcherId);
+      clearTimeout(this.actionWatcherId);
   }
 
   setTimeout(action: () => void) {
@@ -43,7 +43,7 @@ export class TimeoutScheduler implements Disposable {
 
   private resetCounterExpiration() {
     if (this.counterExpirationWatcherId)
-      clearInterval(this.counterExpirationWatcherId);
+      clearTimeout(this.counterExpirationWatcherId);
 
     this.counterExpirationWatcherId = setTimeout(() => {
       this.resetCounter();
