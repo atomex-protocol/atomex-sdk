@@ -1,5 +1,5 @@
 
-import type { FA12TezosTaquitoAtomexProtocolMultiChainOptions, FA2TezosTaquitoAtomexProtocolMultiChainOptions } from '../../models/index';
+import type { FA12TezosTaquitoAtomexProtocolMultiChainOptions, FA2TezosTaquitoAtomexProtocolMultiChainOptions } from '../../../models/index';
 
 export const mainnetFA12TezosTaquitoAtomexProtocolMultiChainOptionsBase: Omit<
   FA12TezosTaquitoAtomexProtocolMultiChainOptions,
