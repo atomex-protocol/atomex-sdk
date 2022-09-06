@@ -4,6 +4,10 @@ import { TimeoutScheduler } from '../../src/core';
 describe('TimeoutScheduler', () => {
   let scheduler: TimeoutScheduler;
 
+  beforeEach(() => {
+    jest.useRealTimers();
+  });
+
   afterEach(() => {
     scheduler.dispose();
   });
@@ -75,5 +79,18 @@ describe('TimeoutScheduler', () => {
     await wait(500);
     expect(counter).toEqual(4);
     expect(scheduler.counter).toEqual(1);
+  });
+
+  test('stops all scheduled tasks on dispose', () => {
+    jest.useFakeTimers();
+    const action = jest.fn();
+    scheduler = new TimeoutScheduler([10000, 10000]);
+
+    scheduler.setTimeout(action);
+    scheduler.setTimeout(action);
+    scheduler.setTimeout(action);
+    expect(jest.getTimerCount()).toBe(3);
+    scheduler.dispose();
+    expect(jest.getTimerCount()).toBe(0);
   });
 });

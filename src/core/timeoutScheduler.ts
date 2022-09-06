@@ -2,7 +2,7 @@ import type { Disposable } from '../common';
 
 export class TimeoutScheduler implements Disposable {
   private counterExpirationWatcherId: ReturnType<typeof setTimeout> | undefined;
-  private actionWatcherId: ReturnType<typeof setTimeout> | undefined;
+  private actionWatchers = new Set<ReturnType<typeof setTimeout>>();
   private _counter = 0;
 
   constructor(
@@ -22,8 +22,7 @@ export class TimeoutScheduler implements Disposable {
     if (this.counterExpirationWatcherId)
       clearTimeout(this.counterExpirationWatcherId);
 
-    if (this.actionWatcherId)
-      clearTimeout(this.actionWatcherId);
+    this.actionWatchers.forEach(watcher => clearTimeout(watcher));
   }
 
   setTimeout(action: () => void) {
@@ -32,7 +31,13 @@ export class TimeoutScheduler implements Disposable {
 
     const timeoutIndex = Math.min(this.counter, this.timeouts.length - 1);
     const timeout = this.timeouts[timeoutIndex];
-    this.actionWatcherId = setTimeout(action, timeout);
+
+    const watcherId = setTimeout(() => {
+      this.actionWatchers.delete(watcherId);
+      clearTimeout(watcherId);
+      action();
+    }, timeout);
+    this.actionWatchers.add(watcherId);
 
     this.counter++;
   }
