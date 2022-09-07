@@ -1,3 +1,5 @@
+import type { TransactionReceipt } from 'web3-core';
+
 import { AtomexProtocolMultiChain, atomexProtocolMultiChainHelper } from '../../../blockchain/atomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
@@ -25,19 +27,71 @@ export class EthereumWeb3AtomexProtocolMultiChain extends Web3AtomexProtocolMult
     super('ethereum', atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
   }
 
-  initiate(_params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {
-    throw new Error('Method not implemented.');
+  async initiate(params: AtomexProtocolMultiChainInitiateParameters): Promise<Transaction> {
+    const wallet = await this.getWallet(params.senderAddress);
+    const contract = new wallet.toolkit.eth.Contract(
+      this.atomexProtocolOptions.abi as EthereumWeb3AtomexProtocolMultiChainOptions['abi'],
+      this.swapContractAddress
+    );
+    const data: string = contract.methods
+      .initiate(
+        '0x' + params.secretHash,
+        params.receivingAddress,
+        Math.round(params.refundTimestamp.getTime() / 1000),
+        params.rewardForRedeem.toString(10),
+      )
+      .encodeABI();
+
+    const gas = params.rewardForRedeem.isZero()
+      ? this.atomexProtocolOptions.initiateOperation.gasLimit.withoutReward
+      : this.atomexProtocolOptions.initiateOperation.gasLimit.withReward;
+
+    const receipt: TransactionReceipt = await wallet.toolkit.eth.sendTransaction({
+      from: params.senderAddress,
+      to: this.swapContractAddress,
+      value: wallet.toolkit.utils.toWei(params.amount.toString(10), 'ether'),
+      gas,
+      data,
+    });
+
+    return this.getTransaction(wallet.toolkit, 'Lock', receipt);
   }
 
-  redeem(_params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
-    throw new Error('Method not implemented.');
+  async redeem(params: AtomexProtocolMultiChainRedeemParameters): Promise<Transaction> {
+    const wallet = await this.getWallet(params.senderAddress);
+    const contract = new wallet.toolkit.eth.Contract(
+      this.atomexProtocolOptions.abi as EthereumWeb3AtomexProtocolMultiChainOptions['abi'],
+      this.atomexProtocolOptions.swapContractAddress
+    );
+
+    const receipt: TransactionReceipt = await contract.methods
+      .redeem(`0x${params.secretHash}`, `0x${params.secret}`)
+      .send({
+        from: params.senderAddress,
+        gas: this.atomexProtocolOptions.redeemOperation.gasLimit,
+      });
+
+    return this.getTransaction(wallet.toolkit, 'Redeem', receipt);
   }
 
   getRedeemReward(redeemFee: FeesInfo): Promise<FeesInfo> {
     return atomexProtocolMultiChainHelper.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
 
-  refund(_params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
-    throw new Error('Method not implemented.');
+  async refund(params: AtomexProtocolMultiChainRefundParameters): Promise<Transaction> {
+    const wallet = await this.getWallet(params.senderAddress);
+    const contract = new wallet.toolkit.eth.Contract(
+      this.atomexProtocolOptions.abi as EthereumWeb3AtomexProtocolMultiChainOptions['abi'],
+      this.atomexProtocolOptions.swapContractAddress
+    );
+
+    const receipt: TransactionReceipt = await contract.methods
+      .refund(`0x${params.secretHash}`)
+      .send({
+        from: params.senderAddress,
+        gas: this.atomexProtocolOptions.refundOperation.gasLimit,
+      });
+
+    return this.getTransaction(wallet.toolkit, 'Refund', receipt);
   }
 }
