@@ -1,11 +1,12 @@
 import BigNumber from 'bignumber.js';
 import type Web3 from 'web3';
-import type { AtomexProtocolMultiChainBase } from '../../blockchain/atomexProtocolMultiChain';
-import type { AtomexBlockchainProvider, AtomexProtocolMultiChainInitiateParameters, AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters, BlockchainWallet, FeesInfo, Transaction, WalletsManager } from '../../blockchain/index';
-import type { AtomexNetwork } from '../../common/index';
-import type { DeepReadonly } from '../../core/index';
-import type { PriceManager } from '../../exchange';
-import type { Web3AtomexProtocolMultiChainOptions } from '../models/index';
+import type { TransactionReceipt } from 'web3-core';
+import type { AtomexProtocolMultiChainBase } from '../../../blockchain/atomexProtocolMultiChain';
+import type { AtomexBlockchainProvider, AtomexProtocolMultiChainInitiateParameters, AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters, BlockchainWallet, FeesInfo, Transaction, WalletsManager } from '../../../blockchain/index';
+import type { AtomexNetwork } from '../../../common/index';
+import type { DeepReadonly } from '../../../core/index';
+import type { PriceManager } from '../../../exchange';
+import type { Web3AtomexProtocolMultiChainOptions } from '../../models/index';
 export declare abstract class Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChainBase {
     protected readonly blockchain: string;
     readonly atomexNetwork: AtomexNetwork;
@@ -27,4 +28,5 @@ export declare abstract class Web3AtomexProtocolMultiChain implements AtomexProt
     getRefundFees(_params: Partial<AtomexProtocolMultiChainInitiateParameters>): Promise<FeesInfo>;
     protected getReadonlyWeb3(): Promise<Web3>;
     protected getWallet(address?: string): Promise<BlockchainWallet<Web3>>;
+    protected getTransaction(toolkit: Web3, type: Transaction['type'], receipt: TransactionReceipt): Promise<Transaction>;
 }

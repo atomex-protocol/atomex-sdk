@@ -1817,7 +1817,7 @@ var AtomexBlockchainProvider = class {
   }
 };
 
-// src/evm/atomexProtocol/web3AtomexProtocolMultiChain.ts
+// src/evm/atomexProtocol/multiChain/web3AtomexProtocolMultiChain.ts
 var import_bignumber11 = __toESM(require("bignumber.js"));
 
 // src/evm/helpers/web3Helper.ts
@@ -1846,7 +1846,7 @@ var convertFromWei = (toolkit, value, unit) => {
   return new import_bignumber10.default(result);
 };
 
-// src/evm/atomexProtocol/web3AtomexProtocolMultiChain.ts
+// src/evm/atomexProtocol/multiChain/web3AtomexProtocolMultiChain.ts
 var _Web3AtomexProtocolMultiChain = class {
   constructor(blockchain, atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
     this.blockchain = blockchain;
@@ -1904,6 +1904,17 @@ var _Web3AtomexProtocolMultiChain = class {
     if (!web3Wallet)
       throw new Error(`${this.blockchain} Web3 wallet not found`);
     return web3Wallet;
+  }
+  async getTransaction(toolkit, type, receipt) {
+    const currentBlockNumber = await toolkit.eth.getBlockNumber();
+    return {
+      type,
+      currencyId: this.currencyId,
+      blockId: receipt.blockNumber,
+      id: receipt.transactionHash,
+      status: String(receipt.status),
+      confirmations: Math.max(currentBlockNumber - receipt.blockNumber, 0)
+    };
   }
 };
 var Web3AtomexProtocolMultiChain = _Web3AtomexProtocolMultiChain;
@@ -2279,28 +2290,51 @@ var Web3BalancesProvider = class {
   }
 };
 
-// src/ethereum/atomexProtocol/ethereumWeb3AtomexProtocolMultiChain.ts
+// src/ethereum/atomexProtocol/multiChain/ethereumWeb3AtomexProtocolMultiChain.ts
 var EthereumWeb3AtomexProtocolMultiChain = class extends Web3AtomexProtocolMultiChain {
   constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
     super("ethereum", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
     this.atomexProtocolOptions = atomexProtocolOptions;
   }
   type = "multi-chain";
-  initiate(_params) {
-    throw new Error("Method not implemented.");
+  async initiate(params) {
+    const wallet = await this.getWallet(params.senderAddress);
+    const contract = new wallet.toolkit.eth.Contract(this.atomexProtocolOptions.abi, this.swapContractAddress);
+    const data = contract.methods.initiate("0x" + params.secretHash, params.receivingAddress, Math.round(params.refundTimestamp.getTime() / 1e3), params.rewardForRedeem.toString(10)).encodeABI();
+    const gas = params.rewardForRedeem.isZero() ? this.atomexProtocolOptions.initiateOperation.gasLimit.withoutReward : this.atomexProtocolOptions.initiateOperation.gasLimit.withReward;
+    const receipt = await wallet.toolkit.eth.sendTransaction({
+      from: params.senderAddress,
+      to: this.swapContractAddress,
+      value: wallet.toolkit.utils.toWei(params.amount.toString(10), "ether"),
+      gas,
+      data
+    });
+    return this.getTransaction(wallet.toolkit, "Lock", receipt);
   }
-  redeem(_params) {
-    throw new Error("Method not implemented.");
+  async redeem(params) {
+    const wallet = await this.getWallet(params.senderAddress);
+    const contract = new wallet.toolkit.eth.Contract(this.atomexProtocolOptions.abi, this.atomexProtocolOptions.swapContractAddress);
+    const receipt = await contract.methods.redeem(`0x${params.secretHash}`, `0x${params.secret}`).send({
+      from: params.senderAddress,
+      gas: this.atomexProtocolOptions.redeemOperation.gasLimit
+    });
+    return this.getTransaction(wallet.toolkit, "Redeem", receipt);
   }
   getRedeemReward(redeemFee) {
     return helper_exports.getRedeemRewardInNativeCurrency(this.currencyId, redeemFee, this.priceManager, this.atomexBlockchainProvider);
   }
-  refund(_params) {
-    throw new Error("Method not implemented.");
+  async refund(params) {
+    const wallet = await this.getWallet(params.senderAddress);
+    const contract = new wallet.toolkit.eth.Contract(this.atomexProtocolOptions.abi, this.atomexProtocolOptions.swapContractAddress);
+    const receipt = await contract.methods.refund(`0x${params.secretHash}`).send({
+      from: params.senderAddress,
+      gas: this.atomexProtocolOptions.refundOperation.gasLimit
+    });
+    return this.getTransaction(wallet.toolkit, "Refund", receipt);
   }
 };
 
-// src/ethereum/atomexProtocol/erc20EthereumWeb3AtomexProtocolMultiChain.ts
+// src/ethereum/atomexProtocol/multiChain/erc20EthereumWeb3AtomexProtocolMultiChain.ts
 var ERC20EthereumWeb3AtomexProtocolMultiChain = class extends Web3AtomexProtocolMultiChain {
   constructor(atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager) {
     super("ethereum", atomexNetwork, atomexProtocolOptions, atomexBlockchainProvider, walletsManager, priceManager);
@@ -2361,7 +2395,7 @@ var ethereumTestnetCurrencies = [
   nativeEthereumCurrency
 ];
 
-// src/ethereum/config/atomexProtocol/base.ts
+// src/ethereum/config/atomexProtocol/multiChain/base.ts
 var ethereumWeb3AtomexProtocolMultiChainABI = [
   {
     anonymous: false,
@@ -2646,7 +2680,7 @@ var ethereumWeb3AtomexProtocolMultiChainABI = [
   }
 ];
 
-// src/ethereum/config/atomexProtocol/mainnetMultiChainOptions.ts
+// src/ethereum/config/atomexProtocol/multiChain/mainnetMultiChainOptions.ts
 var mainnetNativeEthereumWeb3AtomexProtocolMultiChainOptions = {
   atomexProtocolVersion: 1,
   currencyId: "ETH",
@@ -2672,7 +2706,7 @@ var mainnetEthereumWeb3AtomexProtocolMultiChainOptions = {
   ETH: mainnetNativeEthereumWeb3AtomexProtocolMultiChainOptions
 };
 
-// src/ethereum/config/atomexProtocol/testnetMultiChainOptions.ts
+// src/ethereum/config/atomexProtocol/multiChain/testnetMultiChainOptions.ts
 var testnetNativeEthereumWeb3AtomexProtocolMultiChainOptions = {
   ...mainnetEthereumWeb3AtomexProtocolMultiChainOptions.ETH,
   swapContractAddress: "0x512fe6B803bA327DCeFBF2Cec7De333f761B0f2b",
@@ -3369,7 +3403,7 @@ var tezosTestnetCurrencies = [
   { ...usdtCurrency, contractAddress: "KT1BWvRQnVVowZZLGkct9A7sdj5YEe8CdUhR" }
 ];
 
-// src/tezos/config/atomexProtocol/base.ts
+// src/tezos/config/atomexProtocol/multiChain/base.ts
 var mainnetFA12TezosTaquitoAtomexProtocolMultiChainOptionsBase = {
   atomexProtocolVersion: 1,
   initiateOperation: {
@@ -3425,7 +3459,7 @@ var testnetFA2TezosTaquitoAtomexProtocolMultiChainOptionsBase = {
   }
 };
 
-// src/tezos/config/atomexProtocol/mainnetMultiChainOptions.ts
+// src/tezos/config/atomexProtocol/multiChain/mainnetMultiChainOptions.ts
 var mainnetNativeTezosTaquitoAtomexProtocolMultiChainOptions = {
   atomexProtocolVersion: 1,
   currencyId: "XTZ",
@@ -3480,7 +3514,7 @@ var mainnetTezosTaquitoAtomexProtocolMultiChainOptions = {
   USDT_XTZ: mainnetUSDtTezosTaquitoAtomexProtocolMultiChainOptions
 };
 
-// src/tezos/config/atomexProtocol/testnetMultiChainOptions.ts
+// src/tezos/config/atomexProtocol/multiChain/testnetMultiChainOptions.ts
 var testnetNativeTezosTaquitoAtomexProtocolMultiChainOptions = {
   atomexProtocolVersion: 1,
   currencyId: "XTZ",

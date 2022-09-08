@@ -1,2 +1,1 @@
-export { mainnetTezosTaquitoAtomexProtocolMultiChainOptions } from './mainnetMultiChainOptions';
-export { testnetTezosTaquitoAtomexProtocolMultiChainOptions } from './testnetMultiChainOptions';
+export { mainnetTezosTaquitoAtomexProtocolMultiChainOptions, testnetTezosTaquitoAtomexProtocolMultiChainOptions } from './multiChain/index';
