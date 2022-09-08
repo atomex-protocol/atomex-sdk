@@ -1,18 +1,19 @@
 import BigNumber from 'bignumber.js';
 import type Web3 from 'web3';
+import type { TransactionReceipt } from 'web3-core';
 
-import type { AtomexProtocolMultiChainBase } from '../../blockchain/atomexProtocolMultiChain';
+import type { AtomexProtocolMultiChainBase } from '../../../blockchain/atomexProtocolMultiChain';
 import type {
   AtomexBlockchainProvider,
   AtomexProtocolMultiChainInitiateParameters,
   AtomexProtocolMultiChainRedeemParameters, AtomexProtocolMultiChainRefundParameters,
   BlockchainWallet, FeesInfo, Transaction, WalletsManager
-} from '../../blockchain/index';
-import type { AtomexNetwork } from '../../common/index';
-import type { DeepReadonly } from '../../core/index';
-import type { PriceManager } from '../../exchange';
-import { web3Helper } from '../helpers';
-import type { Web3AtomexProtocolMultiChainOptions } from '../models/index';
+} from '../../../blockchain/index';
+import type { AtomexNetwork } from '../../../common/index';
+import type { DeepReadonly } from '../../../core/index';
+import type { PriceManager } from '../../../exchange';
+import { web3Helper } from '../../helpers';
+import type { Web3AtomexProtocolMultiChainOptions } from '../../models/index';
 
 export abstract class Web3AtomexProtocolMultiChain implements AtomexProtocolMultiChainBase {
   protected static readonly defaultMaxNetworkFeeMultiplier = new BigNumber(1.2);
@@ -26,8 +27,7 @@ export abstract class Web3AtomexProtocolMultiChain implements AtomexProtocolMult
     protected readonly atomexBlockchainProvider: AtomexBlockchainProvider,
     protected readonly walletsManager: WalletsManager,
     protected readonly priceManager: PriceManager
-  ) {
-  }
+  ) { }
 
   get currencyId() {
     return this.atomexProtocolOptions.currencyId;
@@ -98,5 +98,23 @@ export abstract class Web3AtomexProtocolMultiChain implements AtomexProtocolMult
       throw new Error(`${this.blockchain} Web3 wallet not found`);
 
     return web3Wallet;
+  }
+
+  protected async getTransaction(
+    toolkit: Web3,
+    type: Transaction['type'],
+    receipt: TransactionReceipt
+  ): Promise<Transaction> {
+    //TODO: Fill all fields
+    const currentBlockNumber = await toolkit.eth.getBlockNumber();
+
+    return {
+      type,
+      currencyId: this.currencyId,
+      blockId: receipt.blockNumber,
+      id: receipt.transactionHash,
+      status: String(receipt.status),
+      confirmations: Math.max(currentBlockNumber - receipt.blockNumber, 0)
+    };
   }
 }

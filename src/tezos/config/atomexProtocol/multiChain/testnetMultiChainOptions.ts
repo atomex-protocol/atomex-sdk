@@ -1,4 +1,7 @@
-import type { FA2TezosTaquitoAtomexProtocolMultiChainOptions, TezosTaquitoAtomexProtocolMultiChainOptions } from '../../models/index';
+import type {
+  FA2TezosTaquitoAtomexProtocolMultiChainOptions,
+  TezosTaquitoAtomexProtocolMultiChainOptions
+} from '../../../models/index';
 import { testnetFA2TezosTaquitoAtomexProtocolMultiChainOptionsBase } from './base';
 
 const testnetNativeTezosTaquitoAtomexProtocolMultiChainOptions: TezosTaquitoAtomexProtocolMultiChainOptions = {

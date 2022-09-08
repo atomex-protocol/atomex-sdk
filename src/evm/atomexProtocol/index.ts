@@ -1,1 +1,1 @@
-export { Web3AtomexProtocolMultiChain } from './web3AtomexProtocolMultiChain';
+export { Web3AtomexProtocolMultiChain } from './multiChain/index';

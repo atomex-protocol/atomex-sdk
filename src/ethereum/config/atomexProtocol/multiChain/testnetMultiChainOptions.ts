@@ -1,4 +1,4 @@
-import type { EthereumWeb3AtomexProtocolMultiChainOptions } from '../../models/index';
+import type { EthereumWeb3AtomexProtocolMultiChainOptions } from '../../../models/index';
 import { mainnetEthereumWeb3AtomexProtocolMultiChainOptions } from './mainnetMultiChainOptions';
 
 const testnetNativeEthereumWeb3AtomexProtocolMultiChainOptions: EthereumWeb3AtomexProtocolMultiChainOptions = {
