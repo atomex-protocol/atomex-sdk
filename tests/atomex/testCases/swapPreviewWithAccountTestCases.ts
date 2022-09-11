@@ -43,7 +43,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('0.000948468')
           },
           max: {
-            amount: new BigNumber('90.445209'),
+            amount: new BigNumber('90.485209'),
             price: new BigNumber('0.000948468')
           }
         },
@@ -60,7 +60,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('1054.331827747')
           },
           max: {
-            amount: new BigNumber('0.085784386'),
+            amount: new BigNumber('0.085822325'),
             price: new BigNumber('1054.331827747')
           }
         },
@@ -97,12 +97,6 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               currencyId: 'XTZ',
               estimated: new BigNumber('5.501128'),
               max: new BigNumber('9.414791')
-            },
-            {
-              name: 'refund-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.03'),
-              max: new BigNumber('0.04')
             }
           ]
         },
@@ -134,7 +128,10 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         amount: new BigNumber(35),
         from: 'XTZ',
         to: 'ETH',
-        useWatchTower: false
+        watchTower: {
+          redeemEnabled: false,
+          refundEnabled: false
+        }
       },
       {
         type: 'SolidFillOrKill',
@@ -319,12 +316,6 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               currencyId: 'XTZ',
               estimated: new BigNumber('5.501128'),
               max: new BigNumber('9.414791')
-            },
-            {
-              name: 'refund-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.03'),
-              max: new BigNumber('0.04')
             }
           ]
         },
@@ -334,7 +325,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             data: {
               type: 'fees',
               currencyId: 'XTZ',
-              requiredAmount: new BigNumber('9.554791')
+              requiredAmount: new BigNumber('9.514791')
             }
           }
         ],
@@ -437,12 +428,6 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               currencyId: 'USDT_XTZ',
               estimated: new BigNumber('8.615812'),
               max: new BigNumber('14.712051')
-            },
-            {
-              name: 'refund-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.06'),
-              max: new BigNumber('0.07')
             }
           ]
         },
@@ -452,7 +437,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             data: {
               type: 'fees',
               currencyId: 'XTZ',
-              requiredAmount: new BigNumber(0.2)
+              requiredAmount: new BigNumber(0.13)
             }
           }
         ],
@@ -559,12 +544,6 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               currencyId: 'USDT_XTZ',
               estimated: new BigNumber('8.615812'),
               max: new BigNumber('14.712051')
-            },
-            {
-              name: 'refund-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.06'),
-              max: new BigNumber('0.07')
             }
           ]
         },
