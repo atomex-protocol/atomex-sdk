@@ -74,7 +74,7 @@ export class AtomexSwapPreviewManager implements Disposable {
       fromNativeCurrencyInfo,
       toCurrencyInfo,
       toNativeCurrencyInfo,
-      swapPreviewParameters.useWatchTower
+      swapPreviewParameters.watchTower
     );
 
     const swapPreviewAccountData = await this.getSwapPreviewAccountData(
@@ -157,7 +157,11 @@ export class AtomexSwapPreviewManager implements Disposable {
   protected normalizeSwapPreviewParametersIfNeeded(swapPreviewParameters: SwapPreviewParameters | NormalizedSwapPreviewParameters): NormalizedSwapPreviewParameters {
     return AtomexSwapPreviewManager.isNormalizedSwapPreviewParameters(swapPreviewParameters)
       ? swapPreviewParameters
-      : AtomexSwapPreviewManager.normalizeSwapPreviewParameters(swapPreviewParameters, this.atomexContext.providers.exchangeSymbolsProvider, true);
+      : AtomexSwapPreviewManager.normalizeSwapPreviewParameters(
+        swapPreviewParameters,
+        this.atomexContext.providers.exchangeSymbolsProvider,
+        { redeemEnabled: true, refundEnabled: true }
+      );
   }
 
   protected async getSwapPreviewAccountData(
@@ -370,9 +374,9 @@ export class AtomexSwapPreviewManager implements Disposable {
     fromNativeCurrencyInfo: CurrencyInfo,
     toCurrencyInfo: CurrencyInfo,
     toNativeCurrencyInfo: CurrencyInfo,
-    useWatchTower: boolean
+    watchTowerOptions: NormalizedSwapPreviewParameters['watchTower']
   ): Promise<SwapPreview['fees']> {
-    const feesCacheKey = this.getSwapPreviewFeesCacheKey(fromCurrencyInfo, toCurrencyInfo, useWatchTower);
+    const feesCacheKey = this.getSwapPreviewFeesCacheKey(fromCurrencyInfo, toCurrencyInfo, watchTowerOptions);
     const cachedFees = this.swapPreviewFeesCache.get<SwapPreview['fees']>(feesCacheKey);
     if (cachedFees)
       return cachedFees;
@@ -384,8 +388,8 @@ export class AtomexSwapPreviewManager implements Disposable {
     const [fromInitiateFees, toRedeemOrRewardForRedeem, fromRefundFees, toInitiateFees, fromRedeemFees] = await Promise.all([
       // TODO: fill parameters
       fromAtomexProtocol.getInitiateFees({}),
-      useWatchTower ? toAtomexProtocol.getRedeemReward(toRedeemFees) : toRedeemFees,
-      fromAtomexProtocol.getRefundFees({}),
+      watchTowerOptions.redeemEnabled ? toAtomexProtocol.getRedeemReward(toRedeemFees) : toRedeemFees,
+      watchTowerOptions.refundEnabled ? fromAtomexProtocol.getRefundFees({}) : undefined,
 
       toAtomexProtocol.getInitiateFees({}),
       fromAtomexProtocol.getRedeemFees({}),
@@ -404,28 +408,28 @@ export class AtomexSwapPreviewManager implements Disposable {
       toInitiateFees,
       fromRedeemFees
     );
+    const successFees: SwapPreviewFee[] = [
+      paymentFee,
+      makerFee,
+      {
+        name: watchTowerOptions.redeemEnabled ? 'redeem-reward' : 'redeem-fee',
+        currencyId: watchTowerOptions.redeemEnabled ? toCurrencyInfo.currency.id : toNativeCurrencyInfo.currency.id,
+        estimated: toRedeemOrRewardForRedeem.estimated,
+        max: toRedeemOrRewardForRedeem.max
+      }
+    ];
+    const refundFees: SwapPreviewFee[] = [paymentFee, makerFee];
+    if (fromRefundFees)
+      refundFees.push({
+        name: 'refund-fee',
+        currencyId: fromNativeCurrencyInfo.currency.id,
+        estimated: fromRefundFees.estimated,
+        max: fromRefundFees.max
+      });
 
     const swapPreviewFees: SwapPreview['fees'] = {
-      success: [
-        paymentFee,
-        makerFee,
-        {
-          name: useWatchTower ? 'redeem-reward' : 'redeem-fee',
-          currencyId: useWatchTower ? toCurrencyInfo.currency.id : toNativeCurrencyInfo.currency.id,
-          estimated: toRedeemOrRewardForRedeem.estimated,
-          max: toRedeemOrRewardForRedeem.max
-        }
-      ],
-      refund: [
-        paymentFee,
-        makerFee,
-        {
-          name: 'refund-fee',
-          currencyId: fromNativeCurrencyInfo.currency.id,
-          estimated: fromRefundFees.estimated,
-          max: fromRefundFees.max
-        }
-      ]
+      success: successFees,
+      refund: refundFees
     };
     this.swapPreviewFeesCache.set(feesCacheKey, swapPreviewFees);
 
@@ -480,9 +484,9 @@ export class AtomexSwapPreviewManager implements Disposable {
   private getSwapPreviewFeesCacheKey(
     fromCurrencyInfo: CurrencyInfo,
     toCurrencyInfo: CurrencyInfo,
-    useWatchTower: boolean
+    watchTowerOptions: NormalizedSwapPreviewParameters['watchTower']
   ) {
-    return `${fromCurrencyInfo.currency.id}_${toCurrencyInfo.currency.id}_${useWatchTower}`;
+    return `${fromCurrencyInfo.currency.id}_${toCurrencyInfo.currency.id}_${watchTowerOptions.redeemEnabled}_${watchTowerOptions.refundEnabled}`;
   }
 
   private getUserInvolvedSwapsCacheKey(
@@ -500,14 +504,19 @@ export class AtomexSwapPreviewManager implements Disposable {
   static normalizeSwapPreviewParameters(
     swapPreviewParameters: SwapPreviewParameters,
     exchangeSymbolsProvider: ExchangeSymbolsProvider,
-    defaultUseWatchTowerParameter: boolean
+    defaultWatchTowerOptions: NormalizedSwapPreviewParameters['watchTower']
   ): NormalizedSwapPreviewParameters {
     const normalizedOrderPreviewParameters = ordersHelper.normalizeOrderPreviewParameters(swapPreviewParameters, exchangeSymbolsProvider);
 
     return {
       type: swapPreviewParameters.type,
       amount: swapPreviewParameters.amount,
-      useWatchTower: typeof swapPreviewParameters.useWatchTower !== 'boolean' ? defaultUseWatchTowerParameter : swapPreviewParameters.useWatchTower,
+      watchTower: swapPreviewParameters.watchTower === undefined || swapPreviewParameters.watchTower === null
+        ? defaultWatchTowerOptions
+        : {
+          redeemEnabled: typeof swapPreviewParameters.watchTower.redeemEnabled === 'boolean' ? swapPreviewParameters.watchTower.redeemEnabled : defaultWatchTowerOptions.redeemEnabled,
+          refundEnabled: typeof swapPreviewParameters.watchTower.refundEnabled === 'boolean' ? swapPreviewParameters.watchTower.refundEnabled : defaultWatchTowerOptions.refundEnabled,
+        },
       from: normalizedOrderPreviewParameters.from,
       to: normalizedOrderPreviewParameters.to,
       isFromAmount: normalizedOrderPreviewParameters.isFromAmount,
