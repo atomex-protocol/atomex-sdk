@@ -324,41 +324,45 @@ export class AtomexSwapPreviewManager implements Disposable {
     if (swapsInfo)
       return swapsInfo;
 
-    const swapIds: Array<Swap['id']> = [];
-    const swaps = (await this.atomexContext.managers.swapManager.getSwaps(userAddress))
-      .filter(swap => {
-        if (!(
-          swap.from.currencyId === fromCurrencyId
-          && (swap.user.status === 'Created' || swap.user.status === 'Involved')
-          && (swap.counterParty.status === 'Created' || swap.counterParty.status === 'Involved'
-            || swap.counterParty.status === 'PartiallyInitiated' || swap.counterParty.status === 'Initiated'
-          )
-        )) {
-          return false;
-        }
-
-        const now = Date.now();
-        const swapTimeStamp = swap.timeStamp.getTime();
-
-        if (!(
-          (swapTimeStamp + swap.user.requisites.lockTime * 1000 > now)
-          && (swap.counterParty.requisites.lockTime === 0 || (swapTimeStamp + swap.counterParty.requisites.lockTime * 1000 > now))
-        )) {
-          return false;
-        }
-
-        swapIds.push(swap.id);
-        return true;
-      });
-    const fromTotalAmount = swaps.reduce(
-      (total, swap) => total.plus(swap.from.amount),
-      new BigNumber(0)
-    );
-
-    swapsInfo = { swaps, swapIds, fromCurrencyId, fromTotalAmount };
+    const allUserSwaps = await this.atomexContext.managers.swapManager.getSwaps(userAddress);
+    swapsInfo = this.getUserInvolvedSwapsInfoBySwaps(allUserSwaps, fromCurrencyId);
     this.userInvolvedSwapsCache.set(cacheKey, swapsInfo);
 
     return swapsInfo;
+  }
+
+  protected getUserInvolvedSwapsInfoBySwaps(allUserSwaps: readonly Swap[], fromCurrencyId: Currency['id']): UserInvolvedSwapsInfo {
+    const swaps: Swap[] = [];
+    const swapIds: Array<Swap['id']> = [];
+    let fromTotalAmount = new BigNumber(0);
+
+    for (const swap of allUserSwaps) {
+      if (!(
+        swap.from.currencyId === fromCurrencyId
+        && (swap.user.status === 'Created' || swap.user.status === 'Involved')
+        && (swap.counterParty.status === 'Created' || swap.counterParty.status === 'Involved'
+          || swap.counterParty.status === 'PartiallyInitiated' || swap.counterParty.status === 'Initiated'
+        )
+      )) {
+        continue;
+      }
+
+      const now = Date.now();
+      const swapTimeStamp = swap.timeStamp.getTime();
+
+      if (!(
+        (swapTimeStamp + swap.user.requisites.lockTime * 1000 > now)
+        && (swap.counterParty.requisites.lockTime === 0 || (swapTimeStamp + swap.counterParty.requisites.lockTime * 1000 > now))
+      )) {
+        continue;
+      }
+
+      swaps.push(swap);
+      swapIds.push(swap.id);
+      fromTotalAmount = fromTotalAmount.plus(swap.from.amount);
+    }
+
+    return { swaps, swapIds, fromCurrencyId, fromTotalAmount };
   }
 
   protected async calculateSwapPreviewFees(
