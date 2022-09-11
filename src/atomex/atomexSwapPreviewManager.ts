@@ -194,7 +194,15 @@ export class AtomexSwapPreviewManager implements Disposable {
       if (!fromCurrencyBalance || !fromNativeCurrencyBalance)
         throw new Error('Can not get from currency balances');
 
-      const maxFromNativeCurrencyFee = AtomexSwapPreviewManager.calculateMaxTotalFee(swapPreviewFees, fromNativeCurrencyInfo.currency.id);
+      const isFromCurrencyNative = fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id;
+      const maxFromNativeCurrencyFeePerSwap = AtomexSwapPreviewManager.calculateMaxTotalFee(swapPreviewFees, fromNativeCurrencyInfo.currency.id);
+      const userInvolvedSwapsInfo = isFromCurrencyNative
+        ? await this.getUserInvolvedSwapsInfo(fromAddress, fromCurrencyInfo.currency.id)
+        : null;
+      const maxFromNativeCurrencyFee = userInvolvedSwapsInfo
+        ? maxFromNativeCurrencyFeePerSwap.multipliedBy(userInvolvedSwapsInfo.swapIds.length + 1)
+        : maxFromNativeCurrencyFeePerSwap;
+
       if (fromNativeCurrencyBalance.isLessThan(maxFromNativeCurrencyFee)) {
         errors.push({
           id: 'not-enough-funds',
@@ -206,10 +214,7 @@ export class AtomexSwapPreviewManager implements Disposable {
         });
       }
 
-      const balanceIncludingFees = fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id
-        ? fromCurrencyBalance.minus(maxFromNativeCurrencyFee)
-        : fromCurrencyBalance;
-
+      const balanceIncludingFees = isFromCurrencyNative ? fromCurrencyBalance.minus(maxFromNativeCurrencyFee) : fromCurrencyBalance;
       maxOrderPreview = await this.getMaxOrderPreview(
         actualOrderPreview,
         availableLiquidity,
