@@ -194,14 +194,9 @@ export class AtomexSwapPreviewManager implements Disposable {
       if (!fromCurrencyBalance || !fromNativeCurrencyBalance)
         throw new Error('Can not get from currency balances');
 
-      const isFromCurrencyNative = fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id;
       const maxFromNativeCurrencyFeePerSwap = AtomexSwapPreviewManager.calculateMaxTotalFee(swapPreviewFees, fromNativeCurrencyInfo.currency.id);
-      const userInvolvedSwapsInfo = isFromCurrencyNative
-        ? await this.getUserInvolvedSwapsInfo(fromAddress, fromCurrencyInfo.currency.id)
-        : null;
-      const maxFromNativeCurrencyFee = userInvolvedSwapsInfo
-        ? maxFromNativeCurrencyFeePerSwap.multipliedBy(userInvolvedSwapsInfo.swapIds.length + 1)
-        : maxFromNativeCurrencyFeePerSwap;
+      const userInvolvedSwapsInfo = await this.getUserInvolvedSwapsInfo(fromAddress, fromCurrencyInfo.currency.id);
+      const maxFromNativeCurrencyFee = maxFromNativeCurrencyFeePerSwap.multipliedBy(userInvolvedSwapsInfo.swapIds.length + 1);
 
       if (fromNativeCurrencyBalance.isLessThan(maxFromNativeCurrencyFee)) {
         errors.push({
@@ -214,7 +209,9 @@ export class AtomexSwapPreviewManager implements Disposable {
         });
       }
 
-      const balanceIncludingFees = isFromCurrencyNative ? fromCurrencyBalance.minus(maxFromNativeCurrencyFee) : fromCurrencyBalance;
+      const balanceIncludingFees = fromCurrencyInfo.currency.id === fromNativeCurrencyInfo.currency.id
+        ? fromCurrencyBalance.minus(maxFromNativeCurrencyFee)
+        : fromCurrencyBalance;
       maxOrderPreview = await this.getMaxOrderPreview(
         actualOrderPreview,
         availableLiquidity,
@@ -394,7 +391,7 @@ export class AtomexSwapPreviewManager implements Disposable {
       // TODO: fill parameters
       fromAtomexProtocol.getInitiateFees({}),
       watchTowerOptions.redeemEnabled ? toAtomexProtocol.getRedeemReward(toRedeemFees) : toRedeemFees,
-      watchTowerOptions.refundEnabled ? fromAtomexProtocol.getRefundFees({}) : undefined,
+      watchTowerOptions.refundEnabled ? undefined : fromAtomexProtocol.getRefundFees({}),
 
       toAtomexProtocol.getInitiateFees({}),
       fromAtomexProtocol.getRedeemFees({}),
