@@ -194,24 +194,25 @@ export class AtomexSwapPreviewManager implements Disposable {
   ): Promise<{ fromAddress?: string; toAddress?: string; maxOrderPreview?: OrderPreview }> {
     const [fromAddress, toAddress] = await Promise.all([
       this.atomexContext.managers.walletsManager.getWallet(undefined, swapCurrencyInfos.fromCurrencyInfo.currency.blockchain)
-        .then(wallet => wallet?.getAddress())
-        .then(address => address && this.atomexContext.managers.authorizationManager.getAuthToken(address) ? address : undefined),
-
+        .then(wallet => wallet?.getAddress()),
       this.atomexContext.managers.walletsManager.getWallet(undefined, swapCurrencyInfos.toCurrencyInfo.currency.blockchain)
         .then(wallet => wallet?.getAddress()),
     ]);
     let maxOrderPreview: OrderPreview | undefined;
 
+    const authorizedFromAddress = fromAddress && this.atomexContext.managers.authorizationManager.getAuthToken(fromAddress) ? fromAddress : undefined;
+    const authorizedToAddress = toAddress && this.atomexContext.managers.authorizationManager.getAuthToken(toAddress) ? toAddress : undefined;
+
     const userInvolvedSwapsInfo = await this.getUserInvolvedSwapsInfo(
-      fromAddress,
-      toAddress,
+      authorizedFromAddress,
+      authorizedToAddress,
       swapCurrencyInfos
     );
-    if (fromAddress) {
-      let fromCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(fromAddress, swapCurrencyInfos.fromCurrencyInfo.currency);
+    if (authorizedFromAddress) {
+      let fromCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(authorizedFromAddress, swapCurrencyInfos.fromCurrencyInfo.currency);
       let fromNativeCurrencyBalance = swapCurrencyInfos.isFromCurrencyNative
         ? fromCurrencyBalance
-        : await this.atomexContext.managers.balanceManager.getBalance(fromAddress, swapCurrencyInfos.fromNativeCurrencyInfo.currency);
+        : await this.atomexContext.managers.balanceManager.getBalance(authorizedFromAddress, swapCurrencyInfos.fromNativeCurrencyInfo.currency);
       if (!fromCurrencyBalance || !fromNativeCurrencyBalance)
         throw new Error('Can not get from currency balances');
 
@@ -307,8 +308,8 @@ export class AtomexSwapPreviewManager implements Disposable {
       }
     }
 
-    if (toAddress) {
-      let toNativeCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(toAddress, swapCurrencyInfos.toNativeCurrencyInfo.currency);
+    if (authorizedToAddress) {
+      let toNativeCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(authorizedToAddress, swapCurrencyInfos.toNativeCurrencyInfo.currency);
       if (!toNativeCurrencyBalance)
         throw new Error('Can not get to currency balance');
 
@@ -368,24 +369,24 @@ export class AtomexSwapPreviewManager implements Disposable {
   }
 
   protected async getUserInvolvedSwapsInfo(
-    fromAddress: string | undefined,
-    toAddress: string | undefined,
+    authorizedFromAddress: string | undefined,
+    authorizedToAddress: string | undefined,
     swapCurrencyInfos: SwapCurrencyInfos
   ): Promise<UserInvolvedSwapsInfo | undefined> {
-    const addresses = fromAddress && toAddress
-      ? fromAddress !== toAddress
-        ? [fromAddress, toAddress].sort()
-        : [fromAddress]
-      : fromAddress
-        ? [fromAddress]
-        : toAddress
-          ? [toAddress]
+    const authorizedAddresses = authorizedFromAddress && authorizedToAddress
+      ? authorizedFromAddress !== authorizedToAddress
+        ? [authorizedFromAddress, authorizedToAddress].sort()
+        : [authorizedFromAddress]
+      : authorizedFromAddress
+        ? [authorizedFromAddress]
+        : authorizedToAddress
+          ? [authorizedToAddress]
           : undefined;
-    if (!addresses)
+    if (!authorizedAddresses)
       return undefined;
 
     const cacheKey = this.getUserInvolvedSwapsCacheKey(
-      addresses,
+      authorizedAddresses,
       swapCurrencyInfos.fromCurrencyInfo.currency.id,
       swapCurrencyInfos.toCurrencyInfo.currency.id
     );
@@ -393,7 +394,7 @@ export class AtomexSwapPreviewManager implements Disposable {
     if (swapsInfo)
       return swapsInfo;
 
-    const involvedSwaps = await this.getInvolvedSwaps(addresses);
+    const involvedSwaps = await this.getInvolvedSwaps(authorizedAddresses);
     swapsInfo = await this.getUserInvolvedSwapsInfoByActiveSwaps(involvedSwaps);
     this.userInvolvedSwapsCache.set(cacheKey, swapsInfo);
 
