@@ -151,7 +151,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('0.000948468')
           },
           max: {
-            amount: new BigNumber('22.445209'),
+            amount: new BigNumber('13.455627'),
             price: new BigNumber('0.000948468')
           }
         },
@@ -168,7 +168,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('1054.331827747')
           },
           max: {
-            amount: new BigNumber('0.021288562'),
+            amount: new BigNumber('0.012762231'),
             price: new BigNumber('1054.331827747')
           }
         },
@@ -205,12 +205,6 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               currencyId: 'XTZ',
               estimated: new BigNumber('5.501128'),
               max: new BigNumber('9.414791')
-            },
-            {
-              name: 'refund-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.03'),
-              max: new BigNumber('0.04')
             }
           ]
         },
@@ -224,7 +218,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
         accounts: {
           tezos: {
             tz101: {
-              XTZ: new BigNumber(100)
+              XTZ: new BigNumber(110)
             }
           },
           ethereum: {
@@ -261,7 +255,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('0.000948468')
           },
           max: {
-            amount: new BigNumber('22.445209'),
+            amount: new BigNumber('3.455627'),
             price: new BigNumber('0.000948468')
           }
         },
@@ -278,7 +272,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('1054.331827747')
           },
           max: {
-            amount: new BigNumber('0.021288562'),
+            amount: new BigNumber('0.003277551'),
             price: new BigNumber('1054.331827747')
           }
         },
@@ -315,12 +309,6 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               currencyId: 'XTZ',
               estimated: new BigNumber('5.501128'),
               max: new BigNumber('9.414791')
-            },
-            {
-              name: 'refund-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.03'),
-              max: new BigNumber('0.04')
             }
           ]
         },
@@ -330,7 +318,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             data: {
               type: 'swaps',
               currencyId: 'XTZ',
-              lockedAmount: new BigNumber(68),
+              lockedAmount: new BigNumber(87.029582),
               swapIds: [100, 89]
             }
           }
@@ -381,7 +369,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('0.000948468')
           },
           max: {
-            amount: new BigNumber('22.445209'),
+            amount: new BigNumber('3.455627'),
             price: new BigNumber('0.000948468')
           }
         },
@@ -398,7 +386,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             price: new BigNumber('1054.331827747')
           },
           max: {
-            amount: new BigNumber('0.021288562'),
+            amount: new BigNumber('0.003277551'),
             price: new BigNumber('1054.331827747')
           }
         },
@@ -435,12 +423,6 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
               currencyId: 'XTZ',
               estimated: new BigNumber('5.501128'),
               max: new BigNumber('9.414791')
-            },
-            {
-              name: 'refund-fee',
-              currencyId: 'XTZ',
-              estimated: new BigNumber('0.03'),
-              max: new BigNumber('0.04')
             }
           ]
         },
@@ -450,7 +432,7 @@ const swapPreviewWithoutAccountTestCases: ReadonlyArray<[
             data: {
               type: 'swaps',
               currencyId: 'XTZ',
-              lockedAmount: new BigNumber(68),
+              lockedAmount: new BigNumber(87.029582),
               swapIds: [100, 89]
             }
           }
