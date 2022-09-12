@@ -1,10 +1,14 @@
 import type BigNumber from 'bignumber.js';
 import type { Side } from '../../common/index';
 import type { CurrencyDirection, ExchangeSymbol, OrderType } from '../../exchange/index';
+interface WatchTowerOptions {
+    redeemEnabled?: boolean;
+    refundEnabled?: boolean;
+}
 interface SwapPreviewParametersBase {
     type: OrderType;
     amount: BigNumber;
-    useWatchTower?: boolean;
+    watchTower?: WatchTowerOptions;
 }
 export declare type SwapPreviewParameters = SwapPreviewParametersBase & ({
     from: CurrencyDirection['from'];
@@ -21,10 +25,14 @@ export declare type SwapPreviewParameters = SwapPreviewParametersBase & ({
     side: Side;
     isBaseCurrencyAmount?: boolean;
 });
+interface NormalizedWatchTowerOptions {
+    redeemEnabled: boolean;
+    refundEnabled: boolean;
+}
 export interface NormalizedSwapPreviewParameters {
     readonly type: OrderType;
     readonly amount: BigNumber;
-    readonly useWatchTower: boolean;
+    readonly watchTower: NormalizedWatchTowerOptions;
     readonly from: CurrencyDirection['from'];
     readonly to: CurrencyDirection['to'];
     readonly isFromAmount: boolean;
