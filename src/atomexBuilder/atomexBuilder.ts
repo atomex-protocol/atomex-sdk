@@ -89,10 +89,26 @@ export class AtomexBuilder {
 
   protected createAuthorizationManager() {
     const defaultAuthorizationManagerOptions = config[this.atomexContext.atomexNetwork].authorization;
+    const authorizationManagerOptions: AuthorizationManagerDefaultComponentOptions = this.options.authorizationManager
+      ? {
+        authorizationBaseUrl: this.options.authorizationManager.authorizationBaseUrl || defaultAuthorizationManagerOptions.authorizationBaseUrl,
+        authMessage: this.options.authorizationManager.authMessage || defaultAuthorizationManagerOptions.authMessage,
+        store: this.options.authorizationManager.store
+          ? {
+            browser: this.options.authorizationManager.store.browser
+              ? {
+                storeStrategy: this.options.authorizationManager.store.browser.storeStrategy || defaultAuthorizationManagerOptions.store.browser?.storeStrategy
+              }
+              : defaultAuthorizationManagerOptions.store.browser,
+            node: this.options.authorizationManager.store.node || defaultAuthorizationManagerOptions.store.node
+          }
+          : defaultAuthorizationManagerOptions.store
+      }
+      : defaultAuthorizationManagerOptions;
 
     return this.customAuthorizationManagerFactory
-      ? this.customAuthorizationManagerFactory(this.atomexContext, defaultAuthorizationManagerOptions, this.options)
-      : createDefaultAuthorizationManager(this.atomexContext, defaultAuthorizationManagerOptions, this.options);
+      ? this.customAuthorizationManagerFactory(this.atomexContext, authorizationManagerOptions, this.options)
+      : createDefaultAuthorizationManager(this.atomexContext, authorizationManagerOptions, this.options);
   }
 
   protected createWalletsManager() {
