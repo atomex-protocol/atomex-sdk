@@ -5,7 +5,7 @@ import type { AuthorizationManagerStore } from '../stores/index';
 import { atomexUtils, prepareTimeoutDuration } from '../utils/index';
 import {
   AuthenticationRequestData, AuthenticationResponseData, AuthorizationManagerOptions,
-  AuthToken, AuthTokenData, AuthTokenSource, AuthorizationParameters
+  AuthToken, AuthTokenData, AuthTokenSource, AuthorizationParameters, AuthMessage
 } from './models/index';
 
 interface AuthorizationManagerEvents {
@@ -23,7 +23,7 @@ export class AuthorizationManager implements AtomexService {
     authTokenExpired: new EventEmitter()
   };
 
-  protected static readonly DEFAULT_AUTH_MESSAGE = 'Signing in ';
+  protected static readonly DEFAULT_AUTH_MESSAGE: AuthMessage = 'Signing in ';
   protected static readonly DEFAULT_GET_AUTH_TOKEN_URI = '/v1/token';
   protected static readonly DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS = 60;
 
@@ -32,6 +32,7 @@ export class AuthorizationManager implements AtomexService {
   protected readonly walletsManager: WalletsManager;
   protected readonly store: AuthorizationManagerStore;
   protected readonly authorizationUrl: URL;
+  protected readonly defaultAuthMessage: AuthMessage;
   protected readonly expiringNotificationTimeInSeconds: number;
 
   private readonly _authTokenData: Map<string, AuthTokenData> = new Map();
@@ -42,6 +43,7 @@ export class AuthorizationManager implements AtomexService {
     this.atomexNetwork = options.atomexNetwork;
     this.store = options.store;
     this.walletsManager = options.walletsManager;
+    this.defaultAuthMessage = options.authMessage || AuthorizationManager.DEFAULT_AUTH_MESSAGE;
 
     atomexUtils.ensureNetworksAreSame(this, this.walletsManager);
 
@@ -82,7 +84,7 @@ export class AuthorizationManager implements AtomexService {
     address,
     authTokenSource = AuthTokenSource.All,
     blockchain,
-    authMessage = AuthorizationManager.DEFAULT_AUTH_MESSAGE
+    authMessage = this.defaultAuthMessage
   }: AuthorizationParameters): Promise<AuthToken | undefined> {
     if ((authTokenSource & AuthTokenSource.Local) === AuthTokenSource.Local) {
       const authToken = this.getAuthToken(address) || (await this.loadAuthTokenFromStore(address));
@@ -98,14 +100,15 @@ export class AuthorizationManager implements AtomexService {
     if (!wallet)
       throw new Error(`Not found: the corresponding wallet by the ${address} address`);
 
-    const timeStamp = this.getAuthorizationTimeStamp(authMessage);
-    const atomexSignature = await wallet.sign(authMessage + timeStamp);
+    const authMessageText = typeof authMessage === 'string' ? authMessage : authMessage({ address, blockchain });
+    const timeStamp = this.getAuthorizationTimeStamp(authMessageText);
+    const atomexSignature = await wallet.sign(authMessageText + timeStamp);
 
     if (atomexSignature.address !== address)
       throw new Error('Invalid address in the signed data');
 
     const authenticationRequestData: AuthenticationRequestData = {
-      message: authMessage,
+      message: authMessageText,
       publicKey: atomexSignature.publicKeyBytes,
       algorithm: atomexSignature.algorithm,
       signingDataType: atomexSignature.signingDataType,

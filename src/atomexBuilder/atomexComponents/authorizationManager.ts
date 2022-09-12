@@ -1,5 +1,5 @@
 import type { AtomexContext } from '../../atomex/index';
-import { AuthorizationManager } from '../../authorization/index';
+import { AuthorizationManager, AuthMessage } from '../../authorization/index';
 import { LocalStorageAuthorizationManagerStore, type PreDefinedStoreStrategyName } from '../../browser/index';
 import type { DeepReadonly } from '../../core/index';
 import { InMemoryAuthorizationManagerStore } from '../../stores/index';
@@ -9,6 +9,7 @@ export type RequiredAuthorizationManagerDefaultComponentOptions = Pick<Authoriza
 
 export type AuthorizationManagerDefaultComponentOptions = DeepReadonly<{
   authorizationBaseUrl: string;
+  authMessage?: AuthMessage;
   store: {
     node: {
       //
@@ -30,6 +31,7 @@ export const createDefaultAuthorizationManager = (
     atomexNetwork: atomexContext.atomexNetwork,
     walletsManager: atomexContext.managers.walletsManager,
     authorizationBaseUrl: options.authorizationBaseUrl,
+    authMessage: options.authMessage,
     store: environment === 'browser'
       ? new LocalStorageAuthorizationManagerStore(options.store.browser.storeStrategy)
       : new InMemoryAuthorizationManagerStore()

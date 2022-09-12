@@ -319,7 +319,7 @@ export class ExchangeManager implements AtomexService {
 
       const convertedAmount = isBaseCurrencyAmount
         ? amount
-        : toFixedBigNumber(amount.div(entry.price), exchangeSymbol.decimals.quoteCurrency, BigNumber.ROUND_FLOOR);
+        : toFixedBigNumber(amount.div(entry.price), exchangeSymbol.decimals.baseCurrency, BigNumber.ROUND_FLOOR);
       if (convertedAmount.isLessThanOrEqualTo(Math.max(...entry.qtyProfile)))
         return entry;
     }
