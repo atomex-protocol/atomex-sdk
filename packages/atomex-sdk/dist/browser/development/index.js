@@ -4504,6 +4504,7 @@ var _AuthorizationManager = class {
     __publicField(this, "walletsManager");
     __publicField(this, "store");
     __publicField(this, "authorizationUrl");
+    __publicField(this, "defaultAuthMessage");
     __publicField(this, "expiringNotificationTimeInSeconds");
     __publicField(this, "_authTokenData", /* @__PURE__ */ new Map());
     __publicField(this, "_isStarted", false);
@@ -4526,6 +4527,7 @@ var _AuthorizationManager = class {
     this.atomexNetwork = options.atomexNetwork;
     this.store = options.store;
     this.walletsManager = options.walletsManager;
+    this.defaultAuthMessage = options.authMessage || _AuthorizationManager.DEFAULT_AUTH_MESSAGE;
     atomexUtils_exports.ensureNetworksAreSame(this, this.walletsManager);
     this.authorizationUrl = new URL(_AuthorizationManager.DEFAULT_GET_AUTH_TOKEN_URI, options.authorizationBaseUrl);
     this.expiringNotificationTimeInSeconds = options.expiringNotificationTimeInSeconds || _AuthorizationManager.DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS;
@@ -4556,7 +4558,7 @@ var _AuthorizationManager = class {
     address,
     authTokenSource = 3 /* All */,
     blockchain,
-    authMessage = _AuthorizationManager.DEFAULT_AUTH_MESSAGE
+    authMessage = this.defaultAuthMessage
   }) {
     if ((authTokenSource & 1 /* Local */) === 1 /* Local */) {
       const authToken2 = this.getAuthToken(address) || await this.loadAuthTokenFromStore(address);
@@ -4568,12 +4570,13 @@ var _AuthorizationManager = class {
     const wallet = await this.walletsManager.getWallet(address, blockchain);
     if (!wallet)
       throw new Error(`Not found: the corresponding wallet by the ${address} address`);
-    const timeStamp = this.getAuthorizationTimeStamp(authMessage);
-    const atomexSignature = await wallet.sign(authMessage + timeStamp);
+    const authMessageText = typeof authMessage === "string" ? authMessage : authMessage({ address, blockchain });
+    const timeStamp = this.getAuthorizationTimeStamp(authMessageText);
+    const atomexSignature = await wallet.sign(authMessageText + timeStamp);
     if (atomexSignature.address !== address)
       throw new Error("Invalid address in the signed data");
     const authenticationRequestData = {
-      message: authMessage,
+      message: authMessageText,
       publicKey: atomexSignature.publicKeyBytes,
       algorithm: atomexSignature.algorithm,
       signingDataType: atomexSignature.signingDataType,
@@ -4852,6 +4855,7 @@ var createDefaultAuthorizationManager = (atomexContext, options, _builderOptions
     atomexNetwork: atomexContext.atomexNetwork,
     walletsManager: atomexContext.managers.walletsManager,
     authorizationBaseUrl: options.authorizationBaseUrl,
+    authMessage: options.authMessage,
     store: environment === "browser" ? new LocalStorageAuthorizationManagerStore(options.store.browser.storeStrategy) : new InMemoryAuthorizationManagerStore()
   });
 };
@@ -4954,8 +4958,19 @@ var AtomexBuilder = class {
     return new InMemoryOrderBookProvider();
   }
   createAuthorizationManager() {
+    var _a;
     const defaultAuthorizationManagerOptions = config[this.atomexContext.atomexNetwork].authorization;
-    return this.customAuthorizationManagerFactory ? this.customAuthorizationManagerFactory(this.atomexContext, defaultAuthorizationManagerOptions, this.options) : createDefaultAuthorizationManager(this.atomexContext, defaultAuthorizationManagerOptions, this.options);
+    const authorizationManagerOptions = this.options.authorizationManager ? {
+      authorizationBaseUrl: this.options.authorizationManager.authorizationBaseUrl || defaultAuthorizationManagerOptions.authorizationBaseUrl,
+      authMessage: this.options.authorizationManager.authMessage || defaultAuthorizationManagerOptions.authMessage,
+      store: this.options.authorizationManager.store ? {
+        browser: this.options.authorizationManager.store.browser ? {
+          storeStrategy: this.options.authorizationManager.store.browser.storeStrategy || ((_a = defaultAuthorizationManagerOptions.store.browser) == null ? void 0 : _a.storeStrategy)
+        } : defaultAuthorizationManagerOptions.store.browser,
+        node: this.options.authorizationManager.store.node || defaultAuthorizationManagerOptions.store.node
+      } : defaultAuthorizationManagerOptions.store
+    } : defaultAuthorizationManagerOptions;
+    return this.customAuthorizationManagerFactory ? this.customAuthorizationManagerFactory(this.atomexContext, authorizationManagerOptions, this.options) : createDefaultAuthorizationManager(this.atomexContext, authorizationManagerOptions, this.options);
   }
   createWalletsManager() {
     return this.customWalletsManagerFactory ? this.customWalletsManagerFactory(this.atomexContext, this.options) : new WalletsManager(this.atomexContext.atomexNetwork);

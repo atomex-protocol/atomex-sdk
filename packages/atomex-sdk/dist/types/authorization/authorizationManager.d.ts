@@ -2,7 +2,7 @@ import type { WalletsManager } from '../blockchain/index';
 import type { AtomexService, AtomexNetwork } from '../common/index';
 import { type PublicEventEmitter } from '../core/index';
 import type { AuthorizationManagerStore } from '../stores/index';
-import { AuthenticationRequestData, AuthenticationResponseData, AuthorizationManagerOptions, AuthToken, AuthTokenData, AuthorizationParameters } from './models/index';
+import { AuthenticationRequestData, AuthenticationResponseData, AuthorizationManagerOptions, AuthToken, AuthTokenData, AuthorizationParameters, AuthMessage } from './models/index';
 interface AuthorizationManagerEvents {
     readonly authorized: PublicEventEmitter<readonly [authToken: AuthToken]>;
     readonly unauthorized: PublicEventEmitter<readonly [authToken: AuthToken]>;
@@ -11,13 +11,14 @@ interface AuthorizationManagerEvents {
 }
 export declare class AuthorizationManager implements AtomexService {
     readonly events: AuthorizationManagerEvents;
-    protected static readonly DEFAULT_AUTH_MESSAGE = "Signing in ";
+    protected static readonly DEFAULT_AUTH_MESSAGE: AuthMessage;
     protected static readonly DEFAULT_GET_AUTH_TOKEN_URI = "/v1/token";
     protected static readonly DEFAULT_EXPIRING_NOTIFICATION_TIME_IN_SECONDS = 60;
     readonly atomexNetwork: AtomexNetwork;
     protected readonly walletsManager: WalletsManager;
     protected readonly store: AuthorizationManagerStore;
     protected readonly authorizationUrl: URL;
+    protected readonly defaultAuthMessage: AuthMessage;
     protected readonly expiringNotificationTimeInSeconds: number;
     private readonly _authTokenData;
     private _isStarted;
