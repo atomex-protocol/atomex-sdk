@@ -40,7 +40,7 @@ export declare class AtomexSwapPreviewManager implements Disposable {
         maxOrderPreview?: OrderPreview;
     }>;
     protected getMaxOrderPreview(fromCurrencyBalance: BigNumber, availableLiquidity: SymbolLiquidity): Promise<OrderPreview | undefined>;
-    protected getUserInvolvedSwapsInfo(fromAddress: string | undefined, toAddress: string | undefined, swapCurrencyInfos: SwapCurrencyInfos): Promise<UserInvolvedSwapsInfo | undefined>;
+    protected getUserInvolvedSwapsInfo(authorizedFromAddress: string | undefined, authorizedToAddress: string | undefined, swapCurrencyInfos: SwapCurrencyInfos): Promise<UserInvolvedSwapsInfo | undefined>;
     protected getUserInvolvedSwapsInfoByActiveSwaps(involvedSwaps: readonly Swap[]): Promise<UserInvolvedSwapsInfo>;
     private getOrCreateUserInvolvedSwapsCurrencyInfo;
     protected getInvolvedSwaps(addresses: string[]): Promise<Swap[]>;

@@ -1068,14 +1068,16 @@ var AtomexSwapPreviewManager = class {
   async getSwapPreviewAccountData(_swapPreviewParameters, actualOrderPreview, availableLiquidity, swapCurrencyInfos, swapPreviewFees, errors, _warnings) {
     var _a;
     const [fromAddress, toAddress] = await Promise.all([
-      this.atomexContext.managers.walletsManager.getWallet(void 0, swapCurrencyInfos.fromCurrencyInfo.currency.blockchain).then((wallet) => wallet == null ? void 0 : wallet.getAddress()).then((address) => address && this.atomexContext.managers.authorizationManager.getAuthToken(address) ? address : void 0),
+      this.atomexContext.managers.walletsManager.getWallet(void 0, swapCurrencyInfos.fromCurrencyInfo.currency.blockchain).then((wallet) => wallet == null ? void 0 : wallet.getAddress()),
       this.atomexContext.managers.walletsManager.getWallet(void 0, swapCurrencyInfos.toCurrencyInfo.currency.blockchain).then((wallet) => wallet == null ? void 0 : wallet.getAddress())
     ]);
     let maxOrderPreview;
-    const userInvolvedSwapsInfo = await this.getUserInvolvedSwapsInfo(fromAddress, toAddress, swapCurrencyInfos);
-    if (fromAddress) {
-      let fromCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(fromAddress, swapCurrencyInfos.fromCurrencyInfo.currency);
-      let fromNativeCurrencyBalance = swapCurrencyInfos.isFromCurrencyNative ? fromCurrencyBalance : await this.atomexContext.managers.balanceManager.getBalance(fromAddress, swapCurrencyInfos.fromNativeCurrencyInfo.currency);
+    const authorizedFromAddress = fromAddress && this.atomexContext.managers.authorizationManager.getAuthToken(fromAddress) ? fromAddress : void 0;
+    const authorizedToAddress = toAddress && this.atomexContext.managers.authorizationManager.getAuthToken(toAddress) ? toAddress : void 0;
+    const userInvolvedSwapsInfo = await this.getUserInvolvedSwapsInfo(authorizedFromAddress, authorizedToAddress, swapCurrencyInfos);
+    if (authorizedFromAddress) {
+      let fromCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(authorizedFromAddress, swapCurrencyInfos.fromCurrencyInfo.currency);
+      let fromNativeCurrencyBalance = swapCurrencyInfos.isFromCurrencyNative ? fromCurrencyBalance : await this.atomexContext.managers.balanceManager.getBalance(authorizedFromAddress, swapCurrencyInfos.fromNativeCurrencyInfo.currency);
       if (!fromCurrencyBalance || !fromNativeCurrencyBalance)
         throw new Error("Can not get from currency balances");
       const initialFromCurrencyBalance = fromCurrencyBalance;
@@ -1163,8 +1165,8 @@ var AtomexSwapPreviewManager = class {
         }
       }
     }
-    if (toAddress) {
-      let toNativeCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(toAddress, swapCurrencyInfos.toNativeCurrencyInfo.currency);
+    if (authorizedToAddress) {
+      let toNativeCurrencyBalance = await this.atomexContext.managers.balanceManager.getBalance(authorizedToAddress, swapCurrencyInfos.toNativeCurrencyInfo.currency);
       if (!toNativeCurrencyBalance)
         throw new Error("Can not get to currency balance");
       const maxToNativeCurrencyFee = (_a = swapPreviewFees.success.find((fee) => fee.name === "redeem-fee")) == null ? void 0 : _a.max;
@@ -1215,15 +1217,15 @@ var AtomexSwapPreviewManager = class {
     });
     return maxOrderPreview;
   }
-  async getUserInvolvedSwapsInfo(fromAddress, toAddress, swapCurrencyInfos) {
-    const addresses = fromAddress && toAddress ? fromAddress !== toAddress ? [fromAddress, toAddress].sort() : [fromAddress] : fromAddress ? [fromAddress] : toAddress ? [toAddress] : void 0;
-    if (!addresses)
+  async getUserInvolvedSwapsInfo(authorizedFromAddress, authorizedToAddress, swapCurrencyInfos) {
+    const authorizedAddresses = authorizedFromAddress && authorizedToAddress ? authorizedFromAddress !== authorizedToAddress ? [authorizedFromAddress, authorizedToAddress].sort() : [authorizedFromAddress] : authorizedFromAddress ? [authorizedFromAddress] : authorizedToAddress ? [authorizedToAddress] : void 0;
+    if (!authorizedAddresses)
       return void 0;
-    const cacheKey = this.getUserInvolvedSwapsCacheKey(addresses, swapCurrencyInfos.fromCurrencyInfo.currency.id, swapCurrencyInfos.toCurrencyInfo.currency.id);
+    const cacheKey = this.getUserInvolvedSwapsCacheKey(authorizedAddresses, swapCurrencyInfos.fromCurrencyInfo.currency.id, swapCurrencyInfos.toCurrencyInfo.currency.id);
     let swapsInfo = this.userInvolvedSwapsCache.get(cacheKey);
     if (swapsInfo)
       return swapsInfo;
-    const involvedSwaps = await this.getInvolvedSwaps(addresses);
+    const involvedSwaps = await this.getInvolvedSwaps(authorizedAddresses);
     swapsInfo = await this.getUserInvolvedSwapsInfoByActiveSwaps(involvedSwaps);
     this.userInvolvedSwapsCache.set(cacheKey, swapsInfo);
     return swapsInfo;
