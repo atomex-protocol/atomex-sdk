@@ -2735,8 +2735,8 @@ var ethereumWeb3AtomexProtocolMultiChainABI = [
 var mainnetNativeEthereumWeb3AtomexProtocolMultiChainOptions = {
   atomexProtocolVersion: 1,
   currencyId: "ETH",
-  swapContractAddress: "0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df",
-  swapContractBlockId: "8168569",
+  swapContractAddress: "0xCE2003F56D33f94CF817B2B860534dF6590D4068",
+  swapContractBlockId: "15546351",
   initiateOperation: {
     gasLimit: {
       withoutReward: 2e5,
@@ -5067,7 +5067,7 @@ var config_default = {
     ETH: {
       contracts: {
         mainnet: {
-          address: "0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df",
+          address: "0xCE2003F56D33f94CF817B2B860534dF6590D4068",
           initiateGasLimitWithoutReward: 2e5,
           initiateGasLimitWithReward: 21e4,
           redeemGasLimit: 14e4
