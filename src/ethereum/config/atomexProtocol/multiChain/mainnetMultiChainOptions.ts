@@ -4,8 +4,8 @@ import { ethereumWeb3AtomexProtocolMultiChainABI } from './base';
 const mainnetNativeEthereumWeb3AtomexProtocolMultiChainOptions: EthereumWeb3AtomexProtocolMultiChainOptions = {
   atomexProtocolVersion: 1,
   currencyId: 'ETH',
-  swapContractAddress: '0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df',
-  swapContractBlockId: '8168569',
+  swapContractAddress: '0xCE2003F56D33f94CF817B2B860534dF6590D4068',
+  swapContractBlockId: '15546351',
   initiateOperation: {
     gasLimit: {
       withoutReward: 200000,
