@@ -52,7 +52,7 @@ export default {
     ETH: {
       contracts: {
         mainnet: {
-          address: '0xe9c251cbb4881f9e056e40135e7d3ea9a7d037df',
+          address: '0x2b33e8490a4e87e4ab313ab6785d06fc54cf2e98',
           initiateGasLimitWithoutReward: 200000,
           initiateGasLimitWithReward: 210000,
           redeemGasLimit: 140000
